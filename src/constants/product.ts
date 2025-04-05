@@ -1,4 +1,4 @@
-export const PRODUCT_NAME = 'SwissKnife'
+export const PRODUCT_NAME = 'Swiss Knife'
 export const PRODUCT_URL = 'https://github.com/endomorphosis/swissknife'
 export const PROJECT_FILE = 'swissKnife.md'
 export const PRODUCT_COMMAND = 'swissknife'
