@@ -21,15 +21,15 @@ export interface Theme {
 }
 
 const lightTheme: Theme = {
-  bashBorder: '#ff0087',
+  bashBorder: '#E20612', // Swiss Army Knife red
   claude: '#5f97cd',
-  permission: '#5769f7',
+  permission: '#E20612', // Swiss Army Knife red
   secondaryBorder: '#999',
   text: '#000',
   secondaryText: '#666',
-  suggestion: '#5769f7',
+  suggestion: '#E20612', // Swiss Army Knife red
   success: '#2c7a39',
-  error: '#ab2b3f',
+  error: '#E20612', // Swiss Army Knife red
   warning: '#966c1e',
   diff: {
     added: '#69db7c',
@@ -59,15 +59,15 @@ const lightDaltonizedTheme: Theme = {
 }
 
 const darkTheme: Theme = {
-  bashBorder: '#fd5db1',
+  bashBorder: '#FF0A15', // Brighter Swiss Army Knife red for dark theme
   claude: '#5f97cd',
-  permission: '#b1b9f9',
+  permission: '#FF0A15', // Brighter Swiss Army Knife red for dark theme
   secondaryBorder: '#888',
   text: '#fff',
   secondaryText: '#999',
-  suggestion: '#b1b9f9',
+  suggestion: '#FF0A15', // Brighter Swiss Army Knife red for dark theme
   success: '#4eba65',
-  error: '#ff6b80',
+  error: '#FF0A15', // Brighter Swiss Army Knife red for dark theme
   warning: '#ffc107',
   diff: {
     added: '#225c2b',

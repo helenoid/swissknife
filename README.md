@@ -38,6 +38,77 @@ cd your-project
 kode  # or swissknife
 ```
 
+## Installation by Operating System
+
+### macOS
+
+1. Prerequisites:
+   - Install Node.js 18+ via [official website](https://nodejs.org/) or using homebrew: `brew install node`
+   - Make sure you have Git installed: `brew install git`
+
+2. Install from NPM:
+   ```bash
+   npm install -g anon-kode
+   cd your-project
+   kode
+   ```
+
+3. Or build from source:
+   ```bash
+   git clone https://github.com/endomorphosis/swissknife.git
+   cd swissknife
+   ./install.sh
+   ```
+
+### Windows
+
+1. Prerequisites:
+   - Install Node.js 18+ from the [official website](https://nodejs.org/)
+   - Install Git from [git-scm.com](https://git-scm.com/download/win)
+   - Consider using Windows Terminal for best experience
+
+2. Install from NPM:
+   ```bash
+   npm install -g anon-kode
+   cd your-project
+   kode
+   ```
+
+3. Or build from source (in PowerShell or Command Prompt):
+   ```bash
+   git clone https://github.com/endomorphosis/swissknife.git
+   cd swissknife
+   # On Windows, install dependencies and build manually:
+   npm install --legacy-peer-deps
+   npm install -g bun
+   bun run build
+   npm install -g . --force
+   ```
+
+### Linux
+
+1. Prerequisites:
+   - Install Node.js 18+ via package manager or [NodeSource](https://github.com/nodesource/distributions)
+   - Example for Ubuntu/Debian:
+     ```bash
+     curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+     sudo apt-get install -y nodejs git
+     ```
+
+2. Install from NPM:
+   ```bash
+   npm install -g anon-kode
+   cd your-project
+   kode
+   ```
+
+3. Or build from source:
+   ```bash
+   git clone https://github.com/endomorphosis/swissknife.git
+   cd swissknife
+   ./install.sh
+   ```
+
 The installer script will:
 - Check your Node.js version (requires Node.js 18+)
 - Install Bun if not already installed

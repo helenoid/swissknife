@@ -40,7 +40,7 @@ export function Logo({
   return (
     <Box flexDirection="column">
       <Box
-        borderColor={theme.claude}
+        borderColor="#E20612" // Swiss Army Knife red
         borderStyle="round"
         flexDirection="column"
         gap={1}
@@ -48,8 +48,8 @@ export function Logo({
         width={width}
       >
         <Text>
-          <Text color={theme.claude}>✻</Text> Welcome to{' '}
-          <Text bold>{PRODUCT_NAME}</Text> <Text>research preview!</Text>
+          <Text color="#E20612">✻</Text> Welcome to{' '}
+          <Text bold color="#E20612">{PRODUCT_NAME}</Text> <Text>research preview!</Text>
         </Text>
         <AsciiLogo />
 

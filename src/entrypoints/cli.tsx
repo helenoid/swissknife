@@ -68,6 +68,7 @@ import { handleMcprcServerApprovals } from '../services/mcpServerApproval'
 import { checkGate, initializeStatsig, logEvent } from '../services/statsig'
 import { getExampleCommands } from '../utils/exampleCommands'
 import { cursorShow } from 'ansi-escapes'
+import ansiColors from 'ansi-colors'
 import {
   getLatestVersion,
   installGlobalPackage,
