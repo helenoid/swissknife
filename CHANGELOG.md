@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.0.53]
+- @andrewleech https://github.com/dnakov/anon-kode/pull/103
+- @panayao https://github.com/dnakov/anon-kode/pull/100
+- Fix `kode mcp serve`
+
+## [v0.0.52]
+- @panayao resolve TS errors in claude and openai services, add Prettier
+- Fix grok-3 stream_options error
+
 ## [v0.0.51]
 - Added support for Azure OpenAI Service
   - Created a configuration flow for Azure with resource name and deployment name
