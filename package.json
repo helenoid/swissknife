@@ -1,11 +1,6 @@
 {
-<<<<<<< HEAD
-  "name": "anon-kode",
-  "version": "0.0.53",
-=======
   "name": "swissknife",
-  "version": "0.0.51",
->>>>>>> origin/main
+  "version": "0.0.53",
   "bin": {
     "swissknife": "cli.mjs"
   },
