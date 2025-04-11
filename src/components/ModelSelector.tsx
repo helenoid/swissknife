@@ -11,6 +11,7 @@ import {
   addApiKey,
   ProviderType,
 } from '../utils/config.js'
+import { getSessionState, setSessionState } from '../utils/sessionState'
 import models, { providers } from '../constants/models'
 import TextInput from './TextInput'
 import OpenAI from 'openai'
@@ -200,11 +201,12 @@ export function ModelSelector({
   })
 
   useEffect(() => {
-    if (!apiKeyEdited && selectedProvider) {
-      if (process.env[selectedProvider.toUpperCase() + '_API_KEY']) {
-        setApiKey(
-          process.env[selectedProvider.toUpperCase() + '_API_KEY'] as string,
-        )
+    if(!apiKeyEdited && selectedProvider) {
+      if(process.env[selectedProvider.toUpperCase() + '_API_KEY']) {
+        setApiKey(process.env[selectedProvider.toUpperCase() + '_API_KEY'] as string)
+      } else if(selectedProvider === 'lilypad' && process.env.ANURA_API_KEY) {
+        // Also check for ANURA_API_KEY which is Lilypad's official env var name
+        setApiKey(process.env.ANURA_API_KEY as string)
       } else {
         setApiKey('')
       }
@@ -404,7 +406,21 @@ export function ModelSelector({
         navigateTo('modelInput')
         return []
       }
-
+      
+      // For Lilypad, use our predefined models instead of fetching them
+      // This addresses the "response.data is not iterable" error
+      if (selectedProvider === 'lilypad') {
+        const lilypadModels = models.lilypad || []
+        const formattedModels = lilypadModels.map(model => ({
+          model: model.model,
+          provider: 'lilypad',
+          max_tokens: model.max_tokens
+        }))
+        setAvailableModels(formattedModels)
+        navigateTo('model')
+        return formattedModels
+      }
+      
       // For all other providers, use the OpenAI client
       const baseURL = providers[selectedProvider]?.baseURL
 
@@ -443,18 +459,16 @@ export function ModelSelector({
       return fetchedModels
     } catch (error) {
       // Properly display the error to the user
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-      setModelLoadError(`Failed to load models: ${errorMessage}`)
-
-      // For Ollama specifically, show more helpful guidance
-      if (
-        selectedProvider === 'ollama' &&
-        errorMessage.includes('ECONNREFUSED')
-      ) {
-        setModelLoadError(
-          `Could not connect to Ollama server at ${ollamaBaseUrl}. Make sure Ollama is running and the URL is correct.`,
-        )
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      
+      // Add specific error handling for Lilypad
+      if (selectedProvider === 'lilypad' && (errorMessage.includes('401') || errorMessage.includes('unauthorized'))) {
+        setModelLoadError('Invalid API key for Lilypad. Get an API key from https://anura-testnet.lilypad.tech/');
+      } else if (selectedProvider === 'ollama' && errorMessage.includes('ECONNREFUSED')) {
+        // For Ollama specifically, show more helpful guidance
+        setModelLoadError(`Could not connect to Ollama server at ${ollamaBaseUrl}. Make sure Ollama is running and the URL is correct.`)
+      } else {
+        setModelLoadError(`Failed to load models: ${errorMessage}`);
       }
 
       // Log for debugging, but errors are now shown in UI
@@ -574,9 +588,27 @@ export function ModelSelector({
     if (modelTypeToChange === 'both' || modelTypeToChange === 'large') {
       newConfig.largeModelName = model
       newConfig.largeModelBaseURL = baseURL
-      if (apiKey && requiresApiKey) {
+      
+      // For Lilypad, handle ANURA_API_KEY specially
+      if (provider === 'lilypad' && process.env.ANURA_API_KEY) {
+        const anuraKey = process.env.ANURA_API_KEY;
+        // Make sure largeModelApiKeys exists
+        if (!newConfig.largeModelApiKeys) {
+          newConfig.largeModelApiKeys = [];
+        }
+        // Add the environment API key if not present
+        if (!newConfig.largeModelApiKeys.includes(anuraKey)) {
+          newConfig.largeModelApiKeys.push(anuraKey);
+        }
+        // Also add any user-provided key if different
+        if (apiKey && apiKey !== anuraKey && !newConfig.largeModelApiKeys.includes(apiKey)) {
+          newConfig.largeModelApiKeys.push(apiKey);
+        }
+      } else if (apiKey && requiresApiKey) {
+        // Normal case for other providers
         newConfig.largeModelApiKeys = [apiKey]
       }
+      
       if (maxTokens) {
         newConfig.largeModelMaxTokens = parseInt(maxTokens)
       }
@@ -591,9 +623,27 @@ export function ModelSelector({
     if (modelTypeToChange === 'both' || modelTypeToChange === 'small') {
       newConfig.smallModelName = model
       newConfig.smallModelBaseURL = baseURL
-      if (apiKey && requiresApiKey) {
+      
+      // For Lilypad, handle ANURA_API_KEY specially
+      if (provider === 'lilypad' && process.env.ANURA_API_KEY) {
+        const anuraKey = process.env.ANURA_API_KEY;
+        // Make sure smallModelApiKeys exists
+        if (!newConfig.smallModelApiKeys) {
+          newConfig.smallModelApiKeys = [];
+        }
+        // Add the environment API key if not present
+        if (!newConfig.smallModelApiKeys.includes(anuraKey)) {
+          newConfig.smallModelApiKeys.push(anuraKey);
+        }
+        // Also add any user-provided key if different
+        if (apiKey && apiKey !== anuraKey && !newConfig.smallModelApiKeys.includes(apiKey)) {
+          newConfig.smallModelApiKeys.push(apiKey);
+        }
+      } else if (apiKey && requiresApiKey) {
+        // Normal case for other providers
         newConfig.smallModelApiKeys = [apiKey]
       }
+      
       if (maxTokens) {
         newConfig.smallModelMaxTokens = parseInt(maxTokens)
       }
@@ -604,7 +654,10 @@ export function ModelSelector({
       }
       newConfig.smallModelApiKeyRequired = requiresApiKey
     }
-
+    
+    // Reset session state indices to ensure we start with the first key after changing models
+    setSessionState('currentApiKeyIndex', { small: 0, large: 0 });
+    
     // Save the updated configuration
     saveGlobalConfig(newConfig)
   }
@@ -867,8 +920,10 @@ export function ModelSelector({
             </Text>
             <Box flexDirection="column" width={70}>
               <Text color={theme.secondaryText}>
-                This key will be stored locally and used to access the{' '}
-                {selectedProvider} API.
+                {selectedProvider === 'lilypad' 
+                  ? 'Get an API key from https://anura-testnet.lilypad.tech/'
+                  : `This key will be stored locally and used to access the{' '}
+                ${selectedProvider} API.`}
                 <Newline />
                 Your key is never sent to our servers.
               </Text>
