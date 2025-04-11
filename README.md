@@ -16,7 +16,7 @@ Terminal-based AI coding tool that can use any model that supports the OpenAI-st
 ### Option 1: Install from NPM (stable release)
 
 ```bash
-npm install -g anon-kode
+npm install -g swissknife
 cd your-project
 kode
 ```
@@ -34,8 +34,7 @@ cd swissknife
 npm run install-global
 
 # Use the tool
-cd your-project
-kode  # or swissknife
+cd swissknife
 ```
 
 ## Installation by Operating System
@@ -115,7 +114,7 @@ The installer script will:
 - Install dependencies with appropriate flags
 - Build the project
 - Install the tool globally
-- Create both `kode` and `swissknife` commands
+- Create `swissknife` commands
 
 For more information, run `./install.sh --help`
 
@@ -125,12 +124,12 @@ As long as you have an openai-like endpoint, it should work.
 
 ## USE AS MCP SERVER
 
-Find the full path to `kode` with `which kode` then add the config to Claude Desktop:
+Find the full path to `swissknife` with `which swissknife` then add the config to Claude Desktop:
 ```
 {
   "mcpServers": {
     "claude-code": {
-      "command": "/path/to/kode",
+      "command": "/path/to/swissknife",
       "args": ["mcp", "serve"]
     }
   }
@@ -169,7 +168,7 @@ NODE_ENV=development npm run dev -- --verbose --debug
 2. Test locally with `pnpm run dev` or `npm run dev`
 3. Build with `bun run build`
 4. Install globally with `npm run install-global`
-5. Test the global installation with `kode` or `swissknife`
+5. Test the global installation with `swissknife`
 
 ## BUGS
 
@@ -191,9 +190,6 @@ To uninstall the tool:
 ```bash
 # Uninstall the global package
 npm uninstall -g swissknife
-
-# If you also want to remove the original anon-kode package
-npm uninstall -g anon-kode
 
 # If you installed Bun just for this project and don't need it anymore
 npm uninstall -g bun
