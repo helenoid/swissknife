@@ -2,7 +2,8 @@
   "name": "swissknife",
   "version": "0.0.53",
   "bin": {
-    "swissknife": "cli.mjs"
+    "swissknife": "cli.mjs",
+    "kode": "cli.mjs"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -21,13 +22,15 @@
   },
   "files": [
     "cli.mjs",
-    "yoga.wasm"
+    "yoga.wasm",
+    "install.sh"
   ],
   "scripts": {
     "dev": "tsx ./src/entrypoints/cli.tsx --verbose",
     "build": "bun build src/entrypoints/cli.tsx --minify --outfile cli.mjs --target=node",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\"",
+    "install-global": "./install.sh"
   },
   "optionalDependencies": {
     "@img/sharp-darwin-arm64": "^0.33.5",
