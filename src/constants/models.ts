@@ -775,11 +775,113 @@ export default {
   ],
   "ollama": [
 
+  ],
+  "lilypad": [
+    {
+      "model": "llama3.1:8b",
+      "max_tokens": 8192,
+      "max_input_tokens": 8192,
+      "max_output_tokens": 8192,
+      "input_cost_per_token": 0.0000001,
+      "output_cost_per_token": 0.0000001,
+      "provider": "lilypad",
+      "mode": "chat",
+      "supports_function_calling": true,
+      "supports_tool_choice": true
+    },
+    {
+      "model": "qwen2.5:7b",
+      "max_tokens": 8192,
+      "max_input_tokens": 8192, 
+      "max_output_tokens": 8192,
+      "input_cost_per_token": 0.0000001,
+      "output_cost_per_token": 0.0000001,
+      "provider": "lilypad",
+      "mode": "chat",
+      "supports_function_calling": true,
+      "supports_tool_choice": true
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "max_tokens": 8192,
+      "max_input_tokens": 8192,
+      "max_output_tokens": 8192,
+      "input_cost_per_token": 0.0000001,
+      "output_cost_per_token": 0.0000001,
+      "provider": "lilypad",
+      "mode": "chat",
+      "supports_function_calling": true,
+      "supports_tool_choice": true
+    },
+    {
+      "model": "phi4-mini:3.8b",
+      "max_tokens": 8192,
+      "max_input_tokens": 8192,
+      "max_output_tokens": 8192,
+      "input_cost_per_token": 0.0000001,
+      "output_cost_per_token": 0.0000001,
+      "provider": "lilypad",
+      "mode": "chat",
+      "supports_function_calling": true,
+      "supports_tool_choice": true
+    },
+    {
+      "model": "mistral:7b",
+      "max_tokens": 8192,
+      "max_input_tokens": 8192,
+      "max_output_tokens": 8192,
+      "input_cost_per_token": 0.0000001,
+      "output_cost_per_token": 0.0000001,
+      "provider": "lilypad",
+      "mode": "chat",
+      "supports_function_calling": true,
+      "supports_tool_choice": true
+    },
+    {
+      "model": "llama2:7b",
+      "max_tokens": 8192,
+      "max_input_tokens": 8192,
+      "max_output_tokens": 8192,
+      "input_cost_per_token": 0.0000001,
+      "output_cost_per_token": 0.0000001,
+      "provider": "lilypad",
+      "mode": "chat",
+      "supports_function_calling": false,
+      "supports_tool_choice": false
+    },
+    {
+      "model": "deepseek-r1:7b",
+      "max_tokens": 8192,
+      "max_input_tokens": 8192,
+      "max_output_tokens": 8192,
+      "input_cost_per_token": 0.0000001,
+      "output_cost_per_token": 0.0000001,
+      "provider": "lilypad",
+      "mode": "chat",
+      "supports_function_calling": false,
+      "supports_tool_choice": false
+    },
+    {
+      "model": "sdxl-turbo",
+      "max_tokens": 0,
+      "max_input_tokens": 0,
+      "max_output_tokens": 0,
+      "input_cost_per_token": 0,
+      "output_cost_per_token": 0,
+      "provider": "lilypad",
+      "mode": "image",
+      "supports_function_calling": false,
+      "supports_tool_choice": false
+    }
   ]
 }
 
 
 export const providers = {
+  "lilypad": {
+    "name": "Lilypad",
+    "baseURL": "https://anura-testnet.lilypad.tech/api/v1"
+  },
   "openai": {
     "name": "OpenAI",
     "baseURL": "https://api.openai.com/v1"

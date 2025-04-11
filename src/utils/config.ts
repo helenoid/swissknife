@@ -96,6 +96,7 @@ export type ProviderType =
   | 'gemini'
   | 'ollama'
   | 'azure'
+  | 'lilypad'
   | 'custom'
 
 export type AccountInfo = {
@@ -675,12 +676,39 @@ export function getActiveApiKey(config: GlobalConfig, type: 'small' | 'large', r
   }
   const failedKeys = getSessionState('failedApiKeys')[type]
   keyArray = keyArray.filter(key => !failedKeys.includes(key)).filter(key => key && key !== '')
+  
+  // If using Lilypad and no key found, check ANURA_API_KEY as fallback
+  if (config.primaryProvider === 'lilypad') {
+    const anuraKey = process.env.ANURA_API_KEY;
+    if (anuraKey) {
+      // Add the key to the config if it's not already there
+      if (!keyArray.includes(anuraKey)) {
+        addApiKey(config, anuraKey, type);
+        // Reload the key array after adding the new key
+        keyArray = type === 'small' ? config.smallModelApiKeys : config.largeModelApiKeys;
+        if(!keyArray) {
+          keyArray = [];
+        }
+        keyArray = keyArray.filter(key => !failedKeys.includes(key)).filter(key => key && key !== '');
+      }
+      
+      // If keyArray is still empty, return the environment variable directly
+      if (keyArray.length === 0) {
+        return anuraKey;
+      }
+    }
+  }
+  
   if (!keyArray || keyArray.length === 0) {
     return undefined
   }
 
-  // Get the current index from session state or start at 0
-  const currentIndex = getSessionState('currentApiKeyIndex')[type]
+  // Get the current index from session state, with proper bound checking
+  let currentIndex = getSessionState('currentApiKeyIndex')[type]
+  if (currentIndex < 0 || currentIndex >= keyArray.length) {
+    currentIndex = 0;
+  }
+  
   if(!roundRobin) {
     return keyArray[currentIndex]
   }

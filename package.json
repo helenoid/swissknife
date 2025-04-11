@@ -1,23 +1,23 @@
 {
-  "name": "anon-kode",
+  "name": "swissknife",
   "version": "0.0.51",
   "bin": {
-    "kode": "cli.mjs"
+    "swissknife": "cli.mjs"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "type": "module",
-  "author": "Anon Kode <anon@kode.com>",
+  "author": "swissknife <info@swissknife.com>",
   "license": "",
-  "description": "Use Anon Kode, Anon's AI assistant, right from your terminal. Anon Kode can understand your codebase, edit files, run terminal commands, and handle entire workflows for you.",
-  "homepage": "https://github.com/dnakov/anon-kode",
+  "description": "Use swissknife, an AI assistant, right from your terminal. swissknife can understand your codebase, edit files, run terminal commands, and handle entire workflows for you.",
+  "homepage": "https://github.com/endomorphosis/swissknife",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dnakov/anon-kode.git"
+    "url": "https://github.com/endomorphosis/swissknife.git"
   },
   "bugs": {
-    "url": "https://github.com/dnakov/anon-kode/issues"
+    "url": "https://github.com/endomorphosis/swissknife/issues"
   },
   "files": [
     "cli.mjs",
