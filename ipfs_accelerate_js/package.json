@@ -1,0 +1,103 @@
+{
+  "name": "ipfs-accelerate-js",
+  "version": "0.4.0",
+  "description": "JavaScript SDK for accelerating AI models in web browsers using WebGPU, WebNN, and IPFS optimization",
+  "main": "dist/ipfs-accelerate.js",
+  "module": "dist/ipfs-accelerate.esm.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:browser": "karma start",
+    "lint": "eslint --ext .ts,.js src/",
+    "docs": "typedoc --out docs/api src/",
+    "clean": "rimraf dist coverage docs/api",
+    "prepublishOnly": "npm run clean && npm run build",
+    "benchmark": "node scripts/benchmark.js",
+    "benchmark:webgpu": "ts-node test/performance/webgpu_optimizer/run_optimizer_benchmarks.ts",
+    "benchmark:webgpu:all": "ts-node test/performance/webgpu_optimizer/run_optimizer_benchmarks.ts --test=all",
+    "benchmark:webgpu:matmul": "ts-node test/performance/webgpu_optimizer/run_optimizer_benchmarks.ts --test=matmul",
+    "benchmark:webgpu:memory-layout": "ts-node test/performance/webgpu_optimizer/run_optimizer_benchmarks.ts --test=memory",
+    "benchmark:webgpu:operation-fusion": "ts-node test/performance/webgpu_optimizer/run_optimizer_benchmarks.ts --test=fusion",
+    "benchmark:webgpu:neural-network": "ts-node test/performance/webgpu_optimizer/run_optimizer_benchmarks.ts --test=neural",
+    "benchmark:webgpu:browser": "python test/performance/webgpu_optimizer/run_benchmarks.py",
+    "benchmark:webgpu:report": "ts-node test/performance/webgpu_optimizer/run_optimizer_benchmarks.ts --generate-report --open",
+    "benchmark:webgpu:comprehensive": "node test/performance/webgpu_optimizer/run_comprehensive_benchmarks.js",
+    "benchmark:webgpu:dashboard": "node test/performance/webgpu_optimizer/dashboard/generate_dashboard.js",
+    "benchmark:webgpu:correctness": "jest test/performance/webgpu_optimizer/test_optimizer_correctness.ts",
+    "test:webgpu:correctness": "jest test/performance/webgpu_optimizer/test_optimizer_correctness.ts",
+    "examples": "http-server examples -p 8080",
+    "type-check": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/organization/ipfs-accelerate-js.git"
+  },
+  "keywords": [
+    "webgpu",
+    "webnn",
+    "ai",
+    "machine-learning",
+    "browser",
+    "acceleration",
+    "ipfs",
+    "p2p"
+  ],
+  "author": "IPFS Accelerate Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/organization/ipfs-accelerate-js/issues"
+  },
+  "homepage": "https://github.com/organization/ipfs-accelerate-js#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/jest": "^29.5.0",
+    "@types/react": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.54.0",
+    "eslint": "^8.35.0",
+    "http-server": "^14.1.1",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "karma": "^6.4.0",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-firefox-launcher": "^2.1.0",
+    "karma-jasmine": "^5.1.0",
+    "rimraf": "^4.4.0",
+    "rollup": "^3.20.0",
+    "rollup-plugin-terser": "^7.0.0",
+    "ts-jest": "^29.1.0",
+    "tslib": "^2.5.0",
+    "typedoc": "^0.24.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^17.0.10"
+  },
+  "dependencies": {
+    "idb": "^7.1.0"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Edge versions",
+    "last 2 Safari versions"
+  ]
+}

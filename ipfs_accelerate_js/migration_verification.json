@@ -1,0 +1,27 @@
+{
+  "timestamp": "1741689106",
+  "date": "Tue Mar 11 03:31:46 AM PDT 2025",
+  "statistics": {
+    "copied_key_files": 15,
+    "copied_additional_files": 19,
+    "errors": 0,
+    "empty_directories_before_placeholders": 9
+  },
+  "file_counts_by_extension": {
+    "ts": 20,
+"js": 4,
+"wgsl": 3,
+"md": 3,
+"jsx": 3,
+"json": 2,
+"html": 1,
+"gitignore": 1
+  },
+  "source_files_analyzed": 28,
+  "next_steps": [
+    "Install dependencies with 'npm install'",
+    "Fix any remaining import path issues",
+    "Implement missing functionality in placeholder files",
+    "Set up testing infrastructure"
+  ]
+}
