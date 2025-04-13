@@ -1,0 +1,96 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/eval_suites/core/developer_search_replace/search_replace.rs",
+  "fileSize": 4040,
+  "lineCount": 117,
+  "structures": {
+    "structs": [
+      {
+        "name": "DeveloperSearchReplace",
+        "fields": [],
+        "position": 315
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "DeveloperSearchReplace",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 353
+      },
+      {
+        "type": "DeveloperSearchReplace",
+        "trait": "Evaluation",
+        "methods": [
+          {
+            "name": "run",
+            "params": "&self,\n        agent: &mut BenchAgent,\n        run_loc: &mut BenchmarkWorkDir,",
+            "returnType": "anyhow::Result<Vec<(String, EvalMetricValue)>>"
+          }
+        ],
+        "position": 468
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 387
+      },
+      {
+        "name": "run",
+        "params": "&self,\n        agent: &mut BenchAgent,\n        run_loc: &mut BenchmarkWorkDir,",
+        "returnType": "anyhow::Result<Vec<(String, EvalMetricValue)>>",
+        "position": 523
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "&str",
+        "position": 3697
+      },
+      {
+        "name": "required_extensions",
+        "params": "&self",
+        "returnType": "ExtensionRequirements",
+        "position": 3768
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "crate::bench_session::BenchAgent",
+        "position": 0
+      },
+      {
+        "path": "crate::bench_work_dir::BenchmarkWorkDir",
+        "position": 38
+      },
+      {
+        "path": "crate::eval_suites::{\n    collect_baseline_metrics, metrics_hashmap_to_vec, EvalMetricValue, Evaluation,\n    ExtensionRequirements,\n}",
+        "position": 83
+      },
+      {
+        "path": "crate::register_evaluation",
+        "position": 222
+      },
+      {
+        "path": "async_trait::async_trait",
+        "position": 254
+      },
+      {
+        "path": "std::fs",
+        "position": 284
+      }
+    ]
+  }
+}

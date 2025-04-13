@@ -1,464 +1,225 @@
-# SwissKnife Testing Guide for Junior Developers
+# SwissKnife Testing Framework
 
-This directory contains tests for the SwissKnife application. This guide will help you understand how testing works in the project and how to create effective tests for your contributions.
+This document provides an overview of the testing framework created for the SwissKnife project, focusing on the Phase 1 implementation.
 
-## Getting Started with Testing
+## Overview
 
-### Running Tests
+The SwissKnife testing framework is designed to support comprehensive testing of all components in the system, from individual units to full end-to-end workflows. It provides mock implementations, fixtures, and utilities to make testing easier and more consistent.
 
-To run all tests:
+## Directory Structure
 
-```bash
-npm test
-# or
-pnpm test
+```
+/test
+├── unit/                  # Unit tests for individual components
+│   ├── commands/          # Command system tests
+│   ├── config/            # Configuration system tests
+│   ├── integration/       # Integration bridge tests
+│   ├── models/            # Model system tests
+│   ├── workers/           # Worker system tests
+│   └── tasks/             # Task system tests
+│
+├── integration/           # Integration tests between components
+│   ├── command-config/    # Command and config integration
+│   ├── model-integration/ # Model provider integration
+│   ├── worker-task/       # Worker and task integration
+│   └── cli-service/       # CLI and service integration
+│
+├── e2e/                   # End-to-end workflow tests
+│   ├── cli/               # CLI workflow tests
+│   ├── task-execution/    # Complete task execution workflows
+│   └── model-execution/   # Complete model execution workflows
+│
+├── mocks/                 # Mock implementations for testing
+│   ├── bridges/           # Mock integration bridges
+│   ├── services/          # Mock services
+│   ├── models/            # Mock model providers
+│   ├── workers/           # Mock worker threads
+│   ├── config/            # Mock configuration
+│   ├── tasks/             # Mock task system
+│   └── graph/             # Mock Graph-of-Thought system
+│
+├── fixtures/              # Test data fixtures
+│   ├── commands/          # Command test data
+│   ├── config/            # Configuration test data
+│   ├── tasks/             # Task test data
+│   └── models/            # Model test data
+│
+├── utils/                 # Test utilities
+│   ├── test-helpers.js    # Common test helper functions
+│   ├── cli-runner.js      # CLI execution utilities
+│   └── setup.js           # Test environment setup
+│
+└── examples/              # Example tests showcasing the framework
+    ├── complex-workflow.test.js        # Example of a complex workflow test
+    ├── worker-task-integration.test.js # Example of worker-task integration
+    ├── cli-workflow-e2e.test.js        # Example of CLI end-to-end test
+    └── graph/                          # Graph-of-Thought examples
+        └── graph-of-thought.test.js    # Example of GoT system testing
 ```
 
-To run a specific test:
+## Key Components
 
-```bash
-npm test -- api_key_persistence.test.js
-# or
-pnpm test -- api_key_persistence.test.js
-```
+### Mock Implementations
 
-To run tests with coverage information:
+Mock implementations provide replacements for real system components, allowing isolated testing:
 
-```bash
-npm test -- --coverage
-# or
-pnpm test -- --coverage
-```
+- **Bridges**: Mock implementations of integration bridges between components (`mock-bridge.js`, `specific-bridges.js`)
+- **Models**: Mock implementations of models and providers (`mock-models.js`)
+- **Workers**: Mock implementation of workers and worker pools (`mock-workers.js`)
+- **Config**: Mock implementation of configuration system (`mock-config.js`)
+- **Tasks**: Mock implementation of task system (`mock-tasks.js`)
+- **Services**: Mock implementations of various services (`mock-services.js`)
+- **Graph**: Mock implementation of Graph-of-Thought system (`mock-graph-of-thought.js`)
 
-### Test Files Overview
+### Test Fixtures
 
-- `api_key_persistence.test.js`: Tests API key persistence between application restarts, round-robin key selection, and environment variable integration
-- `model_selector.test.js`: Tests the ModelSelector component that handles model configuration, API key input, and the selection workflow
+Fixtures provide standardized test data for tests:
 
-## Writing Your First Test
+- **Commands**: Sample command definitions and execution contexts (`commands.js`)
+- **Config**: Sample configuration data and schemas (`config.js`)
+- **Tasks**: Sample task definitions and instances (`tasks.js`)
+- **Models**: Sample models, providers, and responses (`models.js`)
 
-### Test Structure and Conventions
+### Test Utilities
 
-We use Jest for testing with the following structure:
+Utilities provide helper functions for common testing operations:
+
+- **Test Helpers**: Common test utilities like wait functions, mocking helpers (`test-helpers.js`)
+- **CLI Runner**: Utility for running and testing CLI commands (`cli-runner.js`)
+- **Setup**: Utilities for setting up test environments (`setup.js`)
+
+### Example Tests
+
+Example tests demonstrate how to use the framework for different testing scenarios:
+
+- **Complex Workflow**: Testing a workflow involving multiple components
+- **Worker-Task Integration**: Testing interaction between worker and task systems
+- **CLI End-to-End**: Testing complete CLI workflows
+- **Graph-of-Thought**: Testing the Graph-of-Thought reasoning system
+
+## How to Use
+
+### Setting Up a Test Environment
+
+Use the `createTestEnvironment` function from `test/utils/setup.js` to create a complete test environment with all necessary mocks:
 
 ```javascript
-/**
- * Component Name Tests
- * 
- * Brief description of what these tests verify
- */
+const { createTestEnvironment, setupGlobalMocks } = require('../utils/setup');
 
-// Mock imports first
-jest.mock('../src/utils/config.js', () => ({
-  getGlobalConfig: jest.fn(),
-  saveGlobalConfig: jest.fn(),
-}));
-
-// Then any test setup
-const mockData = {
-  // Test data...
-};
-
-// Group tests in describe blocks
-describe('Component Name', () => {
-  // Setup that runs before each test
-  beforeEach(() => {
-    jest.clearAllMocks();
-    // Reset test state...
-  });
-  
-  // Individual test cases
-  test('should do something specific', () => {
-    // Arrange - set up test conditions
-    const input = 'test value';
-    
-    // Act - call the function being tested
-    const result = functionUnderTest(input);
-    
-    // Assert - verify the results
-    expect(result).toBe(expectedOutput);
-  });
-  
-  // More test cases...
+// Create test environment with options
+const env = createTestEnvironment({
+  // Use custom configuration
+  config: { 
+    models: { default: 'gpt-4' } 
+  },
+  // Register specific providers
+  providers: [sampleProviders.openai],
+  // Configure task processing
+  taskErrorRate: 0.2,
+  taskProcessingTime: 100
 });
 
-// Additional describe blocks for related functionality
-describe('Component Integration', () => {
-  // Integration tests...
-});
+// Optionally set up global mocks
+const cleanup = setupGlobalMocks(env);
+
+// When finished
+if (cleanup) cleanup();
 ```
 
-### Practical Example from the Codebase
+### Using Mock Components
 
-Here's an example from `api_key_persistence.test.js`:
+Mock components can be used directly in tests:
 
 ```javascript
-describe('API Key Persistence', () => {
-  // Reset mocks before each test
-  beforeEach(() => {
-    mockSessionState = {
-      currentApiKeyIndex: { small: 0, large: 0 },
-      failedApiKeys: { small: [], large: [] },
-    };
-    
-    Object.assign(mockConfig, {
-      primaryProvider: 'lilypad',
-      largeModelApiKeys: ['test-api-key-1', 'test-api-key-2'],
-      smallModelApiKeys: ['test-api-key-3', 'test-api-key-4'],
-    });
-  });
+const { MockTaskManager } = require('../../mocks/tasks/mock-tasks');
+const { MockWorkerPool } = require('../../mocks/workers/mock-workers');
 
-  // Test getting the active API key
-  test('getActiveApiKey returns the correct API key', () => {
-    const key = getActiveApiKey(mockConfig, 'large', false);
-    expect(key).toBe('test-api-key-1');
-  });
-  
-  // Test round-robin API key selection
-  test('getActiveApiKey rotates keys when roundRobin is true', () => {
-    // First call
-    const key1 = getActiveApiKey(mockConfig, 'large', true);
-    expect(key1).toBe('test-api-key-2'); // Moves from index 0 to 1
-    
-    // Second call
-    const key2 = getActiveApiKey(mockConfig, 'large', true);
-    expect(key2).toBe('test-api-key-1'); // Rotates back to 0
-  });
-});
+// Create mock components
+const taskManager = new MockTaskManager();
+const workerPool = new MockWorkerPool({ size: 2 });
+
+// Use the mocks in tests
+await workerPool.initialize();
+const taskId = await taskManager.createTask('echo', { message: 'Test' });
+await taskManager.executeTask(taskId);
+
+// Verify mock behavior
+expect(taskManager.createCalls).toHaveLength(1);
+expect(taskManager.executeCalls).toHaveLength(1);
 ```
 
-## Essential Testing Techniques
+### Using Test Fixtures
 
-### 1. Mock External Dependencies
-
-We mock external dependencies to isolate components for testing:
+Fixtures provide standard test data:
 
 ```javascript
-// Mock the config module
-jest.mock('../src/utils/config.js', () => ({
-  getGlobalConfig: jest.fn().mockReturnValue({
-    primaryProvider: 'lilypad',
-    largeModelApiKeys: ['test-key'],
-  }),
-  saveGlobalConfig: jest.fn().mockReturnValue(true),
-  addApiKey: jest.fn(),
-}));
+const { sampleCommands } = require('../../fixtures/commands/commands');
+const { sampleConfigurations } = require('../../fixtures/config/config');
 
-// Mock environment variables
-process.env.ANURA_API_KEY = 'mock-anura-api-key';
+// Use sample command in tests
+const command = sampleCommands.withOptions;
+expect(command.options).toHaveLength(3);
 
-// Mock React hooks if needed
-jest.mock('react', () => {
-  const originalReact = jest.requireActual('react');
-  return {
-    ...originalReact,
-    useState: jest.fn().mockImplementation((initialValue) => [
-      initialValue,
-      jest.fn(),
-    ]),
-  };
-});
+// Use sample configuration in tests
+const config = sampleConfigurations.basic;
+expect(config.models.default).toBe('gpt-4');
 ```
 
-### 2. Test State Changes
+### Using Test Utilities
 
-For components that manage state, test state transitions:
+Utilities provide helper functions for tests:
 
 ```javascript
-test('handleApiKeySubmit correctly updates state', () => {
-  // Create a mock instance with a setState spy
-  const component = new ComponentUnderTest();
-  const setStateSpy = jest.spyOn(component, 'setState');
-  
-  // Call the method
-  component.handleApiKeySubmit('new-api-key');
-  
-  // Verify state was updated correctly
-  expect(setStateSpy).toHaveBeenCalledWith(
-    expect.objectContaining({
-      apiKey: 'new-api-key',
-      isLoadingModels: true,
-    })
-  );
-});
+const { wait, waitForCondition } = require('../../utils/test-helpers');
+const { CLIRunner } = require('../../utils/cli-runner');
+
+// Wait for async operations
+await wait(100);
+
+// Wait for a condition
+const ready = await waitForCondition(() => service.isReady());
+
+// Run CLI commands
+const cliRunner = new CLIRunner();
+const result = await cliRunner.run('help');
+expect(result.exitCode).toBe(0);
 ```
-
-### 3. Test Complete Workflows
-
-Test entire flows to ensure components work together:
-
-```javascript
-test('Full flow from selection to confirmation', () => {
-  // Create a mock instance
-  const onDone = jest.fn();
-  const modelSelector = new ModelSelector({ onDone });
-  
-  // Mock all required methods
-  modelSelector.handleProviderSelection = jest.fn();
-  modelSelector.handleApiKeySubmit = jest.fn();
-  modelSelector.handleModelSelection = jest.fn();
-  modelSelector.saveConfiguration = jest.fn();
-  
-  // Execute the full flow
-  modelSelector.handleProviderSelection('lilypad');
-  modelSelector.handleApiKeySubmit('test-key');
-  modelSelector.handleModelSelection('llama3.1:8b');
-  modelSelector.handleConfirmation();
-  
-  // Verify the expected outcome
-  expect(modelSelector.saveConfiguration).toHaveBeenCalledWith(
-    'lilypad', 'llama3.1:8b'
-  );
-  expect(onDone).toHaveBeenCalled();
-});
-```
-
-### 4. Test Error Handling
-
-Always test how your code handles errors:
-
-```javascript
-test('fetchModels handles API errors properly', async () => {
-  // Mock a failed API call
-  global.fetch = jest.fn().mockImplementation(() => {
-    throw new Error('API error: 401 Unauthorized');
-  });
-  
-  // Create component with error tracking
-  const component = new ComponentUnderTest();
-  component.setModelLoadError = jest.fn();
-  
-  // Call the method that should handle the error
-  await component.fetchModels();
-  
-  // Verify error was handled properly
-  expect(component.setModelLoadError).toHaveBeenCalledWith(
-    'Invalid API key. Get a valid API key from the provider.'
-  );
-});
-```
-
-## Common Testing Patterns in SwissKnife
-
-### Testing API Key Management
-
-The `api_key_persistence.test.js` file demonstrates how to test:
-
-1. **Key Selection Logic**:
-   ```javascript
-   test('getActiveApiKey returns the correct API key', () => {
-     const key = getActiveApiKey(mockConfig, 'large', false);
-     expect(key).toBe('test-api-key-1');
-   });
-   ```
-
-2. **Round-Robin Selection**:
-   ```javascript
-   test('getActiveApiKey rotates keys when roundRobin is true', () => {
-     const key1 = getActiveApiKey(mockConfig, 'large', true);
-     expect(key1).toBe('test-api-key-2');
-     
-     const key2 = getActiveApiKey(mockConfig, 'large', true);
-     expect(key2).toBe('test-api-key-1');
-   });
-   ```
-
-3. **Environment Variable Fallback**:
-   ```javascript
-   test('getActiveApiKey uses environment variable as fallback', () => {
-     // Clear the API keys array
-     mockConfig.largeModelApiKeys = [];
-     
-     const key = getActiveApiKey(mockConfig, 'large');
-     expect(key).toBe('env-api-key');
-   });
-   ```
-
-4. **Failed Key Handling**:
-   ```javascript
-   test('getActiveApiKey filters out failed API keys', () => {
-     // Mark the first key as failed
-     mockSessionState.failedApiKeys.large = ['test-api-key-1'];
-     
-     const key = getActiveApiKey(mockConfig, 'large', false);
-     expect(key).toBe('test-api-key-2'); // Should skip the failed key
-   });
-   ```
-
-### Testing Model Selection
-
-The `model_selector.test.js` file demonstrates how to test:
-
-1. **Provider Selection**:
-   ```javascript
-   test('handleProviderSelection updates state correctly', () => {
-     component.handleProviderSelection('lilypad');
-     expect(component.state.selectedProvider).toBe('lilypad');
-     expect(component.navigateTo).toHaveBeenCalledWith('api-key');
-   });
-   ```
-
-2. **API Key Submission**:
-   ```javascript
-   test('handleApiKeySubmit correctly processes API keys', () => {
-     component.handleApiKeySubmit('user-provided-key');
-     expect(component.state.apiKey).toBe('user-provided-key');
-     expect(component.fetchModels).toHaveBeenCalled();
-   });
-   ```
-
-3. **Model Fetching**:
-   ```javascript
-   test('fetchModels handles Lilypad specially', async () => {
-     await component.fetchModels();
-     expect(component.navigateTo).toHaveBeenCalledWith('model');
-     expect(component.setAvailableModels).toHaveBeenCalled();
-   });
-   ```
-
-4. **Configuration Saving**:
-   ```javascript
-   test('saveConfiguration adds environment variable API key to config', () => {
-     component.saveConfiguration('lilypad', 'llama3.1:8b');
-     expect(saveGlobalConfig).toHaveBeenCalled();
-     expect(setSessionState).toHaveBeenCalledWith(
-       'currentApiKeyIndex', 
-       { small: 0, large: 0 }
-     );
-   });
-   ```
 
 ## Testing Best Practices
 
-1. **Test One Thing Per Test**: Each test should verify one specific aspect of functionality.
+1. **Use Mocks for Isolation**: Use mock implementations to isolate components during testing.
+2. **Test at All Levels**: Write unit, integration, and end-to-end tests as appropriate.
+3. **Use Fixtures for Consistency**: Use test fixtures for standardized test data.
+4. **Make Tests Deterministic**: Avoid relying on external services or random behavior.
+5. **Test Error Paths**: Test how components handle errors, not just the happy path.
+6. **Keep Tests Fast**: Tests should run quickly, especially unit and integration tests.
+7. **Use Clear Assertions**: Each test should have clear and specific assertions.
+8. **Use Descriptive Names**: Test and describe blocks should clearly indicate what they test.
 
-2. **Use Descriptive Test Names**: Name tests with clear descriptions of what they test.
-   ```javascript
-   // Good
-   test('getActiveApiKey rotates keys when roundRobin is true', () => {
-     // Test code...
-   });
-   
-   // Bad
-   test('round robin works', () => {
-     // Test code...
-   });
-   ```
+## Running Tests
 
-3. **Arrange, Act, Assert**: Structure tests in three parts:
-   - Arrange: Set up test conditions
-   - Act: Call the function or method being tested
-   - Assert: Verify the results
+Use the scripts in `package.json` to run tests:
 
-4. **Mock External Dependencies**: Don't test external libraries or APIs; mock them instead.
+```bash
+# Run all tests
+npm test
 
-5. **Reset State Between Tests**: Use `beforeEach()` to reset state for each test.
+# Run only unit tests
+npm run test:unit
 
-6. **Test Edge Cases**: Include tests for boundary conditions and error scenarios.
+# Run only integration tests
+npm run test:integration
 
-7. **Keep Tests Fast**: Tests should run quickly to encourage running them often.
+# Run only end-to-end tests
+npm run test:e2e
 
-## Testing Advanced Components
+# Run tests with coverage
+npm run test:coverage
 
-### Testing React Components with Ink
-
-For React components using Ink (terminal UI):
-
-```javascript
-// Mock Ink components
-jest.mock('ink', () => ({
-  Box: ({ children }) => mockRender(children),
-  Text: ({ children }) => mockRender(children),
-  useInput: jest.fn(),
-}));
-
-// Test rendering and state changes
-test('Component renders with correct initial state', () => {
-  const component = new ComponentUnderTest();
-  
-  // Verify initial state
-  expect(component.state.currentScreen).toBe('provider');
-  
-  // Verify rendering
-  component.render();
-  expect(mockRender).toHaveBeenCalledWith(
-    expect.stringContaining('Select Provider')
-  );
-});
+# Run tests in watch mode (for development)
+npm run test:watch
 ```
 
-### Testing Async Functions
+## Continuous Integration
 
-For asynchronous code:
-
-```javascript
-test('async function returns correct result', async () => {
-  // Mock any async dependencies
-  global.fetch = jest.fn().mockResolvedValue({
-    ok: true,
-    json: async () => ({ result: 'success' }),
-  });
-  
-  // Call the async function
-  const result = await asyncFunctionUnderTest();
-  
-  // Verify the result
-  expect(result).toEqual({ result: 'success' });
-});
-```
-
-## Creating New Test Files
-
-When adding a new component or feature, create a corresponding test file:
-
-1. Name the file after the component: `ComponentName.test.js`
-2. Place it in the `test/` directory
-3. Include a comment header explaining what the test covers
-4. Set up any required mocks
-5. Write comprehensive tests for the component's functionality
-6. Test both success and error cases
-7. Test integration with other components when relevant
-
-## Common Issues and Solutions
-
-### Issue: Tests Not Finding Modules
-
-```
-Error: Cannot find module '../src/components/ComponentName'
-```
-
-**Solution**: Check import paths. Remember that test files are in the `test/` directory, not `src/`.
-
-### Issue: Mock Not Working
-
-```
-Expected mock function to have been called, but it was not called.
-```
-
-**Solution**: Check if the mock is correctly set up and if the function is being called with the expected parameters.
-
-```javascript
-// Verify the mock was called with the right arguments
-expect(mockFunction).toHaveBeenCalledWith(expectedArg);
-
-// Check actual calls to debug
-console.log('Mock calls:', mockFunction.mock.calls);
-```
-
-### Issue: State Not Updating in Tests
-
-**Solution**: If testing React components, make sure to call setState directly in tests:
-
-```javascript
-// Directly update state for testing
-component.setState({ key: 'value' });
-
-// Verify component behavior after state change
-expect(component.render()).toContain('Expected Output');
-```
-
-## Need More Help?
-
-- Refer to existing test files for examples
-- Check the [Jest documentation](https://jestjs.io/docs/getting-started)
-- Ask for help from senior developers on the team
+Tests are automatically run on CI using GitHub Actions whenever code is pushed or a pull request is opened against the main branch. See `.github/workflows/test.yml` for details.

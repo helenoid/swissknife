@@ -1,0 +1,184 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/computercontroller/docx_tool.rs",
+  "fileSize": 32685,
+  "lineCount": 872,
+  "structures": {
+    "structs": [
+      {
+        "name": "DocxStyle",
+        "fields": [
+          {
+            "name": "bold",
+            "type": "bool"
+          },
+          {
+            "name": "italic",
+            "type": "bool"
+          },
+          {
+            "name": "underline",
+            "type": "bool"
+          },
+          {
+            "name": "size",
+            "type": "Option<usize>"
+          },
+          {
+            "name": "color",
+            "type": "Option<String>"
+          },
+          {
+            "name": "alignment",
+            "type": "Option<AlignmentType>"
+          }
+        ],
+        "position": 482
+      }
+    ],
+    "enums": [
+      {
+        "name": "UpdateMode",
+        "variants": [
+          "Append",
+          "Replace",
+          "old_text",
+          "String"
+        ],
+        "position": 129
+      }
+    ],
+    "traits": [],
+    "impls": [
+      {
+        "type": "DocxStyle",
+        "trait": null,
+        "methods": [
+          {
+            "name": "from_json",
+            "params": "value: &serde_json::Value",
+            "returnType": "Option<Self>"
+          }
+        ],
+        "position": 649
+      }
+    ],
+    "functions": [
+      {
+        "name": "from_json",
+        "params": "value: &serde_json::Value",
+        "returnType": "Option<Self>",
+        "position": 670
+      },
+      {
+        "name": "apply_to_run",
+        "params": "&self, run: Run",
+        "returnType": "Run",
+        "position": 1700
+      },
+      {
+        "name": "apply_to_paragraph",
+        "params": "&self, para: Paragraph",
+        "returnType": "Paragraph",
+        "position": 2176
+      },
+      {
+        "name": "docx_tool",
+        "params": "path: &str,\n    operation: &str,\n    content: Option<&str>,\n    params: Option<&serde_json::Value>,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 2400
+      },
+      {
+        "name": "test_docx_text_extraction",
+        "params": "",
+        "returnType": null,
+        "position": 22814
+      },
+      {
+        "name": "test_docx_update_append",
+        "params": "",
+        "returnType": null,
+        "position": 23603
+      },
+      {
+        "name": "test_docx_update_styled",
+        "params": "",
+        "returnType": null,
+        "position": 24975
+      },
+      {
+        "name": "test_docx_update_replace",
+        "params": "",
+        "returnType": null,
+        "position": 25947
+      },
+      {
+        "name": "test_docx_add_image",
+        "params": "",
+        "returnType": null,
+        "position": 27759
+      },
+      {
+        "name": "test_docx_invalid_path",
+        "params": "",
+        "returnType": null,
+        "position": 29411
+      },
+      {
+        "name": "test_docx_invalid_operation",
+        "params": "",
+        "returnType": null,
+        "position": 29630
+      },
+      {
+        "name": "test_docx_update_without_content",
+        "params": "",
+        "returnType": null,
+        "position": 30087
+      },
+      {
+        "name": "test_docx_update_preserve_content",
+        "params": "",
+        "returnType": null,
+        "position": 30476
+      }
+    ],
+    "modules": [
+      {
+        "name": "tests",
+        "inline": true,
+        "position": 22700
+      }
+    ],
+    "uses": [
+      {
+        "path": "docx_rs::*",
+        "position": 0
+      },
+      {
+        "path": "image::{self, ImageFormat}",
+        "position": 16
+      },
+      {
+        "path": "mcp_core::{Content, ToolError}",
+        "position": 48
+      },
+      {
+        "path": "std::{fs, io::Cursor}",
+        "position": 84
+      },
+      {
+        "path": "super::*",
+        "position": 22716
+      },
+      {
+        "path": "serde_json::json",
+        "position": 22734
+      },
+      {
+        "path": "std::path::PathBuf",
+        "position": 22760
+      }
+    ]
+  }
+}

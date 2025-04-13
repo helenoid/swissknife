@@ -1,11 +1,11 @@
-import type { Command } from '../commands'
-import type { Tool } from '../Tool'
-import Table from 'cli-table3'
-import { getSystemPrompt } from '../constants/prompts'
-import { getContext } from '../context'
-import { zodToJsonSchema } from 'zod-to-json-schema'
-import { getMessagesGetter } from '../messages'
-import { PROJECT_FILE } from '../constants/product'
+import type { Command, LocalCommand } from '../types/command.js'; // Updated import path
+import type { Tool } from '../Tool.js';
+import Table from 'cli-table3';
+import { getSystemPrompt } from '../constants/prompts.js';
+import { getContext } from '../context.js';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+import { getMessagesGetter } from '../messages.js';
+import { PROJECT_FILE } from '../constants/product.js';
 // Quick and dirty estimate of bytes per token for rough token counts
 const BYTES_PER_TOKEN = 4
 
@@ -152,22 +152,23 @@ function createSummaryTable(
     ['Total', formatTokenCount(total), formatByteCount(total), '100%'],
   )
 
-  return table.toString()
+  return table.toString();
 }
 
-const command: Command = {
+const ctxVizCommand: LocalCommand = {
   name: 'ctx-viz',
   description:
     'Show token usage breakdown for the current conversation context',
+  options: [], // No options for this command
   isEnabled: true,
   isHidden: false,
   type: 'local',
 
   userFacingName() {
-    return this.name
+    return this.name;
   },
 
-  async call(_args: string, cmdContext: { options: { tools: Tool[] } }) {
+  async handler(args, cmdContext: { options: { tools: Tool[] } }) { // Renamed call to handler, args is unused
     // Get tools and system prompt with injected context
     const [systemPromptRaw, sysContext] = await Promise.all([
       getSystemPrompt(),
@@ -202,8 +203,8 @@ const command: Command = {
     const messages = getMessagesGetter()()
 
     const sections = getContextSections(systemPrompt)
-    return createSummaryTable(systemPrompt, sections, tools, messages)
+    return createSummaryTable(systemPrompt, sections, tools, messages);
   },
-}
+} satisfies Command;
 
-export default command
+export default ctxVizCommand;

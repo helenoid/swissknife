@@ -1,0 +1,26 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/eval_suites/core/computercontroller/mod.rs",
+  "fileSize": 67,
+  "lineCount": 4,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [],
+    "modules": [
+      {
+        "name": "script",
+        "inline": false,
+        "position": 39
+      },
+      {
+        "name": "web_scrape",
+        "inline": false,
+        "position": 51
+      }
+    ],
+    "uses": []
+  }
+}

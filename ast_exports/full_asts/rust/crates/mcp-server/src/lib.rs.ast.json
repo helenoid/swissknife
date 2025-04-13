@@ -1,0 +1,125 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-server/src/lib.rs",
+  "fileSize": 10463,
+  "lineCount": 270,
+  "structures": {
+    "structs": [
+      {
+        "name": "ByteTransport",
+        "fields": [
+          {
+            "name": "reader",
+            "type": "BufReader<R>"
+          },
+          {
+            "name": "writer",
+            "type": "W"
+          }
+        ],
+        "position": 520
+      },
+      {
+        "name": "Server",
+        "fields": [
+          {
+            "name": "service",
+            "type": "S"
+          }
+        ],
+        "position": 4367
+      }
+    ],
+    "enums": [],
+    "traits": [
+      {
+        "name": "BoundedService",
+        "methods": [],
+        "position": 9883
+      }
+    ],
+    "impls": [],
+    "functions": [
+      {
+        "name": "new",
+        "params": "reader: R, writer: W",
+        "returnType": "Self",
+        "position": 910
+      },
+      {
+        "name": "poll_next",
+        "params": "self: Pin<&mut Self>, cx: &mut Context<'_>",
+        "returnType": "Poll<Option<Self::Item>>",
+        "position": 1420
+      },
+      {
+        "name": "write_message",
+        "params": "&mut self, msg: JsonRpcMessage",
+        "returnType": "Result<(), std::io::Error>",
+        "position": 3948
+      },
+      {
+        "name": "new",
+        "params": "service: S",
+        "returnType": "Self",
+        "position": 4557
+      },
+      {
+        "name": "run",
+        "params": "self, mut transport: ByteTransport<R, W>",
+        "returnType": "Result<(), ServerError>\n    where\n        R: AsyncRead + Unpin,\n        W: AsyncWrite + Unpin,",
+        "position": 4713
+      }
+    ],
+    "modules": [
+      {
+        "name": "errors",
+        "inline": false,
+        "position": 318
+      },
+      {
+        "name": "router",
+        "inline": false,
+        "position": 401
+      }
+    ],
+    "uses": [
+      {
+        "path": "std::{\n    pin::Pin,\n    task::{Context, Poll},\n}",
+        "position": 0
+      },
+      {
+        "path": "futures::{Future, Stream}",
+        "position": 56
+      },
+      {
+        "path": "mcp_core::protocol::{JsonRpcError, JsonRpcMessage, JsonRpcRequest, JsonRpcResponse}",
+        "position": 87
+      },
+      {
+        "path": "pin_project::pin_project",
+        "position": 176
+      },
+      {
+        "path": "tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader}",
+        "position": 206
+      },
+      {
+        "path": "tower_service::Service",
+        "position": 289
+      },
+      {
+        "path": "errors::{BoxError, RouterError, ServerError, TransportError}",
+        "position": 334
+      },
+      {
+        "path": "router::Router",
+        "position": 421
+      },
+      {
+        "path": "futures::StreamExt",
+        "position": 4880
+      }
+    ]
+  }
+}

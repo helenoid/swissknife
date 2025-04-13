@@ -1,9 +1,10 @@
-import { Command } from '../commands'
+import type { Command, PromptCommand } from '../types/command.js'; // Updated import path
 
-export default {
+const prCommentsCommand: PromptCommand = {
   type: 'prompt',
   name: 'pr-comments',
   description: 'Get comments from a GitHub pull request',
+  options: [], // No options for this command
   progressMessage: 'fetching PR comments',
   isEnabled: true,
   isHidden: false,
@@ -56,4 +57,6 @@ ${args ? 'Additional user input: ' + args : ''}
       },
     ]
   },
-} satisfies Command
+} satisfies Command;
+
+export default prCommentsCommand;

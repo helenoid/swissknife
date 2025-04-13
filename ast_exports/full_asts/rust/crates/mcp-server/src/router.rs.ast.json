@@ -1,0 +1,234 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-server/src/router.rs",
+  "fileSize": 15092,
+  "lineCount": 432,
+  "structures": {
+    "structs": [
+      {
+        "name": "CapabilitiesBuilder",
+        "fields": [
+          {
+            "name": "tools",
+            "type": "Option<ToolsCapability>"
+          },
+          {
+            "name": "prompts",
+            "type": "Option<PromptsCapability>"
+          },
+          {
+            "name": "resources",
+            "type": "Option<ResourcesCapability>"
+          }
+        ],
+        "position": 803
+      }
+    ],
+    "enums": [],
+    "traits": [
+      {
+        "name": "Router",
+        "methods": [
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "String"
+          },
+          {
+            "name": "instructions",
+            "params": "&self",
+            "returnType": "String"
+          },
+          {
+            "name": "capabilities",
+            "params": "&self",
+            "returnType": "ServerCapabilities"
+          },
+          {
+            "name": "list_tools",
+            "params": "&self",
+            "returnType": "Vec<mcp_core::tool::Tool>"
+          },
+          {
+            "name": "call_tool",
+            "params": "&self,\n        tool_name: &str,\n        arguments: Value,",
+            "returnType": "Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>"
+          },
+          {
+            "name": "list_resources",
+            "params": "&self",
+            "returnType": "Vec<mcp_core::resource::Resource>"
+          },
+          {
+            "name": "read_resource",
+            "params": "&self,\n        uri: &str,",
+            "returnType": "Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>"
+          },
+          {
+            "name": "list_prompts",
+            "params": "&self",
+            "returnType": "Vec<Prompt>"
+          },
+          {
+            "name": "get_prompt",
+            "params": "&self, prompt_name: &str",
+            "returnType": "PromptFuture"
+          },
+          {
+            "name": "create_response",
+            "params": "&self, id: Option<u64>",
+            "returnType": "JsonRpcResponse"
+          }
+        ],
+        "position": 2278
+      }
+    ],
+    "impls": [
+      {
+        "type": "CapabilitiesBuilder",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 959
+      },
+      {
+        "type": "CapabilitiesBuilder",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 1054
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 1002
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 1085
+      },
+      {
+        "name": "with_tools",
+        "params": "mut self, list_changed: bool",
+        "returnType": "Self",
+        "position": 1266
+      },
+      {
+        "name": "with_prompts",
+        "params": "mut self, list_changed: bool",
+        "returnType": "Self",
+        "position": 1484
+      },
+      {
+        "name": "with_resources",
+        "params": "mut self, subscribe: bool, list_changed: bool",
+        "returnType": "Self",
+        "position": 1710
+      },
+      {
+        "name": "build",
+        "params": "self",
+        "returnType": "ServerCapabilities",
+        "position": 2024
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "String;\n    // in the protocol, instructions are optional but we make it required\n    fn instructions(&self) -> String;\n    fn capabilities(&self) -> ServerCapabilities;\n    fn list_tools(&self) -> Vec<mcp_core::tool::Tool>;\n    fn call_tool(\n        &self,\n        tool_name: &str,\n        arguments: Value,\n    ) -> Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>;\n    fn list_resources(&self) -> Vec<mcp_core::resource::Resource>;\n    fn read_resource(\n        &self,\n        uri: &str,\n    ) -> Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>;\n    fn list_prompts(&self) -> Vec<Prompt>;\n    fn get_prompt(&self, prompt_name: &str) -> PromptFuture;\n\n    // Helper method to create base response\n    fn create_response(&self, id: Option<u64>) -> JsonRpcResponse",
+        "position": 2324
+      },
+      {
+        "name": "handle_initialize",
+        "params": "&self,\n        req: JsonRpcRequest,",
+        "returnType": "impl Future<Output = Result<JsonRpcResponse, RouterError>> + Send",
+        "position": 3324
+      },
+      {
+        "name": "handle_tools_list",
+        "params": "&self,\n        req: JsonRpcRequest,",
+        "returnType": "impl Future<Output = Result<JsonRpcResponse, RouterError>> + Send",
+        "position": 4206
+      },
+      {
+        "name": "handle_tools_call",
+        "params": "&self,\n        req: JsonRpcRequest,",
+        "returnType": "impl Future<Output = Result<JsonRpcResponse, RouterError>> + Send",
+        "position": 4840
+      },
+      {
+        "name": "handle_resources_list",
+        "params": "&self,\n        req: JsonRpcRequest,",
+        "returnType": "impl Future<Output = Result<JsonRpcResponse, RouterError>> + Send",
+        "position": 6133
+      },
+      {
+        "name": "handle_resources_read",
+        "params": "&self,\n        req: JsonRpcRequest,",
+        "returnType": "impl Future<Output = Result<JsonRpcResponse, RouterError>> + Send",
+        "position": 6787
+      },
+      {
+        "name": "handle_prompts_list",
+        "params": "&self,\n        req: JsonRpcRequest,",
+        "returnType": "impl Future<Output = Result<JsonRpcResponse, RouterError>> + Send",
+        "position": 7982
+      },
+      {
+        "name": "handle_prompts_get",
+        "params": "&self,\n        req: JsonRpcRequest,",
+        "returnType": "impl Future<Output = Result<JsonRpcResponse, RouterError>> + Send",
+        "position": 8563
+      },
+      {
+        "name": "poll_ready",
+        "params": "&mut self, _cx: &mut Context<'_>",
+        "returnType": "Poll<Result<(), Self::Error>>",
+        "position": 13990
+      },
+      {
+        "name": "call",
+        "params": "&mut self, req: JsonRpcRequest",
+        "returnType": "Self::Future",
+        "position": 14112
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "std::{\n    future::Future,\n    pin::Pin,\n    task::{Context, Poll},\n}",
+        "position": 0
+      },
+      {
+        "path": "mcp_core::{\n    content::Content,\n    handler::{PromptError, ResourceError, ToolError},\n    prompt::{Prompt, PromptMessage, PromptMessageRole},\n    protocol::{\n        CallToolResult, GetPromptResult, Implementation, InitializeResult, JsonRpcRequest,\n        JsonRpcResponse, ListPromptsResult, ListResourcesResult, ListToolsResult,\n        PromptsCapability, ReadResourceResult, ResourcesCapability, ServerCapabilities,\n        ToolsCapability,\n    },\n    ResourceContents,\n}",
+        "position": 174
+      },
+      {
+        "path": "serde_json::Value",
+        "position": 656
+      },
+      {
+        "path": "tower_service::Service",
+        "position": 679
+      },
+      {
+        "path": "crate::{BoxError, RouterError}",
+        "position": 708
+      }
+    ]
+  }
+}

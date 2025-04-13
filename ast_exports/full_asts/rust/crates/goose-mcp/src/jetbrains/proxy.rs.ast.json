@@ -1,0 +1,197 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/jetbrains/proxy.rs",
+  "fileSize": 11262,
+  "lineCount": 343,
+  "structures": {
+    "structs": [
+      {
+        "name": "IDEResponseOk",
+        "fields": [
+          {
+            "name": "status",
+            "type": "String"
+          },
+          {
+            "name": "error",
+            "type": "Option<String>"
+          }
+        ],
+        "position": 443
+      },
+      {
+        "name": "IDEResponseErr",
+        "fields": [
+          {
+            "name": "status",
+            "type": "Option<String>"
+          },
+          {
+            "name": "error",
+            "type": "String"
+          }
+        ],
+        "position": 557
+      },
+      {
+        "name": "CallToolResult",
+        "fields": [
+          {
+            "name": "content",
+            "type": "Vec<Content>"
+          },
+          {
+            "name": "is_error",
+            "type": "bool"
+          }
+        ],
+        "position": 659
+      },
+      {
+        "name": "JetBrainsProxy",
+        "fields": [
+          {
+            "name": "cached_endpoint",
+            "type": "Arc<RwLock<Option<String>>>"
+          },
+          {
+            "name": "previous_response",
+            "type": "Arc<RwLock<Option<String>>>"
+          },
+          {
+            "name": "client",
+            "type": "Client"
+          }
+        ],
+        "position": 762
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "JetBrainsProxy",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 915
+      },
+      {
+        "type": "JetBrainsProxy",
+        "trait": "Clone",
+        "methods": [
+          {
+            "name": "clone",
+            "params": "&self",
+            "returnType": "Self"
+          }
+        ],
+        "position": 11000
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 941
+      },
+      {
+        "name": "test_list_tools",
+        "params": "&self, endpoint: &str",
+        "returnType": "Result<bool>",
+        "position": 1159
+      },
+      {
+        "name": "find_working_ide_endpoint",
+        "params": "&self",
+        "returnType": "Result<String>",
+        "position": 2640
+      },
+      {
+        "name": "update_ide_endpoint",
+        "params": "&self",
+        "returnType": null,
+        "position": 4201
+      },
+      {
+        "name": "list_tools",
+        "params": "&self",
+        "returnType": "Result<Vec<Tool>>",
+        "position": 4760
+      },
+      {
+        "name": "call_tool",
+        "params": "&self, name: &str, args: Value",
+        "returnType": "Result<CallToolResult>",
+        "position": 8364
+      },
+      {
+        "name": "send_tools_changed",
+        "params": "&self",
+        "returnType": null,
+        "position": 10114
+      },
+      {
+        "name": "start",
+        "params": "&self",
+        "returnType": "Result<()>",
+        "position": 10282
+      },
+      {
+        "name": "clone",
+        "params": "&self",
+        "returnType": "Self",
+        "position": 11036
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "anyhow::{anyhow, Result}",
+        "position": 0
+      },
+      {
+        "path": "mcp_core::{Content, Tool}",
+        "position": 30
+      },
+      {
+        "path": "reqwest::Client",
+        "position": 61
+      },
+      {
+        "path": "serde::{Deserialize, Serialize}",
+        "position": 82
+      },
+      {
+        "path": "serde_json::Value",
+        "position": 119
+      },
+      {
+        "path": "std::env",
+        "position": 142
+      },
+      {
+        "path": "std::sync::Arc",
+        "position": 156
+      },
+      {
+        "path": "std::time::Duration",
+        "position": 176
+      },
+      {
+        "path": "tokio::sync::RwLock",
+        "position": 201
+      },
+      {
+        "path": "tracing::{debug, error, info}",
+        "position": 226
+      }
+    ]
+  }
+}

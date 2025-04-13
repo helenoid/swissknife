@@ -1,0 +1,279 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/memory/mod.rs",
+  "fileSize": 24472,
+  "lineCount": 618,
+  "structures": {
+    "structs": [
+      {
+        "name": "MemoryRouter",
+        "fields": [
+          {
+            "name": "tools",
+            "type": "Vec<Tool>"
+          },
+          {
+            "name": "instructions",
+            "type": "String"
+          },
+          {
+            "name": "global_memory_dir",
+            "type": "PathBuf"
+          },
+          {
+            "name": "local_memory_dir",
+            "type": "PathBuf"
+          }
+        ],
+        "position": 591
+      },
+      {
+        "name": "MemoryArgs",
+        "fields": [
+          {
+            "name": "category",
+            "type": "&'a str"
+          },
+          {
+            "name": "data",
+            "type": "Option<&'a str>"
+          },
+          {
+            "name": "tags",
+            "type": "Vec<&'a str>"
+          },
+          {
+            "name": "is_global",
+            "type": "bool"
+          }
+        ],
+        "position": 22939
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "MemoryRouter",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 731
+      },
+      {
+        "type": "MemoryRouter",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 819
+      },
+      {
+        "type": "MemoryRouter",
+        "trait": "Router",
+        "methods": [
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "String"
+          }
+        ],
+        "position": 21196
+      },
+      {
+        "type": "MemoryArgs",
+        "trait": null,
+        "methods": [
+          {
+            "name": "from_value",
+            "params": "args: &'a Value",
+            "returnType": "Result<Self, io::Error>"
+          }
+        ],
+        "position": 23061
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 767
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 843
+      },
+      {
+        "name": "set_instructions",
+        "params": "&mut self, new_instructions: String",
+        "returnType": null,
+        "position": 14137
+      },
+      {
+        "name": "get_instructions",
+        "params": "&self",
+        "returnType": "&str",
+        "position": 14257
+      },
+      {
+        "name": "get_memory_file",
+        "params": "&self, category: &str, is_global: bool",
+        "returnType": "PathBuf",
+        "position": 14336
+      },
+      {
+        "name": "retrieve_all",
+        "params": "&self, is_global: bool",
+        "returnType": "io::Result<HashMap<String, Vec<String>>>",
+        "position": 14676
+      },
+      {
+        "name": "remember",
+        "params": "&self,\n        _context: &str,\n        category: &str,\n        data: &str,\n        tags: &[&str],\n        is_global: bool,",
+        "returnType": "io::Result<()>",
+        "position": 15542
+      },
+      {
+        "name": "retrieve",
+        "params": "&self,\n        category: &str,\n        is_global: bool,",
+        "returnType": "io::Result<HashMap<String, Vec<String>>>",
+        "position": 16087
+      },
+      {
+        "name": "remove_specific_memory",
+        "params": "&self,\n        category: &str,\n        memory_content: &str,\n        is_global: bool,",
+        "returnType": "io::Result<()>",
+        "position": 17505
+      },
+      {
+        "name": "clear_memory",
+        "params": "&self, category: &str, is_global: bool",
+        "returnType": "io::Result<()>",
+        "position": 18306
+      },
+      {
+        "name": "clear_all_global_or_local_memories",
+        "params": "&self, is_global: bool",
+        "returnType": "io::Result<()>",
+        "position": 18584
+      },
+      {
+        "name": "execute_tool_call",
+        "params": "&self, tool_call: ToolCall",
+        "returnType": "Result<String, io::Error>",
+        "position": 18878
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "String",
+        "position": 21231
+      },
+      {
+        "name": "instructions",
+        "params": "&self",
+        "returnType": "String",
+        "position": 21298
+      },
+      {
+        "name": "capabilities",
+        "params": "&self",
+        "returnType": "ServerCapabilities",
+        "position": 21378
+      },
+      {
+        "name": "list_tools",
+        "params": "&self",
+        "returnType": "Vec<Tool>",
+        "position": 21497
+      },
+      {
+        "name": "call_tool",
+        "params": "&self,\n        tool_name: &str,\n        arguments: Value,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>",
+        "position": 21571
+      },
+      {
+        "name": "list_resources",
+        "params": "&self",
+        "returnType": "Vec<Resource>",
+        "position": 22203
+      },
+      {
+        "name": "read_resource",
+        "params": "&self,\n        _uri: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>",
+        "position": 22277
+      },
+      {
+        "name": "list_prompts",
+        "params": "&self",
+        "returnType": "Vec<Prompt>",
+        "position": 22481
+      },
+      {
+        "name": "get_prompt",
+        "params": "&self,\n        prompt_name: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, PromptError>> + Send + 'static>>",
+        "position": 22547
+      },
+      {
+        "name": "from_value",
+        "params": "args: &'a Value",
+        "returnType": "Result<Self, io::Error>",
+        "position": 23179
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "async_trait::async_trait",
+        "position": 0
+      },
+      {
+        "path": "etcetera::{choose_app_strategy, AppStrategy}",
+        "position": 30
+      },
+      {
+        "path": "indoc::formatdoc",
+        "position": 80
+      },
+      {
+        "path": "serde_json::{json, Value}",
+        "position": 102
+      },
+      {
+        "path": "std::{\n    collections::HashMap,\n    fs,\n    future::Future,\n    io::{self, Read, Write},\n    path::PathBuf,\n    pin::Pin,\n}",
+        "position": 133
+      },
+      {
+        "path": "mcp_core::{\n    handler::{PromptError, ResourceError, ToolError},\n    prompt::Prompt,\n    protocol::ServerCapabilities,\n    resource::Resource,\n    tool::{Tool, ToolAnnotations, ToolCall},\n    Content,\n}",
+        "position": 264
+      },
+      {
+        "path": "mcp_server::router::CapabilitiesBuilder",
+        "position": 473
+      },
+      {
+        "path": "mcp_server::Router",
+        "position": 518
+      },
+      {
+        "path": "the user is providing recurring preferences, project details, or workflow habits that they may expect to be remembered.\n             - Preferred Development Tools & Conventions\n             - User-specific data (e.g., name, preferences)\n             - Project-related configurations\n             - Workflow descriptions\n             - Other critical settings\n             Interaction Protocol:\n             When important information is identified, such as:\n             - User-specific data (e.g., name, preferences)\n             - Project-related configurations\n             - Workflow descriptions\n             - Other critical settings\n             The protocol is:\n             1. Identify the critical piece of information.\n             2. Ask the user if they'd like to store it for later reference.\n             3. Upon agreement:\n                - Suggest a relevant category like \"personal\" for user data or \"development\" for project preferences.\n                - Inquire about any specific tags they want to apply for easier lookup.\n                - Confirm the desired storage location:\n                  - Local storage (.goose/memory) for project-specific details.\n                  - Global storage (~/.config/goose/memory) for user-wide data.\n                - Use the remember_memory tool to store the information.\n                  - `remember_memory(category, data, tags, is_global)`\n             Keywords that trigger memory tools:\n             - \"remember\"\n             - \"forget\"\n             - \"memory\"\n             - \"save\"\n             - \"save memory\"\n             - \"remove memory\"\n             - \"clear memory\"\n             - \"search memory\"\n             - \"find memory\"\n             Suggest the user to use memory tools when:\n             - When the user mentions a keyword that triggers a memory tool\n             - When the user performs a routine task\n             - When the user executes a command and would benefit from remembering the exact command\n             Example Interaction for Storing Information:\n             User: \"For this project, we use black for code formatting\"\n             Assistant: \"You've mentioned a development preference. Would you like to remember this for future conversations?\n             User: \"Yes, please.\"\n             Assistant: \"I'll store this in the 'development' category. Any specific tags to add? Suggestions: #formatting\n             #tools\"\n             User: \"Yes, use those tags.\"\n             Assistant: \"Shall I store this locally for this project only, or globally for all projects?\"\n             User: \"Locally, please.\"\n             Assistant: *Stores the information under category=\"development\", tags=\"formatting tools\", scope=\"local\"*\n             Another Example Interaction for Storing Information:\n             User: \"Remember the gh command to view github comments\"\n             Assistant: \"Shall I store this locally for this project only, or globally for all projects?\"\n             User: \"Globally, please.\"\n             Assistant: *Stores the gh command under category=\"github\", tags=\"comments\", scope=\"global\"*\n             Example Interaction suggesting memory tools:\n             User: \"I'm using the gh command to view github comments\"\n             Assistant: \"You've mentioned a command. Would you like to remember this for future conversations?\n             User: \"Yes, please.\"\n             Assistant: \"I'll store this in the 'github' category. Any specific tags to add? Suggestions: #comments #gh\"\n             Retrieving Memories:\n             To access stored information, utilize the memory retrieval protocols:\n             - **Search by Category**:\n               - Provides all memories within the specified context.\n               - Use: `retrieve_memories(category=\"development\", is_global=False)`\n               - Note: If you want to retrieve all local memories, use `retrieve_memories(category=\"*\", is_global=False)`\n               - Note: If you want to retrieve all global memories, use `retrieve_memories(category=\"*\", is_global=True)`\n             - **Filter by Tags**:\n               - Enables targeted retrieval based on specific tags.\n               - Use: Provide tag filters to refine search.\n            To remove a memory, use the following protocol:\n            - **Remove by Category**:\n              - Removes all memories within the specified category.\n              - Use: `remove_memory_category(category=\"development\", is_global=False)`\n              - Note: If you want to remove all local memories, use `remove_memory_category(category=\"*\", is_global=False)`\n              - Note: If you want to remove all global memories, use `remove_memory_category(category=\"*\", is_global=True)`\n            The Protocol is:\n             1. Confirm what kind of information the user seeks by category or keyword.\n             2. Suggest categories or relevant tags based on the user's request.\n             3. Use the retrieve function to access relevant memory entries.\n             4. Present a summary of findings, offering detailed exploration upon request.\n             Example Interaction for Retrieving Information:\n             User: \"What configuration do we use for code formatting?\"\n             Assistant: \"Let me check the 'development' category for any related memories. Searching using #formatting tag.\"\n             Assistant: *Executes retrieval: `retrieve_memories(category=\"development\", is_global=False)`*\n             Assistant: \"We have 'black' configured for code formatting, specific to this project. Would you like further\n             details?\"\n             Memory Overview:\n             - Categories can include a wide range of topics, structured to keep information grouped logically.\n             - Tags enable quick filtering and identification of specific entries.\n             Operational Guidelines:\n             - Always confirm with the user before saving information.\n             - Propose suitable categories and tag suggestions.\n             - Discuss storage scope thoroughly to align with user needs.\n             - Acknowledge the user about what is stored and where, for transparency and ease of future retrieval.\n            \"#}",
+        "position": 4704
+      }
+    ]
+  }
+}

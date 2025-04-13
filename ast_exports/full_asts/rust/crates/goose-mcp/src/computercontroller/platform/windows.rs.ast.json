@@ -1,0 +1,66 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/computercontroller/platform/windows.rs",
+  "fileSize": 789,
+  "lineCount": 29,
+  "structures": {
+    "structs": [
+      {
+        "name": "WindowsAutomation",
+        "fields": [],
+        "position": 81
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "WindowsAutomation",
+        "trait": "SystemAutomation",
+        "methods": [
+          {
+            "name": "execute_system_script",
+            "params": "&self, script: &str",
+            "returnType": "std::io::Result<String>"
+          }
+        ],
+        "position": 112
+      }
+    ],
+    "functions": [
+      {
+        "name": "execute_system_script",
+        "params": "&self, script: &str",
+        "returnType": "std::io::Result<String>",
+        "position": 162
+      },
+      {
+        "name": "get_shell_command",
+        "params": "&self",
+        "returnType": "(&'static str, &'static str)",
+        "position": 507
+      },
+      {
+        "name": "get_temp_path",
+        "params": "&self",
+        "returnType": "PathBuf",
+        "position": 615
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "super::SystemAutomation",
+        "position": 0
+      },
+      {
+        "path": "std::path::PathBuf",
+        "position": 29
+      },
+      {
+        "path": "std::process::Command",
+        "position": 53
+      }
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/examples/clients.rs",
+  "fileSize": 5190,
+  "lineCount": 132,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [
+      {
+        "name": "main",
+        "params": "",
+        "returnType": "Result<(), Box<dyn std::error::Error>>",
+        "position": 332
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "mcp_client::{\n    client::{ClientCapabilities, ClientInfo, McpClient, McpClientTrait},\n    transport::{SseTransport, StdioTransport, Transport},\n    McpService,\n}",
+        "position": 0
+      },
+      {
+        "path": "rand::Rng",
+        "position": 168
+      },
+      {
+        "path": "rand::SeedableRng",
+        "position": 183
+      },
+      {
+        "path": "std::time::Duration",
+        "position": 206
+      },
+      {
+        "path": "std::{collections::HashMap, sync::Arc}",
+        "position": 231
+      },
+      {
+        "path": "tracing_subscriber::EnvFilter",
+        "position": 275
+      }
+    ]
+  }
+}

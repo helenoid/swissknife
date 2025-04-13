@@ -1,0 +1,201 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/computercontroller/platform/linux.rs",
+  "fileSize": 8242,
+  "lineCount": 260,
+  "structures": {
+    "structs": [
+      {
+        "name": "LinuxAutomation",
+        "fields": [
+          {
+            "name": "display_server",
+            "type": "DisplayServer"
+          }
+        ],
+        "position": 289
+      }
+    ],
+    "enums": [
+      {
+        "name": "DisplayServer",
+        "variants": [
+          "X11",
+          "Wayland",
+          "Unknown"
+        ],
+        "position": 226
+      }
+    ],
+    "traits": [],
+    "impls": [
+      {
+        "type": "LinuxAutomation",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 356
+      },
+      {
+        "type": "LinuxAutomation",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 447
+      },
+      {
+        "type": "LinuxAutomation",
+        "trait": "SystemAutomation",
+        "methods": [
+          {
+            "name": "execute_system_script",
+            "params": "&self, script: &str",
+            "returnType": "Result<String>"
+          }
+        ],
+        "position": 6404
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 395
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 474
+      },
+      {
+        "name": "detect_display_server",
+        "params": "",
+        "returnType": "DisplayServer",
+        "position": 839
+      },
+      {
+        "name": "initialize",
+        "params": "&self",
+        "returnType": "Result<()>",
+        "position": 1277
+      },
+      {
+        "name": "check_common_dependencies",
+        "params": "&self",
+        "returnType": "Result<()>",
+        "position": 1896
+      },
+      {
+        "name": "check_x11_dependencies",
+        "params": "&self",
+        "returnType": "Result<()>",
+        "position": 2052
+      },
+      {
+        "name": "check_wayland_dependencies",
+        "params": "&self",
+        "returnType": "Result<()>",
+        "position": 2222
+      },
+      {
+        "name": "check_dependencies",
+        "params": "&self, deps: &[&str]",
+        "returnType": "Result<()>",
+        "position": 2394
+      },
+      {
+        "name": "execute_input_command",
+        "params": "&self, cmd: &str",
+        "returnType": "Result<String>",
+        "position": 2796
+      },
+      {
+        "name": "execute_x11_command",
+        "params": "&self, cmd: &str",
+        "returnType": "Result<String>",
+        "position": 3218
+      },
+      {
+        "name": "execute_wayland_command",
+        "params": "&self, cmd: &str",
+        "returnType": "Result<String>",
+        "position": 4741
+      },
+      {
+        "name": "create_python_script",
+        "params": "&self, commands: &[&str]",
+        "returnType": "String",
+        "position": 5816
+      },
+      {
+        "name": "execute_system_script",
+        "params": "&self, script: &str",
+        "returnType": "Result<String>",
+        "position": 6452
+      },
+      {
+        "name": "get_shell_command",
+        "params": "&self",
+        "returnType": "(&'static str, &'static str)",
+        "position": 8072
+      },
+      {
+        "name": "get_temp_path",
+        "params": "&self",
+        "returnType": "PathBuf",
+        "position": 8168
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "super::SystemAutomation",
+        "position": 0
+      },
+      {
+        "path": "std::io::Result",
+        "position": 29
+      },
+      {
+        "path": "std::os::unix::fs::PermissionsExt",
+        "position": 63
+      },
+      {
+        "path": "std::path::PathBuf",
+        "position": 102
+      },
+      {
+        "path": "std::process::Command",
+        "position": 126
+      },
+      {
+        "path": "std::sync::Once",
+        "position": 153
+      },
+      {
+        "path": "std::io::Write",
+        "position": 4531
+      },
+      {
+        "path": "std::io::Write",
+        "position": 5543
+      },
+      {
+        "path": "Python as an intermediary\n        if commands.len() > 1 {\n            let python_script = self.create_python_script(&commands)",
+        "position": 6773
+      }
+    ]
+  }
+}

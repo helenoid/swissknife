@@ -1,10 +1,12 @@
-import type { Command } from '../commands'
-import { markProjectOnboardingComplete } from '../ProjectOnboarding'
-import { PROJECT_FILE } from '../constants/product'
-const command = {
+import type { Command, PromptCommand } from '../types/command.js'; // Updated import path
+import { markProjectOnboardingComplete } from '../ProjectOnboarding.js'; // Assuming .js extension
+import { PROJECT_FILE } from '../constants/product.js'; // Assuming .js extension
+
+const initCommand: PromptCommand = {
   type: 'prompt',
   name: 'init',
   description: `Initialize a new ${PROJECT_FILE} file with codebase documentation`,
+  options: [], // No options for this command
   isEnabled: true,
   isHidden: false,
   progressMessage: 'analyzing your codebase',
@@ -34,4 +36,4 @@ If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (
   },
 } satisfies Command
 
-export default command
+export default initCommand;

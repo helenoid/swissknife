@@ -1,0 +1,51 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/examples/mcp.rs",
+  "fileSize": 1255,
+  "lineCount": 37,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [
+      {
+        "name": "main",
+        "params": "",
+        "returnType": "Result<()>",
+        "position": 332
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "anyhow::Result",
+        "position": 42
+      },
+      {
+        "path": "goose_mcp::MemoryRouter",
+        "position": 62
+      },
+      {
+        "path": "mcp_server::router::RouterService",
+        "position": 91
+      },
+      {
+        "path": "mcp_server::{ByteTransport, Server}",
+        "position": 130
+      },
+      {
+        "path": "tokio::io::{stdin, stdout}",
+        "position": 171
+      },
+      {
+        "path": "tracing_appender::rolling::{RollingFileAppender, Rotation}",
+        "position": 203
+      },
+      {
+        "path": "tracing_subscriber::{self, EnvFilter}",
+        "position": 267
+      }
+    ]
+  }
+}

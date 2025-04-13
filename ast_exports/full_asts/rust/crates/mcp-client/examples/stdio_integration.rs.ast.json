@@ -1,0 +1,51 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/examples/stdio_integration.rs",
+  "fileSize": 3226,
+  "lineCount": 98,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [
+      {
+        "name": "main",
+        "params": "",
+        "returnType": "Result<(), ClientError>",
+        "position": 542
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "the mcp-client crate to interact with a server that has a simple counter tool.\n// The server is started by running `cargo run -p mcp-server` in the root of the mcp-server crate.\nuse anyhow::Result",
+        "position": 29
+      },
+      {
+        "path": "mcp_client::client::{\n    ClientCapabilities, ClientInfo, Error as ClientError, McpClient, McpClientTrait,\n}",
+        "position": 231
+      },
+      {
+        "path": "mcp_client::transport::{StdioTransport, Transport}",
+        "position": 345
+      },
+      {
+        "path": "mcp_client::McpService",
+        "position": 401
+      },
+      {
+        "path": "std::collections::HashMap",
+        "position": 429
+      },
+      {
+        "path": "std::time::Duration",
+        "position": 460
+      },
+      {
+        "path": "tracing_subscriber::EnvFilter",
+        "position": 485
+      }
+    ]
+  }
+}

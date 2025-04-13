@@ -30,8 +30,8 @@ The IPFS Accelerate JS SDK is designed with a modular architecture to support va
           │                  │                  │
     ┌─────┼───────┬────────┬┘           ┌──────┘
 ┌───▼───┐ ┌───▼───┐ ┌──────▼───┐  ┌─────▼─────┐
-│WebGPU │ │WebNN  │ │ Models   │  │ Browser   │
-│Backend│ │Backend│ │          │  │ Resources │
+│WebGPU │ │WebNN  │ │ Models   │  │ CLI/Node.js│
+│Backend│ │Backend│ │          │  │ Resources  │
 └───────┘ └───────┘ └──────────┘  └───────────┘
     │         │          │              │
     │         │          ▼              │
@@ -44,35 +44,35 @@ The IPFS Accelerate JS SDK is designed with a modular architecture to support va
                         │
                         ▼
               ┌───────────────────┐
-              │ Browser Rendering │
+              │ CLI Output/Results│
               └───────────────────┘
 ```
 
 The key components are:
 
-1. **Hardware Abstraction Layer**: Provides a unified interface to different hardware backends (WebGPU, WebNN, WebAssembly, CPU).
+1. **Hardware Abstraction Layer**: Provides a unified interface to different hardware backends (WebGPU, WebNN, WebAssembly, CPU) for neural network inference in the CLI.
 
-2. **Model Layer**: Implements various machine learning models (BERT, ViT, Whisper) with a consistent interface.
+2. **Model Layer**: Implements various machine learning models (BERT, ViT, Whisper) with a consistent interface for CLI-based execution.
 
-3. **Resource Pool**: Manages limited browser resources for efficient utilization.
+3. **Resource Pool**: Manages limited Node.js resources for efficient neural network inference.
 
-4. **Tensor Operations**: Provides operations for working with tensors across different backends.
+4. **Tensor Operations**: Provides operations for working with tensors across different backends in a CLI environment.
 
-5. **Browser Integration**: Handles browser-specific optimizations and detection.
+5. **CLI Integration**: Handles CLI-specific optimizations for neural network execution.
 
 ## Design Principles
 
 The SDK follows these key design principles:
 
-1. **Progressive Enhancement**: The SDK automatically falls back to less powerful backends when more powerful ones are not available.
+1. **Progressive Enhancement**: The SDK automatically falls back to less powerful backends when more powerful ones are not available, always ensuring neural networks can run in the CLI.
 
 2. **Type Safety**: Strong TypeScript typing for better developer experience and error prevention.
 
-3. **Resource Efficiency**: Careful management of limited browser resources.
+3. **Resource Efficiency**: Careful management of limited system resources for optimal neural network performance in CLI environments.
 
-4. **Browser Compatibility**: Support for a wide range of browsers with different capabilities.
+4. **Hardware Compatibility**: Support for a wide range of hardware configurations to enable neural network inference in CLI tools.
 
-5. **Extensibility**: Easy addition of new models and backends.
+5. **Extensibility**: Easy addition of new models and backends for enhanced CLI-based AI capabilities.
 
 ## Development Setup
 

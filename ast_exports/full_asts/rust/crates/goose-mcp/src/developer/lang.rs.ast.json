@@ -1,0 +1,27 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/developer/lang.rs",
+  "fileSize": 1237,
+  "lineCount": 38,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [
+      {
+        "name": "get_language_identifier",
+        "params": "path: &Path",
+        "returnType": "&'static str",
+        "position": 84
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "std::path::Path",
+        "position": 0
+      }
+    ]
+  }
+}

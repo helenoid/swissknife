@@ -1,18 +1,19 @@
-import type { Command } from '../commands'
-import { formatTotalCost } from '../cost-tracker'
+import type { Command, LocalCommand } from '../types/command.js'; // Updated import path
+import { formatTotalCost } from '../cost-tracker.js'; // Assuming .js extension is needed
 
-const cost = {
+const costCommand: LocalCommand = {
   type: 'local',
   name: 'cost',
   description: 'Show the total cost and duration of the current session',
+  options: [], // No options for this command
   isEnabled: true,
   isHidden: false,
-  async call() {
-    return formatTotalCost()
+  async handler(args, context) { // Renamed call to handler, args and context are unused
+    return formatTotalCost(); // Returns a string
   },
   userFacingName() {
     return 'cost'
   },
 } satisfies Command
 
-export default cost
+export default costCommand;

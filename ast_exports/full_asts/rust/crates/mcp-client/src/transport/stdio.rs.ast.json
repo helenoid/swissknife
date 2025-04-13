@@ -1,0 +1,223 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/src/transport/stdio.rs",
+  "fileSize": 9396,
+  "lineCount": 279,
+  "structures": {
+    "structs": [
+      {
+        "name": "StdioActor",
+        "fields": [
+          {
+            "name": "receiver",
+            "type": "mpsc::Receiver<TransportMessage>"
+          },
+          {
+            "name": "pending_requests",
+            "type": "Arc<PendingRequests>"
+          },
+          {
+            "name": "_process",
+            "type": "Child"
+          },
+          {
+            "name": "error_sender",
+            "type": "mpsc::Sender<Error>"
+          },
+          {
+            "name": "stdin",
+            "type": "ChildStdin"
+          },
+          {
+            "name": "stdout",
+            "type": "ChildStdout"
+          },
+          {
+            "name": "stderr",
+            "type": "ChildStderr"
+          }
+        ],
+        "position": 599
+      },
+      {
+        "name": "StdioTransportHandle",
+        "fields": [
+          {
+            "name": "sender",
+            "type": "mpsc::Sender<TransportMessage>"
+          },
+          {
+            "name": "error_receiver",
+            "type": "Arc<Mutex<mpsc::Receiver<Error>>>"
+          }
+        ],
+        "position": 5919
+      },
+      {
+        "name": "StdioTransport",
+        "fields": [
+          {
+            "name": "command",
+            "type": "String"
+          },
+          {
+            "name": "args",
+            "type": "Vec<String>"
+          },
+          {
+            "name": "env",
+            "type": "HashMap<String"
+          }
+        ],
+        "position": 6787
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "StdioActor",
+        "trait": null,
+        "methods": [
+          {
+            "name": "run",
+            "params": "mut self",
+            "returnType": null
+          }
+        ],
+        "position": 892
+      },
+      {
+        "type": "StdioTransportHandle",
+        "trait": "TransportHandle",
+        "methods": [
+          {
+            "name": "send",
+            "params": "&self, message: JsonRpcMessage",
+            "returnType": "Result<JsonRpcMessage, Error>"
+          }
+        ],
+        "position": 6083
+      },
+      {
+        "type": "StdioTransportHandle",
+        "trait": null,
+        "methods": [
+          {
+            "name": "check_for_errors",
+            "params": "&self",
+            "returnType": "Result<(), Error>"
+          }
+        ],
+        "position": 6411
+      },
+      {
+        "type": "StdioTransport",
+        "trait": null,
+        "methods": [],
+        "position": 6896
+      },
+      {
+        "type": "StdioTransport",
+        "trait": "Transport",
+        "methods": [
+          {
+            "name": "start",
+            "params": "&self",
+            "returnType": "Result<Self::Handle, Error>"
+          }
+        ],
+        "position": 8522
+      }
+    ],
+    "functions": [
+      {
+        "name": "run",
+        "params": "mut self",
+        "returnType": null,
+        "position": 924
+      },
+      {
+        "name": "handle_incoming_messages",
+        "params": "stdout: ChildStdout, pending_requests: Arc<PendingRequests>",
+        "returnType": null,
+        "position": 2617
+      },
+      {
+        "name": "handle_outgoing_messages",
+        "params": "mut receiver: mpsc::Receiver<TransportMessage>,\n        mut stdin: ChildStdin,\n        pending_requests: Arc<PendingRequests>,",
+        "returnType": null,
+        "position": 4298
+      },
+      {
+        "name": "send",
+        "params": "&self, message: JsonRpcMessage",
+        "returnType": "Result<JsonRpcMessage, Error>",
+        "position": 6141
+      },
+      {
+        "name": "check_for_errors",
+        "params": "&self",
+        "returnType": "Result<(), Error>",
+        "position": 6499
+      },
+      {
+        "name": "spawn_process",
+        "params": "&self",
+        "returnType": "Result<(Child, ChildStdin, ChildStdout, ChildStderr), Error>",
+        "position": 7166
+      },
+      {
+        "name": "start",
+        "params": "&self",
+        "returnType": "Result<Self::Handle, Error>",
+        "position": 8609
+      },
+      {
+        "name": "close",
+        "params": "&self",
+        "returnType": "Result<(), Error>",
+        "position": 9334
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "std::collections::HashMap",
+        "position": 0
+      },
+      {
+        "path": "std::sync::Arc",
+        "position": 31
+      },
+      {
+        "path": "tokio::process::{Child, ChildStderr, ChildStdin, ChildStdout, Command}",
+        "position": 51
+      },
+      {
+        "path": "async_trait::async_trait",
+        "position": 128
+      },
+      {
+        "path": "mcp_core::protocol::JsonRpcMessage",
+        "position": 158
+      },
+      {
+        "path": "tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader}",
+        "position": 198
+      },
+      {
+        "path": "tokio::sync::{mpsc, Mutex}",
+        "position": 272
+      },
+      {
+        "path": "super::{send_message, Error, PendingRequests, Transport, TransportHandle, TransportMessage}",
+        "position": 305
+      },
+      {
+        "path": "tokio::pin",
+        "position": 951
+      }
+    ]
+  }
+}

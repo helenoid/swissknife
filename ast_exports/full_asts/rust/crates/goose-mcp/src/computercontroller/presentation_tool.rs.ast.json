@@ -1,0 +1,77 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/computercontroller/presentation_tool.rs",
+  "fileSize": 13170,
+  "lineCount": 399,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [
+      {
+        "name": "make_presentation",
+        "params": "path: &str,\n    operation: &str,\n    params: Option<&Value>,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 5494
+      },
+      {
+        "name": "test_create_presentation",
+        "params": "",
+        "returnType": null,
+        "position": 8920
+      },
+      {
+        "name": "test_add_slide",
+        "params": "",
+        "returnType": null,
+        "position": 10641
+      },
+      {
+        "name": "test_add_slide_without_content",
+        "params": "",
+        "returnType": null,
+        "position": 11903
+      },
+      {
+        "name": "test_invalid_operation",
+        "params": "",
+        "returnType": null,
+        "position": 12738
+      }
+    ],
+    "modules": [
+      {
+        "name": "tests",
+        "inline": true,
+        "position": 8860
+      }
+    ],
+    "uses": [
+      {
+        "path": "mcp_core::{Content, ToolError}",
+        "position": 0
+      },
+      {
+        "path": "serde_json::Value",
+        "position": 36
+      },
+      {
+        "path": "std::fs",
+        "position": 59
+      },
+      {
+        "path": "rich like below:</p>\n                <ul>\n                    <li>Use make_presentation to:\n                        <ul>\n                            <li>create - Create new presentation</li>\n                            <li>add_slide - Add a new slide with content</li>\n                        </ul>\n                    </li>\n                    <li>For manual edits:\n                        <ul>\n                            <li>Use developer tools to edit the HTML</li>\n                            <li>Update --num-slides in slide-wrapper</li>\n                            <li>Copy template below for new slides</li>\n                        </ul>\n                    </li>\n                </ul>\n            </div>            \n\n            END_SLIDE_TEMPLATE -->\n\n            <!-- ADD_SLIDES_HERE (do not remove this comment) -->\n        </div>\n    </div>\n\n    <div class=\"nav-hint\">\n        Use \u2190 and \u2192 arrow keys to navigate\n    </div>\n\n    <script>\n        const slideWrapper = document.querySelector('.slide-wrapper')",
+        "position": 3544
+      },
+      {
+        "path": "default\n            let title = params\n                .and_then(|p| p.get(\"title\"))\n                .and_then(|v| v.as_str())\n                .unwrap_or(\"Your Presentation\")",
+        "position": 5704
+      },
+      {
+        "path": "super::*",
+        "position": 8876
+      }
+    ]
+  }
+}

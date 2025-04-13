@@ -1,0 +1,44 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/src/lib.rs",
+  "fileSize": 245,
+  "lineCount": 8,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [],
+    "modules": [
+      {
+        "name": "client",
+        "inline": false,
+        "position": 0
+      },
+      {
+        "name": "service",
+        "inline": false,
+        "position": 16
+      },
+      {
+        "name": "transport",
+        "inline": false,
+        "position": 33
+      }
+    ],
+    "uses": [
+      {
+        "path": "client::{ClientCapabilities, ClientInfo, Error, McpClient, McpClientTrait}",
+        "position": 57
+      },
+      {
+        "path": "service::McpService",
+        "position": 141
+      },
+      {
+        "path": "transport::{SseTransport, StdioTransport, Transport, TransportHandle}",
+        "position": 170
+      }
+    ]
+  }
+}

@@ -1,0 +1,1034 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "ImportFrom",
+      "lineno": 1,
+      "col_offset": 0,
+      "module": "utils",
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 1,
+          "col_offset": 18,
+          "name": "blob2image",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 1,
+          "col_offset": 30,
+          "name": "image2blob",
+          "asname": null
+        }
+      ],
+      "level": 0
+    },
+    {
+      "type": "ImportFrom",
+      "lineno": 2,
+      "col_offset": 0,
+      "module": "worker.skillset.diffusion_kit",
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 42,
+          "name": "DiffusionModelConfig",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 64,
+          "name": "Txt2ImgParams",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 79,
+          "name": "Img2ImgParams",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 94,
+          "name": "Ctrl2ImgParams",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 110,
+          "name": "txt2img",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 119,
+          "name": "img2img",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 128,
+          "name": "ctrl2img",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 138,
+          "name": "progress_tracking",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 157,
+          "name": "unload_all_models",
+          "asname": null
+        }
+      ],
+      "level": 0
+    },
+    {
+      "type": "ImportFrom",
+      "lineno": 3,
+      "col_offset": 0,
+      "module": "cloudworker",
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 3,
+          "col_offset": 24,
+          "name": "send_to_master",
+          "asname": null
+        }
+      ],
+      "level": 0
+    },
+    {
+      "type": "Import",
+      "lineno": 4,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 4,
+          "col_offset": 7,
+          "name": "gc",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 5,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 5,
+          "col_offset": 7,
+          "name": "torch",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "ImportFrom",
+      "lineno": 6,
+      "col_offset": 0,
+      "module": "utils",
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 6,
+          "col_offset": 18,
+          "name": "blob2image",
+          "asname": null
+        },
+        {
+          "type": "alias",
+          "lineno": 6,
+          "col_offset": 30,
+          "name": "image2blob",
+          "asname": null
+        }
+      ],
+      "level": 0
+    },
+    {
+      "type": "Import",
+      "lineno": 7,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 7,
+          "col_offset": 7,
+          "name": "os",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 8,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 8,
+          "col_offset": 7,
+          "name": "sys",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Assign",
+      "lineno": 9,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 9,
+          "col_offset": 0,
+          "id": "dir"
+        }
+      ],
+      "value": {
+        "type": "Call",
+        "lineno": 9,
+        "col_offset": 6,
+        "func": {
+          "type": "Attribute",
+          "lineno": 9,
+          "col_offset": 6,
+          "value": {
+            "type": "Attribute",
+            "lineno": 9,
+            "col_offset": 6,
+            "value": {
+              "type": "Name",
+              "lineno": 9,
+              "col_offset": 6,
+              "id": "os"
+            },
+            "attr": "path"
+          },
+          "attr": "dirname"
+        },
+        "args": [
+          {
+            "type": "Call",
+            "lineno": 9,
+            "col_offset": 22,
+            "func": {
+              "type": "Attribute",
+              "lineno": 9,
+              "col_offset": 22,
+              "value": {
+                "type": "Attribute",
+                "lineno": 9,
+                "col_offset": 22,
+                "value": {
+                  "type": "Name",
+                  "lineno": 9,
+                  "col_offset": 22,
+                  "id": "os"
+                },
+                "attr": "path"
+              },
+              "attr": "realpath"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 9,
+                "col_offset": 39,
+                "id": "__file__"
+              }
+            ],
+            "keywords": []
+          }
+        ],
+        "keywords": []
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Expr",
+      "lineno": 10,
+      "col_offset": 0,
+      "value": {
+        "type": "Call",
+        "lineno": 10,
+        "col_offset": 0,
+        "func": {
+          "type": "Attribute",
+          "lineno": 10,
+          "col_offset": 0,
+          "value": {
+            "type": "Attribute",
+            "lineno": 10,
+            "col_offset": 0,
+            "value": {
+              "type": "Name",
+              "lineno": 10,
+              "col_offset": 0,
+              "id": "sys"
+            },
+            "attr": "path"
+          },
+          "attr": "append"
+        },
+        "args": [
+          {
+            "type": "Name",
+            "lineno": 10,
+            "col_offset": 16,
+            "id": "dir"
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "type": "ClassDef",
+      "lineno": 13,
+      "col_offset": 0,
+      "name": "Instruct_Pix2Pix",
+      "bases": [],
+      "keywords": [],
+      "body": [
+        {
+          "type": "FunctionDef",
+          "lineno": 14,
+          "col_offset": 4,
+          "name": "__init__",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 14,
+                "col_offset": 17,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 14,
+                "col_offset": 23,
+                "arg": "checkpoints",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": null,
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "Assign",
+              "lineno": 15,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Attribute",
+                  "lineno": 15,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 15,
+                    "col_offset": 8,
+                    "id": "self"
+                  },
+                  "attr": "config"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 15,
+                "col_offset": 22,
+                "func": {
+                  "type": "Name",
+                  "lineno": 15,
+                  "col_offset": 22,
+                  "id": "DiffusionModelConfig"
+                },
+                "args": [],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "lineno": 16,
+                    "col_offset": 12,
+                    "arg": "checkpoint_sd",
+                    "value": {
+                      "type": "Subscript",
+                      "lineno": 16,
+                      "col_offset": 26,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 16,
+                        "col_offset": 26,
+                        "id": "checkpoints"
+                      },
+                      "slice": {
+                        "type": "Constant",
+                        "lineno": 16,
+                        "col_offset": 38,
+                        "value": "sd",
+                        "kind": null
+                      }
+                    }
+                  },
+                  {
+                    "type": "keyword",
+                    "lineno": 17,
+                    "col_offset": 12,
+                    "arg": "checkpoint_clip",
+                    "value": {
+                      "type": "Subscript",
+                      "lineno": 17,
+                      "col_offset": 28,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 17,
+                        "col_offset": 28,
+                        "id": "checkpoints"
+                      },
+                      "slice": {
+                        "type": "Constant",
+                        "lineno": 17,
+                        "col_offset": 40,
+                        "value": "clip",
+                        "kind": null
+                      }
+                    }
+                  }
+                ]
+              },
+              "type_comment": null
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 20,
+          "col_offset": 4,
+          "name": "__call__",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 20,
+                "col_offset": 17,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 20,
+                "col_offset": 23,
+                "arg": "files",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 20,
+                "col_offset": 30,
+                "arg": "method",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 20,
+              "col_offset": 40,
+              "arg": "params",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "If",
+              "lineno": 21,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 21,
+                "col_offset": 11,
+                "left": {
+                  "type": "Name",
+                  "lineno": 21,
+                  "col_offset": 11,
+                  "id": "method"
+                },
+                "ops": [
+                  {
+                    "type": "Eq"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 21,
+                    "col_offset": 21,
+                    "value": "pix2pix",
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Return",
+                  "lineno": 22,
+                  "col_offset": 12,
+                  "value": {
+                    "type": "Call",
+                    "lineno": 22,
+                    "col_offset": 19,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 22,
+                      "col_offset": 19,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 22,
+                        "col_offset": 19,
+                        "id": "self"
+                      },
+                      "attr": "pix2pix"
+                    },
+                    "args": [],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 22,
+                        "col_offset": 32,
+                        "arg": null,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 22,
+                          "col_offset": 34,
+                          "id": "params"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "orelse": []
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 24,
+          "col_offset": 4,
+          "name": "pix2pix",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 24,
+                "col_offset": 16,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 24,
+              "col_offset": 24,
+              "arg": "params",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "With",
+              "lineno": 25,
+              "col_offset": 8,
+              "items": [
+                {
+                  "type": "withitem",
+                  "context_expr": {
+                    "type": "Call",
+                    "lineno": 25,
+                    "col_offset": 13,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 25,
+                      "col_offset": 13,
+                      "id": "progress_tracking"
+                    },
+                    "args": [],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 25,
+                        "col_offset": 31,
+                        "arg": "callback",
+                        "value": {
+                          "type": "Attribute",
+                          "lineno": 25,
+                          "col_offset": 40,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 25,
+                            "col_offset": 40,
+                            "id": "self"
+                          },
+                          "attr": "dispatch_progress"
+                        }
+                      }
+                    ]
+                  },
+                  "optional_vars": null
+                }
+              ],
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 26,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 26,
+                      "col_offset": 12,
+                      "id": "result_image"
+                    }
+                  ],
+                  "value": {
+                    "type": "Subscript",
+                    "lineno": 26,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Call",
+                      "lineno": 26,
+                      "col_offset": 27,
+                      "func": {
+                        "type": "Name",
+                        "lineno": 26,
+                        "col_offset": 27,
+                        "id": "pix2pix"
+                      },
+                      "args": [],
+                      "keywords": [
+                        {
+                          "type": "keyword",
+                          "lineno": 27,
+                          "col_offset": 16,
+                          "arg": "config",
+                          "value": {
+                            "type": "Attribute",
+                            "lineno": 27,
+                            "col_offset": 23,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 27,
+                              "col_offset": 23,
+                              "id": "self"
+                            },
+                            "attr": "config"
+                          }
+                        },
+                        {
+                          "type": "keyword",
+                          "lineno": 28,
+                          "col_offset": 16,
+                          "arg": "params",
+                          "value": {
+                            "type": "Call",
+                            "lineno": 28,
+                            "col_offset": 23,
+                            "func": {
+                              "type": "Name",
+                              "lineno": 28,
+                              "col_offset": 23,
+                              "id": "Img2ImgParams"
+                            },
+                            "args": [],
+                            "keywords": [
+                              {
+                                "type": "keyword",
+                                "lineno": 29,
+                                "col_offset": 20,
+                                "arg": "width",
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 29,
+                                  "col_offset": 26,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 29,
+                                    "col_offset": 26,
+                                    "id": "params"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 29,
+                                    "col_offset": 33,
+                                    "value": "width",
+                                    "kind": null
+                                  }
+                                }
+                              },
+                              {
+                                "type": "keyword",
+                                "lineno": 30,
+                                "col_offset": 20,
+                                "arg": "height",
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 30,
+                                  "col_offset": 27,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 30,
+                                    "col_offset": 27,
+                                    "id": "params"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 30,
+                                    "col_offset": 34,
+                                    "value": "height",
+                                    "kind": null
+                                  }
+                                }
+                              },
+                              {
+                                "type": "keyword",
+                                "lineno": 31,
+                                "col_offset": 20,
+                                "arg": "prompt",
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 31,
+                                  "col_offset": 27,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 31,
+                                    "col_offset": 27,
+                                    "id": "params"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 31,
+                                    "col_offset": 34,
+                                    "value": "prompt",
+                                    "kind": null
+                                  }
+                                }
+                              },
+                              {
+                                "type": "keyword",
+                                "lineno": 32,
+                                "col_offset": 20,
+                                "arg": "sampler",
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 32,
+                                  "col_offset": 28,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 32,
+                                    "col_offset": 28,
+                                    "id": "params"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 32,
+                                    "col_offset": 35,
+                                    "value": "sampler",
+                                    "kind": null
+                                  }
+                                }
+                              },
+                              {
+                                "type": "keyword",
+                                "lineno": 33,
+                                "col_offset": 20,
+                                "arg": "steps",
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 33,
+                                  "col_offset": 26,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 33,
+                                    "col_offset": 26,
+                                    "id": "params"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 33,
+                                    "col_offset": 33,
+                                    "value": "steps",
+                                    "kind": null
+                                  }
+                                }
+                              },
+                              {
+                                "type": "keyword",
+                                "lineno": 34,
+                                "col_offset": 20,
+                                "arg": "cfg_scale",
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 34,
+                                  "col_offset": 30,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 34,
+                                    "col_offset": 30,
+                                    "id": "params"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 34,
+                                    "col_offset": 37,
+                                    "value": "cfg_scale",
+                                    "kind": null
+                                  }
+                                }
+                              },
+                              {
+                                "type": "keyword",
+                                "lineno": 35,
+                                "col_offset": 20,
+                                "arg": "seed",
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 35,
+                                  "col_offset": 25,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 35,
+                                    "col_offset": 25,
+                                    "id": "params"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 35,
+                                    "col_offset": 32,
+                                    "value": "seed",
+                                    "kind": null
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "slice": {
+                      "type": "Constant",
+                      "lineno": 37,
+                      "col_offset": 14,
+                      "value": 0,
+                      "kind": null
+                    }
+                  },
+                  "type_comment": null
+                }
+              ],
+              "type_comment": null
+            },
+            {
+              "type": "Return",
+              "lineno": 39,
+              "col_offset": 8,
+              "value": {
+                "type": "Dict",
+                "lineno": 39,
+                "col_offset": 15,
+                "keys": [
+                  {
+                    "type": "Constant",
+                    "lineno": 40,
+                    "col_offset": 12,
+                    "value": "files",
+                    "kind": null
+                  }
+                ],
+                "values": [
+                  {
+                    "type": "Dict",
+                    "lineno": 40,
+                    "col_offset": 21,
+                    "keys": [
+                      {
+                        "type": "Constant",
+                        "lineno": 41,
+                        "col_offset": 16,
+                        "value": "result",
+                        "kind": null
+                      }
+                    ],
+                    "values": [
+                      {
+                        "type": "Call",
+                        "lineno": 41,
+                        "col_offset": 26,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 41,
+                          "col_offset": 26,
+                          "id": "image2blob"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 41,
+                            "col_offset": 37,
+                            "id": "result_image"
+                          }
+                        ],
+                        "keywords": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 45,
+          "col_offset": 4,
+          "name": "unload",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 45,
+                "col_offset": 15,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": null,
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "Expr",
+              "lineno": 55,
+              "col_offset": 8,
+              "value": {
+                "type": "Call",
+                "lineno": 55,
+                "col_offset": 8,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 55,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 55,
+                    "col_offset": 8,
+                    "id": "gc"
+                  },
+                  "attr": "collect"
+                },
+                "args": [],
+                "keywords": []
+              }
+            },
+            {
+              "type": "Expr",
+              "lineno": 56,
+              "col_offset": 8,
+              "value": {
+                "type": "Call",
+                "lineno": 56,
+                "col_offset": 8,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 56,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Attribute",
+                    "lineno": 56,
+                    "col_offset": 8,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 56,
+                      "col_offset": 8,
+                      "id": "torch"
+                    },
+                    "attr": "cuda"
+                  },
+                  "attr": "empty_cache"
+                },
+                "args": [],
+                "keywords": []
+              }
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        }
+      ],
+      "decorator_list": [],
+      "type_params": []
+    }
+  ],
+  "type_ignores": []
+}

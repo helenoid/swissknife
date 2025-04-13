@@ -1,0 +1,79 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/lib.rs",
+  "fileSize": 593,
+  "lineCount": 23,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [],
+    "modules": [
+      {
+        "name": "computercontroller",
+        "inline": false,
+        "position": 255
+      },
+      {
+        "name": "developer",
+        "inline": false,
+        "position": 283
+      },
+      {
+        "name": "google_drive",
+        "inline": false,
+        "position": 298
+      },
+      {
+        "name": "jetbrains",
+        "inline": false,
+        "position": 320
+      },
+      {
+        "name": "memory",
+        "inline": false,
+        "position": 335
+      },
+      {
+        "name": "tutorial",
+        "inline": false,
+        "position": 347
+      }
+    ],
+    "uses": [
+      {
+        "path": "etcetera::AppStrategyArgs",
+        "position": 0
+      },
+      {
+        "path": "once_cell::sync::Lazy",
+        "position": 31
+      },
+      {
+        "path": "computercontroller::ComputerControllerRouter",
+        "position": 366
+      },
+      {
+        "path": "developer::DeveloperRouter",
+        "position": 420
+      },
+      {
+        "path": "google_drive::GoogleDriveRouter",
+        "position": 456
+      },
+      {
+        "path": "jetbrains::JetBrainsRouter",
+        "position": 497
+      },
+      {
+        "path": "memory::MemoryRouter",
+        "position": 533
+      },
+      {
+        "path": "tutorial::TutorialRouter",
+        "position": 563
+      }
+    ]
+  }
+}

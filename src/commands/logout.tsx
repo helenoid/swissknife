@@ -1,19 +1,20 @@
-import * as React from 'react'
-import type { Command } from '../commands'
-import { getGlobalConfig, saveGlobalConfig } from '../utils/config'
-import { clearTerminal } from '../utils/terminal'
-import { Text } from 'ink'
+import * as React from 'react';
+import type { Command, LocalJSXCommand } from '../types/command.js'; // Updated import path
+import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'; // Assuming .js extension
+import { clearTerminal } from '../utils/terminal.js'; // Assuming .js extension
+import { Text } from 'ink';
 
-export default {
+const logoutCommand: LocalJSXCommand = {
   type: 'local-jsx',
   name: 'logout',
   description: 'Sign out from your Anthropic account',
+  options: [], // No options for this command
   isEnabled: true,
   isHidden: false,
-  async call() {
-    await clearTerminal()
+  async handler(args, onDone, context) { // Renamed call to handler, args, onDone, context are unused
+    await clearTerminal();
 
-    const config = getGlobalConfig()
+    const config = getGlobalConfig();
 
     config.oauthAccount = undefined
     config.primaryApiKey = undefined
@@ -33,9 +34,11 @@ export default {
       process.exit(0)
     }, 200)
 
-    return message
+    return message;
   },
   userFacingName() {
-    return 'logout'
+    return 'logout';
   },
-} satisfies Command
+} satisfies Command;
+
+export default logoutCommand;

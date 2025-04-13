@@ -1,21 +1,22 @@
-import { Command } from '../commands'
-import { logError } from '../utils/log'
-import { execFileNoThrow } from '../utils/execFileNoThrow'
+import type { Command, LocalCommand } from '../types/command.js'; // Updated import path
+import { logError } from '../utils/log.js'; // Assuming .js extension
+import { execFileNoThrow } from '../utils/execFileNoThrow.js'; // Assuming .js extension
 
 const isEnabled =
   process.platform === 'darwin' &&
-  ['iTerm.app', 'Apple_Terminal'].includes(process.env.TERM_PROGRAM || '')
+  ['iTerm.app', 'Apple_Terminal'].includes(process.env.TERM_PROGRAM || '');
 
-const listen: Command = {
+const listenCommand: LocalCommand = {
   type: 'local',
   name: 'listen',
   description: 'Activates speech recognition and transcribes speech to text',
+  options: [], // No options for this command
   isEnabled: isEnabled,
   isHidden: isEnabled,
   userFacingName() {
-    return 'listen'
+    return 'listen';
   },
-  async call(_, { abortController }) {
+  async handler(args, { abortController }) { // Renamed call to handler, args is unused
     // Start dictation using AppleScript
     const script = `tell application "System Events" to tell ¬
 (the first process whose frontmost is true) to tell ¬
@@ -35,8 +36,8 @@ if exists then click it`
       logError(`Failed to start dictation: ${stderr}`)
       return 'Failed to start dictation'
     }
-    return 'Dictation started. Press esc to stop.'
+    return 'Dictation started. Press esc to stop.';
   },
-}
+} satisfies Command;
 
-export default listen
+export default listenCommand;

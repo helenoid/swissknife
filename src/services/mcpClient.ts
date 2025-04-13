@@ -11,8 +11,8 @@ import {
 } from '../utils/config.js'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { getCwd } from '../utils/state'
-import { safeParseJSON } from '../utils/json'
+import { getCwd } from '../utils/state.js'
+import { safeParseJSON } from '../utils/json.js'
 import {
   ImageBlockParam,
   MessageParam,
@@ -32,11 +32,11 @@ import {
   ResultSchema,
 } from '@modelcontextprotocol/sdk/types.js'
 import { memoize, pickBy } from 'lodash-es'
-import type { Tool } from '../Tool'
-import { MCPTool } from '../tools/MCPTool/MCPTool'
-import { logMCPError } from '../utils/log'
-import { Command } from '../commands'
-import { logEvent } from '../services/statsig'
+import type { Tool } from '../Tool.js'
+import { MCPTool } from '../tools/MCPTool/MCPTool.js'
+import { logMCPError } from '../utils/log.js'
+import { Command } from '../commands.js'
+import { logEvent } from '../services/statsig.js'
 import { PRODUCT_COMMAND } from '../constants/product.js'
 
 type McpName = string
@@ -407,7 +407,7 @@ export const getMCPTools = memoize(async (): Promise<Tool[]> => {
     'tools',
   )
 
-  // TODO: Add zod schema validation
+  // Properly integrate MCP tool with the base MCPTool
   return toolsList.flatMap(({ client, result: { tools } }) =>
     tools.map(
       (tool): Tool => ({
@@ -454,7 +454,7 @@ async function callMCPTool({
   )
 
   if ('isError' in result && result.isError) {
-    const errorMessage = `Error calling tool ${tool}: ${result.error}`
+    const errorMessage = `Error calling tool ${tool}: ${result.error || 'Unknown error'}`
     logMCPError(name, errorMessage)
     throw Error(errorMessage)
   }
@@ -497,7 +497,7 @@ export const getMCPCommands = memoize(async (): Promise<Command[]> => {
   )
 
   return results.flatMap(({ client, result }) =>
-    result.prompts?.map(_ => {
+    (result.prompts || []).map(_ => {
       const argNames = Object.values(_.arguments ?? {}).map(k => k.name)
       return {
         type: 'prompt',

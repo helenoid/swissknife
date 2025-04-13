@@ -1,0 +1,73 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/computercontroller/platform/mod.rs",
+  "fileSize": 1056,
+  "lineCount": 43,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [
+      {
+        "name": "SystemAutomation",
+        "methods": [
+          {
+            "name": "execute_system_script",
+            "params": "&self, script: &str",
+            "returnType": "std::io::Result<String>"
+          },
+          {
+            "name": "get_shell_command",
+            "params": "&self",
+            "returnType": "(&'static str, &'static str)"
+          },
+          {
+            "name": "get_temp_path",
+            "params": "&self",
+            "returnType": "std::path::PathBuf"
+          }
+        ],
+        "position": 243
+      }
+    ],
+    "impls": [],
+    "functions": [
+      {
+        "name": "execute_system_script",
+        "params": "&self, script: &str",
+        "returnType": "std::io::Result<String>;\n    fn get_shell_command(&self) -> (&'static str, &'static str); // (shell, arg)\n    fn get_temp_path(&self) -> std::path::PathBuf;\n}\n\npub fn create_system_automation() -> Box<dyn SystemAutomation + Send + Sync>",
+        "position": 289
+      }
+    ],
+    "modules": [
+      {
+        "name": "linux",
+        "inline": false,
+        "position": 0
+      },
+      {
+        "name": "macos",
+        "inline": false,
+        "position": 11
+      },
+      {
+        "name": "windows",
+        "inline": false,
+        "position": 22
+      }
+    ],
+    "uses": [
+      {
+        "path": "self::windows::WindowsAutomation",
+        "position": 70
+      },
+      {
+        "path": "self::macos::MacOSAutomation",
+        "position": 141
+      },
+      {
+        "path": "self::linux::LinuxAutomation",
+        "position": 208
+      }
+    ]
+  }
+}

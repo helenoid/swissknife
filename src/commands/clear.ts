@@ -1,10 +1,10 @@
-import { Command } from '../commands'
-import { getMessagesSetter } from '../messages'
-import { getContext } from '../context'
-import { getCodeStyle } from '../utils/style'
-import { clearTerminal } from '../utils/terminal'
-import { getOriginalCwd, setCwd } from '../utils/state'
-import { Message } from '../query'
+import type { Command, LocalCommand } from '../types/command.js'; // Updated import path
+import { getMessagesSetter } from '../messages.js';
+import { getContext } from '../context.js';
+import { getCodeStyle } from '../utils/style.js';
+import { clearTerminal } from '../utils/terminal.js';
+import { getOriginalCwd, setCwd } from '../utils/state.js';
+import type { Message } from '../query.js';
 
 export async function clearConversation(context: {
   setForkConvoWithMessagesOnTheNextRender: (
@@ -16,22 +16,23 @@ export async function clearConversation(context: {
   context.setForkConvoWithMessagesOnTheNextRender([])
   getContext.cache.clear?.()
   getCodeStyle.cache.clear?.()
-  await setCwd(getOriginalCwd())
+  await setCwd(getOriginalCwd());
 }
 
-const clear = {
+const clearCommand: LocalCommand = {
   type: 'local',
   name: 'clear',
   description: 'Clear conversation history and free up context',
+  options: [], // No options for this command
   isEnabled: true,
   isHidden: false,
-  async call(_, context) {
-    clearConversation(context)
-    return ''
+  async handler(args, context) { // Renamed call to handler, args is unused but kept for signature
+    await clearConversation(context);
+    return 0; // Return 0 for success exit code
   },
   userFacingName() {
     return 'clear'
   },
 } satisfies Command
 
-export default clear
+export default clearCommand;

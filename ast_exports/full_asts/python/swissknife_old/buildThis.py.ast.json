@@ -1,0 +1,1059 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "Import",
+      "lineno": 1,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 1,
+          "col_offset": 7,
+          "name": "os",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 2,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 7,
+          "name": "sys",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 3,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 3,
+          "col_offset": 7,
+          "name": "subprocess",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 4,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 4,
+          "col_offset": 7,
+          "name": "shutil",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 5,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 5,
+          "col_offset": 7,
+          "name": "pathlib",
+          "asname": "path"
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 6,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 6,
+          "col_offset": 7,
+          "name": "multiprocessing",
+          "asname": "mp"
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 7,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 7,
+          "col_offset": 7,
+          "name": "json",
+          "asname": "JSON"
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 8,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 8,
+          "col_offset": 7,
+          "name": "random",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Assign",
+      "lineno": 10,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 10,
+          "col_offset": 0,
+          "id": "args"
+        }
+      ],
+      "value": {
+        "type": "Attribute",
+        "lineno": 10,
+        "col_offset": 7,
+        "value": {
+          "type": "Name",
+          "lineno": 10,
+          "col_offset": 7,
+          "id": "sys"
+        },
+        "attr": "argv"
+      },
+      "type_comment": null
+    },
+    {
+      "type": "FunctionDef",
+      "lineno": 12,
+      "col_offset": 0,
+      "name": "main",
+      "args": {
+        "type": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "type": "arg",
+            "lineno": 12,
+            "col_offset": 9,
+            "arg": "imageName",
+            "annotation": null,
+            "type_comment": null
+          },
+          {
+            "type": "arg",
+            "lineno": 12,
+            "col_offset": 20,
+            "arg": "repository",
+            "annotation": null,
+            "type_comment": null
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "body": [
+        {
+          "type": "Assign",
+          "lineno": 13,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 13,
+              "col_offset": 1,
+              "id": "buildDir"
+            }
+          ],
+          "value": {
+            "type": "Constant",
+            "lineno": 13,
+            "col_offset": 12,
+            "value": "/tmp/dockerBuilds",
+            "kind": null
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Assign",
+          "lineno": 17,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 17,
+              "col_offset": 1,
+              "id": "scriptName"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 17,
+            "col_offset": 14,
+            "func": {
+              "type": "Attribute",
+              "lineno": 17,
+              "col_offset": 14,
+              "value": {
+                "type": "Attribute",
+                "lineno": 17,
+                "col_offset": 14,
+                "value": {
+                  "type": "Name",
+                  "lineno": 17,
+                  "col_offset": 14,
+                  "id": "os"
+                },
+                "attr": "path"
+              },
+              "attr": "basename"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 17,
+                "col_offset": 31,
+                "id": "__file__"
+              }
+            ],
+            "keywords": []
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Assign",
+          "lineno": 19,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 19,
+              "col_offset": 1,
+              "id": "cwd"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 19,
+            "col_offset": 7,
+            "func": {
+              "type": "Attribute",
+              "lineno": 19,
+              "col_offset": 7,
+              "value": {
+                "type": "Attribute",
+                "lineno": 19,
+                "col_offset": 7,
+                "value": {
+                  "type": "Name",
+                  "lineno": 19,
+                  "col_offset": 7,
+                  "id": "os"
+                },
+                "attr": "path"
+              },
+              "attr": "dirname"
+            },
+            "args": [
+              {
+                "type": "Call",
+                "lineno": 19,
+                "col_offset": 23,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 19,
+                  "col_offset": 23,
+                  "value": {
+                    "type": "Attribute",
+                    "lineno": 19,
+                    "col_offset": 23,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 19,
+                      "col_offset": 23,
+                      "id": "os"
+                    },
+                    "attr": "path"
+                  },
+                  "attr": "realpath"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 19,
+                    "col_offset": 40,
+                    "id": "__file__"
+                  }
+                ],
+                "keywords": []
+              }
+            ],
+            "keywords": []
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Expr",
+          "lineno": 20,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 20,
+            "col_offset": 1,
+            "func": {
+              "type": "Name",
+              "lineno": 20,
+              "col_offset": 1,
+              "id": "print"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 20,
+                "col_offset": 8,
+                "id": "cwd"
+              }
+            ],
+            "keywords": []
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 22,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 22,
+            "col_offset": 1,
+            "func": {
+              "type": "Attribute",
+              "lineno": 22,
+              "col_offset": 1,
+              "value": {
+                "type": "Name",
+                "lineno": 22,
+                "col_offset": 1,
+                "id": "os"
+              },
+              "attr": "chdir"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 22,
+                "col_offset": 10,
+                "id": "cwd"
+              }
+            ],
+            "keywords": []
+          }
+        },
+        {
+          "type": "If",
+          "lineno": 24,
+          "col_offset": 1,
+          "test": {
+            "type": "UnaryOp",
+            "lineno": 24,
+            "col_offset": 4,
+            "op": {
+              "type": "Not"
+            },
+            "operand": {
+              "type": "Call",
+              "lineno": 24,
+              "col_offset": 8,
+              "func": {
+                "type": "Attribute",
+                "lineno": 24,
+                "col_offset": 8,
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 24,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 24,
+                    "col_offset": 8,
+                    "id": "os"
+                  },
+                  "attr": "path"
+                },
+                "attr": "exists"
+              },
+              "args": [
+                {
+                  "type": "Constant",
+                  "lineno": 24,
+                  "col_offset": 23,
+                  "value": "/tmp/",
+                  "kind": null
+                }
+              ],
+              "keywords": []
+            }
+          },
+          "body": [
+            {
+              "type": "Expr",
+              "lineno": 25,
+              "col_offset": 2,
+              "value": {
+                "type": "Call",
+                "lineno": 25,
+                "col_offset": 2,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 25,
+                  "col_offset": 2,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 25,
+                    "col_offset": 2,
+                    "id": "os"
+                  },
+                  "attr": "mkdir"
+                },
+                "args": [
+                  {
+                    "type": "Constant",
+                    "lineno": 25,
+                    "col_offset": 11,
+                    "value": "/tmp/",
+                    "kind": null
+                  }
+                ],
+                "keywords": []
+              }
+            }
+          ],
+          "orelse": []
+        },
+        {
+          "type": "If",
+          "lineno": 26,
+          "col_offset": 1,
+          "test": {
+            "type": "UnaryOp",
+            "lineno": 26,
+            "col_offset": 4,
+            "op": {
+              "type": "Not"
+            },
+            "operand": {
+              "type": "Call",
+              "lineno": 26,
+              "col_offset": 8,
+              "func": {
+                "type": "Attribute",
+                "lineno": 26,
+                "col_offset": 8,
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 26,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 26,
+                    "col_offset": 8,
+                    "id": "os"
+                  },
+                  "attr": "path"
+                },
+                "attr": "exists"
+              },
+              "args": [
+                {
+                  "type": "Name",
+                  "lineno": 26,
+                  "col_offset": 23,
+                  "id": "buildDir"
+                }
+              ],
+              "keywords": []
+            }
+          },
+          "body": [
+            {
+              "type": "Expr",
+              "lineno": 27,
+              "col_offset": 2,
+              "value": {
+                "type": "Call",
+                "lineno": 27,
+                "col_offset": 2,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 27,
+                  "col_offset": 2,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 27,
+                    "col_offset": 2,
+                    "id": "shutil"
+                  },
+                  "attr": "copytree"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 27,
+                    "col_offset": 18,
+                    "id": "cwd"
+                  },
+                  {
+                    "type": "Name",
+                    "lineno": 27,
+                    "col_offset": 23,
+                    "id": "buildDir"
+                  }
+                ],
+                "keywords": []
+              }
+            }
+          ],
+          "orelse": [
+            {
+              "type": "Expr",
+              "lineno": 29,
+              "col_offset": 2,
+              "value": {
+                "type": "Call",
+                "lineno": 29,
+                "col_offset": 2,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 29,
+                  "col_offset": 2,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 29,
+                    "col_offset": 2,
+                    "id": "shutil"
+                  },
+                  "attr": "rmtree"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 29,
+                    "col_offset": 16,
+                    "id": "buildDir"
+                  }
+                ],
+                "keywords": []
+              }
+            },
+            {
+              "type": "Expr",
+              "lineno": 30,
+              "col_offset": 2,
+              "value": {
+                "type": "Call",
+                "lineno": 30,
+                "col_offset": 2,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 30,
+                  "col_offset": 2,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 30,
+                    "col_offset": 2,
+                    "id": "shutil"
+                  },
+                  "attr": "copytree"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 30,
+                    "col_offset": 18,
+                    "id": "cwd"
+                  },
+                  {
+                    "type": "Name",
+                    "lineno": 30,
+                    "col_offset": 23,
+                    "id": "buildDir"
+                  }
+                ],
+                "keywords": []
+              }
+            }
+          ]
+        },
+        {
+          "type": "Expr",
+          "lineno": 32,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 32,
+            "col_offset": 1,
+            "func": {
+              "type": "Attribute",
+              "lineno": 32,
+              "col_offset": 1,
+              "value": {
+                "type": "Name",
+                "lineno": 32,
+                "col_offset": 1,
+                "id": "os"
+              },
+              "attr": "chdir"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 32,
+                "col_offset": 10,
+                "id": "buildDir"
+              }
+            ],
+            "keywords": []
+          }
+        },
+        {
+          "type": "Assign",
+          "lineno": 33,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 33,
+              "col_offset": 1,
+              "id": "command"
+            }
+          ],
+          "value": {
+            "type": "BinOp",
+            "lineno": 33,
+            "col_offset": 12,
+            "left": {
+              "type": "BinOp",
+              "lineno": 33,
+              "col_offset": 12,
+              "left": {
+                "type": "BinOp",
+                "lineno": 33,
+                "col_offset": 12,
+                "left": {
+                  "type": "BinOp",
+                  "lineno": 33,
+                  "col_offset": 12,
+                  "left": {
+                    "type": "BinOp",
+                    "lineno": 33,
+                    "col_offset": 12,
+                    "left": {
+                      "type": "BinOp",
+                      "lineno": 33,
+                      "col_offset": 12,
+                      "left": {
+                        "type": "BinOp",
+                        "lineno": 33,
+                        "col_offset": 12,
+                        "left": {
+                          "type": "BinOp",
+                          "lineno": 33,
+                          "col_offset": 12,
+                          "left": {
+                            "type": "Constant",
+                            "lineno": 33,
+                            "col_offset": 12,
+                            "value": "sudo DOCKER_BUILDKIT=1 docker build . -t ",
+                            "kind": null
+                          },
+                          "op": {
+                            "type": "Add"
+                          },
+                          "right": {
+                            "type": "Name",
+                            "lineno": 33,
+                            "col_offset": 58,
+                            "id": "repository"
+                          }
+                        },
+                        "op": {
+                          "type": "Add"
+                        },
+                        "right": {
+                          "type": "Constant",
+                          "lineno": 33,
+                          "col_offset": 71,
+                          "value": ":",
+                          "kind": null
+                        }
+                      },
+                      "op": {
+                        "type": "Add"
+                      },
+                      "right": {
+                        "type": "Name",
+                        "lineno": 33,
+                        "col_offset": 77,
+                        "id": "imageName"
+                      }
+                    },
+                    "op": {
+                      "type": "Add"
+                    },
+                    "right": {
+                      "type": "Constant",
+                      "lineno": 33,
+                      "col_offset": 89,
+                      "value": "   ; sudo docker push ",
+                      "kind": null
+                    }
+                  },
+                  "op": {
+                    "type": "Add"
+                  },
+                  "right": {
+                    "type": "Name",
+                    "lineno": 33,
+                    "col_offset": 116,
+                    "id": "repository"
+                  }
+                },
+                "op": {
+                  "type": "Add"
+                },
+                "right": {
+                  "type": "Constant",
+                  "lineno": 33,
+                  "col_offset": 129,
+                  "value": ":",
+                  "kind": null
+                }
+              },
+              "op": {
+                "type": "Add"
+              },
+              "right": {
+                "type": "Name",
+                "lineno": 33,
+                "col_offset": 135,
+                "id": "imageName"
+              }
+            },
+            "op": {
+              "type": "Add"
+            },
+            "right": {
+              "type": "Constant",
+              "lineno": 33,
+              "col_offset": 147,
+              "value": " ; sudo docker image prune -a --filter  \"until=15m\" -f ; sudo docker system prune --filter \"until=15m\" -f",
+              "kind": null
+            }
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Expr",
+          "lineno": 34,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 34,
+            "col_offset": 1,
+            "func": {
+              "type": "Name",
+              "lineno": 34,
+              "col_offset": 1,
+              "id": "print"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 34,
+                "col_offset": 7,
+                "id": "command"
+              }
+            ],
+            "keywords": []
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 35,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 35,
+            "col_offset": 1,
+            "func": {
+              "type": "Attribute",
+              "lineno": 35,
+              "col_offset": 1,
+              "value": {
+                "type": "Name",
+                "lineno": 35,
+                "col_offset": 1,
+                "id": "subprocess"
+              },
+              "attr": "run"
+            },
+            "args": [
+              {
+                "type": "List",
+                "lineno": 35,
+                "col_offset": 16,
+                "elts": [
+                  {
+                    "type": "Constant",
+                    "lineno": 35,
+                    "col_offset": 17,
+                    "value": "bash",
+                    "kind": null
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 35,
+                    "col_offset": 25,
+                    "value": "-c",
+                    "kind": null
+                  },
+                  {
+                    "type": "Name",
+                    "lineno": 35,
+                    "col_offset": 32,
+                    "id": "command"
+                  }
+                ]
+              }
+            ],
+            "keywords": []
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 36,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 36,
+            "col_offset": 1,
+            "func": {
+              "type": "Attribute",
+              "lineno": 36,
+              "col_offset": 1,
+              "value": {
+                "type": "Name",
+                "lineno": 36,
+                "col_offset": 1,
+                "id": "os"
+              },
+              "attr": "chdir"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 36,
+                "col_offset": 10,
+                "id": "cwd"
+              }
+            ],
+            "keywords": []
+          }
+        }
+      ],
+      "decorator_list": [],
+      "returns": null,
+      "type_comment": null,
+      "type_params": []
+    },
+    {
+      "type": "Assign",
+      "lineno": 38,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 38,
+          "col_offset": 0,
+          "id": "args"
+        }
+      ],
+      "value": {
+        "type": "Subscript",
+        "lineno": 38,
+        "col_offset": 7,
+        "value": {
+          "type": "Attribute",
+          "lineno": 38,
+          "col_offset": 7,
+          "value": {
+            "type": "Name",
+            "lineno": 38,
+            "col_offset": 7,
+            "id": "sys"
+          },
+          "attr": "argv"
+        },
+        "slice": {
+          "type": "Slice",
+          "lineno": 38,
+          "col_offset": 16,
+          "lower": {
+            "type": "Constant",
+            "lineno": 38,
+            "col_offset": 16,
+            "value": 1,
+            "kind": null
+          },
+          "upper": null,
+          "step": null
+        }
+      },
+      "type_comment": null
+    },
+    {
+      "type": "If",
+      "lineno": 39,
+      "col_offset": 0,
+      "test": {
+        "type": "Compare",
+        "lineno": 39,
+        "col_offset": 3,
+        "left": {
+          "type": "Call",
+          "lineno": 39,
+          "col_offset": 3,
+          "func": {
+            "type": "Name",
+            "lineno": 39,
+            "col_offset": 3,
+            "id": "len"
+          },
+          "args": [
+            {
+              "type": "Name",
+              "lineno": 39,
+              "col_offset": 7,
+              "id": "args"
+            }
+          ],
+          "keywords": []
+        },
+        "ops": [
+          {
+            "type": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "type": "Constant",
+            "lineno": 39,
+            "col_offset": 16,
+            "value": 0,
+            "kind": null
+          }
+        ]
+      },
+      "body": [
+        {
+          "type": "Expr",
+          "lineno": 40,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 40,
+            "col_offset": 1,
+            "func": {
+              "type": "Name",
+              "lineno": 40,
+              "col_offset": 1,
+              "id": "main"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 40,
+                "col_offset": 6,
+                "value": "instruct-pix2pix",
+                "kind": null
+              },
+              {
+                "type": "Constant",
+                "lineno": 40,
+                "col_offset": 26,
+                "value": "endomorphosis/diffusionkit",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          }
+        }
+      ],
+      "orelse": [
+        {
+          "type": "Expr",
+          "lineno": 42,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 42,
+            "col_offset": 1,
+            "func": {
+              "type": "Name",
+              "lineno": 42,
+              "col_offset": 1,
+              "id": "main"
+            },
+            "args": [
+              {
+                "type": "Subscript",
+                "lineno": 42,
+                "col_offset": 6,
+                "value": {
+                  "type": "Name",
+                  "lineno": 42,
+                  "col_offset": 6,
+                  "id": "args"
+                },
+                "slice": {
+                  "type": "Constant",
+                  "lineno": 42,
+                  "col_offset": 11,
+                  "value": 0,
+                  "kind": null
+                }
+              },
+              {
+                "type": "Constant",
+                "lineno": 42,
+                "col_offset": 15,
+                "value": "endomorphosis/diffusionkit",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          }
+        }
+      ]
+    }
+  ],
+  "type_ignores": []
+}

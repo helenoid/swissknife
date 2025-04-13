@@ -1,20 +1,21 @@
-import { Command } from '../commands'
-import { Bug } from '../components/Bug'
-import * as React from 'react'
-import { PRODUCT_NAME } from '../constants/product'
+import * as React from 'react'; // Import React explicitly
+import type { Command, LocalJSXCommand } from '../types/command.js'; // Updated import path
+import { Bug } from '../components/Bug.js'; // Assuming .js extension
+import { PRODUCT_NAME } from '../constants/product.js'; // Assuming .js extension
 
-const bug = {
+const bugCommand: LocalJSXCommand = {
   type: 'local-jsx',
   name: 'bug',
   description: `Submit feedback about ${PRODUCT_NAME}`,
+  options: [], // No options for this command
   isEnabled: true,
   isHidden: false,
-  async call(onDone) {
-    return <Bug onDone={onDone} />
+  async handler(args, onDone, context) { // Renamed call to handler, args and context are unused
+    return <Bug onDone={onDone} />;
   },
   userFacingName() {
     return 'bug'
   },
 } satisfies Command
 
-export default bug
+export default bugCommand;

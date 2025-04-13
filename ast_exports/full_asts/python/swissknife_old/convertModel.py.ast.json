@@ -1,0 +1,1919 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "Expr",
+      "lineno": 15,
+      "col_offset": 0,
+      "value": {
+        "type": "Constant",
+        "lineno": 15,
+        "col_offset": 0,
+        "value": " Conversion script for the LDM checkpoints. ",
+        "kind": null
+      }
+    },
+    {
+      "type": "Import",
+      "lineno": 17,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 17,
+          "col_offset": 7,
+          "name": "argparse",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 19,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 19,
+          "col_offset": 7,
+          "name": "torch",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "ImportFrom",
+      "lineno": 21,
+      "col_offset": 0,
+      "module": "diffusers.pipelines.stable_diffusion.convert_from_ckpt",
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 21,
+          "col_offset": 67,
+          "name": "download_from_original_stable_diffusion_ckpt",
+          "asname": null
+        }
+      ],
+      "level": 0
+    },
+    {
+      "type": "If",
+      "lineno": 24,
+      "col_offset": 0,
+      "test": {
+        "type": "Compare",
+        "lineno": 24,
+        "col_offset": 3,
+        "left": {
+          "type": "Name",
+          "lineno": 24,
+          "col_offset": 3,
+          "id": "__name__"
+        },
+        "ops": [
+          {
+            "type": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "type": "Constant",
+            "lineno": 24,
+            "col_offset": 15,
+            "value": "__main__",
+            "kind": null
+          }
+        ]
+      },
+      "body": [
+        {
+          "type": "Assign",
+          "lineno": 25,
+          "col_offset": 4,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 25,
+              "col_offset": 4,
+              "id": "parser"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 25,
+            "col_offset": 13,
+            "func": {
+              "type": "Attribute",
+              "lineno": 25,
+              "col_offset": 13,
+              "value": {
+                "type": "Name",
+                "lineno": 25,
+                "col_offset": 13,
+                "id": "argparse"
+              },
+              "attr": "ArgumentParser"
+            },
+            "args": [],
+            "keywords": []
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Expr",
+          "lineno": 27,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 27,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 27,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 27,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 28,
+                "col_offset": 8,
+                "value": "--checkpoint_path",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 28,
+                "col_offset": 29,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 28,
+                  "col_offset": 37,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 28,
+                "col_offset": 43,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 28,
+                  "col_offset": 48,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 28,
+                "col_offset": 53,
+                "arg": "required",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 28,
+                  "col_offset": 62,
+                  "value": true,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 28,
+                "col_offset": 68,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 28,
+                  "col_offset": 73,
+                  "value": "Path to the checkpoint to convert.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 31,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 31,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 31,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 31,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 32,
+                "col_offset": 8,
+                "value": "--original_config_file",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 33,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 33,
+                  "col_offset": 16,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 34,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 34,
+                  "col_offset": 13,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 35,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 35,
+                  "col_offset": 13,
+                  "value": "The YAML config file corresponding to the original architecture.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 37,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 37,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 37,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 37,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 38,
+                "col_offset": 8,
+                "value": "--num_in_channels",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 39,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 39,
+                  "col_offset": 16,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 40,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 40,
+                  "col_offset": 13,
+                  "id": "int"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 41,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 41,
+                  "col_offset": 13,
+                  "value": "The number of input channels. If `None` number of input channels will be automatically inferred.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 43,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 43,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 43,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 43,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 44,
+                "col_offset": 8,
+                "value": "--scheduler_type",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 45,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 45,
+                  "col_offset": 16,
+                  "value": "pndm",
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 46,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 46,
+                  "col_offset": 13,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 47,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 47,
+                  "col_offset": 13,
+                  "value": "Type of scheduler to use. Should be one of ['pndm', 'lms', 'ddim', 'euler', 'euler-ancestral', 'dpm']",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 49,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 49,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 49,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 49,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 50,
+                "col_offset": 8,
+                "value": "--pipeline_type",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 51,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 51,
+                  "col_offset": 16,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 52,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 52,
+                  "col_offset": 13,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 53,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 54,
+                  "col_offset": 12,
+                  "value": "The pipeline type. One of 'FrozenOpenCLIPEmbedder', 'FrozenCLIPEmbedder', 'PaintByExample'. If `None` pipeline will be automatically inferred.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 58,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 58,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 58,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 58,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 59,
+                "col_offset": 8,
+                "value": "--image_size",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 60,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 60,
+                  "col_offset": 16,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 61,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 61,
+                  "col_offset": 13,
+                  "id": "int"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 62,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 63,
+                  "col_offset": 12,
+                  "value": "The image size that the model was trained on. Use 512 for Stable Diffusion v1.X and Stable Siffusion v2 Base. Use 768 for Stable Diffusion v2.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 67,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 67,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 67,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 67,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 68,
+                "col_offset": 8,
+                "value": "--prediction_type",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 69,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 69,
+                  "col_offset": 16,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 70,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 70,
+                  "col_offset": 13,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 71,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 72,
+                  "col_offset": 12,
+                  "value": "The prediction type that the model was trained on. Use 'epsilon' for Stable Diffusion v1.X and Stable Diffusion v2 Base. Use 'v_prediction' for Stable Diffusion v2.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 76,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 76,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 76,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 76,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 77,
+                "col_offset": 8,
+                "value": "--extract_ema",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 78,
+                "col_offset": 8,
+                "arg": "action",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 78,
+                  "col_offset": 15,
+                  "value": "store_true",
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 79,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 80,
+                  "col_offset": 12,
+                  "value": "Only relevant for checkpoints that have both EMA and non-EMA weights. Whether to extract the EMA weights or not. Defaults to `False`. Add `--extract_ema` to extract the EMA weights. EMA weights usually yield higher quality images for inference. Non-EMA weights are usually better to continue fine-tuning.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 85,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 85,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 85,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 85,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 86,
+                "col_offset": 8,
+                "value": "--upcast_attention",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 87,
+                "col_offset": 8,
+                "arg": "action",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 87,
+                  "col_offset": 15,
+                  "value": "store_true",
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 88,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 89,
+                  "col_offset": 12,
+                  "value": "Whether the attention computation should always be upcasted. This is necessary when running stable diffusion 2.1.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 93,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 93,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 93,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 93,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 94,
+                "col_offset": 8,
+                "value": "--from_safetensors",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 95,
+                "col_offset": 8,
+                "arg": "action",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 95,
+                  "col_offset": 15,
+                  "value": "store_true",
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 96,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 96,
+                  "col_offset": 13,
+                  "value": "If `--checkpoint_path` is in `safetensors` format, load checkpoint with safetensors instead of PyTorch.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 98,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 98,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 98,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 98,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 99,
+                "col_offset": 8,
+                "value": "--to_safetensors",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 100,
+                "col_offset": 8,
+                "arg": "action",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 100,
+                  "col_offset": 15,
+                  "value": "store_true",
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 101,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 101,
+                  "col_offset": 13,
+                  "value": "Whether to store pipeline in safetensors format or not.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 103,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 103,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 103,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 103,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 103,
+                "col_offset": 24,
+                "value": "--dump_path",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 103,
+                "col_offset": 39,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 103,
+                  "col_offset": 47,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 103,
+                "col_offset": 53,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 103,
+                  "col_offset": 58,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 103,
+                "col_offset": 63,
+                "arg": "required",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 103,
+                  "col_offset": 72,
+                  "value": true,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 103,
+                "col_offset": 78,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 103,
+                  "col_offset": 83,
+                  "value": "Path to the output model.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 104,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 104,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 104,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 104,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 104,
+                "col_offset": 24,
+                "value": "--device",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 104,
+                "col_offset": 36,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 104,
+                  "col_offset": 41,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 104,
+                "col_offset": 46,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 104,
+                  "col_offset": 51,
+                  "value": "Device to use (e.g. cpu, cuda:0, cuda:1, etc.)",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 105,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 105,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 105,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 105,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 106,
+                "col_offset": 8,
+                "value": "--stable_unclip",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 107,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 107,
+                  "col_offset": 13,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 108,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 108,
+                  "col_offset": 16,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 109,
+                "col_offset": 8,
+                "arg": "required",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 109,
+                  "col_offset": 17,
+                  "value": false,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 110,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 110,
+                  "col_offset": 13,
+                  "value": "Set if this is a stable unCLIP model. One of 'txt2img' or 'img2img'.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 112,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 112,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 112,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 112,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 113,
+                "col_offset": 8,
+                "value": "--stable_unclip_prior",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 114,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 114,
+                  "col_offset": 13,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 115,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 115,
+                  "col_offset": 16,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 116,
+                "col_offset": 8,
+                "arg": "required",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 116,
+                  "col_offset": 17,
+                  "value": false,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 117,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 117,
+                  "col_offset": 13,
+                  "value": "Set if this is a stable unCLIP txt2img model. Selects which prior to use. If `--stable_unclip` is set to `txt2img`, the karlo prior (https://huggingface.co/kakaobrain/karlo-v1-alpha/tree/main/prior) is selected by default.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 119,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 119,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 119,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 119,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 120,
+                "col_offset": 8,
+                "value": "--clip_stats_path",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 121,
+                "col_offset": 8,
+                "arg": "type",
+                "value": {
+                  "type": "Name",
+                  "lineno": 121,
+                  "col_offset": 13,
+                  "id": "str"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 122,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 122,
+                  "col_offset": 13,
+                  "value": "Path to the clip stats file. Only required if the stable unclip model's config specifies `model.params.noise_aug_config.params.clip_stats_path`.",
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 123,
+                "col_offset": 8,
+                "arg": "required",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 123,
+                  "col_offset": 17,
+                  "value": false,
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 125,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 125,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 125,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 125,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 126,
+                "col_offset": 8,
+                "value": "--controlnet",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 127,
+                "col_offset": 8,
+                "arg": "action",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 127,
+                  "col_offset": 15,
+                  "value": "store_true",
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 128,
+                "col_offset": 8,
+                "arg": "default",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 128,
+                  "col_offset": 16,
+                  "value": null,
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 129,
+                "col_offset": 8,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 129,
+                  "col_offset": 13,
+                  "value": "Set flag if this is a controlnet checkpoint.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Expr",
+          "lineno": 131,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 131,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 131,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 131,
+                "col_offset": 4,
+                "id": "parser"
+              },
+              "attr": "add_argument"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 131,
+                "col_offset": 24,
+                "value": "--half",
+                "kind": null
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 131,
+                "col_offset": 34,
+                "arg": "action",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 131,
+                  "col_offset": 41,
+                  "value": "store_true",
+                  "kind": null
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 131,
+                "col_offset": 55,
+                "arg": "help",
+                "value": {
+                  "type": "Constant",
+                  "lineno": 131,
+                  "col_offset": 60,
+                  "value": "Save weights in half precision.",
+                  "kind": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Assign",
+          "lineno": 132,
+          "col_offset": 4,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 132,
+              "col_offset": 4,
+              "id": "args"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 132,
+            "col_offset": 11,
+            "func": {
+              "type": "Attribute",
+              "lineno": 132,
+              "col_offset": 11,
+              "value": {
+                "type": "Name",
+                "lineno": 132,
+                "col_offset": 11,
+                "id": "parser"
+              },
+              "attr": "parse_args"
+            },
+            "args": [],
+            "keywords": []
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Assign",
+          "lineno": 134,
+          "col_offset": 4,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 134,
+              "col_offset": 4,
+              "id": "pipe"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 134,
+            "col_offset": 11,
+            "func": {
+              "type": "Name",
+              "lineno": 134,
+              "col_offset": 11,
+              "id": "download_from_original_stable_diffusion_ckpt"
+            },
+            "args": [],
+            "keywords": [
+              {
+                "type": "keyword",
+                "lineno": 135,
+                "col_offset": 8,
+                "arg": "checkpoint_path",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 135,
+                  "col_offset": 24,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 135,
+                    "col_offset": 24,
+                    "id": "args"
+                  },
+                  "attr": "checkpoint_path"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 136,
+                "col_offset": 8,
+                "arg": "original_config_file",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 136,
+                  "col_offset": 29,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 136,
+                    "col_offset": 29,
+                    "id": "args"
+                  },
+                  "attr": "original_config_file"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 137,
+                "col_offset": 8,
+                "arg": "image_size",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 137,
+                  "col_offset": 19,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 137,
+                    "col_offset": 19,
+                    "id": "args"
+                  },
+                  "attr": "image_size"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 138,
+                "col_offset": 8,
+                "arg": "prediction_type",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 138,
+                  "col_offset": 24,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 138,
+                    "col_offset": 24,
+                    "id": "args"
+                  },
+                  "attr": "prediction_type"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 139,
+                "col_offset": 8,
+                "arg": "model_type",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 139,
+                  "col_offset": 19,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 139,
+                    "col_offset": 19,
+                    "id": "args"
+                  },
+                  "attr": "pipeline_type"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 140,
+                "col_offset": 8,
+                "arg": "extract_ema",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 140,
+                  "col_offset": 20,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 140,
+                    "col_offset": 20,
+                    "id": "args"
+                  },
+                  "attr": "extract_ema"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 141,
+                "col_offset": 8,
+                "arg": "scheduler_type",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 141,
+                  "col_offset": 23,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 141,
+                    "col_offset": 23,
+                    "id": "args"
+                  },
+                  "attr": "scheduler_type"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 142,
+                "col_offset": 8,
+                "arg": "num_in_channels",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 142,
+                  "col_offset": 24,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 142,
+                    "col_offset": 24,
+                    "id": "args"
+                  },
+                  "attr": "num_in_channels"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 143,
+                "col_offset": 8,
+                "arg": "upcast_attention",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 143,
+                  "col_offset": 25,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 143,
+                    "col_offset": 25,
+                    "id": "args"
+                  },
+                  "attr": "upcast_attention"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 144,
+                "col_offset": 8,
+                "arg": "from_safetensors",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 144,
+                  "col_offset": 25,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 144,
+                    "col_offset": 25,
+                    "id": "args"
+                  },
+                  "attr": "from_safetensors"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 145,
+                "col_offset": 8,
+                "arg": "device",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 145,
+                  "col_offset": 15,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 145,
+                    "col_offset": 15,
+                    "id": "args"
+                  },
+                  "attr": "device"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 146,
+                "col_offset": 8,
+                "arg": "stable_unclip",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 146,
+                  "col_offset": 22,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 146,
+                    "col_offset": 22,
+                    "id": "args"
+                  },
+                  "attr": "stable_unclip"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 147,
+                "col_offset": 8,
+                "arg": "stable_unclip_prior",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 147,
+                  "col_offset": 28,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 147,
+                    "col_offset": 28,
+                    "id": "args"
+                  },
+                  "attr": "stable_unclip_prior"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 148,
+                "col_offset": 8,
+                "arg": "clip_stats_path",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 148,
+                  "col_offset": 24,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 148,
+                    "col_offset": 24,
+                    "id": "args"
+                  },
+                  "attr": "clip_stats_path"
+                }
+              },
+              {
+                "type": "keyword",
+                "lineno": 149,
+                "col_offset": 8,
+                "arg": "controlnet",
+                "value": {
+                  "type": "Attribute",
+                  "lineno": 149,
+                  "col_offset": 19,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 149,
+                    "col_offset": 19,
+                    "id": "args"
+                  },
+                  "attr": "controlnet"
+                }
+              }
+            ]
+          },
+          "type_comment": null
+        },
+        {
+          "type": "If",
+          "lineno": 152,
+          "col_offset": 4,
+          "test": {
+            "type": "Attribute",
+            "lineno": 152,
+            "col_offset": 7,
+            "value": {
+              "type": "Name",
+              "lineno": 152,
+              "col_offset": 7,
+              "id": "args"
+            },
+            "attr": "half"
+          },
+          "body": [
+            {
+              "type": "Expr",
+              "lineno": 153,
+              "col_offset": 8,
+              "value": {
+                "type": "Call",
+                "lineno": 153,
+                "col_offset": 8,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 153,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 153,
+                    "col_offset": 8,
+                    "id": "pipe"
+                  },
+                  "attr": "to"
+                },
+                "args": [],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "lineno": 153,
+                    "col_offset": 16,
+                    "arg": "torch_dtype",
+                    "value": {
+                      "type": "Attribute",
+                      "lineno": 153,
+                      "col_offset": 28,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 153,
+                        "col_offset": 28,
+                        "id": "torch"
+                      },
+                      "attr": "float16"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "orelse": []
+        },
+        {
+          "type": "If",
+          "lineno": 155,
+          "col_offset": 4,
+          "test": {
+            "type": "Attribute",
+            "lineno": 155,
+            "col_offset": 7,
+            "value": {
+              "type": "Name",
+              "lineno": 155,
+              "col_offset": 7,
+              "id": "args"
+            },
+            "attr": "controlnet"
+          },
+          "body": [
+            {
+              "type": "Expr",
+              "lineno": 157,
+              "col_offset": 8,
+              "value": {
+                "type": "Call",
+                "lineno": 157,
+                "col_offset": 8,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 157,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Attribute",
+                    "lineno": 157,
+                    "col_offset": 8,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 157,
+                      "col_offset": 8,
+                      "id": "pipe"
+                    },
+                    "attr": "controlnet"
+                  },
+                  "attr": "save_pretrained"
+                },
+                "args": [
+                  {
+                    "type": "Attribute",
+                    "lineno": 157,
+                    "col_offset": 40,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 157,
+                      "col_offset": 40,
+                      "id": "args"
+                    },
+                    "attr": "dump_path"
+                  }
+                ],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "lineno": 157,
+                    "col_offset": 56,
+                    "arg": "safe_serialization",
+                    "value": {
+                      "type": "Attribute",
+                      "lineno": 157,
+                      "col_offset": 75,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 157,
+                        "col_offset": 75,
+                        "id": "args"
+                      },
+                      "attr": "to_safetensors"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "orelse": [
+            {
+              "type": "Expr",
+              "lineno": 159,
+              "col_offset": 8,
+              "value": {
+                "type": "Call",
+                "lineno": 159,
+                "col_offset": 8,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 159,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 159,
+                    "col_offset": 8,
+                    "id": "pipe"
+                  },
+                  "attr": "save_pretrained"
+                },
+                "args": [
+                  {
+                    "type": "Attribute",
+                    "lineno": 159,
+                    "col_offset": 29,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 159,
+                      "col_offset": 29,
+                      "id": "args"
+                    },
+                    "attr": "dump_path"
+                  }
+                ],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "lineno": 159,
+                    "col_offset": 45,
+                    "arg": "safe_serialization",
+                    "value": {
+                      "type": "Attribute",
+                      "lineno": 159,
+                      "col_offset": 64,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 159,
+                        "col_offset": 64,
+                        "id": "args"
+                      },
+                      "attr": "to_safetensors"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "orelse": []
+    }
+  ],
+  "type_ignores": []
+}

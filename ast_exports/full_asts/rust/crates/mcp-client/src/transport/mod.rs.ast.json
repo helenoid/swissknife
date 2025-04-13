@@ -1,0 +1,203 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/src/transport/mod.rs",
+  "fileSize": 4041,
+  "lineCount": 136,
+  "structures": {
+    "structs": [
+      {
+        "name": "TransportMessage",
+        "fields": [
+          {
+            "name": "message",
+            "type": "JsonRpcMessage"
+          },
+          {
+            "name": "response_tx",
+            "type": "Option<oneshot::Sender<Result<JsonRpcMessage"
+          }
+        ],
+        "position": 1039
+      },
+      {
+        "name": "PendingRequests",
+        "fields": [
+          {
+            "name": "requests",
+            "type": "RwLock<HashMap<String"
+          },
+          {
+            "name": "oneshot",
+            "type": ":Sender<Result<JsonRpcMessage"
+          }
+        ],
+        "position": 2986
+      }
+    ],
+    "enums": [
+      {
+        "name": "Error",
+        "variants": [
+          "error",
+          "I",
+          "O",
+          "error"
+        ],
+        "position": 303
+      }
+    ],
+    "traits": [
+      {
+        "name": "Transport",
+        "methods": [
+          {
+            "name": "start",
+            "params": "&self",
+            "returnType": "Result<Self::Handle, Error>"
+          },
+          {
+            "name": "close",
+            "params": "&self",
+            "returnType": "Result<(), Error>"
+          }
+        ],
+        "position": 1378
+      },
+      {
+        "name": "TransportHandle",
+        "methods": [
+          {
+            "name": "send",
+            "params": "&self, message: JsonRpcMessage",
+            "returnType": "Result<JsonRpcMessage, Error>"
+          }
+        ],
+        "position": 1740
+      }
+    ],
+    "impls": [
+      {
+        "type": "PendingRequests",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 3105
+      },
+      {
+        "type": "PendingRequests",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 3196
+      }
+    ],
+    "functions": [
+      {
+        "name": "start",
+        "params": "&self",
+        "returnType": "Result<Self::Handle, Error>;\n\n    /// Close the transport and free any resources.\n    async fn close(&self) -> Result<(), Error>;\n}\n\n#[async_trait]\npub trait TransportHandle: Send + Sync + Clone + 'static",
+        "position": 1573
+      },
+      {
+        "name": "send",
+        "params": "&self, message: JsonRpcMessage",
+        "returnType": "Result<JsonRpcMessage, Error>;\n}\n\n// Helper function that contains the common send implementation\npub async fn send_message(\n    sender: &mpsc::Sender<TransportMessage>,\n    message: JsonRpcMessage,\n) -> Result<JsonRpcMessage, Error>",
+        "position": 1809
+      },
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 3144
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 3223
+      },
+      {
+        "name": "insert",
+        "params": "&self, id: String, sender: oneshot::Sender<Result<JsonRpcMessage, Error>>",
+        "returnType": null,
+        "position": 3343
+      },
+      {
+        "name": "respond",
+        "params": "&self, id: &str, response: Result<JsonRpcMessage, Error>",
+        "returnType": null,
+        "position": 3507
+      },
+      {
+        "name": "clear",
+        "params": "&self",
+        "returnType": null,
+        "position": 3715
+      },
+      {
+        "name": "len",
+        "params": "&self",
+        "returnType": "usize",
+        "position": 3799
+      },
+      {
+        "name": "is_empty",
+        "params": "&self",
+        "returnType": "bool",
+        "position": 3886
+      }
+    ],
+    "modules": [
+      {
+        "name": "stdio",
+        "inline": false,
+        "position": 3954
+      },
+      {
+        "name": "sse",
+        "inline": false,
+        "position": 4001
+      }
+    ],
+    "uses": [
+      {
+        "path": "async_trait::async_trait",
+        "position": 0
+      },
+      {
+        "path": "mcp_core::protocol::JsonRpcMessage",
+        "position": 30
+      },
+      {
+        "path": "std::collections::HashMap",
+        "position": 70
+      },
+      {
+        "path": "thiserror::Error",
+        "position": 101
+      },
+      {
+        "path": "tokio::sync::{mpsc, oneshot, RwLock}",
+        "position": 123
+      },
+      {
+        "path": "stdio::StdioTransport",
+        "position": 3973
+      },
+      {
+        "path": "sse::SseTransport",
+        "position": 4018
+      }
+    ]
+  }
+}

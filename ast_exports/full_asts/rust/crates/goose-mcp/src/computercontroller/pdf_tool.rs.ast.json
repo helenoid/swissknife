@@ -1,0 +1,83 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/computercontroller/pdf_tool.rs",
+  "fileSize": 20412,
+  "lineCount": 423,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [
+      {
+        "name": "pdf_tool",
+        "params": "path: &str,\n    operation: &str,\n    cache_dir: &Path,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 137
+      },
+      {
+        "name": "get_image_extension",
+        "params": "dict: &lopdf::Dictionary",
+        "returnType": "&'static str",
+        "position": 7443
+      },
+      {
+        "name": "test_pdf_text_extraction",
+        "params": "",
+        "returnType": null,
+        "position": 16931
+      },
+      {
+        "name": "test_pdf_image_extraction",
+        "params": "",
+        "returnType": null,
+        "position": 17863
+      },
+      {
+        "name": "test_pdf_invalid_path",
+        "params": "",
+        "returnType": null,
+        "position": 19653
+      },
+      {
+        "name": "test_pdf_invalid_operation",
+        "params": "",
+        "returnType": null,
+        "position": 19936
+      }
+    ],
+    "modules": [
+      {
+        "name": "tests",
+        "inline": true,
+        "position": 16843
+      }
+    ],
+    "uses": [
+      {
+        "path": "lopdf::{content::Content as PdfContent, Document, Object}",
+        "position": 0
+      },
+      {
+        "path": "mcp_core::{Content, ToolError}",
+        "position": 63
+      },
+      {
+        "path": "std::{fs, path::Path}",
+        "position": 99
+      },
+      {
+        "path": "FlateDecode\n                                    // Check color space to confirm\n                                    if let Ok(cs) = dict.get(b\"ColorSpace\") {\n                                        if let Ok(name) = cs.as_name() {\n                                            if name == b\"DeviceRGB\" || name == b\"DeviceGray\" {\n                                                return \".png\"",
+        "position": 8050
+      },
+      {
+        "path": "super::*",
+        "position": 16859
+      },
+      {
+        "path": "std::path::PathBuf",
+        "position": 16877
+      }
+    ]
+  }
+}

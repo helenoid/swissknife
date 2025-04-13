@@ -1,0 +1,21 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/eval_suites/core/developer_search_replace/mod.rs",
+  "fileSize": 20,
+  "lineCount": 2,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [],
+    "modules": [
+      {
+        "name": "search_replace",
+        "inline": false,
+        "position": 0
+      }
+    ],
+    "uses": []
+  }
+}

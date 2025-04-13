@@ -1,0 +1,237 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/google_drive/oauth_pkce.rs",
+  "fileSize": 13159,
+  "lineCount": 352,
+  "structures": {
+    "structs": [
+      {
+        "name": "OAuth2Config",
+        "fields": [
+          {
+            "name": "installed",
+            "type": "InstalledConfig"
+          }
+        ],
+        "position": 750
+      },
+      {
+        "name": "InstalledConfig",
+        "fields": [
+          {
+            "name": "client_id",
+            "type": "String"
+          },
+          {
+            "name": "project_id",
+            "type": "String"
+          },
+          {
+            "name": "auth_uri",
+            "type": "String"
+          },
+          {
+            "name": "token_uri",
+            "type": "String"
+          },
+          {
+            "name": "auth_provider_x509_cert_url",
+            "type": "String"
+          },
+          {
+            "name": "client_secret",
+            "type": "String"
+          },
+          {
+            "name": "redirect_uris",
+            "type": "Vec<String>"
+          }
+        ],
+        "position": 848
+      },
+      {
+        "name": "TokenData",
+        "fields": [
+          {
+            "name": "access_token",
+            "type": "String"
+          },
+          {
+            "name": "refresh_token",
+            "type": "String"
+          },
+          {
+            "name": "Option",
+            "type": ":is_none\")]\n    expires_at: Option<u64>"
+          },
+          {
+            "name": "project_id",
+            "type": "String"
+          }
+        ],
+        "position": 1141
+      },
+      {
+        "name": "PkceOAuth2Client",
+        "fields": [
+          {
+            "name": "client",
+            "type": "BasicClient<EndpointSet"
+          },
+          {
+            "name": "credentials_manager",
+            "type": "Arc<CredentialsManager>"
+          },
+          {
+            "name": "http_client",
+            "type": "reqwest::Client"
+          },
+          {
+            "name": "project_id",
+            "type": "String"
+          }
+        ],
+        "position": 1481
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "PkceOAuth2Client",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "config_path: impl AsRef<Path>,\n        credentials_manager: Arc<CredentialsManager>,",
+            "returnType": "Result<Self, Box<dyn Error + Send + Sync>>"
+          }
+        ],
+        "position": 1721
+      },
+      {
+        "type": "PkceOAuth2Client",
+        "trait": "GetToken for use with DriveHub directly\n// see google_drive3::common::GetToken\nimpl GetToken",
+        "methods": [],
+        "position": 11161
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "config_path: impl AsRef<Path>,\n        credentials_manager: Arc<CredentialsManager>,",
+        "returnType": "Result<Self, Box<dyn Error + Send + Sync>>",
+        "position": 1749
+      },
+      {
+        "name": "is_token_expired",
+        "params": "&self, expires_at: Option<u64>, buffer_seconds: u64",
+        "returnType": "bool",
+        "position": 3406
+      },
+      {
+        "name": "perform_oauth_flow",
+        "params": "&self,\n        scopes: &[&str],",
+        "returnType": "Result<String, Box<dyn Error + Send + Sync>>",
+        "position": 4001
+      },
+      {
+        "name": "refresh_token",
+        "params": "&self,\n        refresh_token: &str,",
+        "returnType": "Result<String, Box<dyn Error + Send + Sync>>",
+        "position": 7183
+      },
+      {
+        "name": "start_redirect_server",
+        "params": "",
+        "returnType": "Result<(AuthorizationCode, CsrfToken), Box<dyn Error + Send + Sync>>",
+        "position": 9088
+      },
+      {
+        "name": "get_token",
+        "params": "&'a self,\n        scopes: &'a [&str],",
+        "returnType": "Pin<\n        Box<dyn Future<Output = Result<Option<String>, Box<dyn Error + Send + Sync>>> + Send + 'a>,\n    >",
+        "position": 11286
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "std::error::Error",
+        "position": 0
+      },
+      {
+        "path": "std::fs",
+        "position": 23
+      },
+      {
+        "path": "std::future::Future",
+        "position": 36
+      },
+      {
+        "path": "std::io::{BufRead, BufReader, Write}",
+        "position": 61
+      },
+      {
+        "path": "std::net::TcpListener",
+        "position": 103
+      },
+      {
+        "path": "std::path::Path",
+        "position": 130
+      },
+      {
+        "path": "std::pin::Pin",
+        "position": 151
+      },
+      {
+        "path": "std::sync::Arc",
+        "position": 170
+      },
+      {
+        "path": "std::time::{SystemTime, UNIX_EPOCH}",
+        "position": 190
+      },
+      {
+        "path": "google_drive3::common::GetToken",
+        "position": 232
+      },
+      {
+        "path": "oauth2::basic::BasicClient",
+        "position": 269
+      },
+      {
+        "path": "oauth2::reqwest",
+        "position": 301
+      },
+      {
+        "path": "oauth2::{\n    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EndpointNotSet, EndpointSet,\n    PkceCodeChallenge, RedirectUrl, RefreshToken, Scope, TokenResponse, TokenUrl,\n}",
+        "position": 322
+      },
+      {
+        "path": "serde::{Deserialize, Serialize}",
+        "position": 517
+      },
+      {
+        "path": "tracing::{debug, error, info}",
+        "position": 554
+      },
+      {
+        "path": "url::Url",
+        "position": 589
+      },
+      {
+        "path": "super::storage::CredentialsManager",
+        "position": 604
+      },
+      {
+        "path": "the existing one\n        let new_refresh_token = token_result\n            .refresh_token()\n            .map(|token| token.secret().clone())\n            .unwrap_or_else(|| refresh_token.secret().to_string())",
+        "position": 8279
+      },
+      {
+        "path": "with DriveHub directly\n// see google_drive3::common::GetToken\nimpl GetToken for PkceOAuth2Client {\n    fn get_token<'a>(\n        &'a self,\n        scopes: &'a [&str],\n    ) -> Pin<\n        Box<dyn Future<Output = Result<Option<String>, Box<dyn Error + Send + Sync>>> + Send + 'a>,\n    > {\n        Box::pin(async move {\n            // Try to read token data from storage to check if we have a valid token\n            if let Ok(token_data) = self.credentials_manager.read_credentials::<TokenData>() {\n                // Verify the project_id matches\n                if token_data.project_id == self.project_id {\n                    // Check if the token is expired or expiring within a 5-min buffer\n                    if !self.is_token_expired(token_data.expires_at, 300) {\n                        return Ok(Some(token_data.access_token))",
+        "position": 11179
+      }
+    ]
+  }
+}

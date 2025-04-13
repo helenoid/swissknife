@@ -1,34 +1,38 @@
-import * as React from 'react'
-import type { Command } from '../commands'
-import { Onboarding } from '../components/Onboarding'
-import { clearTerminal } from '../utils/terminal'
-import { getGlobalConfig, saveGlobalConfig } from '../utils/config'
-import { clearConversation } from './clear'
+import * as React from 'react';
+import type { Command, LocalJSXCommand } from '../types/command.js'; // Updated import path
+import { Onboarding } from '../components/Onboarding.js'; // Assuming .js extension
+import { clearTerminal } from '../utils/terminal.js'; // Assuming .js extension
+import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'; // Assuming .js extension
+import { clearConversation } from './clear.js'; // Assuming .js extension
 
-export default {
+const onboardingCommand: LocalJSXCommand = {
   type: 'local-jsx',
   name: 'onboarding',
   description: 'Run through the onboarding flow',
+  options: [], // No options for this command
   isEnabled: true,
   isHidden: false,
-  async call(onDone, context) {
-    await clearTerminal()
-    const config = getGlobalConfig()
+  async handler(args, onDone, context) { // Renamed call to handler, args is unused
+    await clearTerminal();
+    const config = getGlobalConfig();
     saveGlobalConfig({
       ...config,
-      theme: 'dark',
-    })
+      theme: 'dark', // Force dark theme for onboarding?
+    });
 
     return (
       <Onboarding
         onDone={async () => {
-          clearConversation(context)
-          onDone()
+          // Pass the correct context structure if clearConversation expects it
+          await clearConversation(context);
+          onDone();
         }}
       />
-    )
+    );
   },
   userFacingName() {
-    return 'onboarding'
+    return 'onboarding';
   },
-} satisfies Command
+} satisfies Command;
+
+export default onboardingCommand;

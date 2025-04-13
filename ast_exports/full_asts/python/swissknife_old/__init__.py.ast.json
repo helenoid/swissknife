@@ -1,0 +1,22 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "ImportFrom",
+      "lineno": 1,
+      "col_offset": 0,
+      "module": "install_ipfs",
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 1,
+          "col_offset": 26,
+          "name": "install_ipfs",
+          "asname": null
+        }
+      ],
+      "level": 1
+    }
+  ],
+  "type_ignores": []
+}

@@ -1,0 +1,215 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/src/transport/sse.rs",
+  "fileSize": 11519,
+  "lineCount": 315,
+  "structures": {
+    "structs": [
+      {
+        "name": "SseActor",
+        "fields": [
+          {
+            "name": "receiver",
+            "type": "mpsc::Receiver<TransportMessage>"
+          },
+          {
+            "name": "pending_requests",
+            "type": "Arc<PendingRequests>"
+          },
+          {
+            "name": "sse_url",
+            "type": "String"
+          },
+          {
+            "name": "http_client",
+            "type": "HttpClient"
+          },
+          {
+            "name": "post_endpoint",
+            "type": "Arc<RwLock<Option<String>>>"
+          }
+        ],
+        "position": 715
+      },
+      {
+        "name": "SseTransportHandle",
+        "fields": [
+          {
+            "name": "sender",
+            "type": "mpsc::Sender<TransportMessage>"
+          }
+        ],
+        "position": 8798
+      },
+      {
+        "name": "SseTransport",
+        "fields": [
+          {
+            "name": "sse_url",
+            "type": "String"
+          },
+          {
+            "name": "env",
+            "type": "HashMap<String"
+          }
+        ],
+        "position": 9112
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "SseActor",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "receiver: mpsc::Receiver<TransportMessage>,\n        pending_requests: Arc<PendingRequests>,\n        sse_url: String,\n        post_endpoint: Arc<RwLock<Option<String>>>,",
+            "returnType": "Self"
+          }
+        ],
+        "position": 1187
+      },
+      {
+        "type": "SseTransportHandle",
+        "trait": "TransportHandle",
+        "methods": [
+          {
+            "name": "send",
+            "params": "&self, message: JsonRpcMessage",
+            "returnType": "Result<JsonRpcMessage, Error>"
+          }
+        ],
+        "position": 8905
+      },
+      {
+        "type": "SseTransport",
+        "trait": null,
+        "methods": [],
+        "position": 9253
+      },
+      {
+        "type": "SseTransport",
+        "trait": "Transport",
+        "methods": [
+          {
+            "name": "start",
+            "params": "&self",
+            "returnType": "Result<Self::Handle, Error>"
+          }
+        ],
+        "position": 10150
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "receiver: mpsc::Receiver<TransportMessage>,\n        pending_requests: Arc<PendingRequests>,\n        sse_url: String,\n        post_endpoint: Arc<RwLock<Option<String>>>,",
+        "returnType": "Self",
+        "position": 1207
+      },
+      {
+        "name": "run",
+        "params": "self",
+        "returnType": null,
+        "position": 1788
+      },
+      {
+        "name": "handle_incoming_messages",
+        "params": "sse_url: String,\n        pending_requests: Arc<PendingRequests>,\n        post_endpoint: Arc<RwLock<Option<String>>>,",
+        "returnType": null,
+        "position": 2548
+      },
+      {
+        "name": "handle_outgoing_messages",
+        "params": "mut receiver: mpsc::Receiver<TransportMessage>,\n        http_client: HttpClient,\n        post_endpoint: Arc<RwLock<Option<String>>>,\n        pending_requests: Arc<PendingRequests>,",
+        "returnType": null,
+        "position": 5895
+      },
+      {
+        "name": "send",
+        "params": "&self, message: JsonRpcMessage",
+        "returnType": "Result<JsonRpcMessage, Error>",
+        "position": 8961
+      },
+      {
+        "name": "wait_for_endpoint",
+        "params": "post_endpoint: Arc<RwLock<Option<String>>>,",
+        "returnType": "Result<String, Error>",
+        "position": 9514
+      },
+      {
+        "name": "start",
+        "params": "&self",
+        "returnType": "Result<Self::Handle, Error>",
+        "position": 10233
+      },
+      {
+        "name": "close",
+        "params": "&self",
+        "returnType": "Result<(), Error>",
+        "position": 11330
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "crate::transport::{Error, PendingRequests, TransportMessage}",
+        "position": 0
+      },
+      {
+        "path": "async_trait::async_trait",
+        "position": 66
+      },
+      {
+        "path": "eventsource_client::{Client, SSE}",
+        "position": 96
+      },
+      {
+        "path": "futures::TryStreamExt",
+        "position": 135
+      },
+      {
+        "path": "mcp_core::protocol::{JsonRpcMessage, JsonRpcRequest}",
+        "position": 162
+      },
+      {
+        "path": "reqwest::Client as HttpClient",
+        "position": 220
+      },
+      {
+        "path": "std::collections::HashMap",
+        "position": 255
+      },
+      {
+        "path": "std::sync::Arc",
+        "position": 286
+      },
+      {
+        "path": "tokio::sync::{mpsc, RwLock}",
+        "position": 306
+      },
+      {
+        "path": "tokio::time::{timeout, Duration}",
+        "position": 339
+      },
+      {
+        "path": "tracing::warn",
+        "position": 377
+      },
+      {
+        "path": "url::Url",
+        "position": 396
+      },
+      {
+        "path": "super::{send_message, Transport, TransportHandle}",
+        "position": 411
+      },
+      {
+        "path": "we rely on SSE to deliver the error response\n                    }\n                }\n                Err(e) => {\n                    warn!(\"HTTP POST failed: {e}\")",
+        "position": 8083
+      }
+    ]
+  }
+}

@@ -14,7 +14,7 @@
 ## Automated Testing
 
 - [ ] Configure Jest for unit testing
-- [ ] Set up browser testing with Karma
+- [ ] Set up CLI environment testing
 - [ ] Create CI/CD pipeline for automated testing
 - [ ] Implement code coverage tracking
 
@@ -22,23 +22,23 @@
 
 1. **Dependency Cleanup**
    - [ ] Review package.json dependencies
-   - [ ] Mark browser-only dependencies as peer dependencies
+   - [ ] Mark Node.js-specific dependencies appropriately
    - [ ] Update version ranges for all dependencies
 
 2. **Documentation Generation**
    - [ ] Run TypeDoc to generate API documentation
    - [ ] Review and update README.md
-   - [ ] Create examples for common use cases
-   - [ ] Document browser compatibility
+   - [ ] Create examples for common CLI use cases
+   - [ ] Document hardware compatibility for neural network inference
 
 3. **Package Configuration**
    - [ ] Set proper entry points in package.json
    - [ ] Configure package exports for ESM and CommonJS
-   - [ ] Add browser field for browser-specific entry points
+   - [ ] Add Node.js-specific optimizations
    - [ ] Set up proper NPM files list
 
 4. **Build Process**
-   - [ ] Create minified production build
+   - [ ] Create optimized production build
    - [ ] Generate sourcemaps
    - [ ] Create TypeScript declaration files
    - [ ] Set up tree-shaking optimization
@@ -102,21 +102,21 @@ cd ../ipfs_accelerate_js
 npm run type-check
 ```
 
-## Testing React Integration
+## Testing Node.js Integration
 
 ```bash
-# Install React dependencies
-npm install --save-dev react react-dom @types/react @types/react-dom
+# Install Node.js specific dependencies
+npm install --save-dev @types/node
 
-# Test React hooks
-npm test -- --testPathPattern=src/react
+# Test Node.js integration
+npm test -- --testPathPattern=src/node
 ```
 
 ## WebGPU/WebNN Testing
 
 ```bash
-# Run browser compatibility tests
-npm run test:browser
+# Run CLI compatibility tests
+npm run test:cli
 
 # Test WebGPU implementation
 npm run test:webgpu
@@ -139,6 +139,6 @@ open docs/api/index.html
 
 - [ ] Package can be installed from NPM
 - [ ] All imports work correctly
-- [ ] SDK works in web browsers
-- [ ] React integration functions correctly
+- [ ] SDK works in Node.js CLI environment
+- [ ] Neural network inference runs efficiently in CLI
 - [ ] Documentation is accessible and accurate

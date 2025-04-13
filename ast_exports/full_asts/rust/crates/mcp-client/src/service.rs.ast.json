@@ -1,0 +1,89 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/src/service.rs",
+  "fileSize": 1511,
+  "lineCount": 53,
+  "structures": {
+    "structs": [
+      {
+        "name": "McpService",
+        "fields": [
+          {
+            "name": "inner",
+            "type": "Arc<T>"
+          }
+        ],
+        "position": 325
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "McpService",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "transport: T",
+            "returnType": "Self"
+          }
+        ],
+        "position": 391
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "transport: T",
+        "returnType": "Self",
+        "position": 436
+      },
+      {
+        "name": "poll_ready",
+        "params": "&mut self, _cx: &mut Context<'_>",
+        "returnType": "Poll<Result<(), Self::Error>>",
+        "position": 791
+      },
+      {
+        "name": "call",
+        "params": "&mut self, request: JsonRpcMessage",
+        "returnType": "Self::Future",
+        "position": 997
+      },
+      {
+        "name": "with_timeout",
+        "params": "transport: T, timeout: std::time::Duration",
+        "returnType": "Timeout<McpService<T>>",
+        "position": 1302
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "futures::future::BoxFuture",
+        "position": 0
+      },
+      {
+        "path": "mcp_core::protocol::JsonRpcMessage",
+        "position": 32
+      },
+      {
+        "path": "std::sync::Arc",
+        "position": 72
+      },
+      {
+        "path": "std::task::{Context, Poll}",
+        "position": 92
+      },
+      {
+        "path": "tower::{timeout::Timeout, Service, ServiceBuilder}",
+        "position": 124
+      },
+      {
+        "path": "crate::transport::{Error, TransportHandle}",
+        "position": 181
+      }
+    ]
+  }
+}

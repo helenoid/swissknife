@@ -1,0 +1,189 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/bench_work_dir.rs",
+  "fileSize": 6626,
+  "lineCount": 204,
+  "structures": {
+    "structs": [
+      {
+        "name": "BenchmarkWorkDir",
+        "fields": [
+          {
+            "name": "base_path",
+            "type": "PathBuf"
+          },
+          {
+            "name": "run_dir",
+            "type": "PathBuf"
+          },
+          {
+            "name": "cwd",
+            "type": "PathBuf"
+          },
+          {
+            "name": "run_id",
+            "type": "Option<String>"
+          }
+        ],
+        "position": 351
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "BenchmarkWorkDir",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 492
+      },
+      {
+        "type": "BenchmarkWorkDir",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "work_dir_name: String, include_dirs: Vec<PathBuf>",
+            "returnType": "Self"
+          }
+        ],
+        "position": 618
+      },
+      {
+        "type": "BenchmarkWorkDir",
+        "trait": "Drop",
+        "methods": [
+          {
+            "name": "drop",
+            "params": "&mut self",
+            "returnType": null
+          }
+        ],
+        "position": 6501
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 532
+      },
+      {
+        "name": "new",
+        "params": "work_dir_name: String, include_dirs: Vec<PathBuf>",
+        "returnType": "Self",
+        "position": 646
+      },
+      {
+        "name": "init_experiment",
+        "params": "",
+        "returnType": null,
+        "position": 1553
+      },
+      {
+        "name": "canonical_dirs",
+        "params": "include_dirs: Vec<PathBuf>",
+        "returnType": "Vec<PathBuf>",
+        "position": 2021
+      },
+      {
+        "name": "copy_auto_included_dirs",
+        "params": "dest: &Path",
+        "returnType": null,
+        "position": 2437
+      },
+      {
+        "name": "cd",
+        "params": "&mut self, path: PathBuf",
+        "returnType": "anyhow::Result<&mut Self>",
+        "position": 2734
+      },
+      {
+        "name": "_run_dir",
+        "params": "&mut self",
+        "returnType": "Option<PathBuf>",
+        "position": 2932
+      },
+      {
+        "name": "set_eval",
+        "params": "&mut self, eval: &str, run_id: String",
+        "returnType": null,
+        "position": 3191
+      },
+      {
+        "name": "fs_get",
+        "params": "&mut self, path: String",
+        "returnType": "anyhow::Result<PathBuf>",
+        "position": 4763
+      },
+      {
+        "name": "deep_copy",
+        "params": "src: P, dst: Q, recursive: bool",
+        "returnType": "io::Result<()>\n    where\n        P: AsRef<Path>,\n        Q: AsRef<Path>,",
+        "position": 5567
+      },
+      {
+        "name": "save",
+        "params": "&self",
+        "returnType": null,
+        "position": 6313
+      },
+      {
+        "name": "drop",
+        "params": "&mut self",
+        "returnType": null,
+        "position": 6538
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "chrono::Local",
+        "position": 0
+      },
+      {
+        "path": "include_dir::{include_dir, Dir}",
+        "position": 19
+      },
+      {
+        "path": "serde::{Deserialize, Serialize}",
+        "position": 56
+      },
+      {
+        "path": "std::fs",
+        "position": 93
+      },
+      {
+        "path": "std::io",
+        "position": 106
+      },
+      {
+        "path": "std::io::ErrorKind",
+        "position": 119
+      },
+      {
+        "path": "std::path::Path",
+        "position": 143
+      },
+      {
+        "path": "std::path::PathBuf",
+        "position": 164
+      },
+      {
+        "path": "std::process::Command",
+        "position": 188
+      },
+      {
+        "path": "std::path::Component",
+        "position": 3928
+      }
+    ]
+  }
+}

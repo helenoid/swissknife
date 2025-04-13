@@ -1,0 +1,1816 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "Import",
+      "lineno": 1,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 1,
+          "col_offset": 7,
+          "name": "os",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 2,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 7,
+          "name": "inspect",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 3,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 3,
+          "col_offset": 7,
+          "name": "transformers",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Assign",
+      "lineno": 5,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 5,
+          "col_offset": 0,
+          "id": "init_header"
+        }
+      ],
+      "value": {
+        "type": "Constant",
+        "lineno": 5,
+        "col_offset": 14,
+        "value": "\nfrom .ipfs_kit import ipfs_kit\nfrom .s3_kit import s3_kit\nfrom .test_fio import test_fio\n",
+        "kind": null
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 11,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 11,
+          "col_offset": 0,
+          "id": "init_output"
+        }
+      ],
+      "value": {
+        "type": "Name",
+        "lineno": 11,
+        "col_offset": 14,
+        "id": "init_header"
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 13,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 13,
+          "col_offset": 0,
+          "id": "input_file"
+        }
+      ],
+      "value": {
+        "type": "Constant",
+        "lineno": 13,
+        "col_offset": 13,
+        "value": "ipfs_transformers_template.py",
+        "kind": null
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 14,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 14,
+          "col_offset": 0,
+          "id": "output_file"
+        }
+      ],
+      "value": {
+        "type": "Constant",
+        "lineno": 14,
+        "col_offset": 14,
+        "value": "ipfs_transformers.py",
+        "kind": null
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 15,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 15,
+          "col_offset": 0,
+          "id": "init_file"
+        }
+      ],
+      "value": {
+        "type": "Constant",
+        "lineno": 15,
+        "col_offset": 12,
+        "value": "__init__.py",
+        "kind": null
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 16,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 16,
+          "col_offset": 0,
+          "id": "classes"
+        }
+      ],
+      "value": {
+        "type": "List",
+        "lineno": 16,
+        "col_offset": 10,
+        "elts": []
+      },
+      "type_comment": null
+    },
+    {
+      "type": "For",
+      "lineno": 19,
+      "col_offset": 0,
+      "target": {
+        "type": "Tuple",
+        "lineno": 19,
+        "col_offset": 4,
+        "elts": [
+          {
+            "type": "Name",
+            "lineno": 19,
+            "col_offset": 4,
+            "id": "name"
+          },
+          {
+            "type": "Name",
+            "lineno": 19,
+            "col_offset": 10,
+            "id": "obj"
+          }
+        ]
+      },
+      "iter": {
+        "type": "Call",
+        "lineno": 19,
+        "col_offset": 17,
+        "func": {
+          "type": "Attribute",
+          "lineno": 19,
+          "col_offset": 17,
+          "value": {
+            "type": "Name",
+            "lineno": 19,
+            "col_offset": 17,
+            "id": "inspect"
+          },
+          "attr": "getmembers"
+        },
+        "args": [
+          {
+            "type": "Name",
+            "lineno": 19,
+            "col_offset": 36,
+            "id": "transformers"
+          }
+        ],
+        "keywords": []
+      },
+      "body": [
+        {
+          "type": "If",
+          "lineno": 20,
+          "col_offset": 1,
+          "test": {
+            "type": "Call",
+            "lineno": 20,
+            "col_offset": 4,
+            "func": {
+              "type": "Attribute",
+              "lineno": 20,
+              "col_offset": 4,
+              "value": {
+                "type": "Name",
+                "lineno": 20,
+                "col_offset": 4,
+                "id": "inspect"
+              },
+              "attr": "isclass"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 20,
+                "col_offset": 20,
+                "id": "obj"
+              }
+            ],
+            "keywords": []
+          },
+          "body": [
+            {
+              "type": "Try",
+              "lineno": 21,
+              "col_offset": 2,
+              "body": [
+                {
+                  "type": "If",
+                  "lineno": 22,
+                  "col_offset": 3,
+                  "test": {
+                    "type": "BoolOp",
+                    "lineno": 22,
+                    "col_offset": 6,
+                    "op": {
+                      "type": "And"
+                    },
+                    "values": [
+                      {
+                        "type": "Call",
+                        "lineno": 22,
+                        "col_offset": 6,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 22,
+                          "col_offset": 6,
+                          "id": "hasattr"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 22,
+                            "col_offset": 14,
+                            "id": "obj"
+                          },
+                          {
+                            "type": "Constant",
+                            "lineno": 22,
+                            "col_offset": 19,
+                            "value": "from_pretrained",
+                            "kind": null
+                          }
+                        ],
+                        "keywords": []
+                      },
+                      {
+                        "type": "Call",
+                        "lineno": 22,
+                        "col_offset": 42,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 22,
+                          "col_offset": 42,
+                          "id": "callable"
+                        },
+                        "args": [
+                          {
+                            "type": "Call",
+                            "lineno": 22,
+                            "col_offset": 51,
+                            "func": {
+                              "type": "Name",
+                              "lineno": 22,
+                              "col_offset": 51,
+                              "id": "getattr"
+                            },
+                            "args": [
+                              {
+                                "type": "Name",
+                                "lineno": 22,
+                                "col_offset": 59,
+                                "id": "obj"
+                              },
+                              {
+                                "type": "Constant",
+                                "lineno": 22,
+                                "col_offset": 64,
+                                "value": "from_pretrained",
+                                "kind": null
+                              }
+                            ],
+                            "keywords": []
+                          }
+                        ],
+                        "keywords": []
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 23,
+                      "col_offset": 4,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 23,
+                          "col_offset": 4,
+                          "id": "cleaned_class"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 23,
+                        "col_offset": 20,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 23,
+                          "col_offset": 20,
+                          "value": {
+                            "type": "Subscript",
+                            "lineno": 23,
+                            "col_offset": 20,
+                            "value": {
+                              "type": "Call",
+                              "lineno": 23,
+                              "col_offset": 20,
+                              "func": {
+                                "type": "Attribute",
+                                "lineno": 23,
+                                "col_offset": 20,
+                                "value": {
+                                  "type": "Call",
+                                  "lineno": 23,
+                                  "col_offset": 20,
+                                  "func": {
+                                    "type": "Name",
+                                    "lineno": 23,
+                                    "col_offset": 20,
+                                    "id": "str"
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Name",
+                                      "lineno": 23,
+                                      "col_offset": 24,
+                                      "id": "obj"
+                                    }
+                                  ],
+                                  "keywords": []
+                                },
+                                "attr": "split"
+                              },
+                              "args": [
+                                {
+                                  "type": "Constant",
+                                  "lineno": 23,
+                                  "col_offset": 35,
+                                  "value": ".",
+                                  "kind": null
+                                }
+                              ],
+                              "keywords": []
+                            },
+                            "slice": {
+                              "type": "UnaryOp",
+                              "lineno": 23,
+                              "col_offset": 40,
+                              "op": {
+                                "type": "USub"
+                              },
+                              "operand": {
+                                "type": "Constant",
+                                "lineno": 23,
+                                "col_offset": 41,
+                                "value": 1,
+                                "kind": null
+                              }
+                            }
+                          },
+                          "attr": "strip"
+                        },
+                        "args": [
+                          {
+                            "type": "Constant",
+                            "lineno": 23,
+                            "col_offset": 50,
+                            "value": "'>",
+                            "kind": null
+                          }
+                        ],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Expr",
+                      "lineno": 24,
+                      "col_offset": 4,
+                      "value": {
+                        "type": "Call",
+                        "lineno": 24,
+                        "col_offset": 4,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 24,
+                          "col_offset": 4,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 24,
+                            "col_offset": 4,
+                            "id": "classes"
+                          },
+                          "attr": "append"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 24,
+                            "col_offset": 19,
+                            "id": "cleaned_class"
+                          }
+                        ],
+                        "keywords": []
+                      }
+                    }
+                  ],
+                  "orelse": []
+                }
+              ],
+              "handlers": [
+                {
+                  "type": {
+                    "type": "Name",
+                    "lineno": 25,
+                    "col_offset": 9,
+                    "id": "Exception"
+                  },
+                  "lineno": 25,
+                  "col_offset": 2,
+                  "name": "e",
+                  "body": [
+                    {
+                      "type": "Continue",
+                      "lineno": 26,
+                      "col_offset": 3
+                    }
+                  ]
+                }
+              ],
+              "orelse": [],
+              "finalbody": []
+            }
+          ],
+          "orelse": []
+        }
+      ],
+      "orelse": [],
+      "type_comment": null
+    },
+    {
+      "type": "With",
+      "lineno": 29,
+      "col_offset": 0,
+      "items": [
+        {
+          "type": "withitem",
+          "context_expr": {
+            "type": "Call",
+            "lineno": 29,
+            "col_offset": 5,
+            "func": {
+              "type": "Name",
+              "lineno": 29,
+              "col_offset": 5,
+              "id": "open"
+            },
+            "args": [
+              {
+                "type": "JoinedStr",
+                "lineno": 29,
+                "col_offset": 10,
+                "values": [
+                  {
+                    "type": "FormattedValue",
+                    "lineno": 29,
+                    "col_offset": 12,
+                    "value": {
+                      "type": "Call",
+                      "lineno": 29,
+                      "col_offset": 13,
+                      "func": {
+                        "type": "Attribute",
+                        "lineno": 29,
+                        "col_offset": 13,
+                        "value": {
+                          "type": "Attribute",
+                          "lineno": 29,
+                          "col_offset": 13,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 29,
+                            "col_offset": 13,
+                            "id": "os"
+                          },
+                          "attr": "path"
+                        },
+                        "attr": "dirname"
+                      },
+                      "args": [
+                        {
+                          "type": "Name",
+                          "lineno": 29,
+                          "col_offset": 29,
+                          "id": "__file__"
+                        }
+                      ],
+                      "keywords": []
+                    },
+                    "conversion": -1,
+                    "format_spec": null
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 29,
+                    "col_offset": 39,
+                    "value": "/",
+                    "kind": null
+                  },
+                  {
+                    "type": "FormattedValue",
+                    "lineno": 29,
+                    "col_offset": 40,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 29,
+                      "col_offset": 41,
+                      "id": "input_file"
+                    },
+                    "conversion": -1,
+                    "format_spec": null
+                  }
+                ]
+              },
+              {
+                "type": "Constant",
+                "lineno": 29,
+                "col_offset": 55,
+                "value": "r",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "optional_vars": {
+            "type": "Name",
+            "lineno": 29,
+            "col_offset": 63,
+            "id": "f"
+          }
+        }
+      ],
+      "body": [
+        {
+          "type": "Assign",
+          "lineno": 30,
+          "col_offset": 4,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 30,
+              "col_offset": 4,
+              "id": "ipfs_huggingface"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 30,
+            "col_offset": 23,
+            "func": {
+              "type": "Attribute",
+              "lineno": 30,
+              "col_offset": 23,
+              "value": {
+                "type": "Name",
+                "lineno": 30,
+                "col_offset": 23,
+                "id": "f"
+              },
+              "attr": "read"
+            },
+            "args": [],
+            "keywords": []
+          },
+          "type_comment": null
+        }
+      ],
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 34,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 34,
+          "col_offset": 0,
+          "id": "header"
+        }
+      ],
+      "value": {
+        "type": "Subscript",
+        "lineno": 34,
+        "col_offset": 9,
+        "value": {
+          "type": "Name",
+          "lineno": 34,
+          "col_offset": 9,
+          "id": "ipfs_huggingface"
+        },
+        "slice": {
+          "type": "Slice",
+          "lineno": 34,
+          "col_offset": 26,
+          "lower": {
+            "type": "Constant",
+            "lineno": 34,
+            "col_offset": 26,
+            "value": 0,
+            "kind": null
+          },
+          "upper": {
+            "type": "Call",
+            "lineno": 34,
+            "col_offset": 30,
+            "func": {
+              "type": "Attribute",
+              "lineno": 34,
+              "col_offset": 30,
+              "value": {
+                "type": "Name",
+                "lineno": 34,
+                "col_offset": 30,
+                "id": "ipfs_huggingface"
+              },
+              "attr": "find"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 34,
+                "col_offset": 52,
+                "value": "class Huggingface_Template():",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "step": null
+        }
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 37,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 37,
+          "col_offset": 0,
+          "id": "auto_download_template"
+        }
+      ],
+      "value": {
+        "type": "Subscript",
+        "lineno": 37,
+        "col_offset": 25,
+        "value": {
+          "type": "Name",
+          "lineno": 37,
+          "col_offset": 25,
+          "id": "ipfs_huggingface"
+        },
+        "slice": {
+          "type": "Slice",
+          "lineno": 37,
+          "col_offset": 42,
+          "lower": {
+            "type": "Call",
+            "lineno": 37,
+            "col_offset": 42,
+            "func": {
+              "type": "Attribute",
+              "lineno": 37,
+              "col_offset": 42,
+              "value": {
+                "type": "Name",
+                "lineno": 37,
+                "col_offset": 42,
+                "id": "ipfs_huggingface"
+              },
+              "attr": "find"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 37,
+                "col_offset": 64,
+                "value": "# START AUTO_DOWNLOAD",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "upper": {
+            "type": "Call",
+            "lineno": 37,
+            "col_offset": 91,
+            "func": {
+              "type": "Attribute",
+              "lineno": 37,
+              "col_offset": 91,
+              "value": {
+                "type": "Name",
+                "lineno": 37,
+                "col_offset": 91,
+                "id": "ipfs_huggingface"
+              },
+              "attr": "find"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 37,
+                "col_offset": 113,
+                "value": "# END AUTO_DOWNLOAD",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "step": null
+        }
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 38,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 38,
+          "col_offset": 0,
+          "id": "from_ipfs_template"
+        }
+      ],
+      "value": {
+        "type": "Subscript",
+        "lineno": 38,
+        "col_offset": 21,
+        "value": {
+          "type": "Name",
+          "lineno": 38,
+          "col_offset": 21,
+          "id": "ipfs_huggingface"
+        },
+        "slice": {
+          "type": "Slice",
+          "lineno": 38,
+          "col_offset": 38,
+          "lower": {
+            "type": "Call",
+            "lineno": 38,
+            "col_offset": 38,
+            "func": {
+              "type": "Attribute",
+              "lineno": 38,
+              "col_offset": 38,
+              "value": {
+                "type": "Name",
+                "lineno": 38,
+                "col_offset": 38,
+                "id": "ipfs_huggingface"
+              },
+              "attr": "find"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 38,
+                "col_offset": 60,
+                "value": "# START FROM_IPFS",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "upper": {
+            "type": "Call",
+            "lineno": 38,
+            "col_offset": 83,
+            "func": {
+              "type": "Attribute",
+              "lineno": 38,
+              "col_offset": 83,
+              "value": {
+                "type": "Name",
+                "lineno": 38,
+                "col_offset": 83,
+                "id": "ipfs_huggingface"
+              },
+              "attr": "find"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 38,
+                "col_offset": 105,
+                "value": "# END FROM_IPFS",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "step": null
+        }
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 41,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 41,
+          "col_offset": 0,
+          "id": "auto_download_template"
+        }
+      ],
+      "value": {
+        "type": "Call",
+        "lineno": 41,
+        "col_offset": 25,
+        "func": {
+          "type": "Attribute",
+          "lineno": 41,
+          "col_offset": 25,
+          "value": {
+            "type": "Call",
+            "lineno": 41,
+            "col_offset": 25,
+            "func": {
+              "type": "Attribute",
+              "lineno": 41,
+              "col_offset": 25,
+              "value": {
+                "type": "Name",
+                "lineno": 41,
+                "col_offset": 25,
+                "id": "auto_download_template"
+              },
+              "attr": "replace"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 41,
+                "col_offset": 56,
+                "value": "# START AUTO_DOWNLOAD",
+                "kind": null
+              },
+              {
+                "type": "Constant",
+                "lineno": 41,
+                "col_offset": 81,
+                "value": "",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "attr": "replace"
+        },
+        "args": [
+          {
+            "type": "Constant",
+            "lineno": 41,
+            "col_offset": 93,
+            "value": "# END AUTO_DOWNLOAD",
+            "kind": null
+          },
+          {
+            "type": "Constant",
+            "lineno": 41,
+            "col_offset": 116,
+            "value": "",
+            "kind": null
+          }
+        ],
+        "keywords": []
+      },
+      "type_comment": null
+    },
+    {
+      "type": "Assign",
+      "lineno": 42,
+      "col_offset": 0,
+      "targets": [
+        {
+          "type": "Name",
+          "lineno": 42,
+          "col_offset": 0,
+          "id": "from_ipfs_template"
+        }
+      ],
+      "value": {
+        "type": "Call",
+        "lineno": 42,
+        "col_offset": 21,
+        "func": {
+          "type": "Attribute",
+          "lineno": 42,
+          "col_offset": 21,
+          "value": {
+            "type": "Call",
+            "lineno": 42,
+            "col_offset": 21,
+            "func": {
+              "type": "Attribute",
+              "lineno": 42,
+              "col_offset": 21,
+              "value": {
+                "type": "Name",
+                "lineno": 42,
+                "col_offset": 21,
+                "id": "from_ipfs_template"
+              },
+              "attr": "replace"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 42,
+                "col_offset": 48,
+                "value": "# START FROM_IPFS",
+                "kind": null
+              },
+              {
+                "type": "Constant",
+                "lineno": 42,
+                "col_offset": 69,
+                "value": "",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "attr": "replace"
+        },
+        "args": [
+          {
+            "type": "Constant",
+            "lineno": 42,
+            "col_offset": 81,
+            "value": "# END FROM_IPFS",
+            "kind": null
+          },
+          {
+            "type": "Constant",
+            "lineno": 42,
+            "col_offset": 100,
+            "value": "",
+            "kind": null
+          }
+        ],
+        "keywords": []
+      },
+      "type_comment": null
+    },
+    {
+      "type": "With",
+      "lineno": 46,
+      "col_offset": 0,
+      "items": [
+        {
+          "type": "withitem",
+          "context_expr": {
+            "type": "Call",
+            "lineno": 46,
+            "col_offset": 5,
+            "func": {
+              "type": "Name",
+              "lineno": 46,
+              "col_offset": 5,
+              "id": "open"
+            },
+            "args": [
+              {
+                "type": "JoinedStr",
+                "lineno": 46,
+                "col_offset": 10,
+                "values": [
+                  {
+                    "type": "FormattedValue",
+                    "lineno": 46,
+                    "col_offset": 12,
+                    "value": {
+                      "type": "Call",
+                      "lineno": 46,
+                      "col_offset": 13,
+                      "func": {
+                        "type": "Attribute",
+                        "lineno": 46,
+                        "col_offset": 13,
+                        "value": {
+                          "type": "Attribute",
+                          "lineno": 46,
+                          "col_offset": 13,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 46,
+                            "col_offset": 13,
+                            "id": "os"
+                          },
+                          "attr": "path"
+                        },
+                        "attr": "dirname"
+                      },
+                      "args": [
+                        {
+                          "type": "Name",
+                          "lineno": 46,
+                          "col_offset": 29,
+                          "id": "__file__"
+                        }
+                      ],
+                      "keywords": []
+                    },
+                    "conversion": -1,
+                    "format_spec": null
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 46,
+                    "col_offset": 39,
+                    "value": "/",
+                    "kind": null
+                  },
+                  {
+                    "type": "FormattedValue",
+                    "lineno": 46,
+                    "col_offset": 40,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 46,
+                      "col_offset": 41,
+                      "id": "output_file"
+                    },
+                    "conversion": -1,
+                    "format_spec": null
+                  }
+                ]
+              },
+              {
+                "type": "Constant",
+                "lineno": 46,
+                "col_offset": 56,
+                "value": "w",
+                "kind": null
+              }
+            ],
+            "keywords": []
+          },
+          "optional_vars": {
+            "type": "Name",
+            "lineno": 46,
+            "col_offset": 64,
+            "id": "f"
+          }
+        }
+      ],
+      "body": [
+        {
+          "type": "Expr",
+          "lineno": 47,
+          "col_offset": 1,
+          "value": {
+            "type": "Call",
+            "lineno": 47,
+            "col_offset": 1,
+            "func": {
+              "type": "Attribute",
+              "lineno": 47,
+              "col_offset": 1,
+              "value": {
+                "type": "Name",
+                "lineno": 47,
+                "col_offset": 1,
+                "id": "f"
+              },
+              "attr": "write"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 47,
+                "col_offset": 9,
+                "id": "header"
+              }
+            ],
+            "keywords": []
+          }
+        }
+      ],
+      "type_comment": null
+    },
+    {
+      "type": "For",
+      "lineno": 50,
+      "col_offset": 0,
+      "target": {
+        "type": "Name",
+        "lineno": 50,
+        "col_offset": 4,
+        "id": "transformer_class"
+      },
+      "iter": {
+        "type": "Name",
+        "lineno": 50,
+        "col_offset": 25,
+        "id": "classes"
+      },
+      "body": [
+        {
+          "type": "Assign",
+          "lineno": 51,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 51,
+              "col_offset": 1,
+              "id": "class_specific_auto_download"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 51,
+            "col_offset": 32,
+            "func": {
+              "type": "Attribute",
+              "lineno": 51,
+              "col_offset": 32,
+              "value": {
+                "type": "Name",
+                "lineno": 51,
+                "col_offset": 32,
+                "id": "auto_download_template"
+              },
+              "attr": "replace"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 51,
+                "col_offset": 63,
+                "value": "Huggingface_Template",
+                "kind": null
+              },
+              {
+                "type": "Name",
+                "lineno": 51,
+                "col_offset": 87,
+                "id": "transformer_class"
+              }
+            ],
+            "keywords": []
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Assign",
+          "lineno": 52,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 52,
+              "col_offset": 1,
+              "id": "class_specific_from_ipfs"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 52,
+            "col_offset": 28,
+            "func": {
+              "type": "Attribute",
+              "lineno": 52,
+              "col_offset": 28,
+              "value": {
+                "type": "Name",
+                "lineno": 52,
+                "col_offset": 28,
+                "id": "from_ipfs_template"
+              },
+              "attr": "replace"
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "lineno": 52,
+                "col_offset": 55,
+                "value": "Huggingface_Template",
+                "kind": null
+              },
+              {
+                "type": "Name",
+                "lineno": 52,
+                "col_offset": 79,
+                "id": "transformer_class"
+              }
+            ],
+            "keywords": []
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Assign",
+          "lineno": 54,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 54,
+              "col_offset": 1,
+              "id": "init_specific_output"
+            }
+          ],
+          "value": {
+            "type": "JoinedStr",
+            "lineno": 54,
+            "col_offset": 24,
+            "values": [
+              {
+                "type": "Constant",
+                "lineno": 54,
+                "col_offset": 26,
+                "value": "from .ipfs_transformers import ",
+                "kind": null
+              },
+              {
+                "type": "FormattedValue",
+                "lineno": 54,
+                "col_offset": 57,
+                "value": {
+                  "type": "Name",
+                  "lineno": 54,
+                  "col_offset": 58,
+                  "id": "transformer_class"
+                },
+                "conversion": -1,
+                "format_spec": null
+              },
+              {
+                "type": "Constant",
+                "lineno": 54,
+                "col_offset": 76,
+                "value": "\n",
+                "kind": null
+              }
+            ]
+          },
+          "type_comment": null
+        },
+        {
+          "type": "AugAssign",
+          "lineno": 55,
+          "col_offset": 1,
+          "target": {
+            "type": "Name",
+            "lineno": 55,
+            "col_offset": 1,
+            "id": "init_output"
+          },
+          "op": {
+            "type": "Add"
+          },
+          "value": {
+            "type": "Name",
+            "lineno": 55,
+            "col_offset": 16,
+            "id": "init_specific_output"
+          }
+        },
+        {
+          "type": "Assign",
+          "lineno": 58,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 58,
+              "col_offset": 1,
+              "id": "output"
+            }
+          ],
+          "value": {
+            "type": "JoinedStr",
+            "lineno": 58,
+            "col_offset": 10,
+            "values": [
+              {
+                "type": "Constant",
+                "lineno": 58,
+                "col_offset": 14,
+                "value": "\nclass ",
+                "kind": null
+              },
+              {
+                "type": "FormattedValue",
+                "lineno": 59,
+                "col_offset": 6,
+                "value": {
+                  "type": "Name",
+                  "lineno": 59,
+                  "col_offset": 7,
+                  "id": "transformer_class"
+                },
+                "conversion": -1,
+                "format_spec": null
+              },
+              {
+                "type": "Constant",
+                "lineno": 59,
+                "col_offset": 25,
+                "value": "(): ",
+                "kind": null
+              },
+              {
+                "type": "FormattedValue",
+                "lineno": 59,
+                "col_offset": 29,
+                "value": {
+                  "type": "Name",
+                  "lineno": 59,
+                  "col_offset": 30,
+                  "id": "class_specific_auto_download"
+                },
+                "conversion": -1,
+                "format_spec": null
+              },
+              {
+                "type": "Constant",
+                "lineno": 59,
+                "col_offset": 59,
+                "value": " \n",
+                "kind": null
+              },
+              {
+                "type": "FormattedValue",
+                "lineno": 60,
+                "col_offset": 0,
+                "value": {
+                  "type": "Name",
+                  "lineno": 60,
+                  "col_offset": 1,
+                  "id": "class_specific_from_ipfs"
+                },
+                "conversion": -1,
+                "format_spec": null
+              },
+              {
+                "type": "Constant",
+                "lineno": 60,
+                "col_offset": 26,
+                "value": "\n\n",
+                "kind": null
+              }
+            ]
+          },
+          "type_comment": null
+        },
+        {
+          "type": "With",
+          "lineno": 64,
+          "col_offset": 1,
+          "items": [
+            {
+              "type": "withitem",
+              "context_expr": {
+                "type": "Call",
+                "lineno": 64,
+                "col_offset": 6,
+                "func": {
+                  "type": "Name",
+                  "lineno": 64,
+                  "col_offset": 6,
+                  "id": "open"
+                },
+                "args": [
+                  {
+                    "type": "JoinedStr",
+                    "lineno": 64,
+                    "col_offset": 11,
+                    "values": [
+                      {
+                        "type": "FormattedValue",
+                        "lineno": 64,
+                        "col_offset": 13,
+                        "value": {
+                          "type": "Call",
+                          "lineno": 64,
+                          "col_offset": 14,
+                          "func": {
+                            "type": "Attribute",
+                            "lineno": 64,
+                            "col_offset": 14,
+                            "value": {
+                              "type": "Attribute",
+                              "lineno": 64,
+                              "col_offset": 14,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 64,
+                                "col_offset": 14,
+                                "id": "os"
+                              },
+                              "attr": "path"
+                            },
+                            "attr": "dirname"
+                          },
+                          "args": [
+                            {
+                              "type": "Name",
+                              "lineno": 64,
+                              "col_offset": 30,
+                              "id": "__file__"
+                            }
+                          ],
+                          "keywords": []
+                        },
+                        "conversion": -1,
+                        "format_spec": null
+                      },
+                      {
+                        "type": "Constant",
+                        "lineno": 64,
+                        "col_offset": 40,
+                        "value": "/",
+                        "kind": null
+                      },
+                      {
+                        "type": "FormattedValue",
+                        "lineno": 64,
+                        "col_offset": 41,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 64,
+                          "col_offset": 42,
+                          "id": "output_file"
+                        },
+                        "conversion": -1,
+                        "format_spec": null
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 64,
+                    "col_offset": 57,
+                    "value": "a",
+                    "kind": null
+                  }
+                ],
+                "keywords": []
+              },
+              "optional_vars": {
+                "type": "Name",
+                "lineno": 64,
+                "col_offset": 65,
+                "id": "f"
+              }
+            }
+          ],
+          "body": [
+            {
+              "type": "Expr",
+              "lineno": 65,
+              "col_offset": 2,
+              "value": {
+                "type": "Call",
+                "lineno": 65,
+                "col_offset": 2,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 65,
+                  "col_offset": 2,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 65,
+                    "col_offset": 2,
+                    "id": "f"
+                  },
+                  "attr": "write"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 65,
+                    "col_offset": 10,
+                    "id": "output"
+                  }
+                ],
+                "keywords": []
+              }
+            }
+          ],
+          "type_comment": null
+        },
+        {
+          "type": "Assign",
+          "lineno": 67,
+          "col_offset": 1,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 67,
+              "col_offset": 1,
+              "id": "write_init_file"
+            }
+          ],
+          "value": {
+            "type": "JoinedStr",
+            "lineno": 67,
+            "col_offset": 19,
+            "values": [
+              {
+                "type": "FormattedValue",
+                "lineno": 67,
+                "col_offset": 21,
+                "value": {
+                  "type": "Call",
+                  "lineno": 67,
+                  "col_offset": 22,
+                  "func": {
+                    "type": "Attribute",
+                    "lineno": 67,
+                    "col_offset": 22,
+                    "value": {
+                      "type": "Attribute",
+                      "lineno": 67,
+                      "col_offset": 22,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 67,
+                        "col_offset": 22,
+                        "id": "os"
+                      },
+                      "attr": "path"
+                    },
+                    "attr": "dirname"
+                  },
+                  "args": [
+                    {
+                      "type": "Name",
+                      "lineno": 67,
+                      "col_offset": 38,
+                      "id": "__file__"
+                    }
+                  ],
+                  "keywords": []
+                },
+                "conversion": -1,
+                "format_spec": null
+              },
+              {
+                "type": "Constant",
+                "lineno": 67,
+                "col_offset": 48,
+                "value": "/",
+                "kind": null
+              },
+              {
+                "type": "FormattedValue",
+                "lineno": 67,
+                "col_offset": 49,
+                "value": {
+                  "type": "Name",
+                  "lineno": 67,
+                  "col_offset": 50,
+                  "id": "init_file"
+                },
+                "conversion": -1,
+                "format_spec": null
+              }
+            ]
+          },
+          "type_comment": null
+        },
+        {
+          "type": "With",
+          "lineno": 68,
+          "col_offset": 1,
+          "items": [
+            {
+              "type": "withitem",
+              "context_expr": {
+                "type": "Call",
+                "lineno": 68,
+                "col_offset": 6,
+                "func": {
+                  "type": "Name",
+                  "lineno": 68,
+                  "col_offset": 6,
+                  "id": "open"
+                },
+                "args": [
+                  {
+                    "type": "JoinedStr",
+                    "lineno": 68,
+                    "col_offset": 11,
+                    "values": [
+                      {
+                        "type": "FormattedValue",
+                        "lineno": 68,
+                        "col_offset": 13,
+                        "value": {
+                          "type": "Call",
+                          "lineno": 68,
+                          "col_offset": 14,
+                          "func": {
+                            "type": "Attribute",
+                            "lineno": 68,
+                            "col_offset": 14,
+                            "value": {
+                              "type": "Attribute",
+                              "lineno": 68,
+                              "col_offset": 14,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 68,
+                                "col_offset": 14,
+                                "id": "os"
+                              },
+                              "attr": "path"
+                            },
+                            "attr": "dirname"
+                          },
+                          "args": [
+                            {
+                              "type": "Name",
+                              "lineno": 68,
+                              "col_offset": 30,
+                              "id": "__file__"
+                            }
+                          ],
+                          "keywords": []
+                        },
+                        "conversion": -1,
+                        "format_spec": null
+                      },
+                      {
+                        "type": "Constant",
+                        "lineno": 68,
+                        "col_offset": 40,
+                        "value": "/",
+                        "kind": null
+                      },
+                      {
+                        "type": "FormattedValue",
+                        "lineno": 68,
+                        "col_offset": 41,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 68,
+                          "col_offset": 42,
+                          "id": "init_file"
+                        },
+                        "conversion": -1,
+                        "format_spec": null
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 68,
+                    "col_offset": 55,
+                    "value": "w",
+                    "kind": null
+                  }
+                ],
+                "keywords": []
+              },
+              "optional_vars": {
+                "type": "Name",
+                "lineno": 68,
+                "col_offset": 63,
+                "id": "f"
+              }
+            }
+          ],
+          "body": [
+            {
+              "type": "Expr",
+              "lineno": 69,
+              "col_offset": 2,
+              "value": {
+                "type": "Call",
+                "lineno": 69,
+                "col_offset": 2,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 69,
+                  "col_offset": 2,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 69,
+                    "col_offset": 2,
+                    "id": "f"
+                  },
+                  "attr": "write"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 69,
+                    "col_offset": 10,
+                    "id": "init_output"
+                  }
+                ],
+                "keywords": []
+              }
+            }
+          ],
+          "type_comment": null
+        }
+      ],
+      "orelse": [],
+      "type_comment": null
+    },
+    {
+      "type": "Expr",
+      "lineno": 71,
+      "col_offset": 0,
+      "value": {
+        "type": "Call",
+        "lineno": 71,
+        "col_offset": 0,
+        "func": {
+          "type": "Name",
+          "lineno": 71,
+          "col_offset": 0,
+          "id": "print"
+        },
+        "args": [
+          {
+            "type": "Constant",
+            "lineno": 71,
+            "col_offset": 6,
+            "value": "Done!",
+            "kind": null
+          }
+        ],
+        "keywords": []
+      }
+    }
+  ],
+  "type_ignores": []
+}

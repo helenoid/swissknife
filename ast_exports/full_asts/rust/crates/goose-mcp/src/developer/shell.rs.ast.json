@@ -1,0 +1,89 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/developer/shell.rs",
+  "fileSize": 2289,
+  "lineCount": 78,
+  "structures": {
+    "structs": [
+      {
+        "name": "ShellConfig",
+        "fields": [
+          {
+            "name": "executable",
+            "type": "String"
+          },
+          {
+            "name": "arg",
+            "type": "String"
+          },
+          {
+            "name": "redirect_syntax",
+            "type": "String"
+          }
+        ],
+        "position": 39
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "ShellConfig",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 149
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 184
+      },
+      {
+        "name": "get_shell_config",
+        "params": "",
+        "returnType": "ShellConfig",
+        "position": 711
+      },
+      {
+        "name": "format_command_for_platform",
+        "params": "command: &str",
+        "returnType": "String",
+        "position": 784
+      },
+      {
+        "name": "expand_path",
+        "params": "path_str: &str",
+        "returnType": "String",
+        "position": 1179
+      },
+      {
+        "name": "is_absolute_path",
+        "params": "path_str: &str",
+        "returnType": "bool",
+        "position": 1704
+      },
+      {
+        "name": "normalize_line_endings",
+        "params": "text: &str",
+        "returnType": "String",
+        "position": 2010
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "std::env",
+        "position": 0
+      }
+    ]
+  }
+}

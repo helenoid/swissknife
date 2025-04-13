@@ -1,0 +1,91 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-server/src/errors.rs",
+  "fileSize": 2810,
+  "lineCount": 105,
+  "structures": {
+    "structs": [],
+    "enums": [
+      {
+        "name": "TransportError",
+        "variants": [
+          "error",
+          "IO",
+          "error"
+        ],
+        "position": 110
+      },
+      {
+        "name": "ServerError",
+        "variants": [
+          "error",
+          "Transport",
+          "error"
+        ],
+        "position": 532
+      },
+      {
+        "name": "RouterError",
+        "variants": [
+          "error",
+          "Method",
+          "not",
+          "found"
+        ],
+        "position": 862
+      }
+    ],
+    "traits": [],
+    "impls": [
+      {
+        "type": "mcp_core::protocol::ErrorData",
+        "trait": "From<RouterError>",
+        "methods": [
+          {
+            "name": "from",
+            "params": "err: RouterError",
+            "returnType": "Self"
+          }
+        ],
+        "position": 1275
+      },
+      {
+        "type": "RouterError",
+        "trait": "From<mcp_core::handler::ResourceError>",
+        "methods": [
+          {
+            "name": "from",
+            "params": "err: mcp_core::handler::ResourceError",
+            "returnType": "Self"
+          }
+        ],
+        "position": 2472
+      }
+    ],
+    "functions": [
+      {
+        "name": "from",
+        "params": "err: RouterError",
+        "returnType": "Self",
+        "position": 1338
+      },
+      {
+        "name": "from",
+        "params": "err: mcp_core::handler::ResourceError",
+        "returnType": "Self",
+        "position": 2538
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "thiserror::Error",
+        "position": 0
+      },
+      {
+        "path": "mcp_core::protocol::*",
+        "position": 1382
+      }
+    ]
+  }
+}

@@ -1,0 +1,5442 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "Import",
+      "lineno": 1,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 1,
+          "col_offset": 7,
+          "name": "sys",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 2,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 2,
+          "col_offset": 7,
+          "name": "os",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 3,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 3,
+          "col_offset": 7,
+          "name": "subprocess",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 4,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 4,
+          "col_offset": 7,
+          "name": "tempfile",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "Import",
+      "lineno": 5,
+      "col_offset": 0,
+      "names": [
+        {
+          "type": "alias",
+          "lineno": 5,
+          "col_offset": 7,
+          "name": "json",
+          "asname": null
+        }
+      ]
+    },
+    {
+      "type": "ClassDef",
+      "lineno": 7,
+      "col_offset": 0,
+      "name": "ipfs_cluster_follow",
+      "bases": [],
+      "keywords": [],
+      "body": [
+        {
+          "type": "FunctionDef",
+          "lineno": 8,
+          "col_offset": 4,
+          "name": "__init__",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 8,
+                "col_offset": 17,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 8,
+                "col_offset": 23,
+                "arg": "resources",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 8,
+                "col_offset": 34,
+                "arg": "meta",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": null,
+            "defaults": [
+              {
+                "type": "Constant",
+                "lineno": 8,
+                "col_offset": 39,
+                "value": null,
+                "kind": null
+              }
+            ]
+          },
+          "body": [
+            {
+              "type": "If",
+              "lineno": 9,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 9,
+                "col_offset": 11,
+                "left": {
+                  "type": "Name",
+                  "lineno": 9,
+                  "col_offset": 11,
+                  "id": "meta"
+                },
+                "ops": [
+                  {
+                    "type": "IsNot"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 9,
+                    "col_offset": 23,
+                    "value": null,
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "If",
+                  "lineno": 10,
+                  "col_offset": 12,
+                  "test": {
+                    "type": "Compare",
+                    "lineno": 10,
+                    "col_offset": 15,
+                    "left": {
+                      "type": "Constant",
+                      "lineno": 10,
+                      "col_offset": 15,
+                      "value": "config",
+                      "kind": null
+                    },
+                    "ops": [
+                      {
+                        "type": "In"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Name",
+                        "lineno": 10,
+                        "col_offset": 27,
+                        "id": "meta"
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "If",
+                      "lineno": 11,
+                      "col_offset": 16,
+                      "test": {
+                        "type": "Compare",
+                        "lineno": 11,
+                        "col_offset": 19,
+                        "left": {
+                          "type": "Subscript",
+                          "lineno": 11,
+                          "col_offset": 19,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 11,
+                            "col_offset": 19,
+                            "id": "meta"
+                          },
+                          "slice": {
+                            "type": "Constant",
+                            "lineno": 11,
+                            "col_offset": 24,
+                            "value": "config",
+                            "kind": null
+                          }
+                        },
+                        "ops": [
+                          {
+                            "type": "IsNot"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "lineno": 11,
+                            "col_offset": 41,
+                            "value": null,
+                            "kind": null
+                          }
+                        ]
+                      },
+                      "body": [
+                        {
+                          "type": "Assign",
+                          "lineno": 12,
+                          "col_offset": 20,
+                          "targets": [
+                            {
+                              "type": "Attribute",
+                              "lineno": 12,
+                              "col_offset": 20,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 12,
+                                "col_offset": 20,
+                                "id": "self"
+                              },
+                              "attr": "config"
+                            }
+                          ],
+                          "value": {
+                            "type": "Subscript",
+                            "lineno": 12,
+                            "col_offset": 34,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 12,
+                              "col_offset": 34,
+                              "id": "meta"
+                            },
+                            "slice": {
+                              "type": "Constant",
+                              "lineno": 12,
+                              "col_offset": 39,
+                              "value": "config",
+                              "kind": null
+                            }
+                          },
+                          "type_comment": null
+                        }
+                      ],
+                      "orelse": []
+                    }
+                  ],
+                  "orelse": []
+                },
+                {
+                  "type": "If",
+                  "lineno": 13,
+                  "col_offset": 12,
+                  "test": {
+                    "type": "Compare",
+                    "lineno": 13,
+                    "col_offset": 15,
+                    "left": {
+                      "type": "Constant",
+                      "lineno": 13,
+                      "col_offset": 15,
+                      "value": "role",
+                      "kind": null
+                    },
+                    "ops": [
+                      {
+                        "type": "In"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Name",
+                        "lineno": 13,
+                        "col_offset": 25,
+                        "id": "meta"
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "If",
+                      "lineno": 14,
+                      "col_offset": 16,
+                      "test": {
+                        "type": "Compare",
+                        "lineno": 14,
+                        "col_offset": 19,
+                        "left": {
+                          "type": "Subscript",
+                          "lineno": 14,
+                          "col_offset": 19,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 14,
+                            "col_offset": 19,
+                            "id": "meta"
+                          },
+                          "slice": {
+                            "type": "Constant",
+                            "lineno": 14,
+                            "col_offset": 24,
+                            "value": "role",
+                            "kind": null
+                          }
+                        },
+                        "ops": [
+                          {
+                            "type": "IsNot"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "lineno": 14,
+                            "col_offset": 39,
+                            "value": null,
+                            "kind": null
+                          }
+                        ]
+                      },
+                      "body": [
+                        {
+                          "type": "Assign",
+                          "lineno": 15,
+                          "col_offset": 20,
+                          "targets": [
+                            {
+                              "type": "Attribute",
+                              "lineno": 15,
+                              "col_offset": 20,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 15,
+                                "col_offset": 20,
+                                "id": "self"
+                              },
+                              "attr": "role"
+                            }
+                          ],
+                          "value": {
+                            "type": "Subscript",
+                            "lineno": 15,
+                            "col_offset": 32,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 15,
+                              "col_offset": 32,
+                              "id": "meta"
+                            },
+                            "slice": {
+                              "type": "Constant",
+                              "lineno": 15,
+                              "col_offset": 37,
+                              "value": "role",
+                              "kind": null
+                            }
+                          },
+                          "type_comment": null
+                        },
+                        {
+                          "type": "If",
+                          "lineno": 16,
+                          "col_offset": 20,
+                          "test": {
+                            "type": "Compare",
+                            "lineno": 16,
+                            "col_offset": 23,
+                            "left": {
+                              "type": "Attribute",
+                              "lineno": 16,
+                              "col_offset": 23,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 16,
+                                "col_offset": 23,
+                                "id": "self"
+                              },
+                              "attr": "role"
+                            },
+                            "ops": [
+                              {
+                                "type": "NotIn"
+                              }
+                            ],
+                            "comparators": [
+                              {
+                                "type": "List",
+                                "lineno": 16,
+                                "col_offset": 41,
+                                "elts": [
+                                  {
+                                    "type": "Constant",
+                                    "lineno": 16,
+                                    "col_offset": 42,
+                                    "value": "master",
+                                    "kind": null
+                                  },
+                                  {
+                                    "type": "Constant",
+                                    "lineno": 16,
+                                    "col_offset": 51,
+                                    "value": "worker",
+                                    "kind": null
+                                  },
+                                  {
+                                    "type": "Constant",
+                                    "lineno": 16,
+                                    "col_offset": 60,
+                                    "value": "leecher",
+                                    "kind": null
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "body": [
+                            {
+                              "type": "Raise",
+                              "lineno": 17,
+                              "col_offset": 24,
+                              "exc": {
+                                "type": "Call",
+                                "lineno": 17,
+                                "col_offset": 30,
+                                "func": {
+                                  "type": "Name",
+                                  "lineno": 17,
+                                  "col_offset": 30,
+                                  "id": "Exception"
+                                },
+                                "args": [
+                                  {
+                                    "type": "Constant",
+                                    "lineno": 17,
+                                    "col_offset": 40,
+                                    "value": "role is not either master, worker, leecher",
+                                    "kind": null
+                                  }
+                                ],
+                                "keywords": []
+                              },
+                              "cause": null
+                            }
+                          ],
+                          "orelse": [
+                            {
+                              "type": "Assign",
+                              "lineno": 19,
+                              "col_offset": 24,
+                              "targets": [
+                                {
+                                  "type": "Attribute",
+                                  "lineno": 19,
+                                  "col_offset": 24,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 19,
+                                    "col_offset": 24,
+                                    "id": "self"
+                                  },
+                                  "attr": "role"
+                                }
+                              ],
+                              "value": {
+                                "type": "Constant",
+                                "lineno": 19,
+                                "col_offset": 36,
+                                "value": "leecher",
+                                "kind": null
+                              },
+                              "type_comment": null
+                            }
+                          ]
+                        }
+                      ],
+                      "orelse": []
+                    }
+                  ],
+                  "orelse": []
+                },
+                {
+                  "type": "If",
+                  "lineno": 21,
+                  "col_offset": 12,
+                  "test": {
+                    "type": "Compare",
+                    "lineno": 21,
+                    "col_offset": 15,
+                    "left": {
+                      "type": "Constant",
+                      "lineno": 21,
+                      "col_offset": 15,
+                      "value": "cluster_name",
+                      "kind": null
+                    },
+                    "ops": [
+                      {
+                        "type": "In"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Name",
+                        "lineno": 21,
+                        "col_offset": 33,
+                        "id": "meta"
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "If",
+                      "lineno": 22,
+                      "col_offset": 16,
+                      "test": {
+                        "type": "Compare",
+                        "lineno": 22,
+                        "col_offset": 19,
+                        "left": {
+                          "type": "Subscript",
+                          "lineno": 22,
+                          "col_offset": 19,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 22,
+                            "col_offset": 19,
+                            "id": "meta"
+                          },
+                          "slice": {
+                            "type": "Constant",
+                            "lineno": 22,
+                            "col_offset": 24,
+                            "value": "cluster_name",
+                            "kind": null
+                          }
+                        },
+                        "ops": [
+                          {
+                            "type": "IsNot"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "lineno": 22,
+                            "col_offset": 47,
+                            "value": null,
+                            "kind": null
+                          }
+                        ]
+                      },
+                      "body": [
+                        {
+                          "type": "Assign",
+                          "lineno": 23,
+                          "col_offset": 20,
+                          "targets": [
+                            {
+                              "type": "Attribute",
+                              "lineno": 23,
+                              "col_offset": 20,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 23,
+                                "col_offset": 20,
+                                "id": "self"
+                              },
+                              "attr": "cluster_name"
+                            }
+                          ],
+                          "value": {
+                            "type": "Subscript",
+                            "lineno": 23,
+                            "col_offset": 40,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 23,
+                              "col_offset": 40,
+                              "id": "meta"
+                            },
+                            "slice": {
+                              "type": "Constant",
+                              "lineno": 23,
+                              "col_offset": 45,
+                              "value": "cluster_name",
+                              "kind": null
+                            }
+                          },
+                          "type_comment": null
+                        }
+                      ],
+                      "orelse": []
+                    }
+                  ],
+                  "orelse": []
+                },
+                {
+                  "type": "If",
+                  "lineno": 25,
+                  "col_offset": 12,
+                  "test": {
+                    "type": "BoolOp",
+                    "lineno": 25,
+                    "col_offset": 15,
+                    "op": {
+                      "type": "Or"
+                    },
+                    "values": [
+                      {
+                        "type": "Compare",
+                        "lineno": 25,
+                        "col_offset": 15,
+                        "left": {
+                          "type": "Attribute",
+                          "lineno": 25,
+                          "col_offset": 15,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 25,
+                            "col_offset": 15,
+                            "id": "self"
+                          },
+                          "attr": "role"
+                        },
+                        "ops": [
+                          {
+                            "type": "Eq"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "lineno": 25,
+                            "col_offset": 28,
+                            "value": "leecher",
+                            "kind": null
+                          }
+                        ]
+                      },
+                      {
+                        "type": "Compare",
+                        "lineno": 25,
+                        "col_offset": 41,
+                        "left": {
+                          "type": "Attribute",
+                          "lineno": 25,
+                          "col_offset": 41,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 25,
+                            "col_offset": 41,
+                            "id": "self"
+                          },
+                          "attr": "role"
+                        },
+                        "ops": [
+                          {
+                            "type": "Eq"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "lineno": 25,
+                            "col_offset": 54,
+                            "value": "worker",
+                            "kind": null
+                          }
+                        ]
+                      },
+                      {
+                        "type": "Compare",
+                        "lineno": 25,
+                        "col_offset": 66,
+                        "left": {
+                          "type": "Attribute",
+                          "lineno": 25,
+                          "col_offset": 66,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 25,
+                            "col_offset": 66,
+                            "id": "self"
+                          },
+                          "attr": "role"
+                        },
+                        "ops": [
+                          {
+                            "type": "Eq"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "lineno": 25,
+                            "col_offset": 79,
+                            "value": "master",
+                            "kind": null
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "Pass",
+                      "lineno": 26,
+                      "col_offset": 16
+                    }
+                  ],
+                  "orelse": []
+                }
+              ],
+              "orelse": []
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 28,
+          "col_offset": 4,
+          "name": "ipfs_follow_start",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 28,
+                "col_offset": 26,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 28,
+              "col_offset": 34,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "If",
+              "lineno": 29,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 29,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 29,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Call",
+                    "lineno": 29,
+                    "col_offset": 29,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 29,
+                      "col_offset": 29,
+                      "id": "list"
+                    },
+                    "args": [
+                      {
+                        "type": "Call",
+                        "lineno": 29,
+                        "col_offset": 34,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 29,
+                          "col_offset": 34,
+                          "value": {
+                            "type": "Attribute",
+                            "lineno": 29,
+                            "col_offset": 34,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 29,
+                              "col_offset": 34,
+                              "id": "self"
+                            },
+                            "attr": "__dict__"
+                          },
+                          "attr": "keys"
+                        },
+                        "args": [],
+                        "keywords": []
+                      }
+                    ],
+                    "keywords": []
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 30,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 30,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Attribute",
+                    "lineno": 30,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 30,
+                      "col_offset": 27,
+                      "id": "self"
+                    },
+                    "attr": "cluster_name"
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "If",
+              "lineno": 31,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 31,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 31,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Name",
+                    "lineno": 31,
+                    "col_offset": 29,
+                    "id": "kwargs"
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 32,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 32,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Subscript",
+                    "lineno": 32,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 32,
+                      "col_offset": 27,
+                      "id": "kwargs"
+                    },
+                    "slice": {
+                      "type": "Constant",
+                      "lineno": 32,
+                      "col_offset": 34,
+                      "value": "cluster_name",
+                      "kind": null
+                    }
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "Try",
+              "lineno": 33,
+              "col_offset": 8,
+              "body": [
+                {
+                  "type": "If",
+                  "lineno": 34,
+                  "col_offset": 12,
+                  "test": {
+                    "type": "Compare",
+                    "lineno": 34,
+                    "col_offset": 15,
+                    "left": {
+                      "type": "Call",
+                      "lineno": 34,
+                      "col_offset": 15,
+                      "func": {
+                        "type": "Attribute",
+                        "lineno": 34,
+                        "col_offset": 15,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 34,
+                          "col_offset": 15,
+                          "id": "os"
+                        },
+                        "attr": "getuid"
+                      },
+                      "args": [],
+                      "keywords": []
+                    },
+                    "ops": [
+                      {
+                        "type": "Eq"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Constant",
+                        "lineno": 34,
+                        "col_offset": 30,
+                        "value": 0,
+                        "kind": null
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 35,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 35,
+                          "col_offset": 16,
+                          "id": "command1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Constant",
+                        "lineno": 35,
+                        "col_offset": 27,
+                        "value": "systemctl start ipfs-cluster-follow",
+                        "kind": null
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 36,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 36,
+                          "col_offset": 16,
+                          "id": "results1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 36,
+                        "col_offset": 27,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 36,
+                          "col_offset": 27,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 36,
+                            "col_offset": 27,
+                            "id": "subprocess"
+                          },
+                          "attr": "check_output"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 36,
+                            "col_offset": 51,
+                            "id": "command1"
+                          }
+                        ],
+                        "keywords": [
+                          {
+                            "type": "keyword",
+                            "lineno": 36,
+                            "col_offset": 61,
+                            "arg": "shell",
+                            "value": {
+                              "type": "Constant",
+                              "lineno": 36,
+                              "col_offset": 67,
+                              "value": true,
+                              "kind": null
+                            }
+                          }
+                        ]
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 37,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 37,
+                          "col_offset": 16,
+                          "id": "results1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 37,
+                        "col_offset": 27,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 37,
+                          "col_offset": 27,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 37,
+                            "col_offset": 27,
+                            "id": "results1"
+                          },
+                          "attr": "decode"
+                        },
+                        "args": [],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    }
+                  ],
+                  "orelse": [
+                    {
+                      "type": "Assign",
+                      "lineno": 39,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 39,
+                          "col_offset": 16,
+                          "id": "results1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Constant",
+                        "lineno": 39,
+                        "col_offset": 27,
+                        "value": "You need to be root to run this command",
+                        "kind": null
+                      },
+                      "type_comment": null
+                    }
+                  ]
+                }
+              ],
+              "handlers": [
+                {
+                  "type": {
+                    "type": "Name",
+                    "lineno": 40,
+                    "col_offset": 15,
+                    "id": "Exception"
+                  },
+                  "lineno": 40,
+                  "col_offset": 8,
+                  "name": "e",
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 41,
+                      "col_offset": 12,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 41,
+                          "col_offset": 12,
+                          "id": "results"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 41,
+                        "col_offset": 22,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 41,
+                          "col_offset": 22,
+                          "id": "str"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 41,
+                            "col_offset": 26,
+                            "id": "e"
+                          }
+                        ],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    }
+                  ]
+                }
+              ],
+              "orelse": [],
+              "finalbody": [
+                {
+                  "type": "Pass",
+                  "lineno": 43,
+                  "col_offset": 12
+                }
+              ]
+            },
+            {
+              "type": "Assign",
+              "lineno": 44,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 44,
+                  "col_offset": 8,
+                  "id": "detect"
+                }
+              ],
+              "value": {
+                "type": "Constant",
+                "lineno": 44,
+                "col_offset": 17,
+                "value": "ps -ef | grep ipfs-cluster-follow | grep -v grep | awk '{print $2}'",
+                "kind": null
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 45,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 45,
+                  "col_offset": 8,
+                  "id": "detect_results"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 45,
+                "col_offset": 25,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 45,
+                  "col_offset": 25,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 45,
+                    "col_offset": 25,
+                    "id": "subprocess"
+                  },
+                  "attr": "check_output"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 45,
+                    "col_offset": 49,
+                    "id": "detect"
+                  }
+                ],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "lineno": 45,
+                    "col_offset": 57,
+                    "arg": "shell",
+                    "value": {
+                      "type": "Constant",
+                      "lineno": 45,
+                      "col_offset": 63,
+                      "value": true,
+                      "kind": null
+                    }
+                  }
+                ]
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 46,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 46,
+                  "col_offset": 8,
+                  "id": "detect_results"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 46,
+                "col_offset": 25,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 46,
+                  "col_offset": 25,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 46,
+                    "col_offset": 25,
+                    "id": "detect_results"
+                  },
+                  "attr": "decode"
+                },
+                "args": [],
+                "keywords": []
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 47,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 47,
+                  "col_offset": 8,
+                  "id": "results2"
+                }
+              ],
+              "value": {
+                "type": "Constant",
+                "lineno": 47,
+                "col_offset": 19,
+                "value": false,
+                "kind": null
+              },
+              "type_comment": null
+            },
+            {
+              "type": "If",
+              "lineno": 49,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 49,
+                "col_offset": 11,
+                "left": {
+                  "type": "Call",
+                  "lineno": 49,
+                  "col_offset": 11,
+                  "func": {
+                    "type": "Name",
+                    "lineno": 49,
+                    "col_offset": 11,
+                    "id": "len"
+                  },
+                  "args": [
+                    {
+                      "type": "Name",
+                      "lineno": 49,
+                      "col_offset": 15,
+                      "id": "detect_results"
+                    }
+                  ],
+                  "keywords": []
+                },
+                "ops": [
+                  {
+                    "type": "Eq"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 49,
+                    "col_offset": 34,
+                    "value": 0,
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 50,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 50,
+                      "col_offset": 12,
+                      "id": "homedir"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 50,
+                    "col_offset": 22,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 50,
+                      "col_offset": 22,
+                      "value": {
+                        "type": "Attribute",
+                        "lineno": 50,
+                        "col_offset": 22,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 50,
+                          "col_offset": 22,
+                          "id": "os"
+                        },
+                        "attr": "path"
+                      },
+                      "attr": "expanduser"
+                    },
+                    "args": [
+                      {
+                        "type": "Constant",
+                        "lineno": 50,
+                        "col_offset": 41,
+                        "value": "~",
+                        "kind": null
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Assign",
+                  "lineno": 51,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 51,
+                      "col_offset": 12,
+                      "id": "ls_file"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 51,
+                    "col_offset": 22,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 51,
+                      "col_offset": 22,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 51,
+                        "col_offset": 22,
+                        "id": "os"
+                      },
+                      "attr": "listdir"
+                    },
+                    "args": [
+                      {
+                        "type": "BinOp",
+                        "lineno": 51,
+                        "col_offset": 33,
+                        "left": {
+                          "type": "BinOp",
+                          "lineno": 51,
+                          "col_offset": 33,
+                          "left": {
+                            "type": "Name",
+                            "lineno": 51,
+                            "col_offset": 33,
+                            "id": "homedir"
+                          },
+                          "op": {
+                            "type": "Add"
+                          },
+                          "right": {
+                            "type": "Constant",
+                            "lineno": 51,
+                            "col_offset": 43,
+                            "value": "/.ipfs-cluster-follow/",
+                            "kind": null
+                          }
+                        },
+                        "op": {
+                          "type": "Add"
+                        },
+                        "right": {
+                          "type": "Name",
+                          "lineno": 51,
+                          "col_offset": 70,
+                          "id": "cluster_name"
+                        }
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "If",
+                  "lineno": 52,
+                  "col_offset": 12,
+                  "test": {
+                    "type": "Compare",
+                    "lineno": 52,
+                    "col_offset": 15,
+                    "left": {
+                      "type": "Constant",
+                      "lineno": 52,
+                      "col_offset": 15,
+                      "value": "api-socket",
+                      "kind": null
+                    },
+                    "ops": [
+                      {
+                        "type": "In"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Name",
+                        "lineno": 52,
+                        "col_offset": 31,
+                        "id": "ls_file"
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 53,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 53,
+                          "col_offset": 16,
+                          "id": "rm_command"
+                        }
+                      ],
+                      "value": {
+                        "type": "BinOp",
+                        "lineno": 53,
+                        "col_offset": 29,
+                        "left": {
+                          "type": "BinOp",
+                          "lineno": 53,
+                          "col_offset": 29,
+                          "left": {
+                            "type": "Constant",
+                            "lineno": 53,
+                            "col_offset": 29,
+                            "value": "rm ~/.ipfs-cluster-follow/",
+                            "kind": null
+                          },
+                          "op": {
+                            "type": "Add"
+                          },
+                          "right": {
+                            "type": "Name",
+                            "lineno": 53,
+                            "col_offset": 60,
+                            "id": "cluster_name"
+                          }
+                        },
+                        "op": {
+                          "type": "Add"
+                        },
+                        "right": {
+                          "type": "Constant",
+                          "lineno": 53,
+                          "col_offset": 75,
+                          "value": "/api-socket",
+                          "kind": null
+                        }
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 54,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 54,
+                          "col_offset": 16,
+                          "id": "rm_results"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 54,
+                        "col_offset": 29,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 54,
+                          "col_offset": 29,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 54,
+                            "col_offset": 29,
+                            "id": "subprocess"
+                          },
+                          "attr": "check_output"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 54,
+                            "col_offset": 53,
+                            "id": "rm_command"
+                          }
+                        ],
+                        "keywords": [
+                          {
+                            "type": "keyword",
+                            "lineno": 54,
+                            "col_offset": 65,
+                            "arg": "shell",
+                            "value": {
+                              "type": "Constant",
+                              "lineno": 54,
+                              "col_offset": 71,
+                              "value": true,
+                              "kind": null
+                            }
+                          }
+                        ]
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 55,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 55,
+                          "col_offset": 16,
+                          "id": "rm_results"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 55,
+                        "col_offset": 29,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 55,
+                          "col_offset": 29,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 55,
+                            "col_offset": 29,
+                            "id": "rm_results"
+                          },
+                          "attr": "decode"
+                        },
+                        "args": [],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 56,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 56,
+                          "col_offset": 16,
+                          "id": "results2"
+                        }
+                      ],
+                      "value": {
+                        "type": "Constant",
+                        "lineno": 56,
+                        "col_offset": 27,
+                        "value": true,
+                        "kind": null
+                      },
+                      "type_comment": null
+                    }
+                  ],
+                  "orelse": []
+                },
+                {
+                  "type": "Try",
+                  "lineno": 57,
+                  "col_offset": 12,
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 58,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 58,
+                          "col_offset": 16,
+                          "id": "command2"
+                        }
+                      ],
+                      "value": {
+                        "type": "BinOp",
+                        "lineno": 58,
+                        "col_offset": 27,
+                        "left": {
+                          "type": "BinOp",
+                          "lineno": 58,
+                          "col_offset": 27,
+                          "left": {
+                            "type": "Constant",
+                            "lineno": 58,
+                            "col_offset": 27,
+                            "value": "/usr/local/bin/ipfs-cluster-follow ",
+                            "kind": null
+                          },
+                          "op": {
+                            "type": "Add"
+                          },
+                          "right": {
+                            "type": "Name",
+                            "lineno": 58,
+                            "col_offset": 67,
+                            "id": "cluster_name"
+                          }
+                        },
+                        "op": {
+                          "type": "Add"
+                        },
+                        "right": {
+                          "type": "Constant",
+                          "lineno": 58,
+                          "col_offset": 82,
+                          "value": " run",
+                          "kind": null
+                        }
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 59,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 59,
+                          "col_offset": 16,
+                          "id": "results2"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 59,
+                        "col_offset": 27,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 59,
+                          "col_offset": 27,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 59,
+                            "col_offset": 27,
+                            "id": "subprocess"
+                          },
+                          "attr": "Popen"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 59,
+                            "col_offset": 44,
+                            "id": "command2"
+                          }
+                        ],
+                        "keywords": [
+                          {
+                            "type": "keyword",
+                            "lineno": 59,
+                            "col_offset": 54,
+                            "arg": "shell",
+                            "value": {
+                              "type": "Constant",
+                              "lineno": 59,
+                              "col_offset": 60,
+                              "value": true,
+                              "kind": null
+                            }
+                          },
+                          {
+                            "type": "keyword",
+                            "lineno": 59,
+                            "col_offset": 66,
+                            "arg": "stdout",
+                            "value": {
+                              "type": "Attribute",
+                              "lineno": 59,
+                              "col_offset": 73,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 59,
+                                "col_offset": 73,
+                                "id": "subprocess"
+                              },
+                              "attr": "PIPE"
+                            }
+                          }
+                        ]
+                      },
+                      "type_comment": null
+                    }
+                  ],
+                  "handlers": [
+                    {
+                      "type": {
+                        "type": "Name",
+                        "lineno": 60,
+                        "col_offset": 19,
+                        "id": "Exception"
+                      },
+                      "lineno": 60,
+                      "col_offset": 12,
+                      "name": "e",
+                      "body": [
+                        {
+                          "type": "Assign",
+                          "lineno": 61,
+                          "col_offset": 16,
+                          "targets": [
+                            {
+                              "type": "Name",
+                              "lineno": 61,
+                              "col_offset": 16,
+                              "id": "results"
+                            }
+                          ],
+                          "value": {
+                            "type": "Call",
+                            "lineno": 61,
+                            "col_offset": 26,
+                            "func": {
+                              "type": "Name",
+                              "lineno": 61,
+                              "col_offset": 26,
+                              "id": "str"
+                            },
+                            "args": [
+                              {
+                                "type": "Name",
+                                "lineno": 61,
+                                "col_offset": 30,
+                                "id": "e"
+                              }
+                            ],
+                            "keywords": []
+                          },
+                          "type_comment": null
+                        }
+                      ]
+                    }
+                  ],
+                  "orelse": [],
+                  "finalbody": [
+                    {
+                      "type": "Pass",
+                      "lineno": 63,
+                      "col_offset": 16
+                    }
+                  ]
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "Assign",
+              "lineno": 65,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 65,
+                  "col_offset": 8,
+                  "id": "results"
+                }
+              ],
+              "value": {
+                "type": "Dict",
+                "lineno": 65,
+                "col_offset": 18,
+                "keys": [
+                  {
+                    "type": "Constant",
+                    "lineno": 66,
+                    "col_offset": 12,
+                    "value": "systemctl",
+                    "kind": null
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 67,
+                    "col_offset": 12,
+                    "value": "bash",
+                    "kind": null
+                  }
+                ],
+                "values": [
+                  {
+                    "type": "Name",
+                    "lineno": 66,
+                    "col_offset": 25,
+                    "id": "results1"
+                  },
+                  {
+                    "type": "Name",
+                    "lineno": 67,
+                    "col_offset": 20,
+                    "id": "results2"
+                  }
+                ]
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Return",
+              "lineno": 69,
+              "col_offset": 8,
+              "value": {
+                "type": "Name",
+                "lineno": 69,
+                "col_offset": 15,
+                "id": "results"
+              }
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 71,
+          "col_offset": 4,
+          "name": "ipfs_follow_stop",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 71,
+                "col_offset": 25,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 71,
+              "col_offset": 33,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "If",
+              "lineno": 72,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 72,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 72,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Call",
+                    "lineno": 72,
+                    "col_offset": 29,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 72,
+                      "col_offset": 29,
+                      "id": "list"
+                    },
+                    "args": [
+                      {
+                        "type": "Call",
+                        "lineno": 72,
+                        "col_offset": 34,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 72,
+                          "col_offset": 34,
+                          "value": {
+                            "type": "Attribute",
+                            "lineno": 72,
+                            "col_offset": 34,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 72,
+                              "col_offset": 34,
+                              "id": "self"
+                            },
+                            "attr": "__dict__"
+                          },
+                          "attr": "keys"
+                        },
+                        "args": [],
+                        "keywords": []
+                      }
+                    ],
+                    "keywords": []
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 73,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 73,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Attribute",
+                    "lineno": 73,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 73,
+                      "col_offset": 27,
+                      "id": "self"
+                    },
+                    "attr": "cluster_name"
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "If",
+              "lineno": 74,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 74,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 74,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Name",
+                    "lineno": 74,
+                    "col_offset": 29,
+                    "id": "kwargs"
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 75,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 75,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Subscript",
+                    "lineno": 75,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 75,
+                      "col_offset": 27,
+                      "id": "kwargs"
+                    },
+                    "slice": {
+                      "type": "Constant",
+                      "lineno": 75,
+                      "col_offset": 34,
+                      "value": "cluster_name",
+                      "kind": null
+                    }
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "Try",
+              "lineno": 76,
+              "col_offset": 8,
+              "body": [
+                {
+                  "type": "If",
+                  "lineno": 77,
+                  "col_offset": 12,
+                  "test": {
+                    "type": "Compare",
+                    "lineno": 77,
+                    "col_offset": 15,
+                    "left": {
+                      "type": "Call",
+                      "lineno": 77,
+                      "col_offset": 15,
+                      "func": {
+                        "type": "Attribute",
+                        "lineno": 77,
+                        "col_offset": 15,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 77,
+                          "col_offset": 15,
+                          "id": "os"
+                        },
+                        "attr": "getuid"
+                      },
+                      "args": [],
+                      "keywords": []
+                    },
+                    "ops": [
+                      {
+                        "type": "Eq"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Constant",
+                        "lineno": 77,
+                        "col_offset": 30,
+                        "value": 0,
+                        "kind": null
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 78,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 78,
+                          "col_offset": 16,
+                          "id": "command1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Constant",
+                        "lineno": 78,
+                        "col_offset": 27,
+                        "value": "systemctl stop ipfs-cluster-follow",
+                        "kind": null
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 79,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 79,
+                          "col_offset": 16,
+                          "id": "results1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 79,
+                        "col_offset": 27,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 79,
+                          "col_offset": 27,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 79,
+                            "col_offset": 27,
+                            "id": "subprocess"
+                          },
+                          "attr": "check_output"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 79,
+                            "col_offset": 51,
+                            "id": "command1"
+                          }
+                        ],
+                        "keywords": [
+                          {
+                            "type": "keyword",
+                            "lineno": 79,
+                            "col_offset": 61,
+                            "arg": "shell",
+                            "value": {
+                              "type": "Constant",
+                              "lineno": 79,
+                              "col_offset": 67,
+                              "value": true,
+                              "kind": null
+                            }
+                          }
+                        ]
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 80,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 80,
+                          "col_offset": 16,
+                          "id": "results1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 80,
+                        "col_offset": 27,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 80,
+                          "col_offset": 27,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 80,
+                            "col_offset": 27,
+                            "id": "results1"
+                          },
+                          "attr": "decode"
+                        },
+                        "args": [],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    }
+                  ],
+                  "orelse": [
+                    {
+                      "type": "Assign",
+                      "lineno": 82,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 82,
+                          "col_offset": 16,
+                          "id": "results1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Constant",
+                        "lineno": 82,
+                        "col_offset": 27,
+                        "value": "You need to be root to run this command",
+                        "kind": null
+                      },
+                      "type_comment": null
+                    }
+                  ]
+                }
+              ],
+              "handlers": [
+                {
+                  "type": {
+                    "type": "Name",
+                    "lineno": 83,
+                    "col_offset": 15,
+                    "id": "Exception"
+                  },
+                  "lineno": 83,
+                  "col_offset": 8,
+                  "name": "e",
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 84,
+                      "col_offset": 12,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 84,
+                          "col_offset": 12,
+                          "id": "results1"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 84,
+                        "col_offset": 23,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 84,
+                          "col_offset": 23,
+                          "id": "str"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 84,
+                            "col_offset": 27,
+                            "id": "e"
+                          }
+                        ],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    }
+                  ]
+                }
+              ],
+              "orelse": [],
+              "finalbody": [
+                {
+                  "type": "Pass",
+                  "lineno": 86,
+                  "col_offset": 12
+                }
+              ]
+            },
+            {
+              "type": "Try",
+              "lineno": 87,
+              "col_offset": 8,
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 88,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 88,
+                      "col_offset": 12,
+                      "id": "command2"
+                    }
+                  ],
+                  "value": {
+                    "type": "Constant",
+                    "lineno": 88,
+                    "col_offset": 23,
+                    "value": "ps -ef | grep ipfs-cluster-follow | grep -v grep | awk '{print $2}' | xargs kill -9",
+                    "kind": null
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Assign",
+                  "lineno": 89,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 89,
+                      "col_offset": 12,
+                      "id": "results2"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 89,
+                    "col_offset": 23,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 89,
+                      "col_offset": 23,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 89,
+                        "col_offset": 23,
+                        "id": "subprocess"
+                      },
+                      "attr": "check_output"
+                    },
+                    "args": [
+                      {
+                        "type": "Name",
+                        "lineno": 89,
+                        "col_offset": 47,
+                        "id": "command2"
+                      }
+                    ],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 89,
+                        "col_offset": 57,
+                        "arg": "shell",
+                        "value": {
+                          "type": "Constant",
+                          "lineno": 89,
+                          "col_offset": 63,
+                          "value": true,
+                          "kind": null
+                        }
+                      }
+                    ]
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Assign",
+                  "lineno": 90,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 90,
+                      "col_offset": 12,
+                      "id": "results2"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 90,
+                    "col_offset": 23,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 90,
+                      "col_offset": 23,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 90,
+                        "col_offset": 23,
+                        "id": "results2"
+                      },
+                      "attr": "decode"
+                    },
+                    "args": [],
+                    "keywords": []
+                  },
+                  "type_comment": null
+                }
+              ],
+              "handlers": [
+                {
+                  "type": {
+                    "type": "Name",
+                    "lineno": 91,
+                    "col_offset": 15,
+                    "id": "Exception"
+                  },
+                  "lineno": 91,
+                  "col_offset": 8,
+                  "name": "e",
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 92,
+                      "col_offset": 12,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 92,
+                          "col_offset": 12,
+                          "id": "results2"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 92,
+                        "col_offset": 23,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 92,
+                          "col_offset": 23,
+                          "id": "str"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 92,
+                            "col_offset": 27,
+                            "id": "e"
+                          }
+                        ],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    }
+                  ]
+                }
+              ],
+              "orelse": [],
+              "finalbody": [
+                {
+                  "type": "Pass",
+                  "lineno": 94,
+                  "col_offset": 12
+                }
+              ]
+            },
+            {
+              "type": "Try",
+              "lineno": 96,
+              "col_offset": 8,
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 97,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 97,
+                      "col_offset": 12,
+                      "id": "command3"
+                    }
+                  ],
+                  "value": {
+                    "type": "BinOp",
+                    "lineno": 97,
+                    "col_offset": 23,
+                    "left": {
+                      "type": "BinOp",
+                      "lineno": 97,
+                      "col_offset": 23,
+                      "left": {
+                        "type": "Constant",
+                        "lineno": 97,
+                        "col_offset": 23,
+                        "value": "rm ~/.ipfs-cluster-follow/",
+                        "kind": null
+                      },
+                      "op": {
+                        "type": "Add"
+                      },
+                      "right": {
+                        "type": "Name",
+                        "lineno": 97,
+                        "col_offset": 54,
+                        "id": "cluster_name"
+                      }
+                    },
+                    "op": {
+                      "type": "Add"
+                    },
+                    "right": {
+                      "type": "Constant",
+                      "lineno": 97,
+                      "col_offset": 69,
+                      "value": "/api-socket",
+                      "kind": null
+                    }
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Assign",
+                  "lineno": 98,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 98,
+                      "col_offset": 12,
+                      "id": "results3"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 98,
+                    "col_offset": 23,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 98,
+                      "col_offset": 23,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 98,
+                        "col_offset": 23,
+                        "id": "subprocess"
+                      },
+                      "attr": "check_output"
+                    },
+                    "args": [
+                      {
+                        "type": "Name",
+                        "lineno": 98,
+                        "col_offset": 47,
+                        "id": "command3"
+                      }
+                    ],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 98,
+                        "col_offset": 57,
+                        "arg": "shell",
+                        "value": {
+                          "type": "Constant",
+                          "lineno": 98,
+                          "col_offset": 63,
+                          "value": true,
+                          "kind": null
+                        }
+                      }
+                    ]
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Assign",
+                  "lineno": 99,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 99,
+                      "col_offset": 12,
+                      "id": "results3"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 99,
+                    "col_offset": 23,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 99,
+                      "col_offset": 23,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 99,
+                        "col_offset": 23,
+                        "id": "results3"
+                      },
+                      "attr": "decode"
+                    },
+                    "args": [],
+                    "keywords": []
+                  },
+                  "type_comment": null
+                }
+              ],
+              "handlers": [
+                {
+                  "type": {
+                    "type": "Name",
+                    "lineno": 100,
+                    "col_offset": 15,
+                    "id": "Exception"
+                  },
+                  "lineno": 100,
+                  "col_offset": 8,
+                  "name": "e",
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 101,
+                      "col_offset": 12,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 101,
+                          "col_offset": 12,
+                          "id": "results3"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 101,
+                        "col_offset": 23,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 101,
+                          "col_offset": 23,
+                          "id": "str"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 101,
+                            "col_offset": 27,
+                            "id": "e"
+                          }
+                        ],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    }
+                  ]
+                }
+              ],
+              "orelse": [],
+              "finalbody": [
+                {
+                  "type": "Pass",
+                  "lineno": 103,
+                  "col_offset": 12
+                }
+              ]
+            },
+            {
+              "type": "Assign",
+              "lineno": 105,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 105,
+                  "col_offset": 8,
+                  "id": "results"
+                }
+              ],
+              "value": {
+                "type": "Dict",
+                "lineno": 105,
+                "col_offset": 18,
+                "keys": [
+                  {
+                    "type": "Constant",
+                    "lineno": 106,
+                    "col_offset": 12,
+                    "value": "systemctl",
+                    "kind": null
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 107,
+                    "col_offset": 12,
+                    "value": "bash",
+                    "kind": null
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 108,
+                    "col_offset": 12,
+                    "value": "api-socket",
+                    "kind": null
+                  }
+                ],
+                "values": [
+                  {
+                    "type": "Name",
+                    "lineno": 106,
+                    "col_offset": 25,
+                    "id": "results1"
+                  },
+                  {
+                    "type": "Name",
+                    "lineno": 107,
+                    "col_offset": 20,
+                    "id": "results2"
+                  },
+                  {
+                    "type": "Name",
+                    "lineno": 108,
+                    "col_offset": 26,
+                    "id": "results3"
+                  }
+                ]
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Return",
+              "lineno": 110,
+              "col_offset": 8,
+              "value": {
+                "type": "Name",
+                "lineno": 110,
+                "col_offset": 15,
+                "id": "results"
+              }
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 123,
+          "col_offset": 4,
+          "name": "ipfs_follow_list",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 123,
+                "col_offset": 25,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 123,
+              "col_offset": 33,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "If",
+              "lineno": 124,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 124,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 124,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Call",
+                    "lineno": 124,
+                    "col_offset": 29,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 124,
+                      "col_offset": 29,
+                      "id": "list"
+                    },
+                    "args": [
+                      {
+                        "type": "Call",
+                        "lineno": 124,
+                        "col_offset": 34,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 124,
+                          "col_offset": 34,
+                          "value": {
+                            "type": "Attribute",
+                            "lineno": 124,
+                            "col_offset": 34,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 124,
+                              "col_offset": 34,
+                              "id": "self"
+                            },
+                            "attr": "__dict__"
+                          },
+                          "attr": "keys"
+                        },
+                        "args": [],
+                        "keywords": []
+                      }
+                    ],
+                    "keywords": []
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 125,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 125,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Attribute",
+                    "lineno": 125,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 125,
+                      "col_offset": 27,
+                      "id": "self"
+                    },
+                    "attr": "cluster_name"
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "If",
+              "lineno": 126,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 126,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 126,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Name",
+                    "lineno": 126,
+                    "col_offset": 29,
+                    "id": "kwargs"
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 127,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 127,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Subscript",
+                    "lineno": 127,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 127,
+                      "col_offset": 27,
+                      "id": "kwargs"
+                    },
+                    "slice": {
+                      "type": "Constant",
+                      "lineno": 127,
+                      "col_offset": 34,
+                      "value": "cluster_name",
+                      "kind": null
+                    }
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "Assign",
+              "lineno": 129,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 129,
+                  "col_offset": 8,
+                  "id": "command"
+                }
+              ],
+              "value": {
+                "type": "BinOp",
+                "lineno": 129,
+                "col_offset": 18,
+                "left": {
+                  "type": "BinOp",
+                  "lineno": 129,
+                  "col_offset": 18,
+                  "left": {
+                    "type": "Constant",
+                    "lineno": 129,
+                    "col_offset": 18,
+                    "value": "ipfs-cluster-follow ",
+                    "kind": null
+                  },
+                  "op": {
+                    "type": "Add"
+                  },
+                  "right": {
+                    "type": "Name",
+                    "lineno": 129,
+                    "col_offset": 43,
+                    "id": "cluster_name"
+                  }
+                },
+                "op": {
+                  "type": "Add"
+                },
+                "right": {
+                  "type": "Constant",
+                  "lineno": 129,
+                  "col_offset": 58,
+                  "value": " list",
+                  "kind": null
+                }
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 130,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 130,
+                  "col_offset": 8,
+                  "id": "results"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 130,
+                "col_offset": 18,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 130,
+                  "col_offset": 18,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 130,
+                    "col_offset": 18,
+                    "id": "subprocess"
+                  },
+                  "attr": "check_output"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 130,
+                    "col_offset": 42,
+                    "id": "command"
+                  }
+                ],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "lineno": 130,
+                    "col_offset": 51,
+                    "arg": "shell",
+                    "value": {
+                      "type": "Constant",
+                      "lineno": 130,
+                      "col_offset": 57,
+                      "value": true,
+                      "kind": null
+                    }
+                  }
+                ]
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 131,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 131,
+                  "col_offset": 8,
+                  "id": "results"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 131,
+                "col_offset": 18,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 131,
+                  "col_offset": 18,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 131,
+                    "col_offset": 18,
+                    "id": "results"
+                  },
+                  "attr": "decode"
+                },
+                "args": [],
+                "keywords": []
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 132,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 132,
+                  "col_offset": 8,
+                  "id": "results_dict"
+                }
+              ],
+              "value": {
+                "type": "Dict",
+                "lineno": 132,
+                "col_offset": 23,
+                "keys": [],
+                "values": []
+              },
+              "type_comment": null
+            },
+            {
+              "type": "If",
+              "lineno": 133,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 133,
+                "col_offset": 11,
+                "left": {
+                  "type": "Call",
+                  "lineno": 133,
+                  "col_offset": 11,
+                  "func": {
+                    "type": "Name",
+                    "lineno": 133,
+                    "col_offset": 11,
+                    "id": "len"
+                  },
+                  "args": [
+                    {
+                      "type": "Name",
+                      "lineno": 133,
+                      "col_offset": 15,
+                      "id": "results"
+                    }
+                  ],
+                  "keywords": []
+                },
+                "ops": [
+                  {
+                    "type": "Gt"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 133,
+                    "col_offset": 26,
+                    "value": 0,
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 134,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 134,
+                      "col_offset": 12,
+                      "id": "results"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 134,
+                    "col_offset": 22,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 134,
+                      "col_offset": 22,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 134,
+                        "col_offset": 22,
+                        "id": "results"
+                      },
+                      "attr": "split"
+                    },
+                    "args": [
+                      {
+                        "type": "Constant",
+                        "lineno": 134,
+                        "col_offset": 36,
+                        "value": "\n",
+                        "kind": null
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "For",
+                  "lineno": 135,
+                  "col_offset": 12,
+                  "target": {
+                    "type": "Name",
+                    "lineno": 135,
+                    "col_offset": 16,
+                    "id": "i"
+                  },
+                  "iter": {
+                    "type": "Call",
+                    "lineno": 135,
+                    "col_offset": 21,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 135,
+                      "col_offset": 21,
+                      "id": "range"
+                    },
+                    "args": [
+                      {
+                        "type": "Call",
+                        "lineno": 135,
+                        "col_offset": 27,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 135,
+                          "col_offset": 27,
+                          "id": "len"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 135,
+                            "col_offset": 31,
+                            "id": "results"
+                          }
+                        ],
+                        "keywords": []
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "body": [
+                    {
+                      "type": "While",
+                      "lineno": 137,
+                      "col_offset": 16,
+                      "test": {
+                        "type": "Compare",
+                        "lineno": 137,
+                        "col_offset": 22,
+                        "left": {
+                          "type": "Constant",
+                          "lineno": 137,
+                          "col_offset": 22,
+                          "value": "  ",
+                          "kind": null
+                        },
+                        "ops": [
+                          {
+                            "type": "In"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Subscript",
+                            "lineno": 137,
+                            "col_offset": 30,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 137,
+                              "col_offset": 30,
+                              "id": "results"
+                            },
+                            "slice": {
+                              "type": "Name",
+                              "lineno": 137,
+                              "col_offset": 38,
+                              "id": "i"
+                            }
+                          }
+                        ]
+                      },
+                      "body": [
+                        {
+                          "type": "Assign",
+                          "lineno": 138,
+                          "col_offset": 20,
+                          "targets": [
+                            {
+                              "type": "Subscript",
+                              "lineno": 138,
+                              "col_offset": 20,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 138,
+                                "col_offset": 20,
+                                "id": "results"
+                              },
+                              "slice": {
+                                "type": "Name",
+                                "lineno": 138,
+                                "col_offset": 28,
+                                "id": "i"
+                              }
+                            }
+                          ],
+                          "value": {
+                            "type": "Call",
+                            "lineno": 138,
+                            "col_offset": 33,
+                            "func": {
+                              "type": "Attribute",
+                              "lineno": 138,
+                              "col_offset": 33,
+                              "value": {
+                                "type": "Subscript",
+                                "lineno": 138,
+                                "col_offset": 33,
+                                "value": {
+                                  "type": "Name",
+                                  "lineno": 138,
+                                  "col_offset": 33,
+                                  "id": "results"
+                                },
+                                "slice": {
+                                  "type": "Name",
+                                  "lineno": 138,
+                                  "col_offset": 41,
+                                  "id": "i"
+                                }
+                              },
+                              "attr": "replace"
+                            },
+                            "args": [
+                              {
+                                "type": "Constant",
+                                "lineno": 138,
+                                "col_offset": 52,
+                                "value": "  ",
+                                "kind": null
+                              },
+                              {
+                                "type": "Constant",
+                                "lineno": 138,
+                                "col_offset": 58,
+                                "value": " ",
+                                "kind": null
+                              }
+                            ],
+                            "keywords": []
+                          },
+                          "type_comment": null
+                        }
+                      ],
+                      "orelse": []
+                    },
+                    {
+                      "type": "Assign",
+                      "lineno": 140,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Subscript",
+                          "lineno": 140,
+                          "col_offset": 16,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 140,
+                            "col_offset": 16,
+                            "id": "results"
+                          },
+                          "slice": {
+                            "type": "Name",
+                            "lineno": 140,
+                            "col_offset": 24,
+                            "id": "i"
+                          }
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 140,
+                        "col_offset": 29,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 140,
+                          "col_offset": 29,
+                          "value": {
+                            "type": "Subscript",
+                            "lineno": 140,
+                            "col_offset": 29,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 140,
+                              "col_offset": 29,
+                              "id": "results"
+                            },
+                            "slice": {
+                              "type": "Name",
+                              "lineno": 140,
+                              "col_offset": 37,
+                              "id": "i"
+                            }
+                          },
+                          "attr": "split"
+                        },
+                        "args": [
+                          {
+                            "type": "Constant",
+                            "lineno": 140,
+                            "col_offset": 46,
+                            "value": " ",
+                            "kind": null
+                          }
+                        ],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    },
+                    {
+                      "type": "If",
+                      "lineno": 141,
+                      "col_offset": 16,
+                      "test": {
+                        "type": "Compare",
+                        "lineno": 141,
+                        "col_offset": 19,
+                        "left": {
+                          "type": "Call",
+                          "lineno": 141,
+                          "col_offset": 19,
+                          "func": {
+                            "type": "Name",
+                            "lineno": 141,
+                            "col_offset": 19,
+                            "id": "len"
+                          },
+                          "args": [
+                            {
+                              "type": "Subscript",
+                              "lineno": 141,
+                              "col_offset": 23,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 141,
+                                "col_offset": 23,
+                                "id": "results"
+                              },
+                              "slice": {
+                                "type": "Name",
+                                "lineno": 141,
+                                "col_offset": 31,
+                                "id": "i"
+                              }
+                            }
+                          ],
+                          "keywords": []
+                        },
+                        "ops": [
+                          {
+                            "type": "GtE"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "lineno": 141,
+                            "col_offset": 38,
+                            "value": 2,
+                            "kind": null
+                          }
+                        ]
+                      },
+                      "body": [
+                        {
+                          "type": "Assign",
+                          "lineno": 142,
+                          "col_offset": 20,
+                          "targets": [
+                            {
+                              "type": "Subscript",
+                              "lineno": 142,
+                              "col_offset": 20,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 142,
+                                "col_offset": 20,
+                                "id": "results"
+                              },
+                              "slice": {
+                                "type": "Name",
+                                "lineno": 142,
+                                "col_offset": 28,
+                                "id": "i"
+                              }
+                            }
+                          ],
+                          "value": {
+                            "type": "Dict",
+                            "lineno": 142,
+                            "col_offset": 33,
+                            "keys": [
+                              {
+                                "type": "Subscript",
+                                "lineno": 143,
+                                "col_offset": 24,
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 143,
+                                  "col_offset": 24,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 143,
+                                    "col_offset": 24,
+                                    "id": "results"
+                                  },
+                                  "slice": {
+                                    "type": "Name",
+                                    "lineno": 143,
+                                    "col_offset": 32,
+                                    "id": "i"
+                                  }
+                                },
+                                "slice": {
+                                  "type": "Constant",
+                                  "lineno": 143,
+                                  "col_offset": 35,
+                                  "value": 1,
+                                  "kind": null
+                                }
+                              }
+                            ],
+                            "values": [
+                              {
+                                "type": "Subscript",
+                                "lineno": 143,
+                                "col_offset": 39,
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 143,
+                                  "col_offset": 39,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 143,
+                                    "col_offset": 39,
+                                    "id": "results"
+                                  },
+                                  "slice": {
+                                    "type": "Name",
+                                    "lineno": 143,
+                                    "col_offset": 47,
+                                    "id": "i"
+                                  }
+                                },
+                                "slice": {
+                                  "type": "Constant",
+                                  "lineno": 143,
+                                  "col_offset": 50,
+                                  "value": 0,
+                                  "kind": null
+                                }
+                              }
+                            ]
+                          },
+                          "type_comment": null
+                        }
+                      ],
+                      "orelse": []
+                    }
+                  ],
+                  "orelse": [],
+                  "type_comment": null
+                },
+                {
+                  "type": "For",
+                  "lineno": 146,
+                  "col_offset": 12,
+                  "target": {
+                    "type": "Name",
+                    "lineno": 146,
+                    "col_offset": 16,
+                    "id": "i"
+                  },
+                  "iter": {
+                    "type": "Call",
+                    "lineno": 146,
+                    "col_offset": 21,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 146,
+                      "col_offset": 21,
+                      "id": "range"
+                    },
+                    "args": [
+                      {
+                        "type": "Call",
+                        "lineno": 146,
+                        "col_offset": 27,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 146,
+                          "col_offset": 27,
+                          "id": "len"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 146,
+                            "col_offset": 31,
+                            "id": "results"
+                          }
+                        ],
+                        "keywords": []
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "body": [
+                    {
+                      "type": "If",
+                      "lineno": 147,
+                      "col_offset": 16,
+                      "test": {
+                        "type": "Compare",
+                        "lineno": 147,
+                        "col_offset": 19,
+                        "left": {
+                          "type": "Call",
+                          "lineno": 147,
+                          "col_offset": 19,
+                          "func": {
+                            "type": "Name",
+                            "lineno": 147,
+                            "col_offset": 19,
+                            "id": "type"
+                          },
+                          "args": [
+                            {
+                              "type": "Subscript",
+                              "lineno": 147,
+                              "col_offset": 24,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 147,
+                                "col_offset": 24,
+                                "id": "results"
+                              },
+                              "slice": {
+                                "type": "Name",
+                                "lineno": 147,
+                                "col_offset": 32,
+                                "id": "i"
+                              }
+                            }
+                          ],
+                          "keywords": []
+                        },
+                        "ops": [
+                          {
+                            "type": "Eq"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Name",
+                            "lineno": 147,
+                            "col_offset": 39,
+                            "id": "dict"
+                          }
+                        ]
+                      },
+                      "body": [
+                        {
+                          "type": "Assign",
+                          "lineno": 148,
+                          "col_offset": 20,
+                          "targets": [
+                            {
+                              "type": "Name",
+                              "lineno": 148,
+                              "col_offset": 20,
+                              "id": "key"
+                            }
+                          ],
+                          "value": {
+                            "type": "Subscript",
+                            "lineno": 148,
+                            "col_offset": 26,
+                            "value": {
+                              "type": "Call",
+                              "lineno": 148,
+                              "col_offset": 26,
+                              "func": {
+                                "type": "Name",
+                                "lineno": 148,
+                                "col_offset": 26,
+                                "id": "list"
+                              },
+                              "args": [
+                                {
+                                  "type": "Call",
+                                  "lineno": 148,
+                                  "col_offset": 31,
+                                  "func": {
+                                    "type": "Attribute",
+                                    "lineno": 148,
+                                    "col_offset": 31,
+                                    "value": {
+                                      "type": "Subscript",
+                                      "lineno": 148,
+                                      "col_offset": 31,
+                                      "value": {
+                                        "type": "Name",
+                                        "lineno": 148,
+                                        "col_offset": 31,
+                                        "id": "results"
+                                      },
+                                      "slice": {
+                                        "type": "Name",
+                                        "lineno": 148,
+                                        "col_offset": 39,
+                                        "id": "i"
+                                      }
+                                    },
+                                    "attr": "keys"
+                                  },
+                                  "args": [],
+                                  "keywords": []
+                                }
+                              ],
+                              "keywords": []
+                            },
+                            "slice": {
+                              "type": "Constant",
+                              "lineno": 148,
+                              "col_offset": 50,
+                              "value": 0,
+                              "kind": null
+                            }
+                          },
+                          "type_comment": null
+                        },
+                        {
+                          "type": "Assign",
+                          "lineno": 149,
+                          "col_offset": 20,
+                          "targets": [
+                            {
+                              "type": "Name",
+                              "lineno": 149,
+                              "col_offset": 20,
+                              "id": "value"
+                            }
+                          ],
+                          "value": {
+                            "type": "Subscript",
+                            "lineno": 149,
+                            "col_offset": 28,
+                            "value": {
+                              "type": "Subscript",
+                              "lineno": 149,
+                              "col_offset": 28,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 149,
+                                "col_offset": 28,
+                                "id": "results"
+                              },
+                              "slice": {
+                                "type": "Name",
+                                "lineno": 149,
+                                "col_offset": 36,
+                                "id": "i"
+                              }
+                            },
+                            "slice": {
+                              "type": "Name",
+                              "lineno": 149,
+                              "col_offset": 39,
+                              "id": "key"
+                            }
+                          },
+                          "type_comment": null
+                        },
+                        {
+                          "type": "Assign",
+                          "lineno": 150,
+                          "col_offset": 20,
+                          "targets": [
+                            {
+                              "type": "Subscript",
+                              "lineno": 150,
+                              "col_offset": 20,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 150,
+                                "col_offset": 20,
+                                "id": "results_dict"
+                              },
+                              "slice": {
+                                "type": "Name",
+                                "lineno": 150,
+                                "col_offset": 33,
+                                "id": "key"
+                              }
+                            }
+                          ],
+                          "value": {
+                            "type": "Name",
+                            "lineno": 150,
+                            "col_offset": 40,
+                            "id": "value"
+                          },
+                          "type_comment": null
+                        }
+                      ],
+                      "orelse": []
+                    }
+                  ],
+                  "orelse": [],
+                  "type_comment": null
+                },
+                {
+                  "type": "Return",
+                  "lineno": 152,
+                  "col_offset": 12,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 152,
+                    "col_offset": 19,
+                    "id": "results_dict"
+                  }
+                }
+              ],
+              "orelse": [
+                {
+                  "type": "Return",
+                  "lineno": 154,
+                  "col_offset": 12,
+                  "value": {
+                    "type": "Constant",
+                    "lineno": 154,
+                    "col_offset": 19,
+                    "value": false,
+                    "kind": null
+                  }
+                }
+              ]
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 156,
+          "col_offset": 4,
+          "name": "ipfs_follow_info",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 156,
+                "col_offset": 25,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 156,
+              "col_offset": 33,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "Assign",
+              "lineno": 157,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 157,
+                  "col_offset": 8,
+                  "id": "results_dict"
+                }
+              ],
+              "value": {
+                "type": "Dict",
+                "lineno": 157,
+                "col_offset": 23,
+                "keys": [],
+                "values": []
+              },
+              "type_comment": null
+            },
+            {
+              "type": "If",
+              "lineno": 158,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 158,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 158,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Call",
+                    "lineno": 158,
+                    "col_offset": 29,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 158,
+                      "col_offset": 29,
+                      "id": "list"
+                    },
+                    "args": [
+                      {
+                        "type": "Call",
+                        "lineno": 158,
+                        "col_offset": 34,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 158,
+                          "col_offset": 34,
+                          "value": {
+                            "type": "Attribute",
+                            "lineno": 158,
+                            "col_offset": 34,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 158,
+                              "col_offset": 34,
+                              "id": "self"
+                            },
+                            "attr": "__dict__"
+                          },
+                          "attr": "keys"
+                        },
+                        "args": [],
+                        "keywords": []
+                      }
+                    ],
+                    "keywords": []
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 159,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 159,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Attribute",
+                    "lineno": 159,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 159,
+                      "col_offset": 27,
+                      "id": "self"
+                    },
+                    "attr": "cluster_name"
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "If",
+              "lineno": 160,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 160,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 160,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Call",
+                    "lineno": 160,
+                    "col_offset": 29,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 160,
+                      "col_offset": 29,
+                      "id": "list"
+                    },
+                    "args": [
+                      {
+                        "type": "Call",
+                        "lineno": 160,
+                        "col_offset": 34,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 160,
+                          "col_offset": 34,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 160,
+                            "col_offset": 34,
+                            "id": "kwargs"
+                          },
+                          "attr": "keys"
+                        },
+                        "args": [],
+                        "keywords": []
+                      }
+                    ],
+                    "keywords": []
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 161,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 161,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Subscript",
+                    "lineno": 161,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 161,
+                      "col_offset": 27,
+                      "id": "kwargs"
+                    },
+                    "slice": {
+                      "type": "Constant",
+                      "lineno": 161,
+                      "col_offset": 34,
+                      "value": "cluster_name",
+                      "kind": null
+                    }
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "Try",
+              "lineno": 162,
+              "col_offset": 8,
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 163,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 163,
+                      "col_offset": 12,
+                      "id": "command"
+                    }
+                  ],
+                  "value": {
+                    "type": "BinOp",
+                    "lineno": 163,
+                    "col_offset": 22,
+                    "left": {
+                      "type": "BinOp",
+                      "lineno": 163,
+                      "col_offset": 22,
+                      "left": {
+                        "type": "Constant",
+                        "lineno": 163,
+                        "col_offset": 22,
+                        "value": "ipfs-cluster-follow ",
+                        "kind": null
+                      },
+                      "op": {
+                        "type": "Add"
+                      },
+                      "right": {
+                        "type": "Name",
+                        "lineno": 163,
+                        "col_offset": 47,
+                        "id": "cluster_name"
+                      }
+                    },
+                    "op": {
+                      "type": "Add"
+                    },
+                    "right": {
+                      "type": "Constant",
+                      "lineno": 163,
+                      "col_offset": 62,
+                      "value": " info",
+                      "kind": null
+                    }
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Assign",
+                  "lineno": 164,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 164,
+                      "col_offset": 12,
+                      "id": "results"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 164,
+                    "col_offset": 22,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 164,
+                      "col_offset": 22,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 164,
+                        "col_offset": 22,
+                        "id": "subprocess"
+                      },
+                      "attr": "check_output"
+                    },
+                    "args": [
+                      {
+                        "type": "Name",
+                        "lineno": 164,
+                        "col_offset": 46,
+                        "id": "command"
+                      }
+                    ],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 164,
+                        "col_offset": 55,
+                        "arg": "shell",
+                        "value": {
+                          "type": "Constant",
+                          "lineno": 164,
+                          "col_offset": 61,
+                          "value": true,
+                          "kind": null
+                        }
+                      }
+                    ]
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Assign",
+                  "lineno": 165,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 165,
+                      "col_offset": 12,
+                      "id": "results"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 165,
+                    "col_offset": 22,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 165,
+                      "col_offset": 22,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 165,
+                        "col_offset": 22,
+                        "id": "results"
+                      },
+                      "attr": "decode"
+                    },
+                    "args": [],
+                    "keywords": []
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Assign",
+                  "lineno": 166,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 166,
+                      "col_offset": 12,
+                      "id": "results"
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "lineno": 166,
+                    "col_offset": 22,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 166,
+                      "col_offset": 22,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 166,
+                        "col_offset": 22,
+                        "id": "results"
+                      },
+                      "attr": "split"
+                    },
+                    "args": [
+                      {
+                        "type": "Constant",
+                        "lineno": 166,
+                        "col_offset": 36,
+                        "value": "\n",
+                        "kind": null
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "If",
+                  "lineno": 167,
+                  "col_offset": 12,
+                  "test": {
+                    "type": "Compare",
+                    "lineno": 167,
+                    "col_offset": 15,
+                    "left": {
+                      "type": "Call",
+                      "lineno": 167,
+                      "col_offset": 15,
+                      "func": {
+                        "type": "Name",
+                        "lineno": 167,
+                        "col_offset": 15,
+                        "id": "len"
+                      },
+                      "args": [
+                        {
+                          "type": "Name",
+                          "lineno": 167,
+                          "col_offset": 19,
+                          "id": "results"
+                        }
+                      ],
+                      "keywords": []
+                    },
+                    "ops": [
+                      {
+                        "type": "Gt"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Constant",
+                        "lineno": 167,
+                        "col_offset": 30,
+                        "value": 0,
+                        "kind": null
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 168,
+                      "col_offset": 16,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 168,
+                          "col_offset": 16,
+                          "id": "results_dict"
+                        }
+                      ],
+                      "value": {
+                        "type": "Dict",
+                        "lineno": 168,
+                        "col_offset": 31,
+                        "keys": [
+                          {
+                            "type": "Constant",
+                            "lineno": 169,
+                            "col_offset": 20,
+                            "value": "cluster_name",
+                            "kind": null
+                          },
+                          {
+                            "type": "Constant",
+                            "lineno": 170,
+                            "col_offset": 20,
+                            "value": "config_folder",
+                            "kind": null
+                          },
+                          {
+                            "type": "Constant",
+                            "lineno": 171,
+                            "col_offset": 20,
+                            "value": "config_source",
+                            "kind": null
+                          },
+                          {
+                            "type": "Constant",
+                            "lineno": 172,
+                            "col_offset": 20,
+                            "value": "cluster_peer_online",
+                            "kind": null
+                          },
+                          {
+                            "type": "Constant",
+                            "lineno": 173,
+                            "col_offset": 20,
+                            "value": "ipfs_peer_online",
+                            "kind": null
+                          }
+                        ],
+                        "values": [
+                          {
+                            "type": "Name",
+                            "lineno": 169,
+                            "col_offset": 36,
+                            "id": "cluster_name"
+                          },
+                          {
+                            "type": "Subscript",
+                            "lineno": 170,
+                            "col_offset": 37,
+                            "value": {
+                              "type": "Call",
+                              "lineno": 170,
+                              "col_offset": 37,
+                              "func": {
+                                "type": "Attribute",
+                                "lineno": 170,
+                                "col_offset": 37,
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 170,
+                                  "col_offset": 37,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 170,
+                                    "col_offset": 37,
+                                    "id": "results"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 170,
+                                    "col_offset": 45,
+                                    "value": 2,
+                                    "kind": null
+                                  }
+                                },
+                                "attr": "split"
+                              },
+                              "args": [
+                                {
+                                  "type": "Constant",
+                                  "lineno": 170,
+                                  "col_offset": 54,
+                                  "value": ": ",
+                                  "kind": null
+                                }
+                              ],
+                              "keywords": []
+                            },
+                            "slice": {
+                              "type": "Constant",
+                              "lineno": 170,
+                              "col_offset": 60,
+                              "value": 1,
+                              "kind": null
+                            }
+                          },
+                          {
+                            "type": "Subscript",
+                            "lineno": 171,
+                            "col_offset": 37,
+                            "value": {
+                              "type": "Call",
+                              "lineno": 171,
+                              "col_offset": 37,
+                              "func": {
+                                "type": "Attribute",
+                                "lineno": 171,
+                                "col_offset": 37,
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 171,
+                                  "col_offset": 37,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 171,
+                                    "col_offset": 37,
+                                    "id": "results"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 171,
+                                    "col_offset": 45,
+                                    "value": 3,
+                                    "kind": null
+                                  }
+                                },
+                                "attr": "split"
+                              },
+                              "args": [
+                                {
+                                  "type": "Constant",
+                                  "lineno": 171,
+                                  "col_offset": 54,
+                                  "value": ": ",
+                                  "kind": null
+                                }
+                              ],
+                              "keywords": []
+                            },
+                            "slice": {
+                              "type": "Constant",
+                              "lineno": 171,
+                              "col_offset": 60,
+                              "value": 1,
+                              "kind": null
+                            }
+                          },
+                          {
+                            "type": "Subscript",
+                            "lineno": 172,
+                            "col_offset": 43,
+                            "value": {
+                              "type": "Call",
+                              "lineno": 172,
+                              "col_offset": 43,
+                              "func": {
+                                "type": "Attribute",
+                                "lineno": 172,
+                                "col_offset": 43,
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 172,
+                                  "col_offset": 43,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 172,
+                                    "col_offset": 43,
+                                    "id": "results"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 172,
+                                    "col_offset": 51,
+                                    "value": 4,
+                                    "kind": null
+                                  }
+                                },
+                                "attr": "split"
+                              },
+                              "args": [
+                                {
+                                  "type": "Constant",
+                                  "lineno": 172,
+                                  "col_offset": 60,
+                                  "value": ": ",
+                                  "kind": null
+                                }
+                              ],
+                              "keywords": []
+                            },
+                            "slice": {
+                              "type": "Constant",
+                              "lineno": 172,
+                              "col_offset": 66,
+                              "value": 1,
+                              "kind": null
+                            }
+                          },
+                          {
+                            "type": "Subscript",
+                            "lineno": 173,
+                            "col_offset": 40,
+                            "value": {
+                              "type": "Call",
+                              "lineno": 173,
+                              "col_offset": 40,
+                              "func": {
+                                "type": "Attribute",
+                                "lineno": 173,
+                                "col_offset": 40,
+                                "value": {
+                                  "type": "Subscript",
+                                  "lineno": 173,
+                                  "col_offset": 40,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 173,
+                                    "col_offset": 40,
+                                    "id": "results"
+                                  },
+                                  "slice": {
+                                    "type": "Constant",
+                                    "lineno": 173,
+                                    "col_offset": 48,
+                                    "value": 5,
+                                    "kind": null
+                                  }
+                                },
+                                "attr": "split"
+                              },
+                              "args": [
+                                {
+                                  "type": "Constant",
+                                  "lineno": 173,
+                                  "col_offset": 57,
+                                  "value": ": ",
+                                  "kind": null
+                                }
+                              ],
+                              "keywords": []
+                            },
+                            "slice": {
+                              "type": "Constant",
+                              "lineno": 173,
+                              "col_offset": 63,
+                              "value": 1,
+                              "kind": null
+                            }
+                          }
+                        ]
+                      },
+                      "type_comment": null
+                    }
+                  ],
+                  "orelse": []
+                }
+              ],
+              "handlers": [
+                {
+                  "type": {
+                    "type": "Name",
+                    "lineno": 176,
+                    "col_offset": 15,
+                    "id": "Exception"
+                  },
+                  "lineno": 176,
+                  "col_offset": 8,
+                  "name": "e",
+                  "body": [
+                    {
+                      "type": "Assign",
+                      "lineno": 177,
+                      "col_offset": 12,
+                      "targets": [
+                        {
+                          "type": "Name",
+                          "lineno": 177,
+                          "col_offset": 12,
+                          "id": "results"
+                        }
+                      ],
+                      "value": {
+                        "type": "Call",
+                        "lineno": 177,
+                        "col_offset": 22,
+                        "func": {
+                          "type": "Name",
+                          "lineno": 177,
+                          "col_offset": 22,
+                          "id": "str"
+                        },
+                        "args": [
+                          {
+                            "type": "Name",
+                            "lineno": 177,
+                            "col_offset": 26,
+                            "id": "e"
+                          }
+                        ],
+                        "keywords": []
+                      },
+                      "type_comment": null
+                    }
+                  ]
+                }
+              ],
+              "orelse": [],
+              "finalbody": [
+                {
+                  "type": "Pass",
+                  "lineno": 179,
+                  "col_offset": 12
+                }
+              ]
+            },
+            {
+              "type": "Return",
+              "lineno": 181,
+              "col_offset": 8,
+              "value": {
+                "type": "Name",
+                "lineno": 181,
+                "col_offset": 15,
+                "id": "results_dict"
+              }
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 184,
+          "col_offset": 4,
+          "name": "ipfs_follow_run",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 184,
+                "col_offset": 24,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 184,
+              "col_offset": 32,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "If",
+              "lineno": 185,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 185,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 185,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Call",
+                    "lineno": 185,
+                    "col_offset": 29,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 185,
+                      "col_offset": 29,
+                      "id": "list"
+                    },
+                    "args": [
+                      {
+                        "type": "Call",
+                        "lineno": 185,
+                        "col_offset": 34,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 185,
+                          "col_offset": 34,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 185,
+                            "col_offset": 34,
+                            "id": "self"
+                          },
+                          "attr": "keys"
+                        },
+                        "args": [],
+                        "keywords": []
+                      }
+                    ],
+                    "keywords": []
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 186,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 186,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Attribute",
+                    "lineno": 186,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 186,
+                      "col_offset": 27,
+                      "id": "self"
+                    },
+                    "attr": "cluster_name"
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "If",
+              "lineno": 187,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 187,
+                "col_offset": 11,
+                "left": {
+                  "type": "Constant",
+                  "lineno": 187,
+                  "col_offset": 11,
+                  "value": "cluster_name",
+                  "kind": null
+                },
+                "ops": [
+                  {
+                    "type": "In"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Name",
+                    "lineno": 187,
+                    "col_offset": 29,
+                    "id": "kwargs"
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 188,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "lineno": 188,
+                      "col_offset": 12,
+                      "id": "cluster_name"
+                    }
+                  ],
+                  "value": {
+                    "type": "Subscript",
+                    "lineno": 188,
+                    "col_offset": 27,
+                    "value": {
+                      "type": "Name",
+                      "lineno": 188,
+                      "col_offset": 27,
+                      "id": "kwargs"
+                    },
+                    "slice": {
+                      "type": "Constant",
+                      "lineno": 188,
+                      "col_offset": 34,
+                      "value": "cluster_name",
+                      "kind": null
+                    }
+                  },
+                  "type_comment": null
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "Assign",
+              "lineno": 190,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 190,
+                  "col_offset": 8,
+                  "id": "command"
+                }
+              ],
+              "value": {
+                "type": "BinOp",
+                "lineno": 190,
+                "col_offset": 18,
+                "left": {
+                  "type": "BinOp",
+                  "lineno": 190,
+                  "col_offset": 18,
+                  "left": {
+                    "type": "Constant",
+                    "lineno": 190,
+                    "col_offset": 18,
+                    "value": "ipfs-cluster-follow ",
+                    "kind": null
+                  },
+                  "op": {
+                    "type": "Add"
+                  },
+                  "right": {
+                    "type": "Name",
+                    "lineno": 190,
+                    "col_offset": 42,
+                    "id": "cluster_name"
+                  }
+                },
+                "op": {
+                  "type": "Add"
+                },
+                "right": {
+                  "type": "Constant",
+                  "lineno": 190,
+                  "col_offset": 56,
+                  "value": " run",
+                  "kind": null
+                }
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 191,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 191,
+                  "col_offset": 8,
+                  "id": "results"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 191,
+                "col_offset": 18,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 191,
+                  "col_offset": 18,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 191,
+                    "col_offset": 18,
+                    "id": "subprocess"
+                  },
+                  "attr": "check_output"
+                },
+                "args": [
+                  {
+                    "type": "Name",
+                    "lineno": 191,
+                    "col_offset": 42,
+                    "id": "command"
+                  }
+                ],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "lineno": 191,
+                    "col_offset": 51,
+                    "arg": "shell",
+                    "value": {
+                      "type": "Constant",
+                      "lineno": 191,
+                      "col_offset": 57,
+                      "value": true,
+                      "kind": null
+                    }
+                  }
+                ]
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 192,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 192,
+                  "col_offset": 8,
+                  "id": "results"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 192,
+                "col_offset": 18,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 192,
+                  "col_offset": 18,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 192,
+                    "col_offset": 18,
+                    "id": "results"
+                  },
+                  "attr": "decode"
+                },
+                "args": [],
+                "keywords": []
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 193,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 193,
+                  "col_offset": 8,
+                  "id": "results"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 193,
+                "col_offset": 18,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 193,
+                  "col_offset": 18,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 193,
+                    "col_offset": 18,
+                    "id": "results"
+                  },
+                  "attr": "split"
+                },
+                "args": [
+                  {
+                    "type": "Constant",
+                    "lineno": 193,
+                    "col_offset": 32,
+                    "value": "\n",
+                    "kind": null
+                  }
+                ],
+                "keywords": []
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Return",
+              "lineno": 194,
+              "col_offset": 8,
+              "value": {
+                "type": "Name",
+                "lineno": 194,
+                "col_offset": 15,
+                "id": "results"
+              }
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 197,
+          "col_offset": 4,
+          "name": "test_ipfs_cluster_follow",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 197,
+                "col_offset": 33,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": null,
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "Assign",
+              "lineno": 198,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 198,
+                  "col_offset": 8,
+                  "id": "detect"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 198,
+                "col_offset": 17,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 198,
+                  "col_offset": 17,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 198,
+                    "col_offset": 17,
+                    "id": "subprocess"
+                  },
+                  "attr": "check_output"
+                },
+                "args": [
+                  {
+                    "type": "Constant",
+                    "lineno": 198,
+                    "col_offset": 41,
+                    "value": "which ipfs-cluster-follow",
+                    "kind": null
+                  }
+                ],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "lineno": 198,
+                    "col_offset": 70,
+                    "arg": "shell",
+                    "value": {
+                      "type": "Constant",
+                      "lineno": 198,
+                      "col_offset": 76,
+                      "value": true,
+                      "kind": null
+                    }
+                  }
+                ]
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Assign",
+              "lineno": 199,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Name",
+                  "lineno": 199,
+                  "col_offset": 8,
+                  "id": "detect"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 199,
+                "col_offset": 17,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 199,
+                  "col_offset": 17,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 199,
+                    "col_offset": 17,
+                    "id": "detect"
+                  },
+                  "attr": "decode"
+                },
+                "args": [],
+                "keywords": []
+              },
+              "type_comment": null
+            },
+            {
+              "type": "If",
+              "lineno": 200,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 200,
+                "col_offset": 11,
+                "left": {
+                  "type": "Call",
+                  "lineno": 200,
+                  "col_offset": 11,
+                  "func": {
+                    "type": "Name",
+                    "lineno": 200,
+                    "col_offset": 11,
+                    "id": "len"
+                  },
+                  "args": [
+                    {
+                      "type": "Name",
+                      "lineno": 200,
+                      "col_offset": 15,
+                      "id": "detect"
+                    }
+                  ],
+                  "keywords": []
+                },
+                "ops": [
+                  {
+                    "type": "Gt"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 200,
+                    "col_offset": 25,
+                    "value": 0,
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Return",
+                  "lineno": 201,
+                  "col_offset": 12,
+                  "value": {
+                    "type": "Constant",
+                    "lineno": 201,
+                    "col_offset": 19,
+                    "value": true,
+                    "kind": null
+                  }
+                }
+              ],
+              "orelse": [
+                {
+                  "type": "Return",
+                  "lineno": 203,
+                  "col_offset": 12,
+                  "value": {
+                    "type": "Constant",
+                    "lineno": 203,
+                    "col_offset": 19,
+                    "value": false,
+                    "kind": null
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Pass",
+              "lineno": 204,
+              "col_offset": 8
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        }
+      ],
+      "decorator_list": [],
+      "type_params": []
+    },
+    {
+      "type": "If",
+      "lineno": 206,
+      "col_offset": 0,
+      "test": {
+        "type": "Compare",
+        "lineno": 206,
+        "col_offset": 3,
+        "left": {
+          "type": "Name",
+          "lineno": 206,
+          "col_offset": 3,
+          "id": "__name__"
+        },
+        "ops": [
+          {
+            "type": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "type": "Constant",
+            "lineno": 206,
+            "col_offset": 15,
+            "value": "__main__",
+            "kind": null
+          }
+        ]
+      },
+      "body": [
+        {
+          "type": "Assign",
+          "lineno": 207,
+          "col_offset": 4,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 207,
+              "col_offset": 4,
+              "id": "meta"
+            }
+          ],
+          "value": {
+            "type": "Dict",
+            "lineno": 207,
+            "col_offset": 11,
+            "keys": [
+              {
+                "type": "Constant",
+                "lineno": 208,
+                "col_offset": 8,
+                "value": "cluster_name",
+                "kind": null
+              }
+            ],
+            "values": [
+              {
+                "type": "Constant",
+                "lineno": 208,
+                "col_offset": 24,
+                "value": "test",
+                "kind": null
+              }
+            ]
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Assign",
+          "lineno": 210,
+          "col_offset": 4,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 210,
+              "col_offset": 4,
+              "id": "this_ipfs_cluster_follow"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 210,
+            "col_offset": 31,
+            "func": {
+              "type": "Name",
+              "lineno": 210,
+              "col_offset": 31,
+              "id": "ipfs_cluster_follow"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 210,
+                "col_offset": 51,
+                "id": "meta"
+              }
+            ],
+            "keywords": []
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Assign",
+          "lineno": 211,
+          "col_offset": 4,
+          "targets": [
+            {
+              "type": "Name",
+              "lineno": 211,
+              "col_offset": 4,
+              "id": "results"
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "lineno": 211,
+            "col_offset": 14,
+            "func": {
+              "type": "Attribute",
+              "lineno": 211,
+              "col_offset": 14,
+              "value": {
+                "type": "Name",
+                "lineno": 211,
+                "col_offset": 14,
+                "id": "this_ipfs_cluster_follow"
+              },
+              "attr": "test_ipfs_cluster_follow"
+            },
+            "args": [],
+            "keywords": []
+          },
+          "type_comment": null
+        },
+        {
+          "type": "Expr",
+          "lineno": 212,
+          "col_offset": 4,
+          "value": {
+            "type": "Call",
+            "lineno": 212,
+            "col_offset": 4,
+            "func": {
+              "type": "Name",
+              "lineno": 212,
+              "col_offset": 4,
+              "id": "print"
+            },
+            "args": [
+              {
+                "type": "Name",
+                "lineno": 212,
+                "col_offset": 10,
+                "id": "results"
+              }
+            ],
+            "keywords": []
+          }
+        },
+        {
+          "type": "Pass",
+          "lineno": 213,
+          "col_offset": 4
+        }
+      ],
+      "orelse": []
+    }
+  ],
+  "type_ignores": []
+}

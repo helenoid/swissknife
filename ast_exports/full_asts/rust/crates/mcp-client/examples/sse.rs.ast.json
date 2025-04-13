@@ -1,0 +1,51 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/examples/sse.rs",
+  "fileSize": 2144,
+  "lineCount": 71,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [
+      {
+        "name": "main",
+        "params": "",
+        "returnType": "Result<()>",
+        "position": 300
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "anyhow::Result",
+        "position": 0
+      },
+      {
+        "path": "mcp_client::client::{ClientCapabilities, ClientInfo, McpClient, McpClientTrait}",
+        "position": 20
+      },
+      {
+        "path": "mcp_client::transport::{SseTransport, Transport}",
+        "position": 105
+      },
+      {
+        "path": "mcp_client::McpService",
+        "position": 159
+      },
+      {
+        "path": "std::collections::HashMap",
+        "position": 187
+      },
+      {
+        "path": "std::time::Duration",
+        "position": 218
+      },
+      {
+        "path": "tracing_subscriber::EnvFilter",
+        "position": 243
+      }
+    ]
+  }
+}

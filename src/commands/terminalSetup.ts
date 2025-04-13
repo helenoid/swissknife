@@ -1,29 +1,30 @@
-import { Command } from '../commands'
-import { EOL, platform, homedir } from 'os'
-import { execFileNoThrow } from '../utils/execFileNoThrow'
-import chalk from 'chalk'
-import { getTheme } from '../utils/theme'
-import { env } from '../utils/env'
-import { getGlobalConfig, saveGlobalConfig } from '../utils/config'
-import { markProjectOnboardingComplete } from '../ProjectOnboarding'
-import { readFileSync, writeFileSync } from 'fs'
-import { join } from 'path'
-import { safeParseJSON } from '../utils/json'
-import { logError } from '../utils/log'
+import type { Command, LocalCommand } from '../types/command.js'; // Updated import path
+import { EOL, platform, homedir } from 'os';
+import { execFileNoThrow } from '../utils/execFileNoThrow.js'; // Assuming .js extension
+import chalk from 'chalk';
+import { getTheme } from '../utils/theme.js'; // Assuming .js extension
+import { env } from '../utils/env.js'; // Assuming .js extension
+import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'; // Assuming .js extension
+import { markProjectOnboardingComplete } from '../ProjectOnboarding.js'; // Assuming .js extension
+import { readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
+import { safeParseJSON } from '../utils/json.js'; // Assuming .js extension
+import { logError } from '../utils/log.js'; // Assuming .js extension
 
-const terminalSetup: Command = {
+const terminalSetupCommand: LocalCommand = {
   type: 'local',
   name: 'terminal-setup',
   userFacingName() {
-    return 'terminal-setup'
+    return 'terminal-setup';
   },
   description:
     'Install Shift+Enter key binding for newlines (iTerm2 and VSCode only)',
+  options: [], // No options for this command
   isEnabled:
     (platform() === 'darwin' && env.terminal === 'iTerm.app') ||
     env.terminal === 'vscode',
   isHidden: false,
-  async call() {
+  async handler(args, context) { // Renamed call to handler, args and context are unused
     let result = ''
 
     switch (env.terminal) {
@@ -43,15 +44,15 @@ const terminalSetup: Command = {
     // Mark onboarding as complete
     markProjectOnboardingComplete()
 
-    return result
+    return result;
   },
-}
+} satisfies Command;
 
 export function isShiftEnterKeyBindingInstalled(): boolean {
-  return getGlobalConfig().shiftEnterKeyBindingInstalled === true
+  return getGlobalConfig().shiftEnterKeyBindingInstalled === true;
 }
 
-export default terminalSetup
+export default terminalSetupCommand;
 
 async function installBindingsForITerm2(): Promise<string> {
   const { code } = await execFileNoThrow('defaults', [

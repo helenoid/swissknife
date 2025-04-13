@@ -1,0 +1,254 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/jetbrains/mod.rs",
+  "fileSize": 6602,
+  "lineCount": 236,
+  "structures": {
+    "structs": [
+      {
+        "name": "JetBrainsRouter",
+        "fields": [
+          {
+            "name": "tools",
+            "type": "Arc<Mutex<Vec<Tool>>>"
+          },
+          {
+            "name": "proxy",
+            "type": "Arc<JetBrainsProxy>"
+          },
+          {
+            "name": "instructions",
+            "type": "String"
+          }
+        ],
+        "position": 508
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "JetBrainsRouter",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 632
+      },
+      {
+        "type": "JetBrainsRouter",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 723
+      },
+      {
+        "type": "JetBrainsRouter",
+        "trait": "Router",
+        "methods": [
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "String"
+          }
+        ],
+        "position": 3351
+      },
+      {
+        "type": "JetBrainsRouter",
+        "trait": "Clone",
+        "methods": [
+          {
+            "name": "clone",
+            "params": "&self",
+            "returnType": "Self"
+          }
+        ],
+        "position": 5634
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 671
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 750
+      },
+      {
+        "name": "call_proxy_tool",
+        "params": "&self,\n        tool_name: String,\n        arguments: Value,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 2021
+      },
+      {
+        "name": "ensure_tools",
+        "params": "&self",
+        "returnType": "Result<(), ToolError>",
+        "position": 2687
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "String",
+        "position": 3389
+      },
+      {
+        "name": "instructions",
+        "params": "&self",
+        "returnType": "String",
+        "position": 3459
+      },
+      {
+        "name": "capabilities",
+        "params": "&self",
+        "returnType": "ServerCapabilities",
+        "position": 3539
+      },
+      {
+        "name": "list_tools",
+        "params": "&self",
+        "returnType": "Vec<Tool>",
+        "position": 3657
+      },
+      {
+        "name": "call_tool",
+        "params": "&self,\n        tool_name: &str,\n        arguments: Value,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>",
+        "position": 4480
+      },
+      {
+        "name": "list_resources",
+        "params": "&self",
+        "returnType": "Vec<Resource>",
+        "position": 4884
+      },
+      {
+        "name": "read_resource",
+        "params": "&self,\n        _uri: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>",
+        "position": 4954
+      },
+      {
+        "name": "list_prompts",
+        "params": "&self",
+        "returnType": "Vec<Prompt>",
+        "position": 5193
+      },
+      {
+        "name": "get_prompt",
+        "params": "&self,\n        prompt_name: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, PromptError>> + Send + 'static>>",
+        "position": 5259
+      },
+      {
+        "name": "clone",
+        "params": "&self",
+        "returnType": "Self",
+        "position": 5671
+      },
+      {
+        "name": "get_router",
+        "params": "",
+        "returnType": "&'static JetBrainsRouter",
+        "position": 6038
+      },
+      {
+        "name": "test_router_creation",
+        "params": "",
+        "returnType": null,
+        "position": 6226
+      },
+      {
+        "name": "test_capabilities",
+        "params": "",
+        "returnType": null,
+        "position": 6431
+      }
+    ],
+    "modules": [
+      {
+        "name": "proxy",
+        "inline": false,
+        "position": 0
+      },
+      {
+        "name": "tests",
+        "inline": true,
+        "position": 5885
+      }
+    ],
+    "uses": [
+      {
+        "path": "anyhow::Result",
+        "position": 12
+      },
+      {
+        "path": "mcp_core::{\n    content::Content,\n    handler::{PromptError, ResourceError, ToolError},\n    prompt::Prompt,\n    protocol::ServerCapabilities,\n    resource::Resource,\n    role::Role,\n    tool::Tool,\n}",
+        "position": 32
+      },
+      {
+        "path": "mcp_server::router::CapabilitiesBuilder",
+        "position": 237
+      },
+      {
+        "path": "mcp_server::Router",
+        "position": 282
+      },
+      {
+        "path": "serde_json::Value",
+        "position": 306
+      },
+      {
+        "path": "std::future::Future",
+        "position": 329
+      },
+      {
+        "path": "std::pin::Pin",
+        "position": 354
+      },
+      {
+        "path": "std::sync::Arc",
+        "position": 373
+      },
+      {
+        "path": "tokio::sync::Mutex",
+        "position": 393
+      },
+      {
+        "path": "tokio::time::{sleep, Duration}",
+        "position": 417
+      },
+      {
+        "path": "tracing::error",
+        "position": 453
+      },
+      {
+        "path": "self::proxy::JetBrainsProxy",
+        "position": 474
+      },
+      {
+        "path": "super::*",
+        "position": 5901
+      },
+      {
+        "path": "tokio::sync::OnceCell",
+        "position": 5919
+      }
+    ]
+  }
+}

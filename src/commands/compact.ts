@@ -1,22 +1,23 @@
-import { Command } from '../commands'
-import { getContext } from '../context'
-import { getMessagesGetter, getMessagesSetter } from '../messages'
-import { API_ERROR_MESSAGE_PREFIX, querySonnet } from '../services/claude'
+import type { Command, LocalCommand } from '../types/command.js'; // Updated import path
+import { getContext } from '../context.js';
+import { getMessagesGetter, getMessagesSetter } from '../messages.js';
+import { API_ERROR_MESSAGE_PREFIX, querySonnet } from '../services/claude.js';
 import {
   createUserMessage,
   normalizeMessagesForAPI,
-} from '../utils/messages.js'
-import { getCodeStyle } from '../utils/style'
-import { clearTerminal } from '../utils/terminal'
+} from '../utils/messages.js';
+import { getCodeStyle } from '../utils/style.js';
+import { clearTerminal } from '../utils/terminal.js';
 
-const compact = {
+const compactCommand: LocalCommand = {
   type: 'local',
   name: 'compact',
   description: 'Clear conversation history but keep a summary in context',
+  options: [], // No options for this command
   isEnabled: true,
   isHidden: false,
-  async call(
-    _,
+  async handler( // Renamed call to handler, args (_) is unused
+    args,
     {
       options: { tools, slowAndCapableModel },
       abortController,
@@ -82,13 +83,13 @@ const compact = {
       summaryResponse,
     ])
     getContext.cache.clear?.()
-    getCodeStyle.cache.clear?.()
+    getCodeStyle.cache.clear?.();
 
-    return '' // not used, just for typesafety. TODO: avoid this hack
+    return 0; // Return 0 for success exit code
   },
   userFacingName() {
     return 'compact'
   },
 } satisfies Command
 
-export default compact
+export default compactCommand;

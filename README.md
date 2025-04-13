@@ -1,15 +1,20 @@
-# Swiss Knife
+# SwissKnife
 
+![SwissKnife Logo](https://github.com/user-attachments/assets/7a9253a7-8bb0-40d5-a3f3-5e6096d7c789)
 
-https://github.com/user-attachments/assets/7a9253a7-8bb0-40d5-a3f3-5e6096d7c789
+A powerful, terminal-based AI coding tool with unified architecture that combines agent capabilities, ML acceleration, advanced task processing, and IPFS integration into one cohesive TypeScript codebase.
 
+## Key Features
 
-Terminal-based AI coding tool that can use any model that supports the OpenAI-style API.
+- **Unified TypeScript Codebase**: All components integrated into a single, seamless TypeScript codebase
+- **AI Agent Capabilities**: Clean room implementation of Goose features with advanced coding assistance
+- **ML Acceleration**: Hardware-accelerated machine learning integrated directly into the CLI
+- **Graph-of-Thought Processing**: Sophisticated reasoning with non-linear, graph-based problem solving
+- **Fibonacci Heap Scheduling**: Efficient task prioritization and management
+- **IPFS Kit Integration**: Content-addressable storage via the Python-based IPFS Kit MCP Server
+- **Rich Terminal UI**: Interactive, responsive CLI experience with advanced formatting
 
-- Fixes your spaghetti code
-- Explains wtf that function does
-- Runs tests, shell commands and stuff
-- Whatever else claude-code can do, depending on the model you use
+See our [Unified Integration Plan](unified_integration_plan.md) and [Unified Architecture Documentation](docs/UNIFIED_ARCHITECTURE.md) for more details.
 
 ## HOW TO USE
 
@@ -122,10 +127,42 @@ You can use the onboarding to set up the model, or `/model`.
 If you don't see the models you want on the list, you can manually set them in `/config`
 As long as you have an openai-like endpoint, it should work.
 
+## Advanced Features
+
+### Graph-of-Thought Reasoning
+
+SwissKnife implements advanced Graph-of-Thought reasoning that represents problem-solving as a directed acyclic graph (DAG) instead of a linear sequence. This enables:
+
+- Parallel exploration of multiple reasoning paths
+- Sophisticated problem decomposition
+- Dynamic reprioritization of tasks
+- Resilience against reasoning dead-ends
+
+Enable Graph-of-Thought with the `/got` command or in settings.
+
+### Fibonacci Heap Scheduler
+
+Our task scheduler uses a Fibonacci heap implementation for optimal task prioritization:
+
+- O(1) amortized insertion time
+- O(1) amortized decrease-key operations
+- Dynamic priority adjustment based on dependencies
+- Intelligent workload balancing
+
+### IPFS Integration
+
+SwissKnife directly integrates with the Python-based IPFS Kit MCP Server for:
+
+- Content-addressed storage
+- IPLD data structures
+- Persistent knowledge graphs
+- Multi-tier caching
+
 ## USE AS MCP SERVER
 
 Find the full path to `swissknife` with `which swissknife` then add the config to Claude Desktop:
-```
+
+```json
 {
   "mcpServers": {
     "claude-code": {
@@ -136,7 +173,28 @@ Find the full path to `swissknife` with `which swissknife` then add the config t
 }
 ```
 
-## HOW TO DEV
+## Developer Documentation
+
+### Project Structure
+
+SwissKnife follows a domain-driven directory structure:
+
+```
+/src
+├── ai/                      # AI capabilities
+│   ├── agent/               # Core agent functionality
+│   ├── tools/               # Tool system and implementations
+│   └── models/              # Model providers and execution
+├── cli/                     # CLI and UI components
+├── ml/                      # Machine learning acceleration
+├── tasks/                   # Task processing system with Graph-of-Thought
+├── storage/                 # Storage systems with IPFS integration
+└── utils/                   # Shared utilities
+```
+
+See [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for more details.
+
+### Development Workflow
 
 ```bash
 # Install dependencies
@@ -155,14 +213,14 @@ bun run build
 npm run install-global  # or ./install.sh
 ```
 
-Get some more logs while debugging:
+Get more logs while debugging:
 ```bash
 NODE_ENV=development pnpm run dev --verbose --debug
 # or
 NODE_ENV=development npm run dev -- --verbose --debug
 ```
 
-### Development Workflow
+### Workflow
 
 1. Make changes to the code
 2. Test locally with `pnpm run dev` or `npm run dev`
@@ -170,20 +228,16 @@ NODE_ENV=development npm run dev -- --verbose --debug
 4. Install globally with `npm run install-global`
 5. Test the global installation with `swissknife`
 
-## BUGS
+## Bug Reporting
 
-You can submit a bug from within the app with `/bug`, it will open a browser to github issue create with stuff filed out.
+You can submit a bug from within the app with `/bug`, which generates a detailed bug report for GitHub issues with information about your environment.
 
-## Warning
+## Privacy
 
-Use at own risk.
+- No telemetry or backend servers other than the AI providers you choose
+- All data processing happens locally except for AI model inference
 
-
-## YOUR DATA
-
-- There's no telemetry or backend servers other than the AI providers you choose
-
-## UNINSTALLATION
+## Uninstallation
 
 To uninstall the tool:
 
@@ -194,3 +248,7 @@ npm uninstall -g swissknife
 # If you installed Bun just for this project and don't need it anymore
 npm uninstall -g bun
 ```
+
+## License
+
+[License terms](LICENSE.md)

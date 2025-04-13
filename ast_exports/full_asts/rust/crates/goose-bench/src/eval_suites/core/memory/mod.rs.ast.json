@@ -1,0 +1,21 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/eval_suites/core/memory/mod.rs",
+  "fileSize": 41,
+  "lineCount": 3,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [],
+    "modules": [
+      {
+        "name": "save_fact",
+        "inline": false,
+        "position": 26
+      }
+    ],
+    "uses": []
+  }
+}

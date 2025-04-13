@@ -1,0 +1,96 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/eval_suites/core/example.rs",
+  "fileSize": 1155,
+  "lineCount": 45,
+  "structures": {
+    "structs": [
+      {
+        "name": "ExampleEval",
+        "fields": [],
+        "position": 240
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "ExampleEval",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 267
+      },
+      {
+        "type": "ExampleEval",
+        "trait": "Evaluation",
+        "methods": [
+          {
+            "name": "run",
+            "params": "&self,\n        agent: &mut BenchAgent,\n        _run_loc: &mut BenchmarkWorkDir,",
+            "returnType": "anyhow::Result<Vec<(String, EvalMetricValue)>>"
+          }
+        ],
+        "position": 360
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 290
+      },
+      {
+        "name": "run",
+        "params": "&self,\n        agent: &mut BenchAgent,\n        _run_loc: &mut BenchmarkWorkDir,",
+        "returnType": "anyhow::Result<Vec<(String, EvalMetricValue)>>",
+        "position": 404
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "&str",
+        "position": 907
+      },
+      {
+        "name": "required_extensions",
+        "params": "&self",
+        "returnType": "ExtensionRequirements",
+        "position": 966
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "crate::bench_session::BenchAgent",
+        "position": 0
+      },
+      {
+        "path": "crate::bench_work_dir::BenchmarkWorkDir",
+        "position": 38
+      },
+      {
+        "path": "crate::eval_suites::{EvalMetricValue, Evaluation, ExtensionRequirements}",
+        "position": 83
+      },
+      {
+        "path": "crate::register_evaluation",
+        "position": 161
+      },
+      {
+        "path": "async_trait::async_trait",
+        "position": 193
+      },
+      {
+        "path": "std::fs",
+        "position": 226
+      }
+    ]
+  }
+}

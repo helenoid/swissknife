@@ -1,0 +1,500 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/google_drive/mod.rs",
+  "fileSize": 118166,
+  "lineCount": 2904,
+  "structures": {
+    "structs": [
+      {
+        "name": "GoogleDriveRouter",
+        "fields": [
+          {
+            "name": "tools",
+            "type": "Vec<Tool>"
+          },
+          {
+            "name": "instructions",
+            "type": "String"
+          },
+          {
+            "name": "drive",
+            "type": "DriveHub<HttpsConnector<HttpConnector>>"
+          },
+          {
+            "name": "sheets",
+            "type": "Sheets<HttpsConnector<HttpConnector>>"
+          },
+          {
+            "name": "docs",
+            "type": "Docs<HttpsConnector<HttpConnector>>"
+          },
+          {
+            "name": "credentials_manager",
+            "type": "Arc<CredentialsManager>"
+          }
+        ],
+        "position": 1804
+      }
+    ],
+    "enums": [
+      {
+        "name": "FileOperation",
+        "variants": [
+          "Create",
+          "name",
+          "String"
+        ],
+        "position": 1285
+      },
+      {
+        "name": "PaginationState",
+        "variants": [
+          "Start",
+          "Next",
+          "End"
+        ],
+        "position": 1390
+      }
+    ],
+    "traits": [],
+    "impls": [
+      {
+        "type": "GoogleDriveRouter",
+        "trait": null,
+        "methods": [
+          {
+            "name": "google_auth",
+            "params": "",
+            "returnType": "(\n        DriveHub<HttpsConnector<HttpConnector>>,\n        Sheets<HttpsConnector<HttpConnector>>,\n        Docs<HttpsConnector<HttpConnector>>,\n        Arc<CredentialsManager>,\n    )"
+          }
+        ],
+        "position": 2086
+      },
+      {
+        "type": "GoogleDriveRouter",
+        "trait": "Router",
+        "methods": [
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "String"
+          }
+        ],
+        "position": 113232
+      },
+      {
+        "type": "GoogleDriveRouter",
+        "trait": "Clone",
+        "methods": [
+          {
+            "name": "clone",
+            "params": "&self",
+            "returnType": "Self"
+          }
+        ],
+        "position": 115959
+      }
+    ],
+    "functions": [
+      {
+        "name": "extract_google_drive_id",
+        "params": "url: &str",
+        "returnType": "Option<&str>",
+        "position": 1638
+      },
+      {
+        "name": "google_auth",
+        "params": "",
+        "returnType": "(\n        DriveHub<HttpsConnector<HttpConnector>>,\n        Sheets<HttpsConnector<HttpConnector>>,\n        Docs<HttpsConnector<HttpConnector>>,\n        Arc<CredentialsManager>,\n    )",
+        "position": 2121
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 6626
+      },
+      {
+        "name": "search",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 36366
+      },
+      {
+        "name": "fetch_file_metadata",
+        "params": "&self, uri: &str",
+        "returnType": "Result<File, ToolError>",
+        "position": 40744
+      },
+      {
+        "name": "strip_image_body",
+        "params": "&self, input: &str",
+        "returnType": "String",
+        "position": 41307
+      },
+      {
+        "name": "process_image",
+        "params": "&self, caps: &regex::Captures, max_width: u32",
+        "returnType": "Result<Content, Error>",
+        "position": 41768
+      },
+      {
+        "name": "resize_images",
+        "params": "&self, input: &str",
+        "returnType": "Result<Vec<Content>, Error>",
+        "position": 43436
+      },
+      {
+        "name": "export_google_file",
+        "params": "&self,\n        uri: &str,\n        mime_type: &str,\n        include_images: bool,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 44329
+      },
+      {
+        "name": "get_google_file",
+        "params": "&self,\n        uri: &str,\n        include_images: bool,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 46858
+      },
+      {
+        "name": "read",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 49662
+      },
+      {
+        "name": "sheets_tool",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 52044
+      },
+      {
+        "name": "read_google_resource",
+        "params": "&self, uri: String",
+        "returnType": "Result<String, ResourceError>",
+        "position": 69122
+      },
+      {
+        "name": "list_google_resources",
+        "params": "&self, params: Value",
+        "returnType": "Vec<Resource>",
+        "position": 69609
+      },
+      {
+        "name": "upload_to_drive",
+        "params": "&self,\n        operation: FileOperation,\n        content: Box<dyn ReadSeek>,\n        source_mime_type: &str,\n        target_mime_type: &str,\n        parent: Option<&str>,\n        support_all_drives: bool,\n        target_id: Option<&str>,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 71319
+      },
+      {
+        "name": "upload",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 73691
+      },
+      {
+        "name": "create_file",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 75490
+      },
+      {
+        "name": "move_file",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 80390
+      },
+      {
+        "name": "update_file",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 82002
+      },
+      {
+        "name": "update_google_file",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 83732
+      },
+      {
+        "name": "get_comments",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 87407
+      },
+      {
+        "name": "create_comment",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 90345
+      },
+      {
+        "name": "reply",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 92059
+      },
+      {
+        "name": "docs_tool",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 94186
+      },
+      {
+        "name": "list_drives",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 110992
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "String",
+        "position": 113272
+      },
+      {
+        "name": "instructions",
+        "params": "&self",
+        "returnType": "String",
+        "position": 113345
+      },
+      {
+        "name": "capabilities",
+        "params": "&self",
+        "returnType": "ServerCapabilities",
+        "position": 113425
+      },
+      {
+        "name": "list_tools",
+        "params": "&self",
+        "returnType": "Vec<Tool>",
+        "position": 113612
+      },
+      {
+        "name": "call_tool",
+        "params": "&self,\n        tool_name: &str,\n        arguments: Value,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>",
+        "position": 113686
+      },
+      {
+        "name": "list_resources",
+        "params": "&self",
+        "returnType": "Vec<Resource>",
+        "position": 114982
+      },
+      {
+        "name": "read_resource",
+        "params": "&self,\n        uri: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>",
+        "position": 115216
+      },
+      {
+        "name": "list_prompts",
+        "params": "&self",
+        "returnType": "Vec<Prompt>",
+        "position": 115518
+      },
+      {
+        "name": "get_prompt",
+        "params": "&self,\n        prompt_name: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, PromptError>> + Send + 'static>>",
+        "position": 115584
+      },
+      {
+        "name": "clone",
+        "params": "&self",
+        "returnType": "Self",
+        "position": 115998
+      },
+      {
+        "name": "test_document_url",
+        "params": "",
+        "returnType": null,
+        "position": 116394
+      },
+      {
+        "name": "test_spreadsheets_url",
+        "params": "",
+        "returnType": null,
+        "position": 116717
+      },
+      {
+        "name": "test_slides_url",
+        "params": "",
+        "returnType": null,
+        "position": 117047
+      },
+      {
+        "name": "test_missing_scheme",
+        "params": "",
+        "returnType": null,
+        "position": 117357
+      },
+      {
+        "name": "test_extra_path_segments",
+        "params": "",
+        "returnType": null,
+        "position": 117528
+      },
+      {
+        "name": "test_invalid_google_url",
+        "params": "",
+        "returnType": null,
+        "position": 117802
+      },
+      {
+        "name": "test_no_d_segment",
+        "params": "",
+        "returnType": null,
+        "position": 117961
+      }
+    ],
+    "modules": [
+      {
+        "name": "oauth_pkce",
+        "inline": false,
+        "position": 0
+      },
+      {
+        "name": "storage",
+        "inline": false,
+        "position": 16
+      },
+      {
+        "name": "tests",
+        "inline": true,
+        "position": 116347
+      }
+    ],
+    "uses": [
+      {
+        "path": "anyhow::{Context, Error}",
+        "position": 34
+      },
+      {
+        "path": "base64::Engine",
+        "position": 64
+      },
+      {
+        "path": "indoc::indoc",
+        "position": 84
+      },
+      {
+        "path": "lazy_static::lazy_static",
+        "position": 102
+      },
+      {
+        "path": "mcp_core::tool::ToolAnnotations",
+        "position": 132
+      },
+      {
+        "path": "oauth_pkce::PkceOAuth2Client",
+        "position": 169
+      },
+      {
+        "path": "regex::Regex",
+        "position": 203
+      },
+      {
+        "path": "serde_json::{json, Value}",
+        "position": 221
+      },
+      {
+        "path": "std::io::Cursor",
+        "position": 252
+      },
+      {
+        "path": "std::{env, fs, future::Future, path::Path, pin::Pin, sync::Arc}",
+        "position": 273
+      },
+      {
+        "path": "storage::CredentialsManager",
+        "position": 342
+      },
+      {
+        "path": "mcp_core::content::Content",
+        "position": 376
+      },
+      {
+        "path": "mcp_core::{\n    handler::{PromptError, ResourceError, ToolError},\n    prompt::Prompt,\n    protocol::ServerCapabilities,\n    resource::Resource,\n    tool::Tool,\n}",
+        "position": 408
+      },
+      {
+        "path": "mcp_server::router::CapabilitiesBuilder",
+        "position": 575
+      },
+      {
+        "path": "mcp_server::Router",
+        "position": 620
+      },
+      {
+        "path": "google_docs1::{self, Docs}",
+        "position": 645
+      },
+      {
+        "path": "google_drive3::common::ReadSeek",
+        "position": 677
+      },
+      {
+        "path": "google_drive3::{\n    self,\n    api::{Comment, File, FileShortcutDetails, Reply, Scope},\n    hyper_rustls::{self, HttpsConnector},\n    hyper_util::{self, client::legacy::connect::HttpConnector},\n    DriveHub,\n}",
+        "position": 714
+      },
+      {
+        "path": "google_sheets4::{self, Sheets}",
+        "position": 929
+      },
+      {
+        "path": "http_body_util::BodyExt",
+        "position": 965
+      },
+      {
+        "path": "this when you have the file URI\",\n                  },\n                  \"url\": {\n                      \"type\": \"string\",\n                      \"description\": \"the full google drive URL to read the file from, use this when the user gives a full https url\",\n                  },\n                  \"includeImages\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Whether or not to include images as base64 encoded strings, defaults to false\",\n                  }\n              },\n            }),\n            Some(ToolAnnotations {\n                title: Some(\"Read GDrive\".to_string()),\n                read_only_hint: true,\n                destructive_hint: false,\n                idempotent_hint: false,\n                open_world_hint: false,\n            }),\n        )",
+        "position": 9486
+      },
+      {
+        "path": "for the uploaded file.\",\n                  },\n                  \"mimeType\": {\n                      \"type\": \"string\",\n                      \"description\": \"The MIME type of the file.\",\n                  },\n                  \"body\": {\n                      \"type\": \"string\",\n                      \"description\": \"Plain text body of the file to upload. Mutually exclusive with path.\",\n                  },\n                  \"path\": {\n                      \"type\": \"string\",\n                      \"description\": \"Path to the file to upload. Mutually exclusive with body.\",\n                  },\n                  \"parentId\": {\n                      \"type\": \"string\",\n                      \"description\": \"ID of the parent folder in which to create the file. (default: creates files in the root of 'My Drive')\",\n                  },\n                  \"allowSharedDrives\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Whether to allow access to shared drives or just your personal drive (default: false)\",\n                  }\n              },\n              \"required\": [\"name\", \"mimeType\"],\n            }),\n            Some(ToolAnnotations {\n                title: Some(\"Upload file to GDrive\".to_string()),\n                read_only_hint: false,\n                destructive_hint: false,\n                idempotent_hint: false,\n                open_world_hint: false,\n            }),\n        )",
+        "position": 10691
+      },
+      {
+        "path": "to update the Google Drive file. Mutually exclusive with body.\",\n                  },\n                  \"allowSharedDrives\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Whether to allow access to shared drives or just your personal drive (default: false)\",\n                  }\n              },\n              \"required\": [\"fileId\", \"mimeType\"],\n            }),\n            Some(ToolAnnotations {\n                title: Some(\"Update a non-Google file\".to_string()),\n                read_only_hint: false,\n                destructive_hint: true,\n                idempotent_hint: false,\n                open_world_hint: false,\n            }),\n        )",
+        "position": 16578
+      },
+      {
+        "path": "for replacement\",\n                  },\n                  \"replaceText\": {\n                      \"type\": \"string\",\n                      \"description\": \"The text to be replaced\",\n                  },\n                  \"position\": {\n                      \"type\": \"number\",\n                      \"description\": \"The position in the document (index) for operations that require a position\",\n                  },\n                  \"startPosition\": {\n                      \"type\": \"number\",\n                      \"description\": \"The start position for delete_content operation\",\n                  },\n                  \"endPosition\": {\n                      \"type\": \"number\",\n                      \"description\": \"The end position for delete_content operation\",\n                  }\n              },\n              \"required\": [\"documentId\", \"operation\"],\n            }),\n            None,\n        )",
+        "position": 23155
+      },
+      {
+        "path": "for replacement\n            - replaceText: The text to be replaced (for replace_text operation)\n            - position: The position in the document (index) for operations that require a position\n            - startPosition: The start position for delete_content operation\n            - endPosition: The end position for delete_content operation\n\n            ### 5. Create File Tool\n            Create Google Workspace files (Docs, Sheets, or Slides) directly in Google Drive.\n            - For Google Docs: Converts Markdown text to a Google Document\n            - For Google Sheets: Converts CSV text to a Google Spreadsheet\n            - For Google Slides: Converts a PowerPoint file to Google Slides (requires a path to the powerpoint file)\n\n            ### 6. Update File Tool\n            Update existing Google Workspace files (Docs, Sheets, or Slides) in Google Drive.\n            - For Google Docs: Updates with new Markdown text\n            - For Google Sheets: Updates with new CSV text\n            - For Google Slides: Updates with a new PowerPoint file (requires a path to the powerpoint file)\n                - Note: This functionally is an overwrite to the slides, warn the user before using this tool.\n\n            Parameters:\n            - spreadsheetId: The ID of the spreadsheet (can be obtained from search results)\n            - operation: The operation to perform (one of the operations listed above)\n            - sheetName: The name of the sheet to work with (optional for some operations)\n            - range: The A1 notation of the range to retrieve or update values (e.g., 'Sheet1!A1:D10')\n            - values: CSV formatted data for update operations\n            - cell: The A1 notation of the cell to update (e.g., 'Sheet1!A1') for update_cell operation\n            - value: The value to set in the cell for update_cell operation\n            - title: Title for the new sheet (required for add_sheet operation)\n            - valueInputOption: How input data should be interpreted (RAW or USER_ENTERED)\n\n            ## File Format Handling\n            The server automatically handles different file types:\n            - Google Docs \u2192 Markdown\n            - Google Sheets \u2192 CSV\n            - Google Presentations \u2192 Plain text\n            - Text/JSON files \u2192 UTF-8 text\n            - Binary files \u2192 Base64 encoded\n\n            ## Common Usage Pattern\n\n            1. First, search for the file you want to read, searching by name.\n            2. Then, use the file URI from the search results to read its contents.\n            3. For Google Sheets, use the sheets_tool with the appropriate operation.\n            4. For Google Docs, use the docs_tool with the appropriate operation.\n\n            ## Best Practices\n            1. Always use search first to find the correct file URI\n            2. Search results include file types (MIME types) to help identify the right file\n            3. Search is limited to 10 results per query, so use specific search terms\n            4. When updating sheet values, format the data as CSV with one row per line\n\n            ## Error Handling\n            If you encounter errors:\n            1. Verify the file URI is correct\n            2. Ensure you have access to the file\n            3. Check if the file format is supported\n            4. Verify the server is properly configured\n\n            Remember: Always use the tools in sequence - search first to get the file URI, then read to access the contents.\n        \"#}",
+        "position": 32215
+      },
+      {
+        "path": "the drive_id param when the corpus is \"drive\".\n        if let (Some(d), \"drive\") = (drive_id, corpus) {\n            builder = builder.drive_id(d)",
+        "position": 39470
+      },
+      {
+        "path": "files.export instead.\n    async fn export_google_file(\n        &self,\n        uri: &str,\n        mime_type: &str,\n        include_images: bool,\n    ) -> Result<Vec<Content>, ToolError> {\n        let export_mime_type = match mime_type {\n            \"application/vnd.google-apps.document\" => \"text/markdown\",\n            \"application/vnd.google-apps.spreadsheet\" => \"text/csv\",\n            \"application/vnd.google-apps.presentation\" => \"text/plain\",\n            _ => \"text/plain\",\n        }",
+        "position": 44293
+      },
+      {
+        "path": "files.get on\n    async fn get_google_file(\n        &self,\n        uri: &str,\n        include_images: bool,\n    ) -> Result<Vec<Content>, ToolError> {\n        let result = self\n            .drive\n            .files()\n            .get(uri)\n            .param(\"alt\", \"media\")\n            .clear_scopes()\n            .add_scope(GOOGLE_DRIVE_SCOPES)\n            .doit()\n            .await",
+        "position": 46831
+      },
+      {
+        "path": "the first sheet\n                let sheet_name = params\n                    .get(\"sheetName\")\n                    .and_then(|q| q.as_str())\n                    .map(|s| format!(\"{}!1:1\", s))\n                    .unwrap_or_else(|| \"1:1\".to_string())",
+        "position": 54455
+      },
+      {
+        "path": "end_index is one past the last character\n                        segment_id: None,\n                    }),\n                    end_of_segment_location: None,\n                }",
+        "position": 100813
+      },
+      {
+        "path": "end_index is one past the last character\n                        segment_id: None,\n                    }),\n                    end_of_segment_location: None,\n                }",
+        "position": 106966
+      },
+      {
+        "path": "super::*",
+        "position": 116363
+      }
+    ]
+  }
+}

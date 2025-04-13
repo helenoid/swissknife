@@ -1,0 +1,104 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/eval_suites/core/computercontroller/script.rs",
+  "fileSize": 2882,
+  "lineCount": 87,
+  "structures": {
+    "structs": [
+      {
+        "name": "ComputerControllerScript",
+        "fields": [],
+        "position": 465
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "ComputerControllerScript",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 505
+      },
+      {
+        "type": "ComputerControllerScript",
+        "trait": "Evaluation",
+        "methods": [
+          {
+            "name": "run",
+            "params": "&self,\n        agent: &mut BenchAgent,\n        _run_loc: &mut BenchmarkWorkDir,",
+            "returnType": "anyhow::Result<Vec<(String, EvalMetricValue)>>"
+          }
+        ],
+        "position": 624
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 541
+      },
+      {
+        "name": "run",
+        "params": "&self,\n        agent: &mut BenchAgent,\n        _run_loc: &mut BenchmarkWorkDir,",
+        "returnType": "anyhow::Result<Vec<(String, EvalMetricValue)>>",
+        "position": 681
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "&str",
+        "position": 2527
+      },
+      {
+        "name": "required_extensions",
+        "params": "&self",
+        "returnType": "ExtensionRequirements",
+        "position": 2599
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "crate::bench_session::BenchAgent",
+        "position": 70
+      },
+      {
+        "path": "crate::bench_work_dir::BenchmarkWorkDir",
+        "position": 108
+      },
+      {
+        "path": "crate::eval_suites::{\n    collect_baseline_metrics, metrics_hashmap_to_vec, EvalMetricValue, Evaluation,\n    ExtensionRequirements,\n}",
+        "position": 153
+      },
+      {
+        "path": "crate::register_evaluation",
+        "position": 292
+      },
+      {
+        "path": "async_trait::async_trait",
+        "position": 324
+      },
+      {
+        "path": "goose::message::MessageContent",
+        "position": 354
+      },
+      {
+        "path": "mcp_core::role::Role",
+        "position": 390
+      },
+      {
+        "path": "serde_json::{self, Value}",
+        "position": 416
+      }
+    ]
+  }
+}

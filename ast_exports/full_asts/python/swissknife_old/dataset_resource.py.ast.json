@@ -1,0 +1,415 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "ClassDef",
+      "lineno": 1,
+      "col_offset": 0,
+      "name": "DatasetResource",
+      "bases": [],
+      "keywords": [],
+      "body": [
+        {
+          "type": "FunctionDef",
+          "lineno": 2,
+          "col_offset": 4,
+          "name": "__init__",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 2,
+                "col_offset": 17,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 2,
+                "col_offset": 23,
+                "arg": "resources",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 2,
+                "col_offset": 34,
+                "arg": "meta",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": null,
+            "defaults": [
+              {
+                "type": "Constant",
+                "lineno": 2,
+                "col_offset": 39,
+                "value": null,
+                "kind": null
+              }
+            ]
+          },
+          "body": [
+            {
+              "type": "Assign",
+              "lineno": 3,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Attribute",
+                  "lineno": 3,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 3,
+                    "col_offset": 8,
+                    "id": "self"
+                  },
+                  "attr": "dataset"
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "lineno": 3,
+                "col_offset": 23,
+                "func": {
+                  "type": "Attribute",
+                  "lineno": 3,
+                  "col_offset": 23,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 3,
+                    "col_offset": 23,
+                    "id": "datasets"
+                  },
+                  "attr": "load_dataset"
+                },
+                "args": [
+                  {
+                    "type": "Constant",
+                    "lineno": 3,
+                    "col_offset": 45,
+                    "value": "glue",
+                    "kind": null
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 3,
+                    "col_offset": 53,
+                    "value": "mrpc",
+                    "kind": null
+                  }
+                ],
+                "keywords": []
+              },
+              "type_comment": null
+            },
+            {
+              "type": "Expr",
+              "lineno": 4,
+              "col_offset": 8,
+              "value": {
+                "type": "Attribute",
+                "lineno": 4,
+                "col_offset": 8,
+                "value": {
+                  "type": "Name",
+                  "lineno": 4,
+                  "col_offset": 8,
+                  "id": "self"
+                },
+                "attr": "d"
+              }
+            },
+            {
+              "type": "Assign",
+              "lineno": 5,
+              "col_offset": 8,
+              "targets": [
+                {
+                  "type": "Attribute",
+                  "lineno": 5,
+                  "col_offset": 8,
+                  "value": {
+                    "type": "Name",
+                    "lineno": 5,
+                    "col_offset": 8,
+                    "id": "self"
+                  },
+                  "attr": "meta"
+                }
+              ],
+              "value": {
+                "type": "Name",
+                "lineno": 5,
+                "col_offset": 20,
+                "id": "meta"
+              },
+              "type_comment": null
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 7,
+          "col_offset": 4,
+          "name": "__call__",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 7,
+                "col_offset": 17,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 7,
+                "col_offset": 23,
+                "arg": "method",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 7,
+              "col_offset": 33,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "If",
+              "lineno": 8,
+              "col_offset": 8,
+              "test": {
+                "type": "Compare",
+                "lineno": 8,
+                "col_offset": 11,
+                "left": {
+                  "type": "Name",
+                  "lineno": 8,
+                  "col_offset": 11,
+                  "id": "method"
+                },
+                "ops": [
+                  {
+                    "type": "Eq"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 8,
+                    "col_offset": 21,
+                    "value": "get_dataset",
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "lineno": 9,
+                  "col_offset": 12,
+                  "targets": [
+                    {
+                      "type": "Attribute",
+                      "lineno": 9,
+                      "col_offset": 12,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 9,
+                        "col_offset": 12,
+                        "id": "self"
+                      },
+                      "attr": "method"
+                    }
+                  ],
+                  "value": {
+                    "type": "Constant",
+                    "lineno": 9,
+                    "col_offset": 26,
+                    "value": "get_dataset",
+                    "kind": null
+                  },
+                  "type_comment": null
+                },
+                {
+                  "type": "Return",
+                  "lineno": 10,
+                  "col_offset": 12,
+                  "value": {
+                    "type": "Call",
+                    "lineno": 10,
+                    "col_offset": 19,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 10,
+                      "col_offset": 19,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 10,
+                        "col_offset": 19,
+                        "id": "self"
+                      },
+                      "attr": "get_dataset"
+                    },
+                    "args": [],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 10,
+                        "col_offset": 36,
+                        "arg": null,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 10,
+                          "col_offset": 38,
+                          "id": "kwargs"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "orelse": [
+                {
+                  "type": "Raise",
+                  "lineno": 12,
+                  "col_offset": 12,
+                  "exc": {
+                    "type": "Call",
+                    "lineno": 12,
+                    "col_offset": 18,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 12,
+                      "col_offset": 18,
+                      "id": "Exception"
+                    },
+                    "args": [
+                      {
+                        "type": "BinOp",
+                        "lineno": 12,
+                        "col_offset": 28,
+                        "left": {
+                          "type": "Constant",
+                          "lineno": 12,
+                          "col_offset": 28,
+                          "value": "unknown method: %s",
+                          "kind": null
+                        },
+                        "op": {
+                          "type": "Mod"
+                        },
+                        "right": {
+                          "type": "Name",
+                          "lineno": 12,
+                          "col_offset": 51,
+                          "id": "method"
+                        }
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "cause": null
+                }
+              ]
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 14,
+          "col_offset": 4,
+          "name": "get_dataset",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 14,
+                "col_offset": 20,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 14,
+              "col_offset": 28,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "Return",
+              "lineno": 15,
+              "col_offset": 8,
+              "value": {
+                "type": "Attribute",
+                "lineno": 15,
+                "col_offset": 15,
+                "value": {
+                  "type": "Name",
+                  "lineno": 15,
+                  "col_offset": 15,
+                  "id": "self"
+                },
+                "attr": "dataset"
+              }
+            },
+            {
+              "type": "Pass",
+              "lineno": 16,
+              "col_offset": 8
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        }
+      ],
+      "decorator_list": [],
+      "type_params": []
+    }
+  ],
+  "type_ignores": []
+}

@@ -1,0 +1,43 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/examples/stdio.rs",
+  "fileSize": 1917,
+  "lineCount": 62,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [
+      {
+        "name": "main",
+        "params": "",
+        "returnType": "Result<(), ClientError>",
+        "position": 283
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "std::collections::HashMap",
+        "position": 0
+      },
+      {
+        "path": "anyhow::Result",
+        "position": 32
+      },
+      {
+        "path": "mcp_client::{\n    ClientCapabilities, ClientInfo, Error as ClientError, McpClient, McpClientTrait, McpService,\n    StdioTransport, Transport,\n}",
+        "position": 52
+      },
+      {
+        "path": "std::time::Duration",
+        "position": 201
+      },
+      {
+        "path": "tracing_subscriber::EnvFilter",
+        "position": 226
+      }
+    ]
+  }
+}

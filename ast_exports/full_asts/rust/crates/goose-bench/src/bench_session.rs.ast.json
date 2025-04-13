@@ -1,0 +1,154 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/bench_session.rs",
+  "fileSize": 1765,
+  "lineCount": 59,
+  "structures": {
+    "structs": [
+      {
+        "name": "BenchAgentError",
+        "fields": [
+          {
+            "name": "message",
+            "type": "String"
+          },
+          {
+            "name": "level",
+            "type": "String"
+          },
+          {
+            "name": "timestamp",
+            "type": "DateTime<Utc>"
+          }
+        ],
+        "position": 243
+      },
+      {
+        "name": "BenchAgent",
+        "fields": [
+          {
+            "name": "session",
+            "type": "Box<dyn BenchBaseSession>"
+          },
+          {
+            "name": "errors",
+            "type": "Arc<Mutex<Vec<BenchAgentError>>>"
+          }
+        ],
+        "position": 801
+      }
+    ],
+    "enums": [],
+    "traits": [
+      {
+        "name": "BenchBaseSession",
+        "methods": [
+          {
+            "name": "headless",
+            "params": "&mut self, message: String",
+            "returnType": "anyhow::Result<()>"
+          },
+          {
+            "name": "session_file",
+            "params": "&self",
+            "returnType": "PathBuf"
+          },
+          {
+            "name": "message_history",
+            "params": "&self",
+            "returnType": "Vec<Message>"
+          },
+          {
+            "name": "get_total_token_usage",
+            "params": "&self",
+            "returnType": "anyhow::Result<Option<i32>>"
+          }
+        ],
+        "position": 446
+      }
+    ],
+    "impls": [
+      {
+        "type": "BenchAgent",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "session: Box<dyn BenchBaseSession>",
+            "returnType": "Self"
+          }
+        ],
+        "position": 914
+      }
+    ],
+    "functions": [
+      {
+        "name": "headless",
+        "params": "&mut self, message: String",
+        "returnType": "anyhow::Result<()>;\n    fn session_file(&self) -> PathBuf;\n    fn message_history(&self) -> Vec<Message>;\n    fn get_total_token_usage(&self) -> anyhow::Result<Option<i32>>;\n}\n// struct for managing agent-session-access. to be passed to evals for benchmarking\npub struct BenchAgent",
+        "position": 498
+      },
+      {
+        "name": "new",
+        "params": "session: Box<dyn BenchBaseSession>",
+        "returnType": "Self",
+        "position": 936
+      },
+      {
+        "name": "prompt",
+        "params": "&mut self, p: String",
+        "returnType": "anyhow::Result<Vec<Message>>",
+        "position": 1109
+      },
+      {
+        "name": "get_errors",
+        "params": "&self",
+        "returnType": "Vec<BenchAgentError>",
+        "position": 1416
+      },
+      {
+        "name": "get_token_usage",
+        "params": "&self",
+        "returnType": "Option<i32>",
+        "position": 1561
+      },
+      {
+        "name": "session_file",
+        "params": "&self",
+        "returnType": "PathBuf",
+        "position": 1674
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "async_trait::async_trait",
+        "position": 0
+      },
+      {
+        "path": "chrono::{DateTime, Utc}",
+        "position": 30
+      },
+      {
+        "path": "goose::message::Message",
+        "position": 59
+      },
+      {
+        "path": "serde::{Deserialize, Serialize}",
+        "position": 89
+      },
+      {
+        "path": "std::path::PathBuf",
+        "position": 126
+      },
+      {
+        "path": "std::sync::Arc",
+        "position": 150
+      },
+      {
+        "path": "tokio::sync::Mutex",
+        "position": 170
+      }
+    ]
+  }
+}

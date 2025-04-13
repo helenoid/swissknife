@@ -1,0 +1,205 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/tutorial/mod.rs",
+  "fileSize": 6153,
+  "lineCount": 194,
+  "structures": {
+    "structs": [
+      {
+        "name": "TutorialRouter",
+        "fields": [
+          {
+            "name": "tools",
+            "type": "Vec<Tool>"
+          },
+          {
+            "name": "instructions",
+            "type": "String"
+          }
+        ],
+        "position": 542
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "TutorialRouter",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 621
+      },
+      {
+        "type": "TutorialRouter",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 711
+      },
+      {
+        "type": "TutorialRouter",
+        "trait": "Router",
+        "methods": [
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "String"
+          }
+        ],
+        "position": 3868
+      },
+      {
+        "type": "TutorialRouter",
+        "trait": "Clone",
+        "methods": [
+          {
+            "name": "clone",
+            "params": "&self",
+            "returnType": "Self"
+          }
+        ],
+        "position": 5966
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 659
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 737
+      },
+      {
+        "name": "get_available_tutorials",
+        "params": "",
+        "returnType": "String",
+        "position": 2883
+      },
+      {
+        "name": "load_tutorial",
+        "params": "&self, name: &str",
+        "returnType": "Result<String, ToolError>",
+        "position": 3468
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "String",
+        "position": 3905
+      },
+      {
+        "name": "instructions",
+        "params": "&self",
+        "returnType": "String",
+        "position": 3974
+      },
+      {
+        "name": "capabilities",
+        "params": "&self",
+        "returnType": "ServerCapabilities",
+        "position": 4054
+      },
+      {
+        "name": "list_tools",
+        "params": "&self",
+        "returnType": "Vec<Tool>",
+        "position": 4173
+      },
+      {
+        "name": "call_tool",
+        "params": "&self,\n        tool_name: &str,\n        arguments: Value,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>",
+        "position": 4247
+      },
+      {
+        "name": "list_resources",
+        "params": "&self",
+        "returnType": "Vec<Resource>",
+        "position": 5246
+      },
+      {
+        "name": "read_resource",
+        "params": "&self,\n        _uri: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>",
+        "position": 5320
+      },
+      {
+        "name": "list_prompts",
+        "params": "&self",
+        "returnType": "Vec<Prompt>",
+        "position": 5525
+      },
+      {
+        "name": "get_prompt",
+        "params": "&self,\n        prompt_name: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, PromptError>> + Send + 'static>>",
+        "position": 5591
+      },
+      {
+        "name": "clone",
+        "params": "&self",
+        "returnType": "Self",
+        "position": 6002
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "anyhow::Result",
+        "position": 0
+      },
+      {
+        "path": "include_dir::{include_dir, Dir}",
+        "position": 20
+      },
+      {
+        "path": "indoc::formatdoc",
+        "position": 57
+      },
+      {
+        "path": "serde_json::{json, Value}",
+        "position": 79
+      },
+      {
+        "path": "std::{future::Future, pin::Pin}",
+        "position": 110
+      },
+      {
+        "path": "mcp_core::{\n    handler::{PromptError, ResourceError, ToolError},\n    prompt::Prompt,\n    protocol::ServerCapabilities,\n    resource::Resource,\n    role::Role,\n    tool::{Tool, ToolAnnotations},\n}",
+        "position": 148
+      },
+      {
+        "path": "mcp_server::router::CapabilitiesBuilder",
+        "position": 350
+      },
+      {
+        "path": "mcp_server::Router",
+        "position": 395
+      },
+      {
+        "path": "mcp_core::content::Content",
+        "position": 420
+      },
+      {
+        "path": "the tutorial extension is enabled, be aware that the user may be new to using Goose\n            or looking for help with specific features. Proactively offer relevant tutorials when appropriate.\n\n            Available tutorials:\n            {tutorials}\n\n            The specific content of the tutorial are available in by running load_tutorial.\n            To run through a tutorial, make sure to be interactive with the user. Don't run more than\n            a few related tool calls in a row. Make sure to prompt the user for understanding and participation.\n\n            **Important**: Make sure that you provide guidance or info *before* you run commands, as the command will\n            run immediately for the user. For example while running a game tutorial, let the user know what to expect\n            before you run a command to start the game itself.\n            \"#,\n            tutorials=available_tutorials,\n        }",
+        "position": 1845
+      }
+    ]
+  }
+}

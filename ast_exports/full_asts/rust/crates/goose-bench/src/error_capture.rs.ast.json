@@ -1,0 +1,176 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/error_capture.rs",
+  "fileSize": 2699,
+  "lineCount": 95,
+  "structures": {
+    "structs": [
+      {
+        "name": "ErrorCaptureLayer",
+        "fields": [],
+        "position": 483
+      },
+      {
+        "name": "JsonVisitor",
+        "fields": [
+          {
+            "name": "recorded_fields",
+            "type": "serde_json::Map<String"
+          },
+          {
+            "name": "serde_json",
+            "type": ":Value>"
+          }
+        ],
+        "position": 1960
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "ErrorCaptureLayer",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 514
+      },
+      {
+        "type": "ErrorCaptureLayer",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 600
+      },
+      {
+        "type": "ErrorCaptureLayer\nwhere\n    S: Subscriber,",
+        "trait": "Layer<S>",
+        "methods": [
+          {
+            "name": "on_event",
+            "params": "&self, event: &Event<'_>, _ctx: Context<'_, S>",
+            "returnType": null
+          }
+        ],
+        "position": 865
+      },
+      {
+        "type": "JsonVisitor",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 2049
+      },
+      {
+        "type": "JsonVisitor",
+        "trait": "tracing::field::Visit",
+        "methods": [
+          {
+            "name": "record_str",
+            "params": "&mut self, field: &tracing::field::Field, value: &str",
+            "returnType": null
+          }
+        ],
+        "position": 2178
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 555
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 629
+      },
+      {
+        "name": "register_error_vector",
+        "params": "errors: Arc<Mutex<Vec<BenchAgentError>>>",
+        "returnType": null,
+        "position": 676
+      },
+      {
+        "name": "on_event",
+        "params": "&self, event: &Event<'_>, _ctx: Context<'_, S>",
+        "returnType": null,
+        "position": 935
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 2072
+      },
+      {
+        "name": "record_str",
+        "params": "&mut self, field: &tracing::field::Field, value: &str",
+        "returnType": null,
+        "position": 2227
+      },
+      {
+        "name": "record_debug",
+        "params": "&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug",
+        "returnType": null,
+        "position": 2453
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "crate::bench_session::BenchAgentError",
+        "position": 0
+      },
+      {
+        "path": "chrono::Utc",
+        "position": 43
+      },
+      {
+        "path": "once_cell::sync::Lazy",
+        "position": 60
+      },
+      {
+        "path": "std::sync::Arc",
+        "position": 87
+      },
+      {
+        "path": "std::sync::RwLock",
+        "position": 107
+      },
+      {
+        "path": "tokio::sync::Mutex",
+        "position": 130
+      },
+      {
+        "path": "tracing::{Event, Subscriber}",
+        "position": 154
+      },
+      {
+        "path": "tracing_subscriber::layer::Context",
+        "position": 188
+      },
+      {
+        "path": "tracing_subscriber::Layer",
+        "position": 228
+      }
+    ]
+  }
+}

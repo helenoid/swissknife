@@ -1,0 +1,110 @@
+{
+  "functions": [
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/buld_config.py",
+      "functions": []
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/huggingface/convert_ckpt_hf.py",
+      "functions": [
+        {
+          "type": "function",
+          "name": "main",
+          "params": "source_file, output_folder"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/huggingface/convert_ckpt_safetensors.py",
+      "functions": []
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/huggingface/convert_diffusers_to_original_sdxl.py",
+      "functions": [
+        {
+          "type": "function",
+          "name": "convert_unet_state_dict",
+          "params": "unet_state_dict"
+        },
+        {
+          "type": "function",
+          "name": "reshape_weight_for_sd",
+          "params": "w"
+        },
+        {
+          "type": "function",
+          "name": "convert_vae_state_dict",
+          "params": "vae_state_dict"
+        },
+        {
+          "type": "function",
+          "name": "convert_openclip_text_enc_state_dict",
+          "params": "text_enc_dict"
+        },
+        {
+          "type": "function",
+          "name": "convert_openai_text_enc_state_dict",
+          "params": "text_enc_dict"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/huggingface/convert_diffusers_to_original_stable_diffusion.py",
+      "functions": [
+        {
+          "type": "function",
+          "name": "convert_unet_state_dict",
+          "params": "unet_state_dict"
+        },
+        {
+          "type": "function",
+          "name": "reshape_weight_for_sd",
+          "params": "w"
+        },
+        {
+          "type": "function",
+          "name": "convert_vae_state_dict",
+          "params": "vae_state_dict"
+        },
+        {
+          "type": "function",
+          "name": "convert_text_enc_state_dict_v20",
+          "params": "text_enc_dict"
+        },
+        {
+          "type": "function",
+          "name": "convert_text_enc_state_dict",
+          "params": "text_enc_dict"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/huggingface/convert_diffusion.py",
+      "functions": []
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/huggingface/convert_original_stable_diffusion_to_diffusers.py",
+      "functions": [
+        {
+          "type": "class",
+          "name": "name",
+          "params": ""
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/huggingface/convert_safetensor_hf.py",
+      "functions": [
+        {
+          "type": "function",
+          "name": "main",
+          "params": "source_file, output_folder"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/huggingface/hf_convert_diffusion.py",
+      "functions": []
+    }
+  ]
+}

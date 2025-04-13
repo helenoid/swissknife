@@ -4,8 +4,8 @@ Thank you for your interest in contributing to the SwissKnife project! This docu
 
 ## Getting Started
 
-1. Make sure you've read the [Getting Started guide](./GETTING_STARTED.md) to set up your development environment.
-2. Familiarize yourself with the project structure and coding conventions as outlined in the main [CLAUDE.md](../CLAUDE.md) file.
+1. Make sure you've read the [Getting Started guide](./GETTING_STARTED.md) to understand our unified TypeScript architecture.
+2. Familiarize yourself with the domain-driven organization and project structure as outlined in the [UNIFIED_ARCHITECTURE.md](./UNIFIED_ARCHITECTURE.md) file.
 
 ## Development Workflow
 
@@ -25,12 +25,12 @@ npm run dev  # or pnpm run dev
 
 When writing code for SwissKnife, follow these guidelines:
 
-- **Use TypeScript**: All code should be written in TypeScript with proper type annotations.
-- **Follow Code Style**: Adhere to the code style guidelines in [CLAUDE.md](../CLAUDE.md).
-- **Component Structure**: 
-  - React components should be functional components with hooks.
-  - Components should be in PascalCase (e.g., `ModelSelector.tsx`).
-  - Utility functions should be in camelCase.
+- **Domain Boundaries**: Respect domain boundaries and use well-defined interfaces for cross-domain communication.
+- **Type Safety**: Use TypeScript with proper type annotations and leverage the type system for safety.
+- **Code Organization**: 
+  - Place code in the appropriate domain directory.
+  - Follow the domain structure outlined in the architecture documentation.
+  - Use consistent naming conventions across domains.
 
 ### 3. Testing Your Changes
 
@@ -43,67 +43,109 @@ npm run lint
 # Run unit tests
 npm test
 
+# Run integration tests
+npm run test:integration
+
 # Format code
 npm run format
 ```
 
-### 4. Handling API Keys and Configuration
+## Domain-Based Contributions
 
-When working with API keys and configuration:
+### AI Domain Contributions
 
-- Never hardcode API keys
-- Always check environment variables first
-- Add keys to the configuration when found
-- Handle missing keys gracefully
-- Use session state for temporary values only
-- Reset session state when changing configuration
+When contributing to the AI domain (`src/ai/`):
 
-## Making Changes to Models
+1. **Agent System**: 
+   - Follow the existing agent implementation patterns
+   - Ensure proper tool execution handling
+   - Maintain conversation history management
 
-### Adding a New Model Provider
+2. **Tool System**:
+   - Implement the `Tool` interface for new tools
+   - Handle parameter validation properly
+   - Document the tool's purpose and parameters
 
-1. Update `src/constants/models.ts`:
-   - Add new models to the provider's array
-   - Include all required fields (tokens, costs, capabilities)
-   - Add the provider to the `providers` object with name and baseURL
+3. **Model System**:
+   - Implement the `ModelProvider` interface for new providers
+   - Handle API keys securely
+   - Implement proper error handling
 
-2. Update `ModelSelector.tsx`:
-   - Add provider-specific handling if needed
-   - Ensure API key handling works correctly
+### Task Domain Contributions
 
-3. Add any necessary API client code.
+When contributing to the task domain (`src/tasks/`):
 
-### Updating Existing Models
+1. **Graph-of-Thought**:
+   - Follow the existing graph implementation patterns
+   - Ensure proper dependency management
+   - Respect the node type system
 
-When updating existing model information:
+2. **Fibonacci Heap Scheduler**:
+   - Maintain heap property invariants
+   - Ensure proper priority calculations
+   - Handle edge cases correctly
 
-1. Ensure all properties are consistent with other models
-2. Update pricing information if needed
-3. Add new capability flags as required
-4. Test the model selection and API key handling
+### Storage Domain Contributions
 
-## Common Issues and Solutions
+When contributing to the storage domain (`src/storage/`):
 
-### API Key Persistence
+1. **IPFS Integration**:
+   - Use the MCPClient for all IPFS operations
+   - Handle API errors gracefully
+   - Implement proper caching where appropriate
 
-When implementing features that use API keys:
+2. **Cache System**:
+   - Follow the tiered cache pattern
+   - Implement proper invalidation strategies
+   - Handle cache misses gracefully
 
-- Store API keys in the config, not session state
-- Use `addApiKey()` to add keys to the config
-- Check both config and environment variables
-- Reset session state indices when changing providers
+### CLI Domain Contributions
 
-### URL Consistency
+When contributing to the CLI domain (`src/cli/`):
 
-For Lilypad API endpoints:
-- Always use `https://anura-testnet.lilypad.tech/` in both code and documentation
-- Update any references to other URLs to maintain consistency
+1. **Command System**:
+   - Register commands through the command registry
+   - Implement consistent error handling
+   - Provide helpful usage information
+
+2. **UI Components**:
+   - Use React/Ink for terminal UI components
+   - Maintain consistent UI patterns
+   - Ensure accessibility with keyboard navigation
+
+## Cross-Domain Integration
+
+When your contribution spans multiple domains:
+
+1. **Interface Definitions**:
+   - Define clear interfaces in the appropriate `types/` directory
+   - Document the purpose and usage of each interface
+   - Ensure type safety across domain boundaries
+
+2. **Service Composition**:
+   - Create proper composition of services from different domains
+   - Use dependency injection where appropriate
+   - Maintain single responsibility principle
+
+## API-Based Integration
+
+When working with the IPFS Kit MCP Server:
+
+1. **Client Implementation**:
+   - Use the MCPClient class for all operations
+   - Handle authentication properly
+   - Implement error handling and retries
+
+2. **Data Handling**:
+   - Use CIDs consistently for content references
+   - Implement proper serialization/deserialization
+   - Handle binary data correctly
 
 ## Pull Request Process
 
 1. **Fork the Repository**: Create your own fork of the repository.
 2. **Create a Branch**: Work on a feature branch named according to what you're implementing.
-3. **Write Code**: Implement your changes following the coding guidelines.
+3. **Write Code**: Implement your changes following the domain-driven organization.
 4. **Test**: Make sure all tests pass and add new tests for new functionality.
 5. **Document**: Update or add documentation as needed.
 6. **Submit PR**: Create a pull request with a clear description of your changes.
@@ -112,10 +154,11 @@ For Lilypad API endpoints:
 
 Pull requests will be reviewed for:
 
-1. **Code Quality**: Does the code follow our style guidelines?
-2. **Functionality**: Does it work as expected?
-3. **Tests**: Are there appropriate tests?
-4. **Documentation**: Is the code and functionality well-documented?
+1. **Domain Compliance**: Does the code follow our domain-driven organization?
+2. **Type Safety**: Does it properly leverage TypeScript's type system?
+3. **Functionality**: Does it work as expected?
+4. **Tests**: Are there appropriate unit and integration tests?
+5. **Documentation**: Is the code and functionality well-documented?
 
 ## Documentation
 
@@ -129,29 +172,28 @@ Good documentation is essential:
 
 ### Configuration Management
 
-- Use the `getGlobalConfig()` and `saveGlobalConfig()` functions
-- Check if configuration exists before using it
-- Provide useful error messages for missing configuration
+- Use the `ConfigManager` singleton for all configuration
+- Provide sensible defaults for optional configuration
+- Document required configuration settings
 
-### Session State
+### Error Handling
 
-- Use session state for temporary values only
-- Reset session state values when appropriate
-- Don't rely on session state for persistent data
+- Implement proper error handling for all async operations
+- Provide meaningful error messages
+- Use typed error objects where appropriate
 
-### API Integration
+### Testing
 
-- Handle API errors gracefully
-- Provide useful error messages to users
-- Use environment variables for API keys when available
-- Add timeouts and retry logic for unreliable endpoints
+- Write unit tests for individual components
+- Write integration tests for cross-domain functionality
+- Use mock objects appropriately for external dependencies
 
 ## Questions?
 
 If you have questions about contributing, please:
 
-1. Check existing documentation
+1. Check existing documentation in the `docs/` directory
 2. Review code for similar patterns
-3. Ask for help if needed
+3. Look at the architecture diagrams for guidance
 
 Thank you for contributing to SwissKnife!

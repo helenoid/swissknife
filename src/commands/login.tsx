@@ -1,39 +1,43 @@
-import * as React from 'react'
-import type { Command } from '../commands'
-import { ConsoleOAuthFlow } from '../components/ConsoleOAuthFlow'
-import { clearTerminal } from '../utils/terminal'
-import { isLoggedInToAnthropic } from '../utils/auth'
-import { useExitOnCtrlCD } from '../hooks/useExitOnCtrlCD'
-import { Box, Text } from 'ink'
-import { clearConversation } from './clear'
+import * as React from 'react';
+import type { Command, LocalJSXCommand } from '../types/command.js'; // Updated import path
+import { ConsoleOAuthFlow } from '../components/ConsoleOAuthFlow.js'; // Assuming .js extension
+import { clearTerminal } from '../utils/terminal.js'; // Assuming .js extension
+import { isLoggedInToAnthropic } from '../utils/auth.js'; // Assuming .js extension
+import { useExitOnCtrlCD } from '../hooks/useExitOnCtrlCD.js'; // Assuming .js extension
+import { Box, Text } from 'ink';
+import { clearConversation } from './clear.js'; // Assuming .js extension
 
-export default () =>
-  ({
-    type: 'local-jsx',
-    name: 'login',
-    description: isLoggedInToAnthropic()
-      ? 'Switch Anthropic accounts'
-      : 'Sign in with your Anthropic account',
-    isEnabled: true,
-    isHidden: false,
-    async call(onDone, context) {
-      await clearTerminal()
-      return (
-        <Login
-          onDone={async () => {
-            clearConversation(context)
-            onDone()
-          }}
-        />
-      )
-    },
-    userFacingName() {
-      return 'login'
-    },
-  }) satisfies Command
+const loginCommand: LocalJSXCommand = {
+  type: 'local-jsx',
+  name: 'login',
+  description: isLoggedInToAnthropic()
+    ? 'Switch Anthropic accounts'
+    : 'Sign in with your Anthropic account',
+  options: [], // No options for this command
+  isEnabled: true,
+  isHidden: false,
+  async handler(args, onDone, context) { // Renamed call to handler, args is unused
+    await clearTerminal();
+    return (
+      <Login
+        onDone={async () => {
+          // Pass the correct context structure if clearConversation expects it
+          // Assuming clearConversation needs the setForkConvo... part of the context
+          await clearConversation(context);
+          onDone();
+        }}
+      />
+    );
+  },
+  userFacingName() {
+    return 'login';
+  },
+} satisfies Command;
 
+
+// Login component remains the same
 function Login(props: { onDone: () => void }) {
-  const exitState = useExitOnCtrlCD(props.onDone)
+  const exitState = useExitOnCtrlCD(props.onDone);
   return (
     <Box flexDirection="column">
       <ConsoleOAuthFlow onDone={props.onDone} />
@@ -47,5 +51,7 @@ function Login(props: { onDone: () => void }) {
         </Text>
       </Box>
     </Box>
-  )
+  );
 }
+
+export default loginCommand;

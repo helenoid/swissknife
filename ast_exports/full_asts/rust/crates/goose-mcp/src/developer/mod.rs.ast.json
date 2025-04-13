@@ -1,0 +1,483 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/developer/mod.rs",
+  "fileSize": 59382,
+  "lineCount": 1669,
+  "structures": {
+    "structs": [
+      {
+        "name": "DeveloperRouter",
+        "fields": [
+          {
+            "name": "tools",
+            "type": "Vec<Tool>"
+          },
+          {
+            "name": "prompts",
+            "type": "Arc<HashMap<String"
+          },
+          {
+            "name": "instructions",
+            "type": "String"
+          },
+          {
+            "name": "file_history",
+            "type": "Arc<Mutex<HashMap<PathBuf"
+          },
+          {
+            "name": "ignore_patterns",
+            "type": "Arc<Gitignore>"
+          }
+        ],
+        "position": 2537
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "DeveloperRouter",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 2758
+      },
+      {
+        "type": "DeveloperRouter",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 2849
+      },
+      {
+        "type": "DeveloperRouter",
+        "trait": "Router",
+        "methods": [
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "String"
+          }
+        ],
+        "position": 39541
+      },
+      {
+        "type": "DeveloperRouter",
+        "trait": "Clone",
+        "methods": [
+          {
+            "name": "clone",
+            "params": "&self",
+            "returnType": "Self"
+          }
+        ],
+        "position": 42077
+      }
+    ],
+    "functions": [
+      {
+        "name": "load_prompt_files",
+        "params": "",
+        "returnType": "HashMap<String, Prompt>",
+        "position": 1272
+      },
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 2797
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 2876
+      },
+      {
+        "name": "is_ignored",
+        "params": "&self, path: &Path",
+        "returnType": "bool",
+        "position": 17101
+      },
+      {
+        "name": "resolve_path",
+        "params": "&self, path_str: &str",
+        "returnType": "Result<PathBuf, ToolError>",
+        "position": 17305
+      },
+      {
+        "name": "bash",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 18005
+      },
+      {
+        "name": "text_editor",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 20718
+      },
+      {
+        "name": "text_editor_view",
+        "params": "&self, path: &PathBuf",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 22917
+      },
+      {
+        "name": "text_editor_write",
+        "params": "&self,\n        path: &PathBuf,\n        file_text: &str,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 25457
+      },
+      {
+        "name": "text_editor_replace",
+        "params": "&self,\n        path: &PathBuf,\n        old_str: &str,\n        new_str: &str,",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 26699
+      },
+      {
+        "name": "text_editor_undo",
+        "params": "&self, path: &PathBuf",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 30124
+      },
+      {
+        "name": "save_file_history",
+        "params": "&self, path: &PathBuf",
+        "returnType": "Result<(), ToolError>",
+        "position": 31003
+      },
+      {
+        "name": "list_windows",
+        "params": "&self, _params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 31464
+      },
+      {
+        "name": "normalize_mac_screenshot_path",
+        "params": "&self, path: &Path",
+        "returnType": "PathBuf",
+        "position": 32236
+      },
+      {
+        "name": "image_processor",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 33661
+      },
+      {
+        "name": "screen_capture",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 36728
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "String",
+        "position": 39579
+      },
+      {
+        "name": "instructions",
+        "params": "&self",
+        "returnType": "String",
+        "position": 39649
+      },
+      {
+        "name": "capabilities",
+        "params": "&self",
+        "returnType": "ServerCapabilities",
+        "position": 39729
+      },
+      {
+        "name": "list_tools",
+        "params": "&self",
+        "returnType": "Vec<Tool>",
+        "position": 39907
+      },
+      {
+        "name": "call_tool",
+        "params": "&self,\n        tool_name: &str,\n        arguments: Value,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>",
+        "position": 39981
+      },
+      {
+        "name": "list_resources",
+        "params": "&self",
+        "returnType": "Vec<Resource>",
+        "position": 40834
+      },
+      {
+        "name": "read_resource",
+        "params": "&self,\n        _uri: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>",
+        "position": 40908
+      },
+      {
+        "name": "list_prompts",
+        "params": "&self",
+        "returnType": "Vec<Prompt>",
+        "position": 41113
+      },
+      {
+        "name": "get_prompt",
+        "params": "&self,\n        prompt_name: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, PromptError>> + Send + 'static>>",
+        "position": 41213
+      },
+      {
+        "name": "clone",
+        "params": "&self",
+        "returnType": "Self",
+        "position": 42114
+      },
+      {
+        "name": "test_global_goosehints",
+        "params": "",
+        "returnType": null,
+        "position": 42640
+      },
+      {
+        "name": "test_goosehints_when_present",
+        "params": "",
+        "returnType": null,
+        "position": 43974
+      },
+      {
+        "name": "test_goosehints_when_missing",
+        "params": "",
+        "returnType": null,
+        "position": 44368
+      },
+      {
+        "name": "get_router",
+        "params": "",
+        "returnType": "&'static DeveloperRouter",
+        "position": 44750
+      },
+      {
+        "name": "test_shell_missing_parameters",
+        "params": "",
+        "returnType": null,
+        "position": 44946
+      },
+      {
+        "name": "test_windows_specific_commands",
+        "params": "",
+        "returnType": null,
+        "position": 45445
+      },
+      {
+        "name": "test_text_editor_size_limits",
+        "params": "",
+        "returnType": null,
+        "position": 46115
+      },
+      {
+        "name": "test_text_editor_write_and_view_file",
+        "params": "",
+        "returnType": null,
+        "position": 48285
+      },
+      {
+        "name": "test_text_editor_str_replace",
+        "params": "",
+        "returnType": null,
+        "position": 49656
+      },
+      {
+        "name": "test_text_editor_undo_edit",
+        "params": "",
+        "returnType": null,
+        "position": 51727
+      },
+      {
+        "name": "test_goose_ignore_basic_patterns",
+        "params": "",
+        "returnType": null,
+        "position": 53900
+      },
+      {
+        "name": "test_text_editor_respects_ignore_patterns",
+        "params": "",
+        "returnType": null,
+        "position": 55600
+      },
+      {
+        "name": "test_bash_respects_ignore_patterns",
+        "params": "",
+        "returnType": null,
+        "position": 57493
+      }
+    ],
+    "modules": [
+      {
+        "name": "lang",
+        "inline": false,
+        "position": 0
+      },
+      {
+        "name": "shell",
+        "inline": false,
+        "position": 10
+      },
+      {
+        "name": "tests",
+        "inline": true,
+        "position": 42449
+      }
+    ],
+    "uses": [
+      {
+        "path": "anyhow::Result",
+        "position": 22
+      },
+      {
+        "path": "base64::Engine",
+        "position": 42
+      },
+      {
+        "path": "etcetera::{choose_app_strategy, AppStrategy}",
+        "position": 62
+      },
+      {
+        "path": "indoc::formatdoc",
+        "position": 112
+      },
+      {
+        "path": "serde_json::{json, Value}",
+        "position": 134
+      },
+      {
+        "path": "std::{\n    collections::HashMap,\n    future::Future,\n    io::Cursor,\n    path::{Path, PathBuf},\n    pin::Pin,\n}",
+        "position": 165
+      },
+      {
+        "path": "tokio::process::Command",
+        "position": 282
+      },
+      {
+        "path": "url::Url",
+        "position": 311
+      },
+      {
+        "path": "include_dir::{include_dir, Dir}",
+        "position": 326
+      },
+      {
+        "path": "mcp_core::{\n    handler::{PromptError, ResourceError, ToolError},\n    protocol::ServerCapabilities,\n    resource::Resource,\n    tool::Tool,\n    Content,\n}",
+        "position": 363
+      },
+      {
+        "path": "mcp_core::{\n    prompt::{Prompt, PromptArgument, PromptTemplate},\n    tool::ToolAnnotations,\n}",
+        "position": 523
+      },
+      {
+        "path": "mcp_server::router::CapabilitiesBuilder",
+        "position": 623
+      },
+      {
+        "path": "mcp_server::Router",
+        "position": 668
+      },
+      {
+        "path": "mcp_core::role::Role",
+        "position": 693
+      },
+      {
+        "path": "self::shell::{\n    expand_path, format_command_for_platform, get_shell_config, is_absolute_path,\n    normalize_line_endings,\n}",
+        "position": 720
+      },
+      {
+        "path": "indoc::indoc",
+        "position": 852
+      },
+      {
+        "path": "std::process::Stdio",
+        "position": 870
+      },
+      {
+        "path": "std::sync::{Arc, Mutex}",
+        "position": 895
+      },
+      {
+        "path": "xcap::{Monitor, Window}",
+        "position": 924
+      },
+      {
+        "path": "ignore::gitignore::{Gitignore, GitignoreBuilder}",
+        "position": 954
+      },
+      {
+        "path": "// https://docs.rs/ignore/latest/ignore/\n\n        // Get OS-specific shell tool description\n        let shell_tool_desc = match std::env::consts::OS {\n            \"windows\" => indoc! {r#\"\n                Execute a command in the shell.\n\n                This will return the output and error concatenated into a single string, as\n                you would see from running on the command line. There will also be an indication\n                of if the command succeeded or failed.\n\n                Avoid commands that produce a large amount of output, and consider piping those outputs to files.\n\n                **Important**: For searching files and code:\n\n                Preferred: Use ripgrep (`rg`) when available - it respects .gitignore and is fast:\n                  - To locate a file by name: `rg --files | rg example.py`\n                  - To locate content inside files: `rg 'class Example'`\n\n                Alternative Windows commands (if ripgrep is not installed):\n                  - To locate a file by name: `dir /s /b example.py`\n                  - To locate content inside files: `findstr /s /i \"class Example\" *.py`\n\n                Note: Alternative commands may show ignored/hidden files that should be excluded.\n            \"#},\n            _ => indoc! {r#\"\n                Execute a command in the shell.\n\n                This will return the output and error concatenated into a single string, as\n                you would see from running on the command line. There will also be an indication\n                of if the command succeeded or failed.\n\n                Avoid commands that produce a large amount of output, and consider piping those outputs to files.\n                If you need to run a long lived command, background it - e.g. `uvicorn main:app &` so that\n                this tool does not run indefinitely.\n\n                **Important**: Each shell command runs in its own process. Things like directory changes or\n                sourcing files do not persist between tool calls. So you may need to repeat them each time by\n                stringing together commands, e.g. `cd example && ls` or `source env/bin/activate && pip install numpy`\n\n                **Important**: Use ripgrep - `rg` - when you need to locate a file or a code reference, other solutions\n                may show ignored or hidden files. For example *do not* use `find` or `ls -r`\n                  - List files by name: `rg --files | rg <filename>`\n                  - List files that contain a regex: `rg '<regex>' -l`\n            \"#},\n        }",
+        "position": 2959
+      },
+      {
+        "path": "the write command, you must specify `file_text` which will become the new content of the file. Be careful with\n                existing files! This is a full overwrite, so you must include everything - not just sections you are modifying.\n\n                To use the str_replace command, you must specify both `old_str` and `new_str` - the `old_str` needs to exactly match one\n                unique section of the original file, including any whitespace. Make sure to include enough context that the match is not\n                ambiguous. The entire original string will be replaced with `new_str`.\n            \"#}.to_string(),\n            json!({\n                \"type\": \"object\",\n                \"required\": [\"command\", \"path\"],\n                \"properties\": {\n                    \"path\": {\n                        \"description\": \"Absolute path to file or directory, e.g. `/repo/file.py` or `/repo`.\",\n                        \"type\": \"string\"\n                    },\n                    \"command\": {\n                        \"type\": \"string\",\n                        \"enum\": [\"view\", \"write\", \"str_replace\", \"undo_edit\"],\n                        \"description\": \"Allowed options are: `view`, `write`, `str_replace`, undo_edit`.\"\n                    },\n                    \"old_str\": {\"type\": \"string\"},\n                    \"new_str\": {\"type\": \"string\"},\n                    \"file_text\": {\"type\": \"string\"}\n                }\n            }),\n            None,\n        )",
+        "position": 6453
+      },
+      {
+        "path": "the list_windows tool to find the available windows.\"\n                    }\n                }\n            }),\n            Some(ToolAnnotations {\n                title: Some(\"Capture a full screen\".to_string()),\n                read_only_hint: true,\n                destructive_hint: false,\n                idempotent_hint: false,\n                open_world_hint: false,\n            }),\n        )",
+        "position": 9707
+      },
+      {
+        "path": "in the conversation.\n            \"#},\n            json!({\n                \"type\": \"object\",\n                \"required\": [\"path\"],\n                \"properties\": {\n                    \"path\": {\n                        \"type\": \"string\",\n                        \"description\": \"Absolute path to the image file to process\"\n                    }\n                }\n            }),\n            Some(ToolAnnotations {\n                title: Some(\"Process Image\".to_string()),\n                read_only_hint: true,\n                destructive_hint: false,\n                idempotent_hint: true,\n                open_world_hint: false,\n            }),\n        )",
+        "position": 10511
+      },
+      {
+        "path": "the shell tool to run Windows commands (PowerShell or CMD).\n                When using paths, you can use either backslashes or forward slashes.\n\n                Use the shell tool as needed to locate files or interact with the project.\n\n                Your windows/screen tools can be used for visual debugging. You should not use these tools unless\n                prompted to, but you can mention they are available if they are relevant.\n\n                operating system: {os}\n                current directory: {cwd}\n\n                \"#,\n                os=os,\n                cwd=cwd.to_string_lossy(),\n            },\n            _ => formatdoc! {r#\"\n                The developer extension gives you the capabilities to edit code files and run shell commands,\n                and can be used to solve a wide range of problems.\n\n            You can use the shell tool to run any command that would work on the relevant operating system.\n            Use the shell tool as needed to locate files or interact with the project.\n\n            Your windows/screen tools can be used for visual debugging. You should not use these tools unless\n            prompted to, but you can mention they are available if they are relevant.\n\n            operating system: {os}\n            current directory: {cwd}\n\n                \"#,\n                os=os,\n                cwd=cwd.to_string_lossy(),\n            },\n        }",
+        "position": 11636
+      },
+      {
+        "path": "default patterns if no .gooseignore files were found\n        // If the file is empty, we will not ignore any file\n        if !has_ignore_file {\n            // Add some sensible defaults\n            let _ = builder.add_line(None, \"**/.env\")",
+        "position": 16135
+      },
+      {
+        "path": "the content is already in the tool request\n        // but we do show it to the user here\n        Ok(vec![\n            Content::text(format!(\"Successfully wrote to {}\", path.display()))\n                .with_audience(vec![Role::Assistant]),\n            Content::text(formatdoc! {r#\"\n                ### {path}\n                ```{language}\n                {content}\n                ```\n                \"#,\n                path=path.display(),\n                language=language,\n                content=file_text,\n            })\n            .with_audience(vec![Role::User])\n            .with_priority(0.2),\n        ])\n    }\n\n    async fn text_editor_replace(\n        &self,\n        path: &PathBuf,\n        old_str: &str,\n        new_str: &str,\n    ) -> Result<Vec<Content>, ToolError> {\n        // Check if file exists and is active\n        if !path.exists() {\n            return Err(ToolError::InvalidParameters(format!(\n                \"File '{}' does not exist, you can write a new file with the `write` command\",\n                path.display()\n            )))",
+        "position": 26062
+      },
+      {
+        "path": "super::*",
+        "position": 42465
+      },
+      {
+        "path": "serde_json::json",
+        "position": 42483
+      },
+      {
+        "path": "serial_test::serial",
+        "position": 42509
+      },
+      {
+        "path": "std::fs",
+        "position": 42538
+      },
+      {
+        "path": "tempfile::TempDir",
+        "position": 42555
+      },
+      {
+        "path": "tokio::sync::OnceCell",
+        "position": 42582
+      },
+      {
+        "path": "default tools\n            prompts: Arc::new(HashMap::new()),\n            instructions: String::new(),\n            file_history: Arc::new(Mutex::new(HashMap::new())),\n            ignore_patterns: Arc::new(ignore_patterns),\n        }",
+        "position": 56107
+      },
+      {
+        "path": "default tools\n            prompts: Arc::new(HashMap::new()),\n            instructions: String::new(),\n            file_history: Arc::new(Mutex::new(HashMap::new())),\n            ignore_patterns: Arc::new(ignore_patterns),\n        }",
+        "position": 57993
+      }
+    ]
+  }
+}

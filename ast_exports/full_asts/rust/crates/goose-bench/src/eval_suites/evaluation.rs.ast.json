@@ -1,0 +1,109 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/eval_suites/evaluation.rs",
+  "fileSize": 1087,
+  "lineCount": 48,
+  "structures": {
+    "structs": [
+      {
+        "name": "EvalMetric",
+        "fields": [
+          {
+            "name": "name",
+            "type": "String"
+          },
+          {
+            "name": "value",
+            "type": "EvalMetricValue"
+          }
+        ],
+        "position": 407
+      },
+      {
+        "name": "ExtensionRequirements",
+        "fields": [
+          {
+            "name": "builtin",
+            "type": "Vec<String>"
+          },
+          {
+            "name": "external",
+            "type": "Vec<String>"
+          },
+          {
+            "name": "remote",
+            "type": "Vec<String>"
+          }
+        ],
+        "position": 514
+      }
+    ],
+    "enums": [
+      {
+        "name": "EvalMetricValue",
+        "variants": [
+          "Integer",
+          "Float",
+          "String",
+          "Boolean"
+        ],
+        "position": 277
+      }
+    ],
+    "traits": [
+      {
+        "name": "Evaluation",
+        "methods": [
+          {
+            "name": "run",
+            "params": "&self,\n        agent: &mut BenchAgent,\n        run_loc: &mut BenchmarkWorkDir,",
+            "returnType": "Result<Vec<(String, EvalMetricValue)>>"
+          },
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "&str"
+          },
+          {
+            "name": "required_extensions",
+            "params": "&self",
+            "returnType": "ExtensionRequirements"
+          }
+        ],
+        "position": 657
+      }
+    ],
+    "impls": [],
+    "functions": [
+      {
+        "name": "run",
+        "params": "&self,\n        agent: &mut BenchAgent,\n        run_loc: &mut BenchmarkWorkDir,",
+        "returnType": "Result<Vec<(String, EvalMetricValue)>>;\n\n    fn name(&self) -> &str;\n\n    fn required_extensions(&self) -> ExtensionRequirements",
+        "position": 703
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "crate::bench_session::BenchAgent",
+        "position": 0
+      },
+      {
+        "path": "crate::bench_work_dir::BenchmarkWorkDir",
+        "position": 38
+      },
+      {
+        "path": "anyhow::Result",
+        "position": 83
+      },
+      {
+        "path": "async_trait::async_trait",
+        "position": 103
+      },
+      {
+        "path": "serde::{Deserialize, Serialize}",
+        "position": 133
+      }
+    ]
+  }
+}

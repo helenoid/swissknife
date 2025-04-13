@@ -1,0 +1,739 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "ClassDef",
+      "lineno": 2,
+      "col_offset": 0,
+      "name": "libp2p_kit",
+      "bases": [],
+      "keywords": [],
+      "body": [
+        {
+          "type": "FunctionDef",
+          "lineno": 3,
+          "col_offset": 1,
+          "name": "__init__",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 3,
+                "col_offset": 14,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 3,
+                "col_offset": 20,
+                "arg": "resources",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 3,
+                "col_offset": 31,
+                "arg": "meta",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": null,
+            "defaults": [
+              {
+                "type": "Constant",
+                "lineno": 3,
+                "col_offset": 36,
+                "value": null,
+                "kind": null
+              }
+            ]
+          },
+          "body": [
+            {
+              "type": "Pass",
+              "lineno": 4,
+              "col_offset": 2
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 6,
+          "col_offset": 1,
+          "name": "__call__",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 6,
+                "col_offset": 14,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              },
+              {
+                "type": "arg",
+                "lineno": 6,
+                "col_offset": 20,
+                "arg": "method",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 6,
+              "col_offset": 30,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "If",
+              "lineno": 7,
+              "col_offset": 2,
+              "test": {
+                "type": "Compare",
+                "lineno": 7,
+                "col_offset": 5,
+                "left": {
+                  "type": "Name",
+                  "lineno": 7,
+                  "col_offset": 5,
+                  "id": "method"
+                },
+                "ops": [
+                  {
+                    "type": "Eq"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 7,
+                    "col_offset": 15,
+                    "value": "list_peers",
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Return",
+                  "lineno": 8,
+                  "col_offset": 3,
+                  "value": {
+                    "type": "Call",
+                    "lineno": 8,
+                    "col_offset": 10,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 8,
+                      "col_offset": 10,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 8,
+                        "col_offset": 10,
+                        "id": "self"
+                      },
+                      "attr": "list_peers"
+                    },
+                    "args": [],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 8,
+                        "col_offset": 26,
+                        "arg": null,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 8,
+                          "col_offset": 28,
+                          "id": "kwargs"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "orelse": [
+                {
+                  "type": "If",
+                  "lineno": 9,
+                  "col_offset": 2,
+                  "test": {
+                    "type": "Compare",
+                    "lineno": 9,
+                    "col_offset": 7,
+                    "left": {
+                      "type": "Name",
+                      "lineno": 9,
+                      "col_offset": 7,
+                      "id": "method"
+                    },
+                    "ops": [
+                      {
+                        "type": "Eq"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Constant",
+                        "lineno": 9,
+                        "col_offset": 17,
+                        "value": "connect",
+                        "kind": null
+                      }
+                    ]
+                  },
+                  "body": [
+                    {
+                      "type": "Return",
+                      "lineno": 10,
+                      "col_offset": 3,
+                      "value": {
+                        "type": "Call",
+                        "lineno": 10,
+                        "col_offset": 10,
+                        "func": {
+                          "type": "Attribute",
+                          "lineno": 10,
+                          "col_offset": 10,
+                          "value": {
+                            "type": "Name",
+                            "lineno": 10,
+                            "col_offset": 10,
+                            "id": "self"
+                          },
+                          "attr": "connect"
+                        },
+                        "args": [],
+                        "keywords": [
+                          {
+                            "type": "keyword",
+                            "lineno": 10,
+                            "col_offset": 23,
+                            "arg": null,
+                            "value": {
+                              "type": "Name",
+                              "lineno": 10,
+                              "col_offset": 25,
+                              "id": "kwargs"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "orelse": [
+                    {
+                      "type": "If",
+                      "lineno": 11,
+                      "col_offset": 2,
+                      "test": {
+                        "type": "Compare",
+                        "lineno": 11,
+                        "col_offset": 7,
+                        "left": {
+                          "type": "Name",
+                          "lineno": 11,
+                          "col_offset": 7,
+                          "id": "method"
+                        },
+                        "ops": [
+                          {
+                            "type": "Eq"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "lineno": 11,
+                            "col_offset": 17,
+                            "value": "disconnect",
+                            "kind": null
+                          }
+                        ]
+                      },
+                      "body": [
+                        {
+                          "type": "Return",
+                          "lineno": 12,
+                          "col_offset": 3,
+                          "value": {
+                            "type": "Call",
+                            "lineno": 12,
+                            "col_offset": 10,
+                            "func": {
+                              "type": "Attribute",
+                              "lineno": 12,
+                              "col_offset": 10,
+                              "value": {
+                                "type": "Name",
+                                "lineno": 12,
+                                "col_offset": 10,
+                                "id": "self"
+                              },
+                              "attr": "disconnect"
+                            },
+                            "args": [],
+                            "keywords": [
+                              {
+                                "type": "keyword",
+                                "lineno": 12,
+                                "col_offset": 26,
+                                "arg": null,
+                                "value": {
+                                  "type": "Name",
+                                  "lineno": 12,
+                                  "col_offset": 28,
+                                  "id": "kwargs"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "orelse": [
+                        {
+                          "type": "If",
+                          "lineno": 13,
+                          "col_offset": 2,
+                          "test": {
+                            "type": "Compare",
+                            "lineno": 13,
+                            "col_offset": 7,
+                            "left": {
+                              "type": "Name",
+                              "lineno": 13,
+                              "col_offset": 7,
+                              "id": "method"
+                            },
+                            "ops": [
+                              {
+                                "type": "Eq"
+                              }
+                            ],
+                            "comparators": [
+                              {
+                                "type": "Constant",
+                                "lineno": 13,
+                                "col_offset": 17,
+                                "value": "send",
+                                "kind": null
+                              }
+                            ]
+                          },
+                          "body": [
+                            {
+                              "type": "Return",
+                              "lineno": 14,
+                              "col_offset": 3,
+                              "value": {
+                                "type": "Call",
+                                "lineno": 14,
+                                "col_offset": 10,
+                                "func": {
+                                  "type": "Attribute",
+                                  "lineno": 14,
+                                  "col_offset": 10,
+                                  "value": {
+                                    "type": "Name",
+                                    "lineno": 14,
+                                    "col_offset": 10,
+                                    "id": "self"
+                                  },
+                                  "attr": "send"
+                                },
+                                "args": [],
+                                "keywords": [
+                                  {
+                                    "type": "keyword",
+                                    "lineno": 14,
+                                    "col_offset": 20,
+                                    "arg": null,
+                                    "value": {
+                                      "type": "Name",
+                                      "lineno": 14,
+                                      "col_offset": 22,
+                                      "id": "kwargs"
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ],
+                          "orelse": [
+                            {
+                              "type": "If",
+                              "lineno": 15,
+                              "col_offset": 2,
+                              "test": {
+                                "type": "Compare",
+                                "lineno": 15,
+                                "col_offset": 7,
+                                "left": {
+                                  "type": "Name",
+                                  "lineno": 15,
+                                  "col_offset": 7,
+                                  "id": "method"
+                                },
+                                "ops": [
+                                  {
+                                    "type": "Eq"
+                                  }
+                                ],
+                                "comparators": [
+                                  {
+                                    "type": "Constant",
+                                    "lineno": 15,
+                                    "col_offset": 17,
+                                    "value": "receive",
+                                    "kind": null
+                                  }
+                                ]
+                              },
+                              "body": [
+                                {
+                                  "type": "Return",
+                                  "lineno": 16,
+                                  "col_offset": 3,
+                                  "value": {
+                                    "type": "Call",
+                                    "lineno": 16,
+                                    "col_offset": 10,
+                                    "func": {
+                                      "type": "Attribute",
+                                      "lineno": 16,
+                                      "col_offset": 10,
+                                      "value": {
+                                        "type": "Name",
+                                        "lineno": 16,
+                                        "col_offset": 10,
+                                        "id": "self"
+                                      },
+                                      "attr": "receive"
+                                    },
+                                    "args": [],
+                                    "keywords": [
+                                      {
+                                        "type": "keyword",
+                                        "lineno": 16,
+                                        "col_offset": 23,
+                                        "arg": null,
+                                        "value": {
+                                          "type": "Name",
+                                          "lineno": 16,
+                                          "col_offset": 25,
+                                          "id": "kwargs"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ],
+                              "orelse": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "If",
+              "lineno": 17,
+              "col_offset": 2,
+              "test": {
+                "type": "Compare",
+                "lineno": 17,
+                "col_offset": 5,
+                "left": {
+                  "type": "Name",
+                  "lineno": 17,
+                  "col_offset": 5,
+                  "id": "method"
+                },
+                "ops": [
+                  {
+                    "type": "Eq"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 17,
+                    "col_offset": 14,
+                    "value": "add_peer",
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Return",
+                  "lineno": 18,
+                  "col_offset": 3,
+                  "value": {
+                    "type": "Call",
+                    "lineno": 18,
+                    "col_offset": 10,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 18,
+                      "col_offset": 10,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 18,
+                        "col_offset": 10,
+                        "id": "self"
+                      },
+                      "attr": "add_peer"
+                    },
+                    "args": [],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 18,
+                        "col_offset": 24,
+                        "arg": null,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 18,
+                          "col_offset": 26,
+                          "id": "kwargs"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "orelse": []
+            },
+            {
+              "type": "If",
+              "lineno": 19,
+              "col_offset": 2,
+              "test": {
+                "type": "Compare",
+                "lineno": 19,
+                "col_offset": 5,
+                "left": {
+                  "type": "Name",
+                  "lineno": 19,
+                  "col_offset": 5,
+                  "id": "method"
+                },
+                "ops": [
+                  {
+                    "type": "Eq"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "lineno": 19,
+                    "col_offset": 14,
+                    "value": "remove_peer",
+                    "kind": null
+                  }
+                ]
+              },
+              "body": [
+                {
+                  "type": "Return",
+                  "lineno": 20,
+                  "col_offset": 3,
+                  "value": {
+                    "type": "Call",
+                    "lineno": 20,
+                    "col_offset": 10,
+                    "func": {
+                      "type": "Attribute",
+                      "lineno": 20,
+                      "col_offset": 10,
+                      "value": {
+                        "type": "Name",
+                        "lineno": 20,
+                        "col_offset": 10,
+                        "id": "self"
+                      },
+                      "attr": "remove_peer"
+                    },
+                    "args": [],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "lineno": 20,
+                        "col_offset": 27,
+                        "arg": null,
+                        "value": {
+                          "type": "Name",
+                          "lineno": 20,
+                          "col_offset": 29,
+                          "id": "kwargs"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "orelse": [
+                {
+                  "type": "Raise",
+                  "lineno": 22,
+                  "col_offset": 3,
+                  "exc": {
+                    "type": "Call",
+                    "lineno": 22,
+                    "col_offset": 9,
+                    "func": {
+                      "type": "Name",
+                      "lineno": 22,
+                      "col_offset": 9,
+                      "id": "Exception"
+                    },
+                    "args": [
+                      {
+                        "type": "BinOp",
+                        "lineno": 22,
+                        "col_offset": 19,
+                        "left": {
+                          "type": "Constant",
+                          "lineno": 22,
+                          "col_offset": 19,
+                          "value": "unknown method: %s",
+                          "kind": null
+                        },
+                        "op": {
+                          "type": "Mod"
+                        },
+                        "right": {
+                          "type": "Name",
+                          "lineno": 22,
+                          "col_offset": 42,
+                          "id": "method"
+                        }
+                      }
+                    ],
+                    "keywords": []
+                  },
+                  "cause": null
+                }
+              ]
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        },
+        {
+          "type": "FunctionDef",
+          "lineno": 24,
+          "col_offset": 1,
+          "name": "connect",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "lineno": 24,
+                "col_offset": 13,
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": {
+              "type": "arg",
+              "lineno": 24,
+              "col_offset": 21,
+              "arg": "kwargs",
+              "annotation": null,
+              "type_comment": null
+            },
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "Return",
+              "lineno": 26,
+              "col_offset": 2,
+              "value": {
+                "type": "Dict",
+                "lineno": 26,
+                "col_offset": 9,
+                "keys": [
+                  {
+                    "type": "Constant",
+                    "lineno": 27,
+                    "col_offset": 12,
+                    "value": "text",
+                    "kind": null
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 28,
+                    "col_offset": 12,
+                    "value": "done",
+                    "kind": null
+                  }
+                ],
+                "values": [
+                  {
+                    "type": "Name",
+                    "lineno": 27,
+                    "col_offset": 20,
+                    "id": "self"
+                  },
+                  {
+                    "type": "Constant",
+                    "lineno": 28,
+                    "col_offset": 20,
+                    "value": true,
+                    "kind": null
+                  }
+                ]
+              }
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": []
+        }
+      ],
+      "decorator_list": [],
+      "type_params": []
+    }
+  ],
+  "type_ignores": []
+}

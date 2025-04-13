@@ -1,30 +1,31 @@
-import React from 'react'
-import { render } from 'ink'
-import { ModelSelector } from '../components/ModelSelector'
-import { enableConfigs } from '../utils/config'
+import * as React from 'react';
+import type { Command, LocalJSXCommand } from '../types/command.js'; // Updated import path
+import { ModelSelector } from '../components/ModelSelector.js'; // Assuming .js extension
+import { enableConfigs } from '../utils/config.js'; // Assuming .js extension
 
-export const help = 'Change your AI provider and model settings'
-export const description = 'Change your AI provider and model settings'
-export const isEnabled = true
-export const isHidden = false
-export const name = 'model'
-export const type = 'local-jsx'
+const modelCommand: LocalJSXCommand = {
+  name: 'model',
+  description: 'Change your AI provider and model settings',
+  options: [], // No options for this command
+  isEnabled: true,
+  isHidden: false,
+  type: 'local-jsx',
+  userFacingName(): string {
+    return this.name;
+  },
+  async handler(args, onDone, context) { // Renamed call to handler, args is unused
+    enableConfigs();
+    // context.abortController?.abort?.(); // Removed: abortController not in context type
+    return (
+      <ModelSelector
+        onDone={() => {
+          onDone();
+        }}
+      />
+    );
+  },
+} satisfies Command;
 
-export function userFacingName(): string {
-  return name
-}
+export default modelCommand;
 
-export async function call(
-  onDone: (result?: string) => void,
-  { abortController }: { abortController?: AbortController },
-): Promise<React.ReactNode> {
-  enableConfigs()
-  abortController?.abort?.()
-  return (
-    <ModelSelector
-      onDone={() => {
-        onDone()
-      }}
-    />
-  )
-}
+// Note: The exported 'help' variable is removed as description covers it.

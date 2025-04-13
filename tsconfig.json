@@ -2,46 +2,47 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "NodeNext",
     "lib": [
       "ES2022",
-      "DOM",
+      "DOM", // Keep DOM libs if UI components might interact with DOM-like structures or for broader type compatibility
       "DOM.Iterable"
     ],
     "esModuleInterop": true,
-    "strict": false,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": false,
+    "strict": true, // Enable all strict type-checking options
+    // "noImplicitAny": true, // Implied by strict: true
+    "skipLibCheck": true, // Keep for faster builds
+    "forceConsistentCasingInFileNames": true, // Enforce consistent file casing
     "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": false,
-    "outDir": "dist",
-    "rootDir": "src",
-    "jsx": "react",
-    "declaration": false,
-    "sourceMap": true,
-    "baseUrl": ".",
+    // "allowJs": false, // Disallow JavaScript files
+    // "checkJs": false, // Not relevant without allowJs
+    "outDir": "dist", // Output directory
+    "rootDir": ".", // Set rootDir to project root to include both src and test
+    "jsx": "react", // Keep for Ink/React components
+    "declaration": true, // Generate .d.ts files
+    "sourceMap": true, // Generate source maps for debugging
+    "baseUrl": ".", // Keep baseUrl for path mapping
     "paths": {
-      "*": ["node_modules/*", "src/types/*", "src/*"]
+      "@/*": ["src/*"] // Use standard alias for src
+      // "*": ["node_modules/*"] // Default node_modules resolution works without this
     },
-    "types": ["node", "jest"],
-    "allowSyntheticDefaultImports": true,
-    "noEmitOnError": false,
-    "ignoreDeprecations": "5.0",
-    "useUnknownInCatchVariables": false,
-    "noErrorTruncation": true,
-    "noEmit": false,
-    "skipDefaultLibCheck": true,
-    "isolatedModules": true,
-    "allowUnreachableCode": true,
-    "allowUnusedLabels": true,
-    "noFallthroughCasesInSwitch": false,
-    "noImplicitReturns": false,
-    "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "types": ["node", "jest"], // Specify environment types
+    "allowSyntheticDefaultImports": true, // Keep for compatibility
+    // "noEmitOnError": false, // Default is false
+    // "ignoreDeprecations": "5.0", // Avoid ignoring deprecations
+    // "useUnknownInCatchVariables": false, // Default is false in TS 4.4+, true is safer (implied by strict)
+    // "noErrorTruncation": true, // Not typically needed
+    // "noEmit": false, // We want to emit JS files to 'dist'
+    // "skipDefaultLibCheck": true, // Covered by skipLibCheck
+    // "isolatedModules": true, // Remove unless specifically needed for transpiler like Babel
+    // "allowUnreachableCode": false, // Implied by strict: true (will error)
+    // "allowUnusedLabels": false, // Implied by strict: true (will error)
+    // "noFallthroughCasesInSwitch": true, // Good practice, implied by strict: true
+    "noImplicitReturns": true, // Ensure all code paths return a value
+    // "noPropertyAccessFromIndexSignature": false, // Consider enabling later if needed
+    // "noUncheckedIndexedAccess": false, // Consider enabling later for stricter index access
+    "noUnusedLocals": true, // Error on unused local variables
+    "noUnusedParameters": true, // Error on unused function parameters
     "plugins": [
       {
         "transform": "ts-transform-define",
@@ -52,7 +53,7 @@
       }
     ]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test/**/*"], // Include test files for path alias resolution
   "exclude": ["node_modules", "dist"],
   "ts-node": {
     "esm": true,
@@ -62,4 +63,4 @@
       "module": "NodeNext"
     }
   }
-} 
+}

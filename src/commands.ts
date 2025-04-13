@@ -1,124 +1,116 @@
-import bug from './commands/bug'
-import clear from './commands/clear'
-import compact from './commands/compact'
-import config from './commands/config'
-import cost from './commands/cost'
-import ctx_viz from './commands/ctx_viz'
-import doctor from './commands/doctor'
-import help from './commands/help'
-import init from './commands/init'
-import listen from './commands/listen'
-import login from './commands/login'
-import logout from './commands/logout'
-import mcp from './commands/mcp'
-import * as model from './commands/model'
-import onboarding from './commands/onboarding'
-import pr_comments from './commands/pr_comments'
-import releaseNotes from './commands/release-notes'
-import review from './commands/review'
-import terminalSetup from './commands/terminalSetup'
-import { Tool, ToolUseContext } from './Tool'
-import resume from './commands/resume'
-import { getMCPCommands } from './services/mcpClient'
-import type { MessageParam } from '@anthropic-ai/sdk/resources/index.mjs'
-import { memoize } from 'lodash-es'
-import type { Message } from './query'
-import { isAnthropicAuthEnabled } from './utils/auth'
+// Import the new Command type and the registry
+import type { Command } from './types/command.js';
+import { commandRegistry } from './command-registry.js';
 
-type PromptCommand = {
-  type: 'prompt'
-  progressMessage: string
-  argNames?: string[]
-  getPromptForCommand(args: string): Promise<MessageParam[]>
-}
+// Import refactored command objects
+import approvedToolsCommand from './commands/approved-tools.js';
+import bugCommand from './commands/bug.js';
+import clearCommand from './commands/clear.js';
+import compactCommand from './commands/compact.js';
+import configCommand from './commands/config.js';
+import costCommand from './commands/cost.js';
+import ctxVizCommand from './commands/ctx_viz.js';
+import doctorCommand from './commands/doctor.js';
+import helpCommand from './commands/help.js';
+import initCommand from './commands/init.js';
+import listenCommand from './commands/listen.js';
+import loginCommand from './commands/login.js';
+import logoutCommand from './commands/logout.js';
+import mcpCommand from './commands/mcp.js';
+import modelCommand from './commands/model.js';
+import onboardingCommand from './commands/onboarding.js';
+import prCommentsCommand from './commands/pr_comments.js';
+import releaseNotesCommand from './commands/release-notes.js';
+import resumeCommand from './commands/resume.js';
+import reviewCommand from './commands/review.js';
+import terminalSetupCommand from './commands/terminalSetup.js';
 
-type LocalCommand = {
-  type: 'local'
-  call(
-    args: string,
-    context: {
-      options: {
-        commands: Command[]
-        tools: Tool[]
-        slowAndCapableModel: string
-      }
-      abortController: AbortController
-      setForkConvoWithMessagesOnTheNextRender: (
-        forkConvoWithMessages: Message[],
-      ) => void
-    },
-  ): Promise<string>
-}
+// Import MCP version management commands
+import { mcpVersionCommands } from './commands/mcp-version-commands.js';
 
-type LocalJSXCommand = {
-  type: 'local-jsx'
-  call(
-    onDone: (result?: string) => void,
-    context: ToolUseContext & {
-      setForkConvoWithMessagesOnTheNextRender: (
-        forkConvoWithMessages: Message[],
-      ) => void
-    },
-  ): Promise<React.ReactNode>
-}
+// Import Phase 1 integration commands
+import gotCommand from './commands/got.js';
+import schedulerCommand from './commands/scheduler.js';
+import gooseCommand from './commands/goose.js';
 
-export type Command = {
-  description: string
-  isEnabled: boolean
-  isHidden: boolean
-  name: string
-  aliases?: string[]
-  userFacingName(): string
-} & (PromptCommand | LocalCommand | LocalJSXCommand)
+// Import utilities
+import { getMCPCommands } from './services/mcpClient.js';
+import { memoize } from 'lodash-es';
+import { isAnthropicAuthEnabled } from './utils/auth.js';
 
-const INTERNAL_ONLY_COMMANDS = [ctx_viz, resume, listen]
+// Register all built-in commands
+// Note: login() was previously a function call, now it's just the command object
+const builtInCommands = [
+  approvedToolsCommand,
+  bugCommand,
+  clearCommand,
+  compactCommand,
+  configCommand,
+  costCommand,
+  ctxVizCommand, // Was internal
+  doctorCommand,
+  helpCommand,
+  initCommand,
+  listenCommand, // Was internal
+  mcpCommand,
+  modelCommand,
+  onboardingCommand,
+  prCommentsCommand,
+  releaseNotesCommand,
+  resumeCommand, // Was internal
+  reviewCommand,
+  terminalSetupCommand,
+  ...(isAnthropicAuthEnabled() ? [logoutCommand, loginCommand] : []),
+  
+  // MCP version management commands
+  ...mcpVersionCommands,
+  
+  // Phase 1 integration commands
+  gotCommand,
+  schedulerCommand,
+  gooseCommand,
+];
 
-// Declared as a function so that we don't run this until getCommands is called,
-// since underlying functions read from config, which can't be read at module initialization time
-const COMMANDS = memoize((): Command[] => [
-  clear,
-  compact,
-  config,
-  cost,
-  doctor,
-  help,
-  init,
-  mcp,
-  model,
-  onboarding,
-  pr_comments,
-  releaseNotes,
-  bug,
-  review,
-  terminalSetup,
-  ...(isAnthropicAuthEnabled() ? [logout, login()] : []),
-  ...INTERNAL_ONLY_COMMANDS,
-])
+commandRegistry.register(builtInCommands);
 
+
+// --- Updated Functions ---
+
+// Keep memoization for potentially expensive MCP command fetching
 export const getCommands = memoize(async (): Promise<Command[]> => {
-  return [...(await getMCPCommands()), ...COMMANDS()].filter(_ => _.isEnabled)
-})
+  // Fetch MCP commands and combine with registered built-in commands
+  const mcpCommands = await getMCPCommands();
+  commandRegistry.register(mcpCommands); // Register MCP commands too
 
-export function hasCommand(commandName: string, commands: Command[]): boolean {
-  return commands.some(
-    _ => _.userFacingName() === commandName || _.aliases?.includes(commandName),
-  )
+  // Return all enabled commands from the registry
+  return commandRegistry.getAllCommands().filter(cmd => cmd.isEnabled !== false); // Check explicitly for false
+});
+
+export async function hasCommand(commandName: string): Promise<boolean> {
+  // Check against the registry after ensuring commands are loaded
+  await getCommands(); // Ensure registry is populated
+  return !!commandRegistry.getCommand(commandName);
 }
 
-export function getCommand(commandName: string, commands: Command[]): Command {
-  const command = commands.find(
-    _ => _.userFacingName() === commandName || _.aliases?.includes(commandName),
-  ) as Command | undefined
+export async function getCommand(commandName: string): Promise<Command> {
+  // Get from the registry after ensuring commands are loaded
+  await getCommands(); // Ensure registry is populated
+  const command = commandRegistry.getCommand(commandName);
   if (!command) {
+    // Generate error message based on currently available commands in registry
+    const availableCommands = commandRegistry.getAllCommands()
+      .filter(cmd => cmd.isEnabled !== false && cmd.isHidden !== true) // Filter enabled and not hidden
+      .map(cmd => {
+        const name = cmd.userFacingName();
+        return cmd.aliases ? `${name} (aliases: ${cmd.aliases.join(', ')})` : name;
+      })
+      .join(', ');
     throw ReferenceError(
-      `Command ${commandName} not found. Available commands: ${commands
-        .map(_ => {
-          const name = _.userFacingName()
-          return _.aliases ? `${name} (aliases: ${_.aliases.join(', ')})` : name
-        })
-        .join(', ')}`,
-    )
+      `Command "${commandName}" not found. Available commands: ${availableCommands || 'None'}`,
+    );
   }
-
-  return command
+  return command;
 }
+
+// Re-export the Command type from the new location
+export type { Command };

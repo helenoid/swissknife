@@ -1,0 +1,46 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-bench/src/eval_suites/core/mod.rs",
+  "fileSize": 115,
+  "lineCount": 7,
+  "structures": {
+    "structs": [],
+    "enums": [],
+    "traits": [],
+    "impls": [],
+    "functions": [],
+    "modules": [
+      {
+        "name": "computercontroller",
+        "inline": false,
+        "position": 0
+      },
+      {
+        "name": "developer",
+        "inline": false,
+        "position": 24
+      },
+      {
+        "name": "developer_image",
+        "inline": false,
+        "position": 39
+      },
+      {
+        "name": "developer_search_replace",
+        "inline": false,
+        "position": 60
+      },
+      {
+        "name": "example",
+        "inline": false,
+        "position": 90
+      },
+      {
+        "name": "memory",
+        "inline": false,
+        "position": 103
+      }
+    ],
+    "uses": []
+  }
+}

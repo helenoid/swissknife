@@ -1,0 +1,293 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/computercontroller/mod.rs",
+  "fileSize": 51913,
+  "lineCount": 1242,
+  "structures": {
+    "structs": [
+      {
+        "name": "ComputerControllerRouter",
+        "fields": [
+          {
+            "name": "tools",
+            "type": "Vec<Tool>"
+          },
+          {
+            "name": "cache_dir",
+            "type": "PathBuf"
+          },
+          {
+            "name": "active_resources",
+            "type": "Arc<Mutex<HashMap<String"
+          },
+          {
+            "name": "http_client",
+            "type": "Client"
+          },
+          {
+            "name": "instructions",
+            "type": "String"
+          },
+          {
+            "name": "system_automation",
+            "type": "Arc<Box<dyn SystemAutomation + Send + Sync>>"
+          }
+        ],
+        "position": 860
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "ComputerControllerRouter",
+        "trait": "Default",
+        "methods": [
+          {
+            "name": "default",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 1128
+      },
+      {
+        "type": "ComputerControllerRouter",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 1228
+      },
+      {
+        "type": "ComputerControllerRouter",
+        "trait": "Router",
+        "methods": [
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "String"
+          }
+        ],
+        "position": 47318
+      }
+    ],
+    "functions": [
+      {
+        "name": "default",
+        "params": "",
+        "returnType": "Self",
+        "position": 1176
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 1264
+      },
+      {
+        "name": "get_cache_path",
+        "params": "&self, prefix: &str, extension: &str",
+        "returnType": "PathBuf",
+        "position": 26497
+      },
+      {
+        "name": "save_to_cache",
+        "params": "&self,\n        content: &[u8],\n        prefix: &str,\n        extension: &str,",
+        "returnType": "Result<PathBuf, ToolError>",
+        "position": 26793
+      },
+      {
+        "name": "register_as_resource",
+        "params": "&self, cache_path: &PathBuf, mime_type: &str",
+        "returnType": "Result<(), ToolError>",
+        "position": 27228
+      },
+      {
+        "name": "web_scrape",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 27826
+      },
+      {
+        "name": "quick_script",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 30508
+      },
+      {
+        "name": "computer_control",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 34208
+      },
+      {
+        "name": "xlsx_tool",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 35424
+      },
+      {
+        "name": "docx_tool",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 42913
+      },
+      {
+        "name": "pdf_tool",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 43602
+      },
+      {
+        "name": "cache",
+        "params": "&self, params: Value",
+        "returnType": "Result<Vec<Content>, ToolError>",
+        "position": 44167
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "String",
+        "position": 47365
+      },
+      {
+        "name": "instructions",
+        "params": "&self",
+        "returnType": "String",
+        "position": 47453
+      },
+      {
+        "name": "capabilities",
+        "params": "&self",
+        "returnType": "ServerCapabilities",
+        "position": 47533
+      },
+      {
+        "name": "list_tools",
+        "params": "&self",
+        "returnType": "Vec<Tool>",
+        "position": 47720
+      },
+      {
+        "name": "call_tool",
+        "params": "&self,\n        tool_name: &str,\n        arguments: Value,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>",
+        "position": 47794
+      },
+      {
+        "name": "list_resources",
+        "params": "&self",
+        "returnType": "Vec<Resource>",
+        "position": 49489
+      },
+      {
+        "name": "read_resource",
+        "params": "&self,\n        uri: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>",
+        "position": 49764
+      },
+      {
+        "name": "list_prompts",
+        "params": "&self",
+        "returnType": "Vec<Prompt>",
+        "position": 51473
+      },
+      {
+        "name": "get_prompt",
+        "params": "&self,\n        prompt_name: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, PromptError>> + Send + 'static>>",
+        "position": 51539
+      }
+    ],
+    "modules": [
+      {
+        "name": "docx_tool",
+        "inline": false,
+        "position": 568
+      },
+      {
+        "name": "pdf_tool",
+        "inline": false,
+        "position": 583
+      },
+      {
+        "name": "presentation_tool",
+        "inline": false,
+        "position": 597
+      },
+      {
+        "name": "xlsx_tool",
+        "inline": false,
+        "position": 620
+      },
+      {
+        "name": "platform",
+        "inline": false,
+        "position": 636
+      }
+    ],
+    "uses": [
+      {
+        "path": "base64::Engine",
+        "position": 0
+      },
+      {
+        "path": "etcetera::{choose_app_strategy, AppStrategy}",
+        "position": 20
+      },
+      {
+        "path": "indoc::{formatdoc, indoc}",
+        "position": 70
+      },
+      {
+        "path": "reqwest::{Client, Url}",
+        "position": 101
+      },
+      {
+        "path": "serde_json::{json, Value}",
+        "position": 129
+      },
+      {
+        "path": "std::{\n    collections::HashMap, fs, future::Future, path::PathBuf, pin::Pin, sync::Arc, sync::Mutex,\n}",
+        "position": 160
+      },
+      {
+        "path": "tokio::process::Command",
+        "position": 269
+      },
+      {
+        "path": "mcp_core::{\n    handler::{PromptError, ResourceError, ToolError},\n    prompt::Prompt,\n    protocol::ServerCapabilities,\n    resource::Resource,\n    tool::{Tool, ToolAnnotations},\n    Content,\n}",
+        "position": 299
+      },
+      {
+        "path": "mcp_server::router::CapabilitiesBuilder",
+        "position": 498
+      },
+      {
+        "path": "mcp_server::Router",
+        "position": 543
+      },
+      {
+        "path": "platform::{create_system_automation, SystemAutomation}",
+        "position": 650
+      },
+      {
+        "path": "developer tools to modify the HTML directly.\n                A template slide is included in comments for reference.\n            \"#},\n            json!({\n                \"type\": \"object\",\n                \"required\": [\"path\", \"operation\"],\n                \"properties\": {\n                    \"path\": {\n                        \"type\": \"string\",\n                        \"description\": \"Path to the presentation file\"\n                    },\n                    \"operation\": {\n                        \"type\": \"string\",\n                        \"enum\": [\"create\", \"add_slide\"],\n                        \"description\": \"Operation to perform\"\n                    },\n                    \"params\": {\n                        \"type\": \"object\",\n                        \"description\": \"Parameters for add_slide operation\",\n                        \"properties\": {\n                            \"content\": {\n                                \"type\": \"string\",\n                                \"description\": \"Content for the new slide\"\n                            }\n                        }\n                    }\n                }\n            }),\n            None,\n        )",
+        "position": 15587
+      },
+      {
+        "path": "input\n              - Automating UI interactions\n              - Desktop environment control\n            \"#},\n        }",
+        "position": 23710
+      },
+      {
+        "path": "development tools to help assist them.\n            The user may not know how to break down tasks, so you will need to ensure that you do, and run things in batches as needed.\n            The ComputerControllerExtension helps you with common tasks like web scraping,\n            data processing, and automation without requiring programming expertise.\n\n            You can use scripting as needed to work with text files of data, such as csvs, json, or text files etc.\n            Using the developer extension is allowed for more sophisticated tasks or instructed to (js or py can be helpful for more complex tasks if tools are available).\n\n            Accessing web sites, even apis, may be common (you can use scripting to do this) without troubling them too much (they won't know what limits are).\n            Try to do your best to find ways to complete a task without too many questions or offering options unless it is really unclear, find a way if you can.\n            You can also guide them steps if they can help out as you go along.\n\n            There is already a screenshot tool available you can use if needed to see what is on screen.\n\n            {os_instructions}\n\n            web_scrape\n              - Fetch content from html websites and APIs\n              - Save as text, JSON, or binary files\n              - Content is cached locally for later use\n              - This is not optimised for complex websites, so don't use this as the first tool.\n            cache\n              - Manage your cached files\n              - List, view, delete files\n              - Clear all cached data\n            The extension automatically manages:\n            - Cache directory: {cache_dir}\n            - File organization and cleanup\n            \"#,\n            os_instructions = os_specific_instructions,\n            cache_dir = cache_dir.display()\n        }",
+        "position": 23984
+      }
+    ]
+  }
+}

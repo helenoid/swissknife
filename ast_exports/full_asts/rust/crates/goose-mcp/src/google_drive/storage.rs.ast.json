@@ -1,0 +1,271 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/google_drive/storage.rs",
+  "fileSize": 11894,
+  "lineCount": 345,
+  "structures": {
+    "structs": [
+      {
+        "name": "CredentialsManager",
+        "fields": [
+          {
+            "name": "credentials_path",
+            "type": "String"
+          },
+          {
+            "name": "fallback_to_disk",
+            "type": "bool"
+          },
+          {
+            "name": "keychain_service",
+            "type": "String"
+          },
+          {
+            "name": "keychain_username",
+            "type": "String"
+          }
+        ],
+        "position": 872
+      },
+      {
+        "name": "OAuthToken",
+        "fields": [
+          {
+            "name": "access_token",
+            "type": "String"
+          },
+          {
+            "name": "refresh_token",
+            "type": "String"
+          },
+          {
+            "name": "expiry",
+            "type": "u64"
+          }
+        ],
+        "position": 2150
+      },
+      {
+        "name": "OAuthToken",
+        "fields": [
+          {
+            "name": "access_token",
+            "type": "String"
+          },
+          {
+            "name": "refresh_token",
+            "type": "String"
+          },
+          {
+            "name": "expiry",
+            "type": "u64"
+          }
+        ],
+        "position": 5143
+      },
+      {
+        "name": "TestCredentials",
+        "fields": [
+          {
+            "name": "access_token",
+            "type": "String"
+          },
+          {
+            "name": "refresh_token",
+            "type": "String"
+          },
+          {
+            "name": "expiry",
+            "type": "u64"
+          }
+        ],
+        "position": 8151
+      }
+    ],
+    "enums": [
+      {
+        "name": "StorageError",
+        "variants": [
+          "error",
+          "Failed",
+          "to",
+          "access",
+          "keychain"
+        ],
+        "position": 222
+      }
+    ],
+    "traits": [],
+    "impls": [
+      {
+        "type": "CredentialsManager",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "credentials_path: String,\n        fallback_to_disk: bool,\n        keychain_service: String,\n        keychain_username: String,",
+            "returnType": "Self"
+          }
+        ],
+        "position": 1026
+      },
+      {
+        "type": "CredentialsManager",
+        "trait": "Clone",
+        "methods": [
+          {
+            "name": "clone",
+            "params": "&self",
+            "returnType": "Self"
+          }
+        ],
+        "position": 7641
+      },
+      {
+        "type": "TestCredentials",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 8269
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "credentials_path: String,\n        fallback_to_disk: bool,\n        keychain_service: String,\n        keychain_username: String,",
+        "returnType": "Self",
+        "position": 1056
+      },
+      {
+        "name": "read_credentials",
+        "params": "&self",
+        "returnType": "Result<T, StorageError>\n    where\n        T: DeserializeOwned,",
+        "position": 2752
+      },
+      {
+        "name": "read_from_file",
+        "params": "&self",
+        "returnType": "Result<String, StorageError>",
+        "position": 3656
+      },
+      {
+        "name": "write_credentials",
+        "params": "&self, content: &T",
+        "returnType": "Result<(), StorageError>\n    where\n        T: Serialize,",
+        "position": 5894
+      },
+      {
+        "name": "write_to_file",
+        "params": "&self, content: &str",
+        "returnType": "Result<(), StorageError>",
+        "position": 6678
+      },
+      {
+        "name": "clone",
+        "params": "&self",
+        "returnType": "Self",
+        "position": 7681
+      },
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 8300
+      },
+      {
+        "name": "test_read_write_from_keychain",
+        "params": "",
+        "returnType": null,
+        "position": 8549
+      },
+      {
+        "name": "test_no_fallback_not_found",
+        "params": "",
+        "returnType": null,
+        "position": 9874
+      },
+      {
+        "name": "test_serialization_error",
+        "params": "",
+        "returnType": null,
+        "position": 10822
+      },
+      {
+        "name": "test_file_system_error_handling",
+        "params": "",
+        "returnType": null,
+        "position": 11192
+      }
+    ],
+    "modules": [
+      {
+        "name": "tests",
+        "inline": true,
+        "position": 7992
+      }
+    ],
+    "uses": [
+      {
+        "path": "anyhow::Result",
+        "position": 0
+      },
+      {
+        "path": "keyring::Entry",
+        "position": 20
+      },
+      {
+        "path": "serde::{de::DeserializeOwned, Serialize}",
+        "position": 40
+      },
+      {
+        "path": "std::fs",
+        "position": 86
+      },
+      {
+        "path": "std::path::Path",
+        "position": 99
+      },
+      {
+        "path": "thiserror::Error",
+        "position": 120
+      },
+      {
+        "path": "tracing::{debug, error, warn}",
+        "position": 142
+      },
+      {
+        "path": "goose_mcp::google_drive::storage::CredentialsManager",
+        "position": 1989
+      },
+      {
+        "path": "serde::{Serialize, Deserialize}",
+        "position": 2055
+      },
+      {
+        "path": "goose_mcp::google_drive::storage::CredentialsManager",
+        "position": 4982
+      },
+      {
+        "path": "serde::{Serialize, Deserialize}",
+        "position": 5048
+      },
+      {
+        "path": "super::*",
+        "position": 8008
+      },
+      {
+        "path": "serde::{Deserialize, Serialize}",
+        "position": 8026
+      },
+      {
+        "path": "tempfile::tempdir",
+        "position": 8067
+      }
+    ]
+  }
+}

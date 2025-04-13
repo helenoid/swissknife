@@ -1,0 +1,1001 @@
+{
+  "functions": [
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/build_read_me.js",
+      "functions": [
+        {
+          "type": "function",
+          "name": "buildReadMe",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "buildReadMe",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let skill in worker_test_results"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "data != undefined"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "typeof data == \"string\""
+        },
+        {
+          "type": "method",
+          "name": "catch",
+          "params": "err"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "json_data != undefined"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "json_data[\"done\"] == true"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let skill in cloudkit_test_results"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/buld_config.js",
+      "functions": []
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/master/master.js",
+      "functions": [
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let i = 0; i < this_commands.length; i++"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/civitsync/civit.js",
+      "functions": [
+        {
+          "type": "function",
+          "name": "fetchModelList",
+          "params": "{ num }"
+        },
+        {
+          "type": "method",
+          "name": "fetchModelList",
+          "params": "{ num }"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let page=0; page<pages.length; page++"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let { name, description, nsfw, stats, modelVersions } of models"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "!bestFile"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "bestFile.virusScanResult !== 'Success'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "inpaintingVersions.length != 0"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "inpaintingFiles.length != 0"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "instructVersions.length != 0"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "instructFiles.length != 0"
+        },
+        {
+          "type": "function",
+          "name": "createDownloadStream",
+          "params": "url"
+        },
+        {
+          "type": "method",
+          "name": "createDownloadStream",
+          "params": "url"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/civitsync/sync.js",
+      "functions": [
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let key of ['TOP_N_MODELS', 'REGISTRY_HOST', 'REGISTRY_USER', 'REGISTRY_PASSWORD', 'REGISTRY_DATABASE', 'S3_ACCESS_KEY', 'S3_SECRET_KEY', 'S3_ENDPOINT']"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "!process.env[key]"
+        },
+        {
+          "type": "function",
+          "name": "sync",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "sync",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let i = 0; i < modelsKeys.length; i++"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"sd\""
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"inpainting\""
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"instruct\""
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"sd\""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let { id, downloadUrl, fileExt, ...model } of modelsToUpdate"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"inpainting\""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let { id, downloadUrl, fileExt, ...model } of modelsToUpdate"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"instruct\""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "let { id, downloadUrl, fileExt, ...model } of modelsToUpdate"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "modelsToUpload.length > 0"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"sd\""
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"inpainting\""
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "key == \"instruct\""
+        },
+        {
+          "type": "function",
+          "name": "run",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "run",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "while",
+          "params": "true"
+        },
+        {
+          "type": "method",
+          "name": "catch",
+          "params": "error"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/convert/checkpoint_diffusion_convert.js",
+      "functions": []
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/convert/checkpoint_gguf_convert.js",
+      "functions": [
+        {
+          "type": "function",
+          "name": "convert_fp32_to_gguf",
+          "params": "path"
+        },
+        {
+          "type": "method",
+          "name": "convert_fp32_to_gguf",
+          "params": "path"
+        },
+        {
+          "type": "function",
+          "name": "convert_fp16_to_gguf",
+          "params": "path"
+        },
+        {
+          "type": "method",
+          "name": "convert_fp16_to_gguf",
+          "params": "path"
+        },
+        {
+          "type": "function",
+          "name": "convert_ggml_to_gguf",
+          "params": "path"
+        },
+        {
+          "type": "method",
+          "name": "convert_ggml_to_gguf",
+          "params": "path"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/convert/convert.js",
+      "functions": [
+        {
+          "type": "function",
+          "name": "convert_gguf",
+          "params": "generate, manifest"
+        },
+        {
+          "type": "method",
+          "name": "convert_gguf",
+          "params": "generate, manifest"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_ggml",
+          "params": "generate, manifest"
+        },
+        {
+          "type": "method",
+          "name": "convert_ggml",
+          "params": "generate, manifest"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_llama_fp16_bak",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_llama_fp16_bak",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "ctx_length != undefined"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "quantization != \"f16\""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_llama_fp16",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_llama_fp16",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "ctx_length != undefined"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "quantization != \"f32\""
+        },
+        {
+          "type": "method",
+          "name": "catch",
+          "params": "err"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var i = 0; i < file_structure.length; i++"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_llama_fp32",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_llama_fp32",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "ctx_length != undefined"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "quantization != \"f32\""
+        },
+        {
+          "type": "method",
+          "name": "catch",
+          "params": "err"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var i = 0; i < file_structure.length; i++"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_safetensor_hf",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_safetensor_hf",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_ckpt_hf",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_ckpt_hf",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_safetensor_ckpt",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_safetensor_ckpt",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_ckpt_safetensor",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_ckpt_safetensor",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_hf_ckpt",
+          "params": "generate, manifest, source_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_hf_ckpt",
+          "params": "generate, manifest, source_path"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_hf_safetensor",
+          "params": "generate, manifest, source_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_hf_safetensor",
+          "params": "generate, manifest, source_path"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var file in files"
+        },
+        {
+          "type": "function",
+          "name": "convert_model",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_model",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "function",
+          "name": "convert",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.skill == \"llama_cpp\""
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.format == 'gguf'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.format == 'ggml'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.format == 'llama_fp16'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.format == 'llama_fp32'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.skill == \"diffusion\""
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.format == 'safetensor'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.format == 'ckpt'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "generate.format == 'hf'"
+        },
+        {
+          "type": "function",
+          "name": "convert_and_move",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "convert_and_move",
+          "params": "generate, manifest, this_path"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "old_format != new_format"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/convert/quantize_gguf.js",
+      "functions": []
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/generate_manifest.js",
+      "functions": [
+        {
+          "type": "method",
+          "name": "constructor",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "__init__",
+          "params": "self"
+        },
+        {
+          "type": "method",
+          "name": "main",
+          "params": "generate"
+        },
+        {
+          "type": "function",
+          "name": "custom_calc",
+          "params": "self"
+        },
+        {
+          "type": "method",
+          "name": "custom_calc",
+          "params": "self"
+        },
+        {
+          "type": "function",
+          "name": "generate",
+          "params": "generate"
+        },
+        {
+          "type": "method",
+          "name": "generate",
+          "params": "generate"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'hf_t5'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'hf_embed'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'llama_cpp_kit'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'diffusion_kit'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'ipfs_knn'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'openai_api'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'other'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'hf_wav2vec'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'hf_faster_whisper'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'hf_floyd'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'hf_contronlet'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'hf_lm'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'hf_instruct_pix2pix'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'dataset_resources'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'enhancement_kit'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'coqui_tts_kit'"
+        },
+        {
+          "type": "method",
+          "name": "if",
+          "params": "model_type == 'custom'"
+        }
+      ]
+    },
+    {
+      "filePath": "/home/barberb/swissknife/swissknife_old/swissknife/models/generator.js",
+      "functions": [
+        {
+          "type": "function",
+          "name": "data_llama_cpp",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "data_llama_cpp",
+          "params": ""
+        },
+        {
+          "type": "function",
+          "name": "template_llama_cpp_format",
+          "params": "index"
+        },
+        {
+          "type": "method",
+          "name": "template_llama_cpp_format",
+          "params": "index"
+        },
+        {
+          "type": "function",
+          "name": "template_hf_lm",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_hf_lm",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_hf_wav2vec",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_hf_wav2vec",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_diffusion_kit",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_diffusion_kit",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_hf_instruct_pix2pix",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_hf_instruct_pix2pix",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_hf_floyd",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_hf_floyd",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_openai_hf_lm",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_openai_hf_lm",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_openai_api",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_openai_api",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_other",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_other",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_coqui_tts_kit",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_coqui_tts_kit",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_dataset_resources",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_dataset_resources",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_hf_controlnet",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_hf_controlnet",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_ipfs_knn",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_ipfs_knn",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_llama_cpp",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_llama_cpp",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var quantization in quantizations"
+        },
+        {
+          "type": "function",
+          "name": "template_hf_t5",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_hf_t5",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_hf_faster_whisper",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_hf_faster_whisper",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "function",
+          "name": "template_hf_embed",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "template_hf_embed",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "for",
+          "params": "var model in models"
+        },
+        {
+          "type": "method",
+          "name": "constructor",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "__init__",
+          "params": ""
+        },
+        {
+          "type": "method",
+          "name": "main",
+          "params": ""
+        }
+      ]
+    }
+  ]
+}

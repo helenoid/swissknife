@@ -1,16 +1,23 @@
 import { Box, Text } from 'ink'
 import * as React from 'react'
 import { z } from 'zod'
-import { FallbackToolUseRejectedMessage } from '../../components/FallbackToolUseRejectedMessage'
-import { type Tool } from '../../Tool'
-import { getTheme } from '../../utils/theme'
-import { DESCRIPTION, PROMPT } from './prompt'
-import { OutputLine } from '../BashTool/OutputLine'
+import { FallbackToolUseRejectedMessage } from '../../components/FallbackToolUseRejectedMessage.js'
+import { Tool } from '../../Tool.js'
+import { getTheme } from '../../utils/theme.js'
+import { DESCRIPTION, PROMPT } from './prompt.js'
+import { OutputLine } from '../BashTool/OutputLine.js'
 
 // Allow any input object since MCP tools define their own schemas
 const inputSchema = z.object({}).passthrough()
 
-export const MCPTool = {
+export type MCPToolType = Tool & {
+  renderToolUseMessage: (input: Record<string, unknown>) => string;
+  renderToolUseRejectedMessage: () => React.ReactNode;
+  renderToolResultMessage: (output: any, options: { verbose: boolean }) => React.ReactNode;
+  renderResultForAssistant: (content: any) => any;
+};
+
+export const MCPTool: MCPToolType = {
   async isEnabled() {
     return true
   },
@@ -100,4 +107,4 @@ export const MCPTool = {
   renderResultForAssistant(content) {
     return content
   },
-} satisfies Tool<typeof inputSchema, string>
+}

@@ -1,0 +1,234 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-client/src/client.rs",
+  "fileSize": 12933,
+  "lineCount": 392,
+  "structures": {
+    "structs": [
+      {
+        "name": "ClientInfo",
+        "fields": [
+          {
+            "name": "name",
+            "type": "String"
+          },
+          {
+            "name": "version",
+            "type": "String"
+          }
+        ],
+        "position": 1701
+      },
+      {
+        "name": "ClientCapabilities",
+        "fields": [],
+        "position": 1818
+      },
+      {
+        "name": "InitializeParams",
+        "fields": [
+          {
+            "name": "protocol_version",
+            "type": "String"
+          },
+          {
+            "name": "capabilities",
+            "type": "ClientCapabilities"
+          },
+          {
+            "name": "client_info",
+            "type": "ClientInfo"
+          }
+        ],
+        "position": 1954
+      }
+    ],
+    "enums": [
+      {
+        "name": "Error",
+        "variants": [
+          "error",
+          "Transport",
+          "error"
+        ],
+        "position": 647
+      }
+    ],
+    "traits": [
+      {
+        "name": "McpClientTrait",
+        "methods": [
+          {
+            "name": "initialize",
+            "params": "&mut self,\n        info: ClientInfo,\n        capabilities: ClientCapabilities,",
+            "returnType": "Result<InitializeResult, Error>"
+          },
+          {
+            "name": "list_resources",
+            "params": "&self,\n        next_cursor: Option<String>,",
+            "returnType": "Result<ListResourcesResult, Error>"
+          },
+          {
+            "name": "read_resource",
+            "params": "&self, uri: &str",
+            "returnType": "Result<ReadResourceResult, Error>"
+          },
+          {
+            "name": "list_tools",
+            "params": "&self, next_cursor: Option<String>",
+            "returnType": "Result<ListToolsResult, Error>"
+          },
+          {
+            "name": "call_tool",
+            "params": "&self, name: &str, arguments: Value",
+            "returnType": "Result<CallToolResult, Error>"
+          },
+          {
+            "name": "list_prompts",
+            "params": "&self, next_cursor: Option<String>",
+            "returnType": "Result<ListPromptsResult, Error>"
+          },
+          {
+            "name": "get_prompt",
+            "params": "&self, name: &str, arguments: Value",
+            "returnType": "Result<GetPromptResult, Error>"
+          }
+        ],
+        "position": 2201
+      }
+    ],
+    "impls": [
+      {
+        "type": "Error",
+        "trait": "From<BoxError>",
+        "methods": [
+          {
+            "name": "from",
+            "params": "err: BoxError",
+            "returnType": "Self"
+          }
+        ],
+        "position": 1554
+      }
+    ],
+    "functions": [
+      {
+        "name": "from",
+        "params": "err: BoxError",
+        "returnType": "Self",
+        "position": 1590
+      },
+      {
+        "name": "initialize",
+        "params": "&mut self,\n        info: ClientInfo,\n        capabilities: ClientCapabilities,",
+        "returnType": "Result<InitializeResult, Error>;\n\n    async fn list_resources(\n        &self,\n        next_cursor: Option<String>,\n    ) -> Result<ListResourcesResult, Error>;\n\n    async fn read_resource(&self, uri: &str) -> Result<ReadResourceResult, Error>;\n\n    async fn list_tools(&self, next_cursor: Option<String>) -> Result<ListToolsResult, Error>;\n\n    async fn call_tool(&self, name: &str, arguments: Value) -> Result<CallToolResult, Error>;\n\n    async fn list_prompts(&self, next_cursor: Option<String>) -> Result<ListPromptsResult, Error>;\n\n    async fn get_prompt(&self, name: &str, arguments: Value) -> Result<GetPromptResult, Error>;\n}\n\n/// The MCP client is the interface for MCP operations.\npub struct McpClient<S>\nwhere\n    S: Service<JsonRpcMessage, Response = JsonRpcMessage> + Clone + Send + Sync + 'static,\n    S::Error: Into<Error>,\n    S::Future: Send,",
+        "position": 2251
+      },
+      {
+        "name": "new",
+        "params": "service: S",
+        "returnType": "Self",
+        "position": 3540
+      },
+      {
+        "name": "send_request",
+        "params": "&self, method: &str, params: Value",
+        "returnType": "Result<R, Error>\n    where\n        R: for<'de> Deserialize<'de>,",
+        "position": 3841
+      },
+      {
+        "name": "send_notification",
+        "params": "&self, method: &str, params: Value",
+        "returnType": "Result<(), Error>",
+        "position": 6483
+      },
+      {
+        "name": "completed_initialization",
+        "params": "&self",
+        "returnType": "bool",
+        "position": 7459
+      },
+      {
+        "name": "initialize",
+        "params": "&mut self,\n        info: ClientInfo,\n        capabilities: ClientCapabilities,",
+        "returnType": "Result<InitializeResult, Error>",
+        "position": 7781
+      },
+      {
+        "name": "list_resources",
+        "params": "&self,\n        next_cursor: Option<String>,",
+        "returnType": "Result<ListResourcesResult, Error>",
+        "position": 8501
+      },
+      {
+        "name": "read_resource",
+        "params": "&self, uri: &str",
+        "returnType": "Result<ReadResourceResult, Error>",
+        "position": 9305
+      },
+      {
+        "name": "list_tools",
+        "params": "&self, next_cursor: Option<String>",
+        "returnType": "Result<ListToolsResult, Error>",
+        "position": 10015
+      },
+      {
+        "name": "call_tool",
+        "params": "&self, name: &str, arguments: Value",
+        "returnType": "Result<CallToolResult, Error>",
+        "position": 10695
+      },
+      {
+        "name": "list_prompts",
+        "params": "&self, next_cursor: Option<String>",
+        "returnType": "Result<ListPromptsResult, Error>",
+        "position": 11527
+      },
+      {
+        "name": "get_prompt",
+        "params": "&self, name: &str, arguments: Value",
+        "returnType": "Result<GetPromptResult, Error>",
+        "position": 12273
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "mcp_core::protocol::{\n    CallToolResult, GetPromptResult, Implementation, InitializeResult, JsonRpcError,\n    JsonRpcMessage, JsonRpcNotification, JsonRpcRequest, JsonRpcResponse, ListPromptsResult,\n    ListResourcesResult, ListToolsResult, ReadResourceResult, ServerCapabilities, METHOD_NOT_FOUND,\n}",
+        "position": 0
+      },
+      {
+        "path": "serde::{Deserialize, Serialize}",
+        "position": 307
+      },
+      {
+        "path": "serde_json::Value",
+        "position": 344
+      },
+      {
+        "path": "std::sync::atomic::{AtomicU64, Ordering}",
+        "position": 367
+      },
+      {
+        "path": "thiserror::Error",
+        "position": 413
+      },
+      {
+        "path": "tokio::sync::Mutex",
+        "position": 435
+      },
+      {
+        "path": "tower::{Service, ServiceExt}",
+        "position": 459
+      },
+      {
+        "path": "it can be really large\n                source: Box::new(e.into()),\n            })?",
+        "position": 4782
+      },
+      {
+        "path": "it can be really large\n                source: Box::new(e.into()),\n            })?",
+        "position": 7288
+      }
+    ]
+  }
+}

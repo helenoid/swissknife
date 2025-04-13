@@ -1,0 +1,195 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/mcp-server/src/main.rs",
+  "fileSize": 8023,
+  "lineCount": 240,
+  "structures": {
+    "structs": [
+      {
+        "name": "CounterRouter",
+        "fields": [
+          {
+            "name": "counter",
+            "type": "Arc<Mutex<i32>>"
+          }
+        ],
+        "position": 716
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "CounterRouter",
+        "trait": null,
+        "methods": [
+          {
+            "name": "new",
+            "params": "",
+            "returnType": "Self"
+          }
+        ],
+        "position": 772
+      },
+      {
+        "type": "CounterRouter",
+        "trait": "Router",
+        "methods": [
+          {
+            "name": "name",
+            "params": "&self",
+            "returnType": "String"
+          }
+        ],
+        "position": 1527
+      }
+    ],
+    "functions": [
+      {
+        "name": "new",
+        "params": "",
+        "returnType": "Self",
+        "position": 797
+      },
+      {
+        "name": "increment",
+        "params": "&self",
+        "returnType": "Result<i32, ToolError>",
+        "position": 904
+      },
+      {
+        "name": "decrement",
+        "params": "&self",
+        "returnType": "Result<i32, ToolError>",
+        "position": 1066
+      },
+      {
+        "name": "get_value",
+        "params": "&self",
+        "returnType": "Result<i32, ToolError>",
+        "position": 1228
+      },
+      {
+        "name": "_create_resource_text",
+        "params": "&self, uri: &str, name: &str",
+        "returnType": "Resource",
+        "position": 1357
+      },
+      {
+        "name": "name",
+        "params": "&self",
+        "returnType": "String",
+        "position": 1563
+      },
+      {
+        "name": "instructions",
+        "params": "&self",
+        "returnType": "String",
+        "position": 1631
+      },
+      {
+        "name": "capabilities",
+        "params": "&self",
+        "returnType": "ServerCapabilities",
+        "position": 1909
+      },
+      {
+        "name": "list_tools",
+        "params": "&self",
+        "returnType": "Vec<Tool>",
+        "position": 2129
+      },
+      {
+        "name": "call_tool",
+        "params": "&self,\n        tool_name: &str,\n        _arguments: Value,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<Vec<Content>, ToolError>> + Send + 'static>>",
+        "position": 4008
+      },
+      {
+        "name": "list_resources",
+        "params": "&self",
+        "returnType": "Vec<Resource>",
+        "position": 4967
+      },
+      {
+        "name": "read_resource",
+        "params": "&self,\n        uri: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, ResourceError>> + Send + 'static>>",
+        "position": 5196
+      },
+      {
+        "name": "list_prompts",
+        "params": "&self",
+        "returnType": "Vec<Prompt>",
+        "position": 6009
+      },
+      {
+        "name": "get_prompt",
+        "params": "&self,\n        prompt_name: &str,",
+        "returnType": "Pin<Box<dyn Future<Output = Result<String, PromptError>> + Send + 'static>>",
+        "position": 6436
+      },
+      {
+        "name": "main",
+        "params": "",
+        "returnType": "Result<()>",
+        "position": 7106
+      }
+    ],
+    "modules": [],
+    "uses": [
+      {
+        "path": "anyhow::Result",
+        "position": 0
+      },
+      {
+        "path": "mcp_core::content::Content",
+        "position": 20
+      },
+      {
+        "path": "mcp_core::handler::{PromptError, ResourceError}",
+        "position": 52
+      },
+      {
+        "path": "mcp_core::prompt::{Prompt, PromptArgument}",
+        "position": 105
+      },
+      {
+        "path": "mcp_core::tool::ToolAnnotations",
+        "position": 153
+      },
+      {
+        "path": "mcp_core::{handler::ToolError, protocol::ServerCapabilities, resource::Resource, tool::Tool}",
+        "position": 190
+      },
+      {
+        "path": "mcp_server::router::{CapabilitiesBuilder, RouterService}",
+        "position": 288
+      },
+      {
+        "path": "mcp_server::{ByteTransport, Router, Server}",
+        "position": 350
+      },
+      {
+        "path": "serde_json::Value",
+        "position": 399
+      },
+      {
+        "path": "std::{future::Future, pin::Pin, sync::Arc}",
+        "position": 422
+      },
+      {
+        "path": "tokio::{\n    io::{stdin, stdout},\n    sync::Mutex,\n}",
+        "position": 470
+      },
+      {
+        "path": "tracing_appender::rolling::{RollingFileAppender, Rotation}",
+        "position": 528
+      },
+      {
+        "path": "tracing_subscriber::{self, EnvFilter}",
+        "position": 592
+      }
+    ]
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "type": "File",
+  "path": "/home/barberb/swissknife/goose/crates/goose-mcp/src/computercontroller/xlsx_tool.rs",
+  "fileSize": 10361,
+  "lineCount": 332,
+  "structures": {
+    "structs": [
+      {
+        "name": "WorksheetInfo",
+        "fields": [
+          {
+            "name": "name",
+            "type": "String"
+          },
+          {
+            "name": "index",
+            "type": "usize"
+          },
+          {
+            "name": "column_count",
+            "type": "usize"
+          },
+          {
+            "name": "row_count",
+            "type": "usize"
+          }
+        ],
+        "position": 179
+      },
+      {
+        "name": "CellValue",
+        "fields": [
+          {
+            "name": "value",
+            "type": "String"
+          },
+          {
+            "name": "formula",
+            "type": "Option<String>"
+          }
+        ],
+        "position": 333
+      },
+      {
+        "name": "RangeData",
+        "fields": [
+          {
+            "name": "start_row",
+            "type": "u32"
+          },
+          {
+            "name": "end_row",
+            "type": "u32"
+          },
+          {
+            "name": "start_col",
+            "type": "u32"
+          },
+          {
+            "name": "end_col",
+            "type": "u32"
+          },
+          {
+            "name": "columns",
+            "type": "values[row_index][column_index]\n    values: Vec<Vec<CellValue>>"
+          }
+        ],
+        "position": 448
+      },
+      {
+        "name": "XlsxTool",
+        "fields": [
+          {
+            "name": "workbook",
+            "type": "Spreadsheet"
+          }
+        ],
+        "position": 676
+      }
+    ],
+    "enums": [],
+    "traits": [],
+    "impls": [
+      {
+        "type": "XlsxTool",
+        "trait": null,
+        "methods": [],
+        "position": 728
+      }
+    ],
+    "functions": [
+      {
+        "name": "list_worksheets",
+        "params": "&self",
+        "returnType": "Result<Vec<WorksheetInfo>>",
+        "position": 960
+      },
+      {
+        "name": "get_worksheet_by_name",
+        "params": "&self, name: &str",
+        "returnType": "Result<&Worksheet>",
+        "position": 1482
+      },
+      {
+        "name": "get_worksheet_by_index",
+        "params": "&self, index: usize",
+        "returnType": "Result<&Worksheet>",
+        "position": 1668
+      },
+      {
+        "name": "get_worksheet_dimensions",
+        "params": "&self, worksheet: &Worksheet",
+        "returnType": "Result<(usize, usize)>",
+        "position": 1890
+      },
+      {
+        "name": "get_column_names",
+        "params": "&self, worksheet: &Worksheet",
+        "returnType": "Result<Vec<String>>",
+        "position": 2620
+      },
+      {
+        "name": "get_range",
+        "params": "&self, worksheet: &Worksheet, range: &str",
+        "returnType": "Result<RangeData>",
+        "position": 3038
+      },
+      {
+        "name": "update_cell",
+        "params": "&mut self,\n        worksheet_name: &str,\n        row: u32,\n        col: u32,\n        value: &str,",
+        "returnType": "Result<()>",
+        "position": 4305
+      },
+      {
+        "name": "find_in_worksheet",
+        "params": "&self,\n        worksheet: &Worksheet,\n        search_text: &str,\n        case_sensitive: bool,",
+        "returnType": "Result<Vec<(u32, u32)>>",
+        "position": 4933
+      },
+      {
+        "name": "get_cell_value",
+        "params": "&self, worksheet: &Worksheet, row: u32, col: u32",
+        "returnType": "Result<CellValue>",
+        "position": 6083
+      },
+      {
+        "name": "parse_range",
+        "params": "range: &str",
+        "returnType": "Result<(u32, u32, u32, u32)>",
+        "position": 6516
+      },
+      {
+        "name": "parse_cell_reference",
+        "params": "reference: &str",
+        "returnType": "Result<(u32, u32)>",
+        "position": 6916
+      },
+      {
+        "name": "column_letter_to_number",
+        "params": "column: &str",
+        "returnType": "Result<u32>",
+        "position": 7720
+      },
+      {
+        "name": "get_test_file",
+        "params": "",
+        "returnType": "PathBuf",
+        "position": 8116
+      },
+      {
+        "name": "test_open_xlsx",
+        "params": "",
+        "returnType": "Result<()>",
+        "position": 8381
+      },
+      {
+        "name": "test_get_column_names",
+        "params": "",
+        "returnType": "Result<()>",
+        "position": 8598
+      },
+      {
+        "name": "test_get_range",
+        "params": "",
+        "returnType": "Result<()>",
+        "position": 8927
+      },
+      {
+        "name": "test_find_in_worksheet",
+        "params": "",
+        "returnType": "Result<()>",
+        "position": 9255
+      },
+      {
+        "name": "test_get_cell_value",
+        "params": "",
+        "returnType": "Result<()>",
+        "position": 9616
+      }
+    ],
+    "modules": [
+      {
+        "name": "tests",
+        "inline": true,
+        "position": 8053
+      }
+    ],
+    "uses": [
+      {
+        "path": "anyhow::{Context, Result}",
+        "position": 0
+      },
+      {
+        "path": "serde::{Deserialize, Serialize}",
+        "position": 31
+      },
+      {
+        "path": "std::path::Path",
+        "position": 68
+      },
+      {
+        "path": "umya_spreadsheet::{Spreadsheet, Worksheet}",
+        "position": 89
+      },
+      {
+        "path": "super::*",
+        "position": 8069
+      },
+      {
+        "path": "std::path::PathBuf",
+        "position": 8087
+      }
+    ]
+  }
+}
