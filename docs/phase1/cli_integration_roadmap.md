@@ -1,119 +1,137 @@
 # CLI Integration Roadmap
 
-This document provides a high-level overview of the integration roadmap for merging functionality from Goose (reimplemented in TypeScript), IPFS Kit MCP Server, and other components into the current SwissKnife CLI architecture. It outlines major phases, milestones, and the strategic direction for the integration effort.
+This document provides a high-level strategic overview and timeline for the entire SwissKnife integration project, encompassing the reimplementation of Goose features in TypeScript, integration with the IPFS Kit MCP Server, and the incorporation of TaskNet enhancements into a unified CLI architecture. It outlines the major phases, key milestones, and guiding principles for the development effort.
 
 ## Strategic Objectives
 
 The CLI integration effort is guided by the following strategic objectives:
 
-1. **Clean Room TypeScript Implementation**: Create independent TypeScript implementations of all functionality using clean room methodology rather than direct Rust code translation (see [../CLEAN_ROOM_IMPLEMENTATION.md](../CLEAN_ROOM_IMPLEMENTATION.md))
-2. **Tight Coupling with SwissKnife**: Ensure integrated components are tightly coupled with the SwissKnife system
-3. **IPFS Kit MCP Server Integration**: Use IPFS Kit MCP Server as the primary storage/memory medium
-4. **Enhanced Task Processing**: Incorporate tasknet enhancements for improved task decomposition and delegation
-5. **Maintain CLI-First Focus**: Ensure all integrated components prioritize the command-line interface and Node.js environment
-6. **Optimize Performance**: Ensure CLI operations are efficient, responsive, and resource-conscious
+1. **Clean Room TypeScript Implementation**: Independently implement required functionality in TypeScript, based on understanding the *behavior* of source components, not direct code translation. Ensures an idiomatic, maintainable codebase free from source code licensing constraints. (See [../CLEAN_ROOM_IMPLEMENTATION.md](../CLEAN_ROOM_IMPLEMENTATION.md)).
+2. **Tight Internal Coupling**: Design core SwissKnife components (Agent, Task System, etc.) to integrate closely within the Node.js process for efficiency.
+3. **Loose External Coupling (IPFS Kit)**: Integrate with the IPFS Kit MCP Server via its defined API, treating it as an external dependency.
+4. **Enhanced Task Processing**: Implement advanced TaskNet features (GoT, scheduling, decomposition, delegation) for sophisticated workflow management.
+5. **CLI-First & Node.js Native**: Prioritize the command-line user experience and leverage Node.js runtime capabilities, excluding browser-specific APIs.
+6. **Performance & Optimization**: Build an efficient, responsive CLI, optimizing critical paths and resource usage (memory, startup time).
 
 ## Integration Phases Overview
 
 The integration will proceed through five major phases, each building on the previous ones to create a cohesive, powerful CLI application.
 
-### Phase 1: Analysis and TypeScript Architecture Design (2 weeks)
+### Phase 1: Analysis and TypeScript Architecture Design (Weeks 1-2)
 
-**Focus**: Understanding Goose capabilities and designing a TypeScript implementation architecture
+**Focus**: Analyze source components, define the target TypeScript architecture, and plan the integration.
 
 **Key Activities**:
-- Analyze Goose features and functionality for TypeScript implementation
-- Design TypeScript class hierarchy and module structure
-- Define interfaces for IPFS Kit MCP Server communication
-- Develop test strategy and type validation approach
-- Create documentation framework for TypeScript components
+- Analyze source features (`swissknife_old`, `ipfs_accelerate_js/py`) for CLI relevance and reimplementation requirements.
+- Design the core TypeScript architecture (services, layers, modules - see `cli_architecture.md`).
+- Define key TypeScript interfaces (`api_specifications.md`) for major components (Agent, Storage, Task, ModelProvider, etc.).
+- Define the interface/client strategy for IPFS Kit MCP Server communication.
+- Develop the overall CLI Test Strategy (`cli_test_strategy.md`) and plan template (`test_plan_template.md`).
+- Establish coding standards, documentation structure, and project setup.
+- Perform initial risk assessment (`risk_assessment.md`) and technical challenge analysis (`technical_challenges.md`).
+- Create component inventory (`component_inventory.md`) and mapping (`component_mapping.md`).
 
 **Major Milestones**:
-- Goose Feature Analysis Complete
-- TypeScript Architecture Document
-- IPFS Kit MCP Server Interface Definitions
-- Test Strategy
-- TypeScript Coding Standards
+- Completion of Phase 1 Documentation (Analysis, Architecture, APIs, Strategy, Plan, Risks, Mapping).
+- Agreed-upon TypeScript architecture and core interfaces.
+- Established project standards and testing framework outline.
 
 **Strategic Value**: This phase establishes the foundation for TypeScript implementation, ensuring a clear path for reimplementing Goose functionality.
 
-### Phase 2: Core Implementation (4 weeks)
+### Phase 2: Core Implementation (Weeks 3-6)
 
-**Focus**: Implementing the foundational TypeScript components
+**Focus**: Building the foundational TypeScript implementations for core services based on Phase 1 designs.
 
 **Key Activities**:
-- Implement base AI agent functionality in TypeScript
-- Create tool system with TypeScript interfaces
-- Develop IPFS Kit MCP client for communication
-- Implement core ML acceleration components
-- Create comprehensive testing framework
+- Implement the core `TypeScriptAgent` service, including basic reasoning, memory, and tool execution (`ToolExecutor`, `ToolRegistry`).
+- Implement essential Tools (e.g., File I/O, Shell execution) using Node.js APIs.
+- Implement the `IPFSKitClient` for interacting with the IPFS Kit MCP Server API.
+- Implement the `StorageService` (VFS) with `FilesystemBackend` and basic `IPFSBackend` (using `IPFSKitClient` and a simple `MappingStore`).
+- Implement the `ModelRegistry`, `ModelSelector`, and initial `ModelProvider` adapters (e.g., for OpenAI).
+- Implement basic `MLEngine` structure and Node.js runtime integration (e.g., `onnxruntime-node` setup).
+- Develop unit and integration tests for these core components.
 
 **Major Milestones**:
-- TypeScript AI Agent Implementation
-- Tool System in TypeScript
-- IPFS Kit MCP Client Implementation
-- ML Acceleration Core
-- TypeScript Testing Framework
+- Functional `TypeScriptAgent` capable of basic interaction and tool use.
+- Functional `IPFSKitClient` connecting to the server.
+- Functional `StorageService` with local and basic IPFS backends.
+- Functional `ModelRegistry` and initial provider integration.
+- Basic `MLEngine` setup.
+- Core component tests passing.
 
 **Strategic Value**: These core components provide the essential functionality in TypeScript that will power the enhanced CLI capabilities.
 
-### Phase 3: TaskNet Enhancement Integration (3 weeks)
+### Phase 3: TaskNet Enhancement Integration (Weeks 7-9)
 
-**Focus**: Implementing advanced task processing capabilities
+**Focus**: Implementing the advanced TaskNet features for complex workflow management.
 
 **Key Activities**:
-- Implement Graph-of-Thought mechanisms in TypeScript
-- Create Fibonacci heap scheduler for task prioritization
-- Develop dynamic task decomposition algorithms
-- Build task delegation and distribution system
-- Implement result aggregation and synthesis
+- Implement the `GraphOfThought` engine, including node types, processors, and reasoning strategies.
+- Implement the `FibonacciHeap` scheduler (`TaskScheduler`) and dynamic priority calculation.
+- Implement the `DecompositionEngine` and `SynthesisEngine` with various strategies.
+- Implement the `DependencyManager` for tracking task relationships.
+- Implement the local `WorkerPool` using Node.js `worker_threads`.
+- Implement the distributed coordination layer (`MerkleClock`, Hamming distance, Libp2p integration via a `NetworkService`).
+- Integrate GoT, Decomposition, Scheduling, and Execution/Delegation components.
+- Develop unit and integration tests for TaskNet components.
 
 **Major Milestones**:
-- Graph-of-Thought Implementation
-- Task Scheduling System
-- Task Decomposition Framework
-- Task Delegation System
-- Result Synthesis Engine
+- Functional Graph-of-Thought engine integrated with Agent/Tasks.
+- Functional Task Scheduling and local parallel execution via Worker Pool.
+- Functional Task Decomposition and Result Synthesis.
+- Initial implementation of distributed task coordination (Merkle Clock, Hamming Distance).
+- TaskNet component tests passing.
 
 **Strategic Value**: These enhancements enable sophisticated problem-solving through advanced task decomposition and processing.
 
-### Phase 4: CLI Integration and Command System (3 weeks)
+### Phase 4: CLI Integration and Command System (Weeks 10-12)
 
-**Focus**: Creating a unified command interface for all capabilities
+**Focus**: Exposing all implemented backend functionality through a polished and consistent CLI interface.
 
 **Key Activities**:
-- Design enhanced command system with TypeScript components
-- Create CLI wrappers for AI agent functionality
-- Implement task management commands
-- Develop storage and retrieval commands
-- Build configuration and setup commands
+- Finalize and implement the enhanced Command System (`CommandRegistry`, `CommandParser` using `yargs`/`commander`, `CommandExecutor`, `ExecutionContext`, `HelpGenerator`, `OutputFormatter`).
+- Implement specific CLI commands for all major features:
+    - Agent interaction (`agent chat`, `agent execute`).
+    - Tool management (`tool list`, `tool run`).
+    - Storage/VFS operations (`storage mount`, `file list/copy/read/write`, `ipfs add/get/pin`).
+    - Task management (`task create/status/list`, `task graph visualize`).
+    - Model management (`model list/info`).
+    - Configuration (`config get/set/list`).
+    - Authentication (`auth login/keys` - if implemented).
+    - MCP management (`mcp server list/start`).
+- Implement interactive features (REPL shell, confirmation prompts).
+- Develop E2E tests for CLI commands and workflows.
 
 **Major Milestones**:
-- Enhanced Command System
-- AI Agent Commands
-- Task Management Commands
-- Storage Commands
-- Configuration Commands
+- Fully functional Command System with parsing, help, and output formatting.
+- Comprehensive suite of CLI commands covering Agent, Storage, Task, Model, Config features.
+- Functional interactive shell (`swissknife shell`).
+- E2E tests for key CLI workflows passing.
 
 **Strategic Value**: The command system provides a consistent, intuitive interface for users to access all the system's capabilities.
 
-### Phase 5: Optimization and Finalization (2 weeks)
+### Phase 5: Optimization and Finalization (Weeks 13-14)
 
-**Focus**: Polishing the integrated components and preparing for release
+**Focus**: Performance tuning, comprehensive testing, documentation completion, and release preparation.
 
 **Key Activities**:
-- Optimize TypeScript code for performance
-- Implement caching and efficiency improvements
-- Conduct comprehensive cross-platform testing
-- Complete documentation for all commands and features
-- Perform final integration testing
+- Profile application performance (startup, key commands, resource usage).
+- Optimize critical code paths identified during profiling.
+- Implement and refine caching strategies (model responses, storage reads, task results).
+- Optimize memory usage.
+- Conduct thorough cross-platform testing (Linux, macOS, Windows) for functionality and installation.
+- Complete all user guides, tutorials, command references, and developer documentation.
+- Perform final E2E testing and manual QA/exploratory testing.
+- Address remaining high-priority bugs.
+- Prepare release packaging, installation scripts, and release notes.
 
 **Major Milestones**:
-- Performance Optimization
-- Caching Implementation
-- Cross-Platform Compatibility
-- Comprehensive Documentation
-- Release Candidate
+- Performance targets met for key operations.
+- Caching mechanisms implemented and validated.
+- Successful test execution across all target platforms.
+- Complete and reviewed user and developer documentation set.
+- Stable Release Candidate build.
+- Release artifacts (binaries/installers) and release notes published.
 
 **Strategic Value**: This phase ensures that the TypeScript implementation performs well and meets quality standards before release.
 
@@ -161,44 +179,86 @@ The integration will follow these key strategic principles:
 4. **Documentation Alongside Code**: Create documentation as components are developed
 5. **Performance-Conscious Implementation**: Optimize TypeScript code for performance where critical
 
-## Component Dependencies
+## Component Dependencies (Simplified)
 
-The integration recognizes these critical dependencies:
+The integration sequence is driven by key dependencies:
 
+```mermaid
+graph LR
+    Config --> CmdSys(Command System);
+    Config --> Storage;
+    Config --> Models;
+
+    Storage --> IPFSClient((IPFS Client));
+
+    CmdSys --> Agent;
+    CmdSys --> Tools;
+
+    Agent --> Tools;
+    Agent --> Models;
+    Agent --> Tasks;
+
+    Models --> Storage; # Local models
+    Models --> ML;
+
+    Tasks --> Agent; # GoT nodes
+    Tasks --> Storage;
+    Tasks --> Workers;
+
+    subgraph Phase 1
+        Config; CmdSys; Storage; Models(Registry);
+    end
+    subgraph Phase 2
+        Agent; Tools; IPFSClient; ML(Core);
+    end
+    subgraph Phase 3
+        Tasks; Workers;
+    end
+    subgraph Phase 4
+        CmdSys(Full CLI);
+    end
 ```
-TypeScript Agent System → Tool System → Command Interface
-IPFS Kit MCP Client → Storage Operations → Data Management
-Graph-of-Thought → Task Scheduling → Task Delegation
-```
-
-These dependencies drive the phase ordering and integration sequence.
+*This simplified view highlights major dependencies influencing the phase order.*
 
 ## Technical Architecture Overview
 
-The integration will implement a layered architecture in TypeScript:
+The target architecture emphasizes modular services accessed via a central execution context, driven by the command layer.
 
+```mermaid
+graph TD
+    subgraph SwissKnife CLI Application Process
+        A[CLI Interface (Commands, Parser, Help)] --> B(Execution Context);
+
+        subgraph Core Services accessible via Context
+            C[Agent Service]
+            D[Tool Service]
+            E[Storage Service (VFS)]
+            F[Task Service (Scheduler, Executor, GoT)]
+            G[Model Service (Registry, Selector)]
+            H[ML Service (Engine)]
+            I[Auth Service]
+            J[MCP Service (Client/Server Mgmt)]
+            K[Config Service (Manager)]
+            L[Logging Service / Output Formatter]
+        end
+
+        B --> C; B --> D; B --> E; B --> F; B --> G;
+        B --> H; B --> I; B --> J; B --> K; B --> L;
+
+        C -- Uses --> D; C -- Uses --> G; C -- Uses --> F;
+        E -- Uses --> ExtIPFS((IPFS Kit Client));
+        F -- Uses --> E; F -- Uses --> C; F -- Uses --> Workers((Worker Pool)); F -- Uses --> Network((Network Service));
+        G -- Uses --> H; G -- Uses --> E;
+        H -- Uses --> E;
+        I -- Uses --> K;
+        J -- Uses --> K;
+    end
+
+    style ExtIPFS fill:#ddd, stroke:#333
+    style Workers fill:#eee, stroke:#333
+    style Network fill:#eee, stroke:#333
 ```
-┌─────────────────────────────────────────────────┐
-│                 CLI Commands                    │
-├─────────────────────────────────────────────────┤
-│               Command System                    │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│  ┌───────────────┐  ┌────────────┐  ┌────────┐  │
-│  │ AI Agent      │  │ Task       │  │ Storage│  │
-│  │ (TypeScript)  │  │ System     │  │ Client │  │
-│  └───────────────┘  └────────────┘  └────────┘  │
-│                                                 │
-├─────────────────────────────────────────────────┤
-│              Communication Layer                │
-├─────────────────────────────────────────────────┤
-                         │
-                         ▼
-┌─────────────────────────────────────────────────┐
-│             IPFS Kit MCP Server                 │
-│          (Loosely Coupled Component)            │
-└─────────────────────────────────────────────────┘
-```
+*The `Execution Context` provides command handlers access to all necessary services.*
 
 ## TypeScript Implementation Strategy
 
@@ -234,35 +294,43 @@ The integration will be considered successful when:
 6. Documentation is complete and accurate
 7. All tests pass on all supported platforms
 
-## Roadmap Visualization
+## Roadmap Visualization (Gantt Chart - Conceptual)
 
+```mermaid
+gantt
+    dateFormat  YYYY-MM-DD
+    title SwissKnife CLI Integration Roadmap
+    excludes    weekends
+    section Phase 1 (Analysis & Arch)
+    Analysis & Docs     :a1, 2025-04-14, 14d
+    section Phase 2 (Core Impl)
+    Agent & Tools       :a2, after a1, 14d
+    Storage & IPFS Client:a3, after a1, 14d
+    Models & ML Core    :a4, after a2, 14d
+    section Phase 3 (TaskNet)
+    GoT & Scheduler     :a5, after a4, 10d
+    Decomp & Delegation :a6, after a5, 10d
+    section Phase 4 (CLI Integration)
+    Command System      :a7, after a6, 10d
+    Feature Commands    :a8, after a7, 10d
+    section Phase 5 (Finalize)
+    Optimization & Cache:a9, after a8, 7d
+    Testing & Docs      :a10, after a8, 7d
+    Release Prep        :a11, after a9, 3d
 ```
-Week 1-2        Week 3-6         Week 7-9         Week 10-12       Week 13-14
-┌──────────────┐┌──────────────┐┌───────────────┐┌───────────────┐┌────────────────┐
-│  Analysis &  ││     Core     ││    TaskNet    ││      CLI      ││  Optimization  │
-│  TypeScript  ││Implementation││  Enhancements ││  Integration  ││       &        │
-│ Architecture ││              ││               ││               ││  Finalization  │
-└──────────────┘└──────────────┘└───────────────┘└───────────────┘└────────────────┘
-       │               │                │                │                │
-       ▼               ▼                ▼                ▼                ▼
-┌──────────────┐┌──────────────┐┌───────────────┐┌───────────────┐┌────────────────┐
-│Goose Analysis││TypeScript    ││Graph-of-Thought││Command System ││Performance     │
-│TypeScript    ││Agent         ││Task Scheduling ││AI Commands    ││Optimization    │
-│Architecture  ││Tool System   ││Task Decomp     ││Task Commands  ││Documentation   │
-│Interface     ││IPFS Kit      ││Task Delegation ││Storage Cmds   ││Final Testing   │
-│Definitions   ││Client        ││Result Synthesis││Config Commands││Cross-Platform  │
-└──────────────┘└──────────────┘└───────────────┘└───────────────┘└────────────────┘
-```
+*Note: Durations are indicative based on the plan; actual dates depend on start date.*
 
 ## Risk Management Summary
 
-Major integration risks and mitigation strategies include:
+Key risks identified in `risk_assessment.md` include Node.js compatibility, dependency conflicts, performance, cross-platform issues, incomplete source documentation, and maintaining backward compatibility.
 
-1. **TypeScript Performance**: Identify and optimize critical paths, use efficient data structures
-2. **IPFS Kit MCP Server Integration**: Robust error handling, clear interface definition
-3. **Graph-of-Thought Complexity**: Incremental implementation, thorough testing
-4. **TypeScript-to-Python Communication**: Well-defined protocols, robust serialization
-5. **Feature Parity**: Comprehensive analysis of Goose features, thorough validation
+**Primary Mitigation Strategies**:
+- **Proactive Analysis:** Thoroughly analyze source components and dependencies *before* integration.
+- **Standardized Architecture:** Adhere strictly to the defined TypeScript architecture, interfaces, and coding standards.
+- **Comprehensive Testing:** Implement robust unit, integration, E2E, and cross-platform testing throughout the lifecycle.
+- **Incremental Integration:** Follow the phased approach, building and testing components incrementally.
+- **Clear Documentation:** Maintain up-to-date documentation for architecture, APIs, and user guides.
+- **Secure Practices:** Prioritize secure credential handling and input validation.
 
 ## Conclusion
 

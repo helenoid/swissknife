@@ -33,41 +33,78 @@ In the source repositories, the Model System:
 
 ### 2.1 Component Structure
 
+```mermaid
+graph TD
+    subgraph src/models/
+        A[registry.ts] --> B(Model Registration & Lookup);
+        C[providers/] --> D{Provider Implementations};
+        D -- registers --> A;
+        E[selector.ts] --> F(Model Selection Logic);
+        E --> A;
+        G[execution.ts] --> H(Model Execution & Monitoring);
+        G --> A;
+        G --> C;
+        I[cache.ts] --> J(Response Caching);
+        G --> I;
+        K[versioning.ts] --> L(Model Version Management);
+        A --> K;
+        M[metadata.ts] --> N(Model Metadata Handling);
+        A --> M;
+        O[types.ts] --> P(Shared Type Definitions);
+        Q[utils/] --> R(...Utility Functions...);
+        R --> G;
+        R --> E;
+    end
+    subgraph providers/
+        P_Idx[index.ts] --> P_Reg(Provider Registry);
+        P_OpenAI[openai.ts] --> P_OpenAI_Impl(OpenAI Provider);
+        P_Anthropic[anthropic.ts] --> P_Anthropic_Impl(Anthropic Provider);
+        P_Local[local.ts] --> P_Local_Impl(Local Provider);
+        P_Dots[...] --> P_More(...);
+    end
+    subgraph utils/
+        U_Token[token-counter.ts] --> U_Token_Desc(Token Counting);
+        U_Cost[cost-estimator.ts] --> U_Cost_Desc(Cost Estimation);
+        U_Prompt[prompt-builder.ts] --> U_Prompt_Desc(Prompt Construction);
+    end
+
+    style D fill:#eee,stroke:#333
+    style R fill:#eee,stroke:#333
 ```
-src/models/
-├── registry.ts           # Model registration and lookup
-├── providers/            # Model provider implementations
-│   ├── index.ts          # Provider registry
-│   ├── openai.ts         # OpenAI provider
-│   ├── anthropic.ts      # Anthropic provider
-│   ├── local.ts          # Local model provider
-│   └── ...
-├── selector.ts           # Model selection logic
-├── execution.ts          # Model execution and monitoring
-├── cache.ts              # Response caching
-├── versioning.ts         # Model version management
-├── metadata.ts           # Model metadata handling
-├── types.ts              # Type definitions
-└── utils/                # Utility functions
-    ├── token-counter.ts  # Token counting utilities
-    ├── cost-estimator.ts # Cost estimation tools
-    └── prompt-builder.ts # Prompt construction utilities
-```
+*   **registry.ts:** Central hub for discovering available models and their providers.
+*   **providers/:** Contains specific implementations for interacting with different model APIs (OpenAI, Anthropic) or local execution engines.
+*   **selector.ts:** Logic to choose the best model based on requirements (capabilities, cost, context window).
+*   **execution.ts:** Handles the actual execution flow, including calling the provider, managing retries, and potentially caching.
+*   **cache.ts:** Implements caching strategies for model responses to reduce latency and cost.
+*   **versioning.ts/metadata.ts:** Manages information about model versions, capabilities, costs, etc.
+*   **types.ts:** Common TypeScript interfaces (e.g., `ModelInfo`, `ModelProvider`).
+*   **utils/:** Helper functions for tasks like token counting, cost estimation, and prompt formatting.
 
 ### 2.2 Key Classes and Interfaces
 
 #### ModelRegistry
 
 ```typescript
+/**
+ * Manages registration and lookup of AI models and their providers.
+ */
 class ModelRegistry {
+  // Stores detailed information about each registered model, keyed by model ID.
   private models: Map<string, ModelInfo>;
+  // Stores instances of model providers, keyed by provider ID (e.g., 'openai').
   private providers: Map<string, ModelProvider>;
   
+  /** Registers metadata for a specific model. */
   registerModel(model: ModelInfo): void;
+  /** Registers a provider instance capable of interacting with models. */
   registerProvider(provider: ModelProvider): void;
+  /** Retrieves metadata for a specific model ID. */
   getModel(modelId: string): ModelInfo | undefined;
+  /** Retrieves the provider instance responsible for a given provider ID. */
   getProvider(providerId: string): ModelProvider | undefined;
-  getModels(filter?: ModelFilter): ModelInfo[];
+  /** Gets a list of registered models, optionally filtered. */
+  getModels(filter?: ModelFilter): ModelInfo[]; // Assumes ModelFilter type exists
+  /** Gets models that are currently available/usable (e.g., provider configured). */
   getAvailableModels(): ModelInfo[];
 }
 ```
@@ -75,27 +112,49 @@ class ModelRegistry {
 #### ModelInfo Interface
 
 ```typescript
+/**
+ * Represents the metadata and characteristics of a specific AI model.
+ */
 interface ModelInfo {
+  /** Unique identifier for the model (e.g., 'gpt-4-turbo'). */
   id: string;
+  /** Human-readable name (e.g., 'GPT-4 Turbo'). */
   name: string;
+  /** Identifier of the provider (e.g., 'openai', 'anthropic', 'local'). */
   provider: string;
+  /** Declared capabilities of the model. */
   capabilities: ModelCapabilities;
+  /** Maximum context window size in tokens. */
   contextWindow: number;
-  trainingCutoff?: string;
+  /** Optional: Date when the model's training data cuts off. */
+  trainingCutoff?: string; // ISO 8601 format
+  /** Optional: Maximum number of tokens the model can generate in one response. */
   maxOutputTokens?: number;
+  /** Cost per 1000 input tokens (e.g., in USD). */
   inputCostPer1000Tokens: number;
+  /** Cost per 1000 output tokens (e.g., in USD). */
   outputCostPer1000Tokens: number;
+  /** Optional: Estimated base latency per request in milliseconds. */
   requestOverheadMs?: number;
+  /** Optional: Estimated generation speed in tokens per second. */
   tokensPerSecond?: number;
+  /** Optional: Any other relevant metadata. */
   metadata?: Record<string, any>;
 }
 
+/** Defines the functional capabilities of a model. */
 interface ModelCapabilities {
+  /** Supports chat-based interaction (e.g., using message arrays). */
   chat: boolean;
+  /** Supports simple text completion. */
   completion: boolean;
+  /** Can generate text embeddings. */
   embedding: boolean;
+  /** Can process image inputs. */
   vision: boolean;
+  /** Supports function/tool calling. */
   functionCalling: boolean;
+  /** Supports streaming responses. */
   streaming: boolean;
 }
 ```
@@ -103,82 +162,124 @@ interface ModelCapabilities {
 #### ModelProvider Interface
 
 ```typescript
+/**
+ * Interface for interacting with a specific model provider (API or local).
+ */
 interface ModelProvider {
+  /** Unique identifier for the provider (e.g., 'openai'). */
   id: string;
+  /** Human-readable name (e.g., 'OpenAI'). */
   name: string;
   
+  /** Fetches available models supported by this provider. */
   getModels(): Promise<ModelInfo[]>;
+  /** Fetches detailed info for a specific model ID from this provider. */
   getModel(modelId: string): Promise<ModelInfo | undefined>;
   
+  /** Generates a completion (chat or text) for a given prompt. */
   generateCompletion(
     modelId: string,
-    prompt: string | ChatMessage[],
-    options?: CompletionOptions
-  ): Promise<CompletionResult>;
+    prompt: string | ChatMessage[], // Supports both simple text and chat messages
+    options?: CompletionOptions // e.g., temperature, maxTokens, stopSequences
+  ): Promise<CompletionResult>; // Contains output text, usage stats, etc.
   
+  /** Generates a completion as an asynchronous stream of chunks. */
   generateCompletionStream(
     modelId: string,
     prompt: string | ChatMessage[],
     options?: CompletionOptions
-  ): AsyncGenerator<CompletionChunk>;
+  ): AsyncGenerator<CompletionChunk>; // Stream yields chunks of the response
   
+  /** Generates embeddings for input text(s). */
   generateEmbedding(
     modelId: string,
-    text: string | string[]
-  ): Promise<EmbeddingResult>;
+    text: string | string[] // Can be single text or batch
+  ): Promise<EmbeddingResult>; // Contains the embedding vectors
   
+  /** Counts the number of tokens for a given text or chat messages, specific to the model's tokenizer. */
   countTokens(
     modelId: string,
     text: string | ChatMessage[]
   ): Promise<number>;
 }
+// Assumes ChatMessage, CompletionOptions, CompletionResult, CompletionChunk, EmbeddingResult types exist
 ```
 
 #### ModelSelector
 
 ```typescript
+/**
+ * Selects the most appropriate model based on given requirements.
+ */
 class ModelSelector {
   constructor(private registry: ModelRegistry);
+
+  /** Selects the best available model matching the requirements. */
   
-  selectModel(requirements: ModelRequirements): ModelInfo;
+  selectModel(requirements: ModelRequirements): ModelInfo | undefined; // Can return undefined if no match
+
+  /** Helper to find the single best model from a list based on criteria. */
   
-  getBestModel(models: ModelInfo[], requirements: ModelRequirements): ModelInfo;
+  getBestModel(models: ModelInfo[], requirements: ModelRequirements): ModelInfo | undefined;
+
+  /** Gets the configured default model for a specific task type. */
   
-  getDefaultModel(type: 'chat' | 'completion' | 'embedding'): ModelInfo;
+  getDefaultModel(type: 'chat' | 'completion' | 'embedding'): ModelInfo | undefined;
+
+  /** Ranks a list of models based on how well they meet requirements (e.g., cost, speed, capabilities). */
   
   rankModels(models: ModelInfo[], requirements: ModelRequirements): ModelInfo[];
 }
 
+/** Defines criteria for selecting a model. */
 interface ModelRequirements {
+  /** Required capabilities (e.g., must support vision). */
   capabilities?: Partial<ModelCapabilities>;
+  /** Minimum required context window size. */
   minContextWindow?: number;
-  maxCost?: number;
+  /** Optional: Maximum acceptable cost per 1000 tokens (input or output). */
+  maxCost?: number; // Could be more granular (maxInputCost, maxOutputCost)
+  /** Optional: Preferred provider ID. */
   preferredProvider?: string;
+  /** Optional: Preferred specific model ID. */
   preferredModel?: string;
+  // Could add criteria like minimum speed (tokens/sec)
 }
 ```
 
 #### ModelExecutor
 
 ```typescript
+/**
+ * Handles the execution of model tasks, including selection, provider interaction, caching, and error handling.
+ */
 class ModelExecutor {
   constructor(
     private registry: ModelRegistry,
-    private selector: ModelSelector
+    private selector: ModelSelector,
+    private cache?: ModelCache // Optional cache dependency
   );
+
+  /** Executes a task (completion, embedding) using an appropriately selected model. */
   
   async execute<T>(
-    task: ModelTask<T>,
-    options?: ExecutionOptions
-  ): Promise<T>;
+    task: ModelTask<T>, // Defines the task type, input, and requirements
+    options?: ExecutionOptions // e.g., retries, fallback preferences, cache control
+  ): Promise<T>; // Returns the specific result type for the task
+
+  /** Executes a task that supports streaming, yielding chunks via callback. */
   
   async streamExecution<T>(
     task: ModelTask<T>,
-    callback: (chunk: any) => void,
+    callback: (chunk: any) => void, // Callback for each received chunk
     options?: ExecutionOptions
-  ): Promise<T>;
+  ): Promise<T>; // Returns the final aggregated result
+
+  /** Retrieves the provider instance for a given model ID. */
   
-  private getProvider(modelId: string): ModelProvider;
+  private getProvider(modelId: string): ModelProvider; // Might throw if provider not found
+
+  /** Handles errors during execution, potentially triggering retries or fallbacks. */
   
   private handleExecutionError(
     error: Error,
@@ -192,20 +293,34 @@ class ModelExecutor {
 #### ModelCache
 
 ```typescript
+/**
+ * Caches model responses to improve performance and reduce costs.
+ */
 class ModelCache {
-  constructor(private storage: StorageInterface);
+  // Storage can be in-memory (e.g., LRUCache) or persistent (e.g., filesystem, database)
+  constructor(private storage: CacheStorageInterface); // Assumes CacheStorageInterface
+
+  /** Retrieves a cached result based on a generated key. */
   
-  async get(key: string): Promise<CachedResult | null>;
+  async get(key: string): Promise<any | null>; // Return type depends on stored data
+
+  /** Stores a result in the cache with optional metadata (e.g., TTL). */
   
-  async set(key: string, result: any, metadata?: CacheMetadata): Promise<void>;
+  async set(key: string, result: any, metadata?: CacheMetadata): Promise<void>; // Assumes CacheMetadata
+
+  /** Generates a unique cache key based on model, input, and options. */
   
   generateKey(
-    modelId: string, 
-    input: string | ChatMessage[], 
-    options?: any
-  ): string;
+    modelId: string,
+    input: string | ChatMessage[],
+    options?: CompletionOptions // Include relevant options in the key
+  ): string; // Should produce a stable hash
+
+  /** Invalidates cache entries matching a pattern (e.g., for a specific model). */
   
-  invalidate(pattern: string): Promise<number>;
+  invalidate(pattern: string): Promise<number>; // Returns number of invalidated entries
+
+  /** Clears the entire cache. */
   
   clear(): Promise<void>;
 }
@@ -222,28 +337,29 @@ class ModelCache {
 7. **Cache Update**: Result is cached for future use if appropriate
 8. **Error Management**: Failures trigger retries or fallback models as needed
 
-### 2.4 Data Flow Diagram
+### 2.4 Data Flow Diagram (Simplified Completion Flow)
 
-```
-User Request
-    ↓
-Model Selector
-    ↓
-Model Registry → Provider Lookup
-    ↓
-Model Cache Check → [If Cached] → Cached Result
-    ↓ [If Not Cached]
-Input Preparation
-    ↓
-Model Provider
-    ↓
-External API / Local Model
-    ↓
-Result Processing
-    ↓
-Cache Update
-    ↓
-Return Result
+```mermaid
+graph TD
+    A[User Request / Task] --> B{Model Selector};
+    B -- Requirements --> C(Model Registry);
+    C -- Model List --> B;
+    B -- Selected Model ID --> D{Model Executor};
+    D -- Input & Options --> E(Model Cache: Generate Key);
+    E --> F{Model Cache: Get};
+    F -- Cache Miss --> G(Model Executor: Prepare Input);
+    F -- Cache Hit --> H[Return Cached Result];
+    G --> I(Model Registry: Get Provider);
+    I -- Provider Instance --> J(Model Provider: generateCompletion);
+    J -- API Call / Local Exec --> K((External API / Local Engine));
+    K -- Raw Response --> J;
+    J -- Processed Result --> L(Model Executor: Process Result);
+    L --> M(Model Cache: Set);
+    M --> N[Return Result];
+    L --> N;
+
+    style F fill:#ffc, stroke:#333
+    style K fill:#ddd, stroke:#333
 ```
 
 ## 3. Dependencies Analysis
@@ -252,11 +368,11 @@ Return Result
 
 | Dependency | Usage | Criticality | Notes |
 |------------|-------|-------------|-------|
-| Configuration System | API keys, model settings | High | Essential for provider authentication |
-| Storage System | Model caching | Medium | Used for response caching |
-| Logging System | Error tracking, usage stats | Medium | Used for troubleshooting |
-| Authentication | API key management | High | Required for provider access |
-| Task System | Background processing | Low | Optional for long-running tasks |
+| Configuration System | Retrieving API keys, default model IDs, provider URLs, cache settings. | High | Essential for configuring providers and system behavior. Needs secure storage for keys. |
+| Storage System | Storing cached model responses (if using persistent cache). Storing downloaded local models. | Medium | Required for persistent caching and local model support. Filesystem access needed. |
+| Logging System | Recording API calls, errors, cache hits/misses, token usage, costs. | Medium | Important for debugging, monitoring usage, and cost analysis. |
+| Authentication | (Handled via Config) Securely retrieving API keys/credentials stored by the Configuration System. | High | The Model System itself doesn't manage auth, but relies on configured credentials. |
+| Task System | Potentially used for background model downloads or long-running inference tasks (uncommon for typical completions). | Low | Not a primary dependency for core completion/embedding flows. |
 
 ### 3.2 External Dependencies
 
@@ -269,31 +385,42 @@ Return Result
 | onnxruntime-node | ^1.14.0 | Local model execution | Yes | tensorflow.js |
 | lru-cache | ^7.14.0 | In-memory caching | Yes | quick-lru, tiny-lru |
 
-### 3.3 Dependency Graph
+### 3.3 Dependency Graph (Conceptual)
 
-```
-ModelSystem
-  ├── ModelRegistry
-  │     ├── ModelProviders
-  │     │     ├── OpenAIProvider
-  │     │     │     └── @openai/api
-  │     │     ├── AnthropicProvider
-  │     │     │     └── @anthropic-ai/sdk
-  │     │     ├── HuggingFaceProvider
-  │     │     │     └── @huggingface/inference
-  │     │     └── LocalProvider
-  │     │           └── onnxruntime-node
-  │     └── ModelSelector
-  ├── ModelExecutor
-  │     ├── ModelRegistry
-  │     └── Configuration
-  ├── ModelCache
-  │     ├── StorageSystem
-  │     └── lru-cache
-  └── Utils
-        ├── TokenCounter
-        │     └── tiktoken
-        └── CostEstimator
+```mermaid
+graph TD
+    ModelSys[Model System] --> MR(Model Registry);
+    ModelSys --> MS(Model Selector);
+    ModelSys --> ME(Model Executor);
+    ModelSys --> MC(Model Cache);
+    ModelSys --> MU(Utils);
+
+    MR --> MP[Model Providers];
+    MS --> MR;
+    ME --> MR;
+    ME --> MS;
+    ME --> MC;
+    ME --> CfgSys(Configuration System);
+    MC --> StoreSys(Storage System);
+    MC --> Dep_LRU(lru-cache);
+    MU --> Dep_Tiktoken(tiktoken);
+
+    MP --> ProvOpenAI(OpenAI Provider);
+    MP --> ProvAnthropic(Anthropic Provider);
+    MP --> ProvHF(HuggingFace Provider);
+    MP --> ProvLocal(Local Provider);
+
+    ProvOpenAI --> Dep_OpenAI(@openai/api);
+    ProvAnthropic --> Dep_Anthropic(@anthropic-ai/sdk);
+    ProvHF --> Dep_HF(@huggingface/inference);
+    ProvLocal --> Dep_ONNX(onnxruntime-node);
+
+    style Dep_OpenAI fill:#eee,stroke:#333
+    style Dep_Anthropic fill:#eee,stroke:#333
+    style Dep_HF fill:#eee,stroke:#333
+    style Dep_ONNX fill:#eee,stroke:#333
+    style Dep_Tiktoken fill:#eee,stroke:#333
+    style Dep_LRU fill:#eee,stroke:#333
 ```
 
 ## 4. Node.js Compatibility Assessment
@@ -310,17 +437,14 @@ ModelSystem
 
 ### 4.2 Compatibility Issues
 
-1. **Local Model Execution**: Local model execution requires platform-specific ONNX builds
-   - **Solution**: Use platform-specific installation and provide fallback to API-based models
-
-2. **Model Loading Paths**: Some hardcoded paths for model assets
-   - **Solution**: Use platform-agnostic path handling with `path.join()`
-
-3. **GPU Acceleration**: Current GPU detection is browser-focused
-   - **Solution**: Implement Node.js GPU detection with `node-cuda-info` or similar
-
-4. **Memory Management**: Browser-focused memory management for large models
-   - **Solution**: Implement Node.js-specific memory management with `v8` module
+1. **Local Model Execution Dependencies**: Libraries like `onnxruntime-node` often require specific native binaries for different OS/architectures (and potentially CUDA/DirectML versions for GPU support).
+   - **Solution**: Provide clear installation instructions using platform-specific optional dependencies in `package.json`. Offer pre-built binaries if possible. Ensure graceful fallback to CPU execution or API-based models if native dependencies are missing or fail to load. Document requirements clearly.
+2. **Model File Paths**: Hardcoded paths or assumptions about model storage locations.
+   - **Solution**: Use configurable base paths (via `ConfigurationManager`) for local models. Use Node.js `path` module for constructing paths reliably across platforms.
+3. **GPU Acceleration Detection/Usage**: Browser APIs like WebGPU/WebNN are not available. Accessing GPU in Node.js requires specific native bindings.
+   - **Solution**: Rely on the capabilities of the chosen execution library (e.g., `onnxruntime-node` with CUDA/DirectML execution providers). Implement detection logic based on the library's API or external tools if necessary. Make GPU usage configurable.
+4. **Memory Management for Large Models**: Loading large models (multiple GBs) into memory can be challenging in Node.js default memory limits.
+   - **Solution**: Increase Node.js heap size using `NODE_OPTIONS=--max-old-space-size=<MB>`. Investigate model loading strategies that use memory mapping if supported by the runtime. Implement clear error handling for out-of-memory errors. Document memory requirements.
 
 ### 4.3 Performance Considerations
 
@@ -425,25 +549,21 @@ ModelSystem
 
 ### 6.1 Identified Challenges
 
-1. **API Key Management**: Secure handling of provider API keys
-   - **Impact**: High - security and authentication concerns
-   - **Solution**: Implement secure credential storage with encryption
-
-2. **Local Model Management**: Handling large model files
-   - **Impact**: High - disk space and download requirements
-   - **Solution**: Implement model download management with cache control
-
-3. **Cross-Provider Consistency**: Normalizing behavior across providers
-   - **Impact**: Medium - potential inconsistent results
-   - **Solution**: Create provider-agnostic abstraction layer
-
-4. **Error Handling**: Provider-specific error handling
-   - **Impact**: Medium - user experience concerns
-   - **Solution**: Implement unified error handling with graceful fallbacks
-
-5. **Resource Management**: Controlling resource usage for local models
-   - **Impact**: Medium - performance and stability concerns
-   - **Solution**: Implement resource limiting and monitoring
+1. **API Key Management**: Storing and accessing sensitive API keys securely is paramount. Plaintext storage in config files is unacceptable.
+   - **Impact**: High (Security Breach).
+   - **Solution**: Integrate with OS keychain (`keytar`) or use environment variables. Implement a `CredentialManager` abstraction accessed via `ConfigurationManager` or `ExecutionContext`. Avoid logging keys.
+2. **Local Model Management**: Downloading, storing, and managing potentially large local model files (GBs).
+   - **Impact**: High (Disk Space, User Experience).
+   - **Solution**: Implement a dedicated download manager (`swissknife model download <id>`) with progress indication. Use configurable storage paths. Provide commands to list/remove downloaded models. Clearly document disk space requirements.
+3. **Cross-Provider Consistency**: Different providers have varying APIs, parameter names (e.g., `max_tokens` vs `max_tokens_to_sample`), response formats, and error handling.
+   - **Impact**: Medium (Development Complexity, Inconsistent Behavior).
+   - **Solution**: The `ModelProvider` interface acts as the abstraction layer. Implement adapter logic within each provider to map to a common internal representation for options and results. Standardize error types where possible.
+4. **Error Handling & Fallbacks**: Network issues, API rate limits, provider outages, or local model failures.
+   - **Impact**: Medium (User Experience, Reliability).
+   - **Solution**: Implement robust error handling in `ModelExecutor` and providers. Include configurable retry logic (with exponential backoff) for transient errors. Implement optional fallback logic in `ModelSelector` or `ModelExecutor` to try alternative models/providers upon failure.
+5. **Resource Management (Local Models)**: Local inference can consume significant CPU, GPU, and RAM. Uncontrolled usage can destabilize the user's system.
+   - **Impact**: Medium (Performance, Stability).
+   - **Solution**: Allow configuration of resource limits (e.g., max concurrent local inferences, GPU memory limits if controllable via bindings). Monitor resource usage during local inference if possible. Provide clear documentation on resource requirements.
 
 ### 6.2 Technical Debt
 
@@ -844,11 +964,11 @@ ModelSystem
 
 ### 10.2 Recommendations Summary
 
-1. Implement secure credential management for API keys
-2. Create unified provider abstraction with shared utilities
-3. Adapt caching system to use filesystem storage
-4. Design CLI commands for model management
-5. Implement resource controls for local model execution
+1. **Implement Secure Credential Management:** Prioritize secure storage (keychain/env vars) for API keys, accessed via an abstraction layer. Rationale: Critical for security; avoids exposing sensitive keys.
+2. **Refine Provider Abstraction:** Ensure the `ModelProvider` interface effectively normalizes differences between APIs (parameters, responses, errors). Create shared utilities for common tasks (e.g., request formatting, retry logic). Rationale: Simplifies adding new providers and ensures consistent behavior in `ModelExecutor`.
+3. **Adapt Caching for CLI:** Implement `ModelCache` using a filesystem backend (or potentially SQLite) suitable for Node.js, replacing any browser-specific storage logic. Rationale: Provides persistence and performance benefits in a CLI context.
+4. **Design User-Friendly CLI Commands:** Create intuitive commands (`model list`, `model config`, etc.) for managing models and providers. Rationale: Makes the powerful model system accessible to users.
+5. **Address Local Model Challenges:** Implement robust download management, platform-specific dependency handling, and resource monitoring/limiting for local models. Rationale: Local models offer privacy/cost benefits but require careful management for a good user experience.
 
 ### 10.3 Next Steps
 

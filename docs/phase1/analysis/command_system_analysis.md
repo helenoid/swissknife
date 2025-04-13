@@ -32,39 +32,59 @@ In the `swissknife_old` repository, the Command System:
 
 ### 2.1 Component Structure
 
+```mermaid
+graph TD
+    subgraph src/commands/
+        A[registry.ts] --> B(Command Registration & Lookup);
+        C[executor.ts] --> D(Execution & Lifecycle);
+        E[parser.ts] --> F(Argument Parsing);
+        G[validation.ts] --> H(Input Validation);
+        I[context.ts] --> J(Execution Context);
+        K[history.ts] --> L(Command History);
+        M[help.ts] --> N(Help Generation);
+        O[error.ts] --> P(Error Handling);
+        Q[types.ts] --> R(Type Definitions);
+        S[commands/] --> T(...Individual Commands...);
+    end
 ```
-src/commands/
-├── registry.ts          # Command registration and lookup
-├── executor.ts          # Command execution and lifecycle management
-├── parser.ts            # Command-line argument parsing
-├── validation.ts        # Command input validation
-├── context.ts           # Command execution context
-├── history.ts           # Command history management
-├── help.ts              # Help text generation
-├── error.ts             # Command-specific error handling
-├── types.ts             # Type definitions
-└── commands/            # Individual command implementations
-    ├── model.ts         # Model management commands
-    ├── config.ts        # Configuration commands
-    ├── run.ts           # Task execution commands
-    └── ...
-```
+*   **registry.ts:** Central store for command definitions.
+*   **executor.ts:** Orchestrates command execution, including middleware and error handling.
+*   **parser.ts:** Handles parsing of raw command-line arguments based on command definitions.
+*   **validation.ts:** Contains logic for validating parsed arguments against expected types, choices, etc.
+*   **context.ts:** Defines and potentially creates the `CommandContext` passed to handlers.
+*   **history.ts:** Manages persistent command history for the interactive shell.
+*   **help.ts:** Generates formatted help messages based on command definitions.
+*   **error.ts:** Defines custom error types specific to command execution.
+*   **types.ts:** Shared TypeScript interfaces and types for the command system.
+*   **commands/:** Directory containing implementations for each specific command (e.g., `config`, `agent`, `ipfs`).
 
 ### 2.2 Key Classes and Interfaces
 
 #### CommandRegistry
 
 ```typescript
+/**
+ * Manages the registration and lookup of commands.
+ */
 class CommandRegistry {
+  // Stores command definitions, keyed by primary command name.
   private commands: Map<string, Command>;
+  // Maps alias names to primary command names.
   private aliases: Map<string, string>;
   
+  /** Registers a new command definition. */
   register(command: Command): void;
+  /** Removes a command definition. */
   unregister(commandName: string): void;
+  /** Retrieves a command definition by name or alias. */
   getCommand(name: string): Command | undefined;
+  /** Gets all registered commands. */
   getCommands(): Command[];
+  /** Gets commands matching a filter. */
   getFilteredCommands(filter: (command: Command) => boolean): Command[];
+  /** Checks if a command or alias exists. */
   hasCommand(name: string): boolean;
+  /** Registers an alias for an existing command. */
   registerAlias(alias: string, commandName: string): void;
 }
 ```
@@ -72,15 +92,26 @@ class CommandRegistry {
 #### Command Interface
 
 ```typescript
+/**
+ * Defines the structure required for any command registered with the system.
+ */
 interface Command {
+  /** The primary name used to invoke the command. */
   readonly name: string;
+  /** A brief description shown in help messages. */
   readonly description: string;
-  readonly options: CommandOption[];
+  /** Array defining the options and arguments the command accepts. */
+  readonly options: CommandOption[]; // Assumes CommandOption interface exists
+  /** Flag to enable/disable the command. */
   readonly isEnabled: boolean;
+  /** Flag to hide the command from general help listings. */
   readonly isHidden: boolean;
   
-  execute(args: string[], context: CommandContext): Promise<CommandResult>;
+  /** The core logic of the command. Receives parsed args and context. */
+  execute(args: ParsedArgs, context: CommandContext): Promise<CommandResult>; // Assumes ParsedArgs and CommandResult types exist
+  /** Generates specific help text for this command. */
   generateHelp(): string;
+  /** Returns the name displayed to the user (might differ from internal name). */
   userFacingName(): string;
 }
 ```
@@ -88,20 +119,32 @@ interface Command {
 #### CommandExecutor
 
 ```typescript
+/**
+ * Responsible for orchestrating the execution of a resolved command.
+ */
 class CommandExecutor {
   constructor(private registry: CommandRegistry);
+
+  /**
+   * Executes a command by name with given arguments and context.
+   * Handles middleware, execution, and error handling.
+   */
   
   async executeCommand(
-    commandName: string, 
-    args: string[], 
+    commandName: string,
+    args: ParsedArgs, // Expects parsed args now
     context: CommandContext
   ): Promise<CommandResult>;
+
+  /** Applies registered middleware functions before command execution. */
   
   private applyMiddleware(
-    command: Command, 
-    args: string[], 
+    command: Command,
+    args: ParsedArgs,
     context: CommandContext
-  ): Promise<void>;
+  ): Promise<void>; // Assumes CommandMiddleware type exists
+
+  /** Handles errors thrown during command execution or middleware. */
   
   private handleCommandError(
     command: Command, 
@@ -114,10 +157,17 @@ class CommandExecutor {
 #### CommandParser
 
 ```typescript
+/**
+ * Parses raw command-line input strings into command names and structured arguments.
+ */
 class CommandParser {
-  parseCommandLine(input: string): { command: string, args: string[] };
-  parseArguments(args: string[], options: CommandOption[]): ParsedArgs;
-  private parseOption(arg: string, options: CommandOption[]): ParsedOption | null;
+  /** Parses the initial command line string (e.g., from argv or REPL input). */
+  parseCommandLine(input: string): { commandPath: string[], rawArgs: string[] };
+  /** Parses the raw arguments based on a command's defined options. */
+  parseArguments(rawArgs: string[], options: CommandOption[]): ParsedArgs;
+  /** Helper to parse a single argument string against option definitions. */
+  private parseOption(arg: string, options: CommandOption[]): ParsedOption | null; // Assumes ParsedOption type
+  /** Validates that all required options are present in the parsed arguments. */
   private validateRequiredOptions(parsed: ParsedArgs, options: CommandOption[]): void;
 }
 ```
@@ -125,17 +175,32 @@ class CommandParser {
 #### CommandContext
 
 ```typescript
+/**
+ * Provides execution context and dependencies to command handlers.
+ * This is similar to the ExecutionContext in the target architecture.
+ */
 interface CommandContext {
+  /** Current working directory. */
   cwd: string;
+  /** Environment variables. */
   env: Record<string, string>;
-  config: ConfigManager;
-  user?: UserInfo;
-  stdout: Writable;
+  /** Access to the configuration system. */
+  config: ConfigManager; // Assumes ConfigManager type
+  /** Information about the current user (if authenticated). */
+  user?: UserInfo; // Assumes UserInfo type
+  /** Writable stream for standard output. */
+  stdout: Writable; // From 'stream'
+  /** Writable stream for standard error. */
   stderr: Writable;
-  stdin: Readable;
+  /** Readable stream for standard input. */
+  stdin: Readable; // From 'stream'
+  /** Flag indicating verbose output mode. */
   verbose: boolean;
+  /** Flag indicating silent output mode. */
   silent: boolean;
+  /** Flag indicating if running in an interactive terminal session. */
   interactive: boolean;
+  /** Array of middleware functions to apply. */
   middleware: CommandMiddleware[];
 }
 ```
@@ -152,26 +217,22 @@ interface CommandContext {
 8. **Result Handling**: Output is formatted and returned to the user
 9. **History Recording**: Successfully executed commands are recorded in history
 
-### 2.4 Data Flow Diagram
+### 2.4 Workflow Diagram (Simplified)
 
-```
-User Input
-    ↓
-CommandParser
-    ↓
-CommandRegistry → Command Lookup
-    ↓
-Argument Validation
-    ↓
-Middleware (Pre-execution)
-    ↓
-Command Execution
-    ↓
-Result Formatting
-    ↓
-Output Display
-    ↓
-Command History
+```mermaid
+graph TD
+    A[User Input (CLI args / REPL)] --> B(CommandParser: Parse Input);
+    B -- Command Path & Raw Args --> C(CommandRegistry: Find Command);
+    C -- Command Definition --> D(CommandParser: Parse & Validate Args);
+    D -- Parsed Args --> E(CommandExecutor: Create Context);
+    E --> F(CommandExecutor: Apply Middleware);
+    F --> G(CommandExecutor: Invoke Handler);
+    G -- Uses Context --> H[Command Handler Logic];
+    H -- Results/Errors --> I(Output Formatter);
+    I --> J[Display Output (stdout/stderr)];
+    G -- Success --> K(Command History: Record);
+
+    style H fill:#ccf,stroke:#333,stroke-width:2px
 ```
 
 ## 3. Dependencies Analysis
@@ -180,12 +241,12 @@ Command History
 
 | Dependency | Usage | Criticality | Notes |
 |------------|-------|-------------|-------|
-| Configuration System | Command settings, defaults | High | Used for command behavior customization |
-| Logging System | Command output, errors | High | Used for user feedback |
-| Tool System | Command functionality | Medium | Some commands use tools |
-| Model System | Command functionality | Medium | Model-related commands depend on this |
-| Storage System | Persistence | Medium | Used for history, output caching |
-| Authentication | Access control | Low | Some commands require authentication |
+| Configuration System | Accessing command settings, API keys, default behaviors. | High | Essential for configurable command behavior and accessing credentials for other systems. |
+| Logging System | Outputting informational messages, warnings, errors during execution. | High | Crucial for user feedback and debugging. Needs integration with the new `OutputFormatter`. |
+| Tool System | Some commands directly invoke tools or manage tool registration/listing. | Medium | Required for commands that wrap specific tool functionalities. |
+| Model System | Commands related to listing, selecting, or configuring AI models. | Medium | Required for `agent` commands and potentially others interacting with AI. |
+| Storage System | Persisting command history, potentially caching results or storing large outputs. | Medium | Primarily needed for history persistence and potential performance optimizations. |
+| Authentication | Checking user credentials before executing restricted commands. | Low | Only needed if specific commands require authentication/authorization. |
 
 ### 3.2 External Dependencies
 
@@ -197,22 +258,28 @@ Command History
 | string-argv | 0.3.x | Argument parsing | Yes | Shell quote libraries |
 | strip-ansi | 7.x | Clean terminal output | Yes | Built-in functions |
 
-### 3.3 Dependency Graph
+### 3.3 Dependency Graph (Conceptual)
 
+```mermaid
+graph TD
+    CmdSys[Command System] --> Dep_Commander(commander);
+    CmdSys --> Dep_Chalk(chalk);
+    CmdSys --> Dep_Inquirer(inquirer);
+    CmdSys --> CfgSys(Configuration System);
+    CmdSys --> LogSys(Logging System / Output Formatter);
+    CmdSys --> ToolSys(Tool System);
+    CmdSys --> ModelSys(Model System);
+    CmdSys --> StoreSys(Storage System);
+    CmdSys --> AuthSys(Authentication System);
+
+    Dep_Commander --> Dep_Chalk; # Commander uses Chalk internally
+    LogSys --> Dep_Chalk; # Logging uses Chalk
+
+    style Dep_Commander fill:#eee,stroke:#333
+    style Dep_Chalk fill:#eee,stroke:#333
+    style Dep_Inquirer fill:#eee,stroke:#333
 ```
-CommandSystem
-  ├── commander
-  │     └── chalk
-  ├── Configuration
-  │     └── ConfigStore
-  ├── Logging
-  │     ├── chalk
-  │     └── winston
-  ├── ToolSystem (optional)
-  ├── ModelSystem (optional)
-  └── Storage (optional)
-      └── FileSystem
-```
+*Note: This shows high-level dependencies. Actual implementation might involve more granular interactions.*
 
 ## 4. Node.js Compatibility Assessment
 
@@ -228,17 +295,14 @@ CommandSystem
 
 ### 4.2 Compatibility Issues
 
-1. **Terminal Handling**: Some terminal interaction assumes ANSI compatibility, which may not be true on all Windows environments
-   - **Solution**: Use `supports-color` package to detect capabilities
-
-2. **Path Separators**: Hardcoded Unix-style path separators in some places
-   - **Solution**: Use `path.join()` and other path utilities consistently
-
-3. **Signal Handling**: Command interruption relies on POSIX signals
-   - **Solution**: Add Windows-compatible signal alternatives
-
-4. **Shell Interaction**: Some commands assume bash-like shell
-   - **Solution**: Create platform-specific shell interaction layer
+1. **Terminal Capability Detection**: Reliance on ANSI escape codes for colors/styles might fail on older Windows terminals or non-standard environments.
+   - **Solution**: Use libraries like `chalk` (which internally uses `supports-color`) to automatically detect and adapt to terminal capabilities, disabling colors/styles when not supported.
+2. **Path Separators**: Inconsistent use of `/` vs `\` can cause issues on Windows.
+   - **Solution**: Consistently use Node.js `path.join()`, `path.resolve()`, `path.sep` for constructing and manipulating filesystem paths.
+3. **Signal Handling (Ctrl+C)**: Graceful shutdown on `SIGINT` (Ctrl+C) might need specific handling on Windows.
+   - **Solution**: Ensure proper listeners are attached using `process.on('SIGINT', ...)`, potentially adding specific checks or alternative mechanisms for Windows if needed (though Node.js generally handles basic Ctrl+C well).
+4. **Shell Interaction**: Commands that execute shell scripts or rely on specific shell features (like piping complex commands) might behave differently across platforms (bash vs. zsh vs. cmd vs. PowerShell).
+   - **Solution**: Avoid complex shell-specific commands where possible. If necessary, use libraries like `cross-spawn` for more reliable cross-platform command execution or implement platform-specific logic branches.
 
 ### 4.3 Performance Considerations
 
@@ -299,9 +363,40 @@ Existing commands requiring modifications:
 
 The Command System requires these terminal UI enhancements:
 
-1. **Progress Indicators**: Add support for progress bars/spinners
+1. **Progress Indicators**: Integrate libraries like `ora` for spinners and `cli-progress` for bars via the `OutputFormatter` service to provide feedback during long-running operations.
    ```typescript
-   import ora from 'ora';
+   // Example usage within a command handler via context.formatter
+   const spinner = context.formatter.spinner('Processing data...').start();
+   try {
+     await longRunningOperation();
+     spinner.succeed('Data processed successfully.');
+   } catch (error) {
+     spinner.fail('Processing failed.');
+     // Handle error...
+   }
+   ```
+
+2. **Tables and Structured Output**: Utilize libraries like `cli-table3` within the `OutputFormatter` to present lists of data (e.g., `ipfs ls`, `task list`) in a readable format. Support alternative outputs like JSON/YAML via flags (`--output json`).
+   ```typescript
+   // Example usage within a command handler via context.formatter
+   const data = [ { name: 'file1', size: 1024 }, { name: 'file2', size: 2048 } ];
+   context.formatter.table(data, ['Name', 'Size (bytes)']);
+   // Or: context.formatter.json(data);
+   ```
+
+3. **Interactive Selection/Prompts**: Use libraries like `inquirer` for complex prompts (multiple choice, confirmation) when commands require interactive user input beyond simple arguments.
+   ```typescript
+   // Example usage within a command handler
+   import inquirer from 'inquirer'; // Direct use or via a formatter method
+
+   const { choice } = await inquirer.prompt([{
+     type: 'list',
+     name: 'choice',
+     message: 'Select target environment:',
+     choices: ['development', 'staging', 'production']
+   }]);
+   context.logger.info(`You selected: ${choice}`);
+   ```
    
    const spinner = ora('Processing...').start();
    // Command execution
@@ -340,25 +435,21 @@ The Command System requires these terminal UI enhancements:
 
 ### 6.1 Identified Challenges
 
-1. **Command Namespace Conflicts**: Overlaps between commands from different source repositories
-   - **Impact**: High - potential user confusion and broken workflows
-   - **Solution**: Implement command namespaces, alias deprecated commands
-
-2. **Context Propagation**: Ensuring consistent context across command execution
-   - **Impact**: Medium - potential inconsistent behavior
-   - **Solution**: Create unified context object with safe defaults
-
-3. **Command Composition**: Supporting commands calling other commands
-   - **Impact**: Medium - functionality gaps
-   - **Solution**: Implement clean command invocation API
-
-4. **Error Handling Consistency**: Ensuring consistent error reporting
-   - **Impact**: Medium - confusing user experience
-   - **Solution**: Create centralized error formatting with codes
-
-5. **Command Discovery**: Making new commands discoverable
-   - **Impact**: Low - user education issue
-   - **Solution**: Enhance help system, add command categories
+1. **Command Namespace Conflicts**: Integrating commands from `swissknife_old` and `ipfs_accelerate_js` might lead to name collisions (e.g., both might have a `config` command).
+   - **Impact**: High. User confusion, unpredictable behavior depending on registration order.
+   - **Solution**: Define clear namespaces (e.g., `agent config`, `ipfs config`, `task config`). Where direct conflicts exist for top-level commands, choose one primary implementation and potentially alias or deprecate the other, providing clear migration paths in documentation.
+2. **Context Propagation**: Ensuring that the correct configuration, authentication state, and service instances are available to every command handler, regardless of how deep it's nested or if it's called programmatically.
+   - **Impact**: Medium. Commands might fail or use incorrect settings if context is not managed properly.
+   - **Solution**: Rely on the centrally created `ExecutionContext` passed down through the `CommandExecutor`. Ensure services obtained via `getService` are singletons or appropriately scoped. Avoid global state.
+3. **Command Composition**: Allowing one command's implementation to programmatically invoke another command (e.g., a workflow command calling `ipfs add` then `task create`).
+   - **Impact**: Medium. Limits the ability to create higher-level workflow commands easily.
+   - **Solution**: Expose a method via `CommandExecutor` or a dedicated service (`CommandService`) that allows invoking commands by name with arguments, bypassing the CLI parsing layer but still using the standard execution flow (middleware, context, handler).
+4. **Error Handling Consistency**: Different commands or underlying services might throw errors in different formats or with varying levels of detail.
+   - **Impact**: Medium. Confusing for users trying to diagnose issues; difficult for scripts to parse errors reliably.
+   - **Solution**: Implement standardized custom error classes (e.g., `CliError`, `ValidationError`, `NetworkError`) with consistent properties (e.g., `code`, `message`, `details`). Centralize error formatting in the `OutputFormatter`.
+5. **Command Discovery & Help**: Ensuring users can easily find commands and understand how to use them, especially with nested subcommands.
+   - **Impact**: Medium. Reduces usability if commands are hard to find or understand.
+   - **Solution**: Implement comprehensive, auto-generated help using the command definitions. Use command categories/namespaces in help output. Provide good examples. Implement shell autocompletion.
 
 ### 6.2 Technical Debt
 
@@ -651,11 +742,11 @@ The Command System requires these terminal UI enhancements:
 
 ### 10.2 Recommendations Summary
 
-1. Adopt a Commander-based command definition pattern
-2. Enhance terminal output with modern UI libraries
-3. Implement structured error handling with codes
-4. Create comprehensive help documentation with examples
-5. Add platform-specific adaptations for cross-platform support
+1. **Adopt Commander (or similar like `yargs`, `cac`):** Leverage a mature library for parsing, option definition, and help generation. Rationale: Avoids reinventing complex CLI parsing logic, ensures compatibility with standard conventions (POSIX options, etc.), simplifies help generation.
+2. **Centralize Output Formatting:** Use the `OutputFormatter` service for all user-facing output (text, tables, progress, errors) to ensure consistency and support different output modes (`--output json`, etc.). Rationale: Decouples command logic from presentation, allows global control over output style.
+3. **Implement Structured Error Handling:** Define custom error classes and use a centralized handler in the `CommandExecutor` and `OutputFormatter`. Rationale: Provides consistent, informative error messages for users and predictable exit codes for scripting.
+4. **Auto-Generate Help & Docs:** Leverage the command definitions (from Commander/yargs) to automatically generate help text and potentially Markdown documentation. Rationale: Reduces manual effort, ensures documentation stays synchronized with implementation.
+5. **Ensure Cross-Platform Compatibility:** Use Node.js `path` module, test signal handling, use `cross-spawn` if needed, and rely on libraries like `chalk` that handle terminal differences. Rationale: Provides a consistent experience for users on Linux, macOS, and Windows.
 
 ### 10.3 Next Steps
 

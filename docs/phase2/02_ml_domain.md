@@ -1,116 +1,148 @@
 # Phase 2: ML Domain Implementation
 
-**Timeline:** Week 2 of Phase 2
+**Timeline:** Week 5-6 of Phase 2 (Aligned with Roadmap)
 
-This document outlines the implementation plan for the Machine Learning (ML) domain during Phase 2. The focus is on building the core components for tensor operations, hardware acceleration, inference execution, and model optimization.
+This document outlines the implementation plan for the core Machine Learning (ML) domain components within SwissKnife during Phase 2. The focus is on establishing the infrastructure needed to load and execute ML models (particularly for inference) within the Node.js CLI environment, including tensor handling and leveraging available hardware acceleration.
 
 ## Goals
 
--   Implement a `Tensor` class with basic operations and data handling.
--   Develop a `HardwareAccelerator` abstraction and implement concrete accelerators (WebGPU, WebNN, WASM, CPU).
--   Create an `InferenceEngine` to manage model loading and execution on available accelerators.
--   Implement initial model optimization techniques like quantization.
+-   Implement a basic `Tensor` representation suitable for Node.js ML libraries.
+-   Develop a `HardwareManager` or similar mechanism to detect available Node.js execution providers (CPU, CUDA, DirectML via ONNX Runtime, etc.), replacing browser-specific concepts like WebGPU/WebNN.
+-   Create an `MLEngine` (or `InferenceEngine`) service responsible for loading models (e.g., ONNX format) and running inference using appropriate Node.js runtimes (`onnxruntime-node`, `tensorflow.js-node`) and detected hardware capabilities.
+-   Integrate the `MLEngine` with the `ModelRegistry` and `StorageService` for model loading.
+-   *Defer advanced optimization (quantization, pruning) to later phases or specific needs.*
 
 ## Implementation Details
 
-### 1. Tensor Operations (Day 1-2)
+### 1. Tensor Representation (`src/ml/tensor.ts`) (Day 1)
 
--   **`Tensor` Class (`src/ml/tensor/tensor.ts`):**
-    -   Represents multi-dimensional arrays using `Float32Array`.
-    -   Handles `shape` validation and management.
-    -   Provides methods for accessing data (`getData`), shape (`getShape`), rank (`getRank`), and size (`getSize`).
-    -   Includes basic operations like `reshape`, element-wise `add`, `multiply`.
-    -   Static factory method `fromData` for creation from `TensorData`.
--   **Matrix Operations:**
-    -   Implement core linear algebra operations (e.g., matrix multiplication).
-    -   Add tensor manipulation utilities (slicing, concatenation, etc.).
+-   **Leverage Existing Libraries:** Instead of a custom `Tensor` class, primarily rely on the tensor representations provided by the chosen Node.js ML runtime libraries (e.g., `onnxruntime-node`'s `Ort.Tensor`, `tensorflow.js-node`'s `tf.Tensor`).
+-   **Type Definitions:** Define common interfaces or type aliases (`TensorData`, potentially a wrapper `AppTensor` type if needed for abstraction) for passing tensor information (data, shape, dtype) between components.
+-   **Utility Functions:** Create utility functions (`src/ml/tensor-utils.ts`) for common tasks like:
+    -   Converting between library-specific tensors and standard `TypedArray`/`Array`.
+    -   Basic shape validation or manipulation if not adequately covered by the library.
+    -   *Avoid reimplementing complex math operations; use the runtime library's capabilities.*
 
-### 2. Hardware Acceleration (Day 3-4)
+### 2. Hardware Capability Detection (`src/ml/hardware.ts`) (Day 2)
 
--   **`HardwareAccelerator` Abstract Class (`src/ml/hardware/accelerator.ts`):**
-    -   Defines the interface for accelerators (`getName`, `getCapabilities`, `isAvailable`, `execute`).
-    -   Includes `AcceleratorCapabilities` interface.
-    -   Provides a static `detect` method to select the best available accelerator.
--   **Accelerator Implementations:**
-    -   `WebGPUAccelerator` (`src/ml/hardware/webgpu.ts`): Implements acceleration using the WebGPU API.
-    -   `WebNNAccelerator`: (To be implemented) Uses the Web Neural Network API.
-    -   `WasmAccelerator`: (To be implemented) Uses WebAssembly for computation.
-    -   `CPUAccelerator`: (To be implemented) Provides a fallback CPU implementation.
+-   **`HardwareManager` Service:**
+    -   Purpose: Detect available hardware and corresponding execution providers supported by the chosen ML runtime(s) (e.g., `onnxruntime-node`).
+    -   `detectCapabilities()`: Asynchronously checks for:
+        -   CPU features (AVX, etc. - potentially via `systeminformation`).
+        -   Presence and usability of GPU execution providers (e.g., attempt to load `onnxruntime-node` with CUDA or DirectML options, check for required drivers/libraries).
+    -   `getAvailableProviders()`: Returns a list of available provider IDs (e.g., `['cpu', 'cuda', 'directml']`) based on detection results.
+    -   `getPreferredProvider(hints?: HardwareHints)`: Selects the best available provider based on detection and optional user hints (e.g., prefer GPU).
+-   **Remove Browser Concepts:** Eliminate abstractions based on WebGPU/WebNN. Focus directly on Node.js runtime capabilities (ONNX Runtime Execution Providers, TFJS Node backends).
 
-### 3. Inference Engine (Day 5-6)
+### 3. ML Engine / Inference Service (`src/ml/engine.ts`) (Day 3-6)
 
--   **`InferenceEngine` Class (`src/ml/inference/engine.ts`):**
-    -   Manages the selected `HardwareAccelerator`.
-    -   `initialize`: Checks accelerator availability.
-    -   `loadModel`: Handles model parsing and preparation for the accelerator.
-    -   `runInference`: Executes the model on the accelerator with given input tensors.
-    -   Provides methods to get/set the active accelerator.
--   **Model Execution:**
-    -   Implement logic for loading models in various formats.
-    -   Create execution pipelines coordinating data transfer and computation.
-    -   Handle input/output tensor processing and conversion.
+-   **`MLEngine` Service:**
+    -   Constructor takes `HardwareManager`, `StorageService`, `ConfigurationManager`.
+    -   `loadModel(modelPathOrId: string, options?: ModelLoadOptions)`:
+        -   Resolves `modelPathOrId` (potentially using `ModelRegistry` or direct path via `StorageService`).
+        -   Loads the model file (e.g., `.onnx`) from storage.
+        -   Initializes the ML runtime session (e.g., `Ort.InferenceSession.create`) using the appropriate execution providers determined via `HardwareManager` and `options`.
+        -   Stores the loaded session internally, keyed by an ID.
+    -   `runInference(modelId: string, inputs: InputTensors)`:
+        -   Retrieves the loaded model session.
+        -   Prepares input tensors in the format required by the runtime.
+        -   Executes the inference using the session (`session.run(inputs)`).
+        -   Processes and returns the output tensors.
+    -   `unloadModel(modelId: string)`: Releases resources associated with a loaded model.
+-   **Runtime Integration:** Focus initially on one runtime, likely `onnxruntime-node` due to its broad support and performance.
+-   **Input/Output Handling:** Implement basic pre/post-processing logic if needed (e.g., converting data to/from the runtime's tensor format). More complex pipelines might be handled outside the core engine.
 
-### 4. Model Optimization (Day 7)
+### 4. Model Optimization (Deferred)
 
--   **Optimization Techniques:**
-    -   `Quantizer` Class (`src/ml/optimizers/quantization.ts`): Implements model and tensor quantization (e.g., INT8, FLOAT16) using `QuantizationOptions`.
-    -   (Future) Implement pruning and compression mechanisms.
+-   Initial implementation will focus on loading and running pre-optimized models (e.g., standard ONNX format).
+-   Implementing quantization or pruning *within* SwissKnife is complex and deferred beyond Phase 2 unless a critical need arises. Users would typically use external tools to optimize models before loading them.
 
-## Key Interfaces
+## Key Interfaces (Node.js Focus)
 
 ```typescript
 // src/types/ml.ts or relevant domain files
+
+/** Represents basic tensor data for inter-component communication. */
 export interface TensorData {
-  data: number[] | Float32Array;
-  shape: number[];
+  /** Raw data buffer. */
+  data: Float32Array | Int32Array | Uint8Array | etc; // Use appropriate TypedArray
+  /** Shape of the tensor. */
+  shape: readonly number[];
+  /** Data type string (e.g., 'float32', 'int32'). */
+  dtype: string;
 }
 
-// src/ml/tensor/tensor.ts
-export declare class Tensor {
-  // ... methods
+/** Input tensors for inference, typically a map keyed by input name. */
+export type InputTensors = Record<string, TensorData>; // Or use library-specific Tensor type
+
+/** Output tensors from inference, typically a map keyed by output name. */
+export type OutputTensors = Record<string, TensorData>; // Or use library-specific Tensor type
+
+// src/ml/hardware.ts
+
+/** Hints for selecting hardware providers. */
+export interface HardwareHints {
+  prefer?: 'cpu' | 'gpu';
 }
 
-// src/ml/hardware/accelerator.ts
-export interface AcceleratorCapabilities {
-  webGPU: boolean;
-  webNN: boolean;
-  wasm: boolean;
-  threads: boolean;
+/** Information about detected hardware capabilities relevant to ML runtimes. */
+export interface HardwareInfo {
+  /** List of available ONNX Runtime execution providers (e.g., 'cpu', 'cuda', 'directml'). */
+  onnxExecutionProviders: string[];
+  // Add info for other runtimes like TFJS Node backends if supported
 }
 
-export declare abstract class HardwareAccelerator {
-  abstract getName(): string;
-  abstract getCapabilities(): AcceleratorCapabilities;
-  abstract isAvailable(): Promise<boolean>;
-  abstract execute(model: Model, inputs: Tensor | Tensor[]): Promise<Tensor | Tensor[]>;
-  static detect(): HardwareAccelerator;
+/** Service for detecting hardware capabilities. */
+export interface HardwareManager {
+  /** Detects available capabilities asynchronously. */
+  detectCapabilities(): Promise<HardwareInfo>;
+  /** Gets the currently detected capabilities (cached). */
+  getCapabilities(): HardwareInfo | null;
+  /** Gets a list of available provider IDs based on detection. */
+  getAvailableProviders(): string[];
+  /** Selects the best provider based on availability and hints. */
+  getPreferredProvider(hints?: HardwareHints): string; // Returns provider ID
 }
 
-// src/ml/inference/engine.ts
-export declare class InferenceEngine {
-  constructor(accelerator?: HardwareAccelerator);
-  initialize(): Promise<boolean>;
-  loadModel(modelData: Buffer): Promise<Model>; // Model type from AI domain
-  runInference(model: Model, input: Tensor): Promise<Tensor>;
-  getAccelerator(): HardwareAccelerator;
-  setAccelerator(accelerator: HardwareAccelerator): void;
+// src/ml/engine.ts
+
+/** Options for loading a model. */
+export interface ModelLoadOptions {
+  /** Preferred execution provider(s) (e.g., ['cuda', 'cpu']). */
+  executionProviders?: string[];
+  // Add other runtime-specific options (interOpNumThreads, etc.)
 }
 
-// src/ml/optimizers/quantization.ts
-export enum QuantizationMode { /* ... */ }
-export interface QuantizationOptions { /* ... */ }
-export declare class Quantizer {
-  constructor(options: QuantizationOptions);
-  quantizeModel(model: Model): Promise<Model>;
-  quantizeTensor(tensor: Tensor): Tensor;
-  dequantizeTensor(tensor: Tensor): Tensor;
+/** Represents a loaded model session (runtime-specific). */
+type LoadedModel = any; // e.g., Ort.InferenceSession | tf.GraphModel
+
+/** Service for loading models and running inference. */
+export interface MLEngine {
+  /** Loads a model from a given path or identifier. */
+  loadModel(modelPathOrId: string, options?: ModelLoadOptions): Promise<{ modelId: string }>;
+  /** Unloads a previously loaded model. */
+  unloadModel(modelId: string): Promise<void>;
+  /** Runs inference using a loaded model. */
+  runInference(modelId: string, inputs: InputTensors): Promise<OutputTensors>;
+  /** Gets information about the hardware detected by the HardwareManager. */
+  getHardwareInfo(): HardwareInfo | null;
 }
+
+// Model type from AI domain (src/models/types.ts) - ensure it exists
+export interface Model {
+  id: string;
+  // ... other properties
+}
+
 ```
 
 ## Deliverables
 
--   Functional `Tensor` class with basic operations.
--   `HardwareAccelerator` abstraction with at least WebGPU and CPU implementations.
--   Working `InferenceEngine` capable of loading and running a simple model.
--   Initial `Quantizer` implementation.
--   Unit tests for Tensor operations and accelerator detection.
+-   Utility functions or types for basic Tensor data handling (`TensorData`).
+-   `HardwareManager` service capable of detecting CPU and potentially GPU execution providers via `onnxruntime-node` (or chosen runtime).
+-   Functional `MLEngine` service capable of:
+    -   Loading an ONNX model from the filesystem (via `StorageService`).
+    -   Running inference using `onnxruntime-node` on the preferred available provider (CPU required, GPU optional).
+-   Integration points for `MLEngine` within `ExecutionContext` or relevant services.
+-   Unit tests for `HardwareManager` detection logic (may require mocking).
+-   Integration tests for `MLEngine` loading and running a simple ONNX model (e.g., MNIST, basic math model) on CPU.

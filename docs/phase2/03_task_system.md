@@ -1,140 +1,202 @@
-# Phase 2: Task System Implementation
+# Phase 2: Task System Implementation (Foundation)
 
-**Timeline:** Week 3 of Phase 2
+**Timeline:** Week 7-9 (Aligned with Roadmap - Phase 3 Focus)
+*(Note: While the roadmap places TaskNet enhancements in Phase 3, this document outlines the foundational components likely started or designed alongside Phase 2 core services, setting the stage for Phase 3.)*
 
-This document covers the implementation plan for the Task System domain during Phase 2. The focus is on building the core components for task scheduling, management, decomposition using Graph-of-Thought, and delegation.
+This document outlines the implementation plan for the foundational components of the enhanced Task System (TaskNet) domain. Phase 2 focuses on establishing the core structures for task definition, basic management, and scheduling, preparing for the advanced GoT, decomposition, and distribution features in Phase 3.
 
-## Goals
+## Goals (Phase 2 Foundation)
 
--   Implement an efficient `FibonacciHeap` and use it within a `TaskScheduler`.
--   Develop a `TaskManager` to handle task creation, status updates, and dependency management.
--   Integrate the `GraphProcessor` for task decomposition based on Graph-of-Thought principles.
--   Create a `TaskDelegator` system for assigning tasks to available workers.
+-   Define the core `Task` interface and `TaskResult` structure.
+-   Implement an efficient priority queue mechanism, likely starting with a simpler queue before the full `FibonacciHeap` (which is complex and part of Phase 3 optimization/scaling).
+-   Develop a basic `TaskManager` service for creating tasks, tracking status (in-memory initially), and managing simple dependencies.
+-   Define interfaces for `GraphProcessor` and `TaskDelegator` but implement only basic stubs or simple versions in Phase 2, deferring full implementation to Phase 3.
+-   Establish integration points with other core services (Agent, Storage).
 
-## Implementation Details
+## Implementation Details (Phase 2 Focus)
 
-### 1. Fibonacci Heap Scheduler (Day 1-2)
+### 1. Task Definition & Basic Management (`src/tasks/types.ts`, `src/tasks/manager.ts`) (Week 7)
 
--   **`FibonacciHeap` Class (`src/tasks/scheduler/fibonacci-heap.ts`):**
-    -   Implements the Fibonacci heap data structure for efficient priority queue operations.
-    -   Supports `insert`, `extractMin`, `decreaseKey` (if needed later), `isEmpty`, `size`.
-    -   Manages `FibHeapNode` objects containing key (priority) and value (task ID).
-    -   Includes internal logic for `consolidate`, linking/cutting nodes, etc.
--   **`TaskScheduler` Class (`src/tasks/scheduler/scheduler.ts`):**
-    -   Uses `FibonacciHeap` to manage schedulable tasks based on priority.
-    -   `addTask`: Adds a task to internal storage and potentially to the heap if dependencies are met (`canSchedule`).
-    -   `getNextTask`: Extracts the highest priority task (lowest key) from the heap.
-    -   `updateTaskPriority`: (Requires node tracking) Updates a task's priority in the heap.
-    -   `canSchedule`: Checks if a task's dependencies are completed.
+-   **`Task` Interface (`src/tasks/types.ts`):** Define the core structure including `id`, `type`, `input`, `status`, `dependencies`, `priority`, timestamps. Keep `status` simple initially (`Pending`, `Ready`, `Running`, `Succeeded`, `Failed`).
+-   **`TaskResult` Interface (`src/tasks/types.ts`):** Define the structure for task outcomes, including `taskId`, `status`, `data` (on success), `error` (on failure), timing info.
+-   **`TaskManager` Service (`src/tasks/manager.ts`):**
+    -   Manages an in-memory store (`Map<string, Task>`) of tasks.
+    -   `createTask(type: string, input: any, options?: TaskCreationOptions)`: Generates a unique ID, creates the `Task` object, stores it, and adds it to the basic scheduler/queue. Returns the `taskId`.
+    -   `updateTaskStatus(taskId: string, status: TaskStatus, result?: any, error?: Error)`: Updates the task's status in the store. If status is `Succeeded` or `Failed`, store result/error. Trigger dependency checks.
+    -   `getTask(taskId: string)`: Retrieves task info.
+    -   `getTaskStatus(taskId: string)`: Retrieves current task status.
+    -   `_checkDependencies(taskId: string)`: Internal helper called after a task completes to check if dependent tasks are now ready. If ready, update their status and notify the scheduler.
+    -   **Dependency Tracking:** Store dependencies (`string[]`) on the task object. Maintain a reverse map (`Map<string, string[]>`, i.e., `dependencyId -> dependentTaskIds`) for efficient checking upon completion.
 
-### 2. Task Manager (Day 3-4)
+### 2. Basic Task Scheduling (`src/tasks/scheduler.ts`) (Week 7)
 
--   **`TaskManager` Class (`src/tasks/manager.ts`):**
-    -   Central class for managing the lifecycle of tasks.
-    -   `createTask`: Creates a new `Task` object, stores it, and adds it to the scheduler. Uses `TaskCreationOptions`.
-    -   `getNextTask`: Retrieves the next task from the scheduler.
-    -   `completeTask`: Updates task status to 'completed', stores the result, and processes dependent tasks.
-    -   `failTask`: Updates task status to 'failed' and stores the error.
-    -   `decomposeTask`: Uses `GraphProcessor` to break down a task into subtasks and updates dependencies.
-    -   `processDependentTasks`: Checks and potentially schedules tasks whose dependencies have just been met.
-    -   `getTask`, `getAllTasks`: Provide access to task data.
+-   **`TaskScheduler` Service:**
+    -   **Phase 2:** Implement using a *simple* in-memory priority queue (e.g., an array sorted by priority, or a basic heap library if readily available, *not* the full Fibonacci Heap yet).
+    -   `scheduleReadyTask(task: Task)`: Adds a task (marked as `Ready` by the `TaskManager`) to the queue.
+    -   `getNextTaskToRun(): Promise<Task | null>`: Retrieves and removes the highest priority task from the queue. Returns `null` if the queue is empty.
+    -   Integrates with `TaskManager` (e.g., `TaskManager` calls `scheduleReadyTask` when dependencies are met).
+-   **Fibonacci Heap (Phase 3):** The full implementation (`src/tasks/scheduler/fibonacci-heap.ts`) and integration into `TaskScheduler` (replacing the simple queue) is deferred to Phase 3 for advanced performance and `decreaseKey` support.
 
-### 3. Graph of Thought Implementation (Day 5-6)
+### 3. GoT / Decomposition / Synthesis Stubs (Week 8)
 
--   **`GraphProcessor` Class (`src/tasks/graph/processor.ts`):**
-    -   Integrates with the `ThoughtGraph` structure from the AI domain.
-    -   `createGraph`: Initializes a `ThoughtGraph` for a given task or concept.
-    -   `processGraph`: Orchestrates the processing of the graph (potentially involving AI model calls).
-    -   `decomposeTask`: Analyzes a `Task` object, potentially using an AI model via the `ThoughtGraph`, to generate `SubtaskData` (description, data).
+-   **Interfaces:** Define the interfaces for `GraphProcessor`, `DecompositionEngine`, `SynthesisEngine` as planned for Phase 3.
+-   **Basic Stubs:** Implement placeholder classes/functions for these services in Phase 2.
+    -   `GraphProcessor.decomposeTask`: Might return an empty array or a single subtask representing the original task.
+    -   `DecompositionEngine.decompose`: Placeholder implementation.
+    -   `SynthesisEngine.synthesize`: Placeholder implementation.
+-   **Integration:** The `TaskManager` can have optional dependencies on these stubbed services, allowing the core task lifecycle to function without the full Phase 3 implementation. Full integration happens in Phase 3.
 
-### 4. Task Delegation System (Day 7)
+### 4. Task Execution & Delegation Stubs (Week 8-9)
 
--   **`TaskDelegator` Class (`src/tasks/delegation/delegator.ts`):**
-    -   Manages a pool of `Worker` objects (defined with `id`, `capabilities`, `load`, `status`).
-    -   `registerWorker`, `updateWorkerStatus`: Manage worker lifecycle.
-    -   `findWorkerForTask`: Selects a suitable worker based on task requirements, worker capabilities, status, and load.
-    -   `assignTask`: Assigns a task to a worker, updates worker load, and records the `TaskAssignment`.
-    -   `getAssignment`, `releaseAssignment`: Manage task assignments and worker load.
-    -   `hasRequiredCapabilities`: Helper to match task needs with worker capabilities.
+-   **`TaskExecutor` Service (`src/tasks/execution/executor.ts`):**
+    -   Responsible for taking a `Task` from the `TaskScheduler` and actually running it.
+    -   **Phase 2:** Implement basic local execution logic. It might directly execute registered task functions based on `task.type` or use a simple `WorkerPool` (see below).
+    -   Defer complex delegation logic (checking if distribution is needed, interacting with Merkle Clocks) to Phase 3.
+-   **`WorkerPool` Interface/Stub (`src/tasks/workers/pool.ts`):**
+    -   Define the interface for submitting tasks to local workers (`submitTask`).
+    -   **Phase 2:** Implement a very basic version, perhaps even one that runs tasks sequentially in the main process initially, or uses a single worker thread, to satisfy the `TaskExecutor` dependency. Full `worker_threads` pool implementation is a Phase 3 goal.
+-   **`TaskDelegator` / Coordination Stubs (`src/tasks/coordination/`):**
+    -   Define interfaces.
+    -   Implement stubs that always decide *not* to delegate, forcing local execution via `TaskExecutor`. Full implementation in Phase 3.
 
-## Key Interfaces
+## Key Interfaces (Phase 2 Focus)
 
 ```typescript
-// src/types/task.ts
-export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'scheduled';
+// src/tasks/types.ts
 
-export interface Task {
-  id: string;
-  description: string;
-  priority: number;
+/** Possible states of a task during its lifecycle. */
+export type TaskStatus = 'Pending' | 'Ready' | 'Running' | 'Succeeded' | 'Failed' | 'Cancelled';
+
+/** Represents a unit of work with input, output, and metadata. */
+export interface Task<InputT = any, ResultT = any> {
+  /** Unique identifier for this task instance. */
+  readonly id: string;
+  /** Type identifier mapping to executable logic. */
+  readonly type: string;
+  /** Input data required for the task. */
+  readonly input: InputT;
+  /** Current status of the task. */
   status: TaskStatus;
-  dependencies: string[];
-  data: any; // Input data for the task
-  result?: any; // Output data upon completion
-  error?: string; // Error message if failed
-  createdAt: number;
+  /** Optional: Priority for scheduling (lower value = higher priority). */
+  readonly priority: number; // Default to a standard value if not provided
+  /** Optional: IDs of tasks that must complete successfully before this task can start. */
+  readonly dependencies: readonly string[];
+  /** Optional: Result data if status is 'Succeeded'. */
+  result?: ResultT;
+  /** Optional: Error details if status is 'Failed'. */
+  error?: { message: string; stack?: string; code?: string };
+  /** Timestamp (ms since epoch) when the task was created. */
+  readonly createdAt: number;
+  /** Optional: Timestamp when the task started running. */
   startedAt?: number;
+  /** Optional: Timestamp when the task finished (succeeded or failed). */
   completedAt?: number;
-  // Potentially add assignedWorkerId, progress, etc.
+  /** Optional: ID of the worker that executed/is executing the task. */
+  assignedWorkerId?: string;
+  /** Optional: Metadata for custom use cases. */
+  readonly metadata?: Readonly<Record<string, any>>;
 }
 
+/** Options provided when creating a new task. */
 export interface TaskCreationOptions {
   priority?: number;
   dependencies?: string[];
-  data?: any;
+  metadata?: Record<string, any>;
+  // Add other options like timeout, specific worker requirements later
 }
 
-// src/tasks/scheduler/fibonacci-heap.ts
-export declare class FibonacciHeap<T> {
-  insert(key: number, value: T): any; // Returns node representation
-  extractMin(): T | null;
-  // ... other methods
+/** Structure for task results. */
+export interface TaskResult<ResultT = any> {
+  readonly taskId: string;
+  readonly status: 'Succeeded' | 'Failed' | 'Cancelled'; // Final statuses
+  readonly data?: ResultT;
+  readonly error?: { message: string; stack?: string; code?: string };
+  readonly executionTimeMs: number;
+  readonly timestamp: number;
 }
 
-// src/tasks/scheduler/scheduler.ts
-export declare class TaskScheduler {
-  addTask(task: Task): void;
-  getNextTask(): Promise<Task | null>;
-  // ... other methods
+// src/tasks/scheduler.ts
+
+/** Basic interface for a task scheduler. */
+export interface TaskScheduler {
+  /** Adds a task that is ready to run to the queue. */
+  scheduleReadyTask(task: Task): Promise<void>;
+  /** Retrieves the next highest priority task to run. */
+  getNextTaskToRun(): Promise<Task | null>;
+  /** Gets the number of tasks currently waiting in the scheduler. */
+  getQueueSize(): Promise<number>;
 }
 
 // src/tasks/manager.ts
-export declare class TaskManager {
-  createTask(description: string, options?: TaskCreationOptions): Promise<string>;
-  getNextTask(): Promise<Task | null>;
-  completeTask(taskId: string, result: any): Promise<boolean>;
-  failTask(taskId: string, error: string): Promise<boolean>;
-  decomposeTask(taskId: string): Promise<string[]>; // Returns subtask IDs
-  getTask(taskId: string): Task | undefined;
-  // ... other methods
+
+/** Service for managing the lifecycle and dependencies of tasks. */
+export interface TaskManager {
+  /** Creates a new task, stores it, and schedules it if ready. */
+  createTask<InputT>(
+    type: string,
+    input: InputT,
+    options?: TaskCreationOptions
+  ): Promise<string>; // Returns taskId
+
+  /** Updates a task's status to Succeeded. */
+  completeTask<ResultT>(taskId: string, resultData: ResultT): Promise<void>;
+
+  /** Updates a task's status to Failed. */
+  failTask(taskId: string, error: Error): Promise<void>;
+
+  /** Attempts to cancel a pending or running task. */
+  cancelTask(taskId: string): Promise<boolean>; // Returns true if cancellation initiated
+
+  /** Retrieves task details by ID. */
+  getTask(taskId: string): Promise<Task | null>;
+
+  /** Retrieves the current status of a task. */
+  getTaskStatus(taskId: string): Promise<TaskStatus | null>;
+
+  /** Lists tasks, potentially with filtering/pagination. */
+  listTasks(options?: { status?: TaskStatus; limit?: number; offset?: number }): Promise<Task[]>;
+
+  // --- Methods primarily used internally or by other services ---
+
+  /** Called by TaskExecutor to get the next task to run. */
+  _requestNextTask(): Promise<Task | null>; // Internal convention
+
+  /** Checks dependencies and schedules tasks that become ready. */
+  _processDependentTasks(completedTaskId: string): Promise<void>; // Internal convention
 }
 
-// src/tasks/graph/processor.ts
-export interface SubtaskData {
-  description: string;
-  data: any;
-}
-export declare class GraphProcessor {
-  decomposeTask(task: Task): Promise<SubtaskData[]>;
-  // ... other methods
+// --- Stubs for Phase 3 Components ---
+
+// src/tasks/graph/processor.ts (Phase 3 - Stub for Phase 2)
+export interface GraphProcessor {
+  decomposeTask?(task: Task): Promise<TaskCreationOptions[]>; // Returns options for subtasks
 }
 
-// src/tasks/delegation/delegator.ts
-export interface Worker { /* ... */ }
-export interface TaskAssignment { /* ... */ }
-export declare class TaskDelegator {
-  findWorkerForTask(task: Task): Worker | null;
-  assignTask(task: Task, worker: Worker): TaskAssignment;
-  releaseAssignment(taskId: string): boolean;
-  // ... other methods
+// src/tasks/delegation/delegator.ts (Phase 3 - Stub for Phase 2)
+export interface WorkerInfo { id: string; status: string; capabilities: string[]; load: number; }
+export interface TaskDelegator {
+  findWorkerForTask?(task: Task): Promise<WorkerInfo | null>; // Phase 2: Always return null (local execution)
 }
+
+// src/tasks/execution/executor.ts (Phase 2/3)
+export interface TaskExecutor {
+   /** Starts the main loop to fetch and execute tasks. */
+   start(): Promise<void>;
+   /** Stops the execution loop. */
+   stop(): Promise<void>;
+}
+
 ```
 
-## Deliverables
+## Deliverables (Phase 2 Foundation)
 
--   Functional `FibonacciHeap` and `TaskScheduler`.
--   Working `TaskManager` capable of managing task lifecycle and dependencies.
--   `GraphProcessor` integrated for basic task decomposition.
--   `TaskDelegator` capable of assigning tasks based on simple criteria.
--   Unit tests for the scheduler, manager, and delegator components.
--   Integration tests for task creation, scheduling, and completion workflow.
+-   Defined `Task` and `TaskResult` interfaces.
+-   Basic in-memory `TaskManager` implementation capable of:
+    -   Creating tasks.
+    -   Tracking status (Pending, Ready, Running, Succeeded, Failed).
+    -   Managing simple dependencies (updating dependents to `Ready` on completion).
+-   Basic `TaskScheduler` implementation using a simple in-memory queue (not full Fibonacci Heap).
+-   Stub implementations for `GraphProcessor`, `TaskDelegator`, and `WorkerPool` interfaces.
+-   Basic `TaskExecutor` that interacts with `TaskManager` and `TaskScheduler` to run tasks sequentially in the main process (or via a minimal worker pool stub).
+-   Unit tests for `TaskManager` (dependency logic, status updates) and the basic `TaskScheduler`.
+-   Initial integration tests for the create -> schedule -> execute (local) -> complete/fail lifecycle.

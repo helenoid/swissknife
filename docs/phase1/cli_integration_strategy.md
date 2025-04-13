@@ -8,7 +8,7 @@ This document outlines the specific strategy for integrating Goose features (rei
 2. **Tight Coupling**: Ensure integrated components are tightly coupled with SwissKnife (except IPFS Kit MCP Server)
 3. **Interface-Driven Design**: Define clear interfaces before implementation
 4. **Incremental Integration**: Build functionality incrementally, ensuring stability at each step
-5. **Test-Driven Development**: Implement comprehensive tests for each component
+5. **Test-Driven Development**: Implement comprehensive tests (unit, integration) for each component. Integration tests are crucial for verifying cross-component interactions.
 
 ## Integration Workflow
 
@@ -40,19 +40,20 @@ For each component, follow this integration workflow:
 **Source**: Goose AI agent functionality
 
 **Integration Approach**:
-1. Analyze Goose AI agent architecture and features
-2. Design TypeScript class hierarchy and interfaces
-3. Implement core reasoning engine in TypeScript
-4. Create message handling and processing system
-5. Implement memory and context management
-6. Add prompt handling and templating
-7. Integrate with SwissKnife command system
+1. Analyze Goose AI agent architecture (state machines, reasoning loops, tool usage patterns).
+2. Design TypeScript class hierarchy (`Agent`, `Memory`, `ModelAdapter`, etc.) and interfaces, focusing on extensibility.
+3. Implement core reasoning engine in TypeScript, potentially using state machines or async iterators.
+4. Create robust message handling, including streaming support and tool call/result formatting.
+5. Implement memory management (short-term, long-term via IPFS potentially) and context window handling.
+6. Add flexible prompt handling and templating (e.g., using libraries like Handlebars or similar).
+7. Integrate with SwissKnife command system via `ExecutionContext` service access.
+8. **Challenge:** Ensuring efficient state management and context handling for long conversations.
 
 **CLI Interface Example**:
 ```
 swissknife agent chat                          # Start interactive chat with agent
-swissknife agent execute "prompt" [options]    # Execute one-off prompt
-swissknife agent config                        # Configure agent settings
+swissknife agent execute "prompt" --model <id> # Execute one-off prompt with specific model
+swissknife agent config set defaultModel <id>  # Configure agent settings
 ```
 
 **Implementation Location**: `src/agent/`
@@ -88,20 +89,21 @@ swissknife tools execute <tool> [args]         # Execute tool directly
 **Source**: New development for IPFS Kit MCP Server integration
 
 **Integration Approach**:
-1. Analyze IPFS Kit MCP Server API and protocols
-2. Design TypeScript client interfaces
-3. Implement REST API client for basic operations
-4. Create WebSocket/WebRTC clients for real-time operations
-5. Implement content addressing and CID handling
-6. Add error handling and retry logic
-7. Integrate with SwissKnife storage abstraction
+1. Analyze IPFS Kit MCP Server API (HTTP, WebSocket) and data formats (CBOR, JSON).
+2. Design TypeScript client interfaces (`IpfsClient`) abstracting underlying transport.
+3. Implement REST API client using `fetch` or `axios` for core operations (`add`, `get`, `pin`, `ls`).
+4. Create WebSocket client for real-time features like PubSub (if needed by TaskNet).
+5. Implement robust content addressing (CID generation/validation using `multiformats`) and data streaming for large files.
+6. Add comprehensive error handling (network errors, server errors, timeouts) and configurable retry logic.
+7. Integrate client as a service accessible via `ExecutionContext`.
+8. **Challenge:** Handling large file transfers efficiently and managing potential connection interruptions.
 
 **CLI Interface Example**:
 ```
 swissknife ipfs add <file>                     # Add file to IPFS Kit MCP Server
-swissknife ipfs get <cid>                      # Get content from IPFS Kit MCP Server
-swissknife ipfs status                         # Check IPFS Kit MCP Server status
-swissknife ipfs config                         # Configure IPFS Kit connection
+swissknife ipfs get <cid> --output <path>      # Get content from IPFS Kit MCP Server
+swissknife ipfs pin add <cid>                  # Pin content
+swissknife ipfs server status                  # Check IPFS Kit MCP Server status
 ```
 
 **Implementation Location**: `src/ipfs/`
@@ -113,13 +115,14 @@ swissknife ipfs config                         # Configure IPFS Kit connection
 **Source**: TaskNet enhancements
 
 **Integration Approach**:
-1. Analyze Graph-of-Thought pattern and requirements
-2. Design TypeScript graph data structures
-3. Implement node and edge representations
-4. Create graph traversal and manipulation utilities
-5. Implement thinking pattern algorithms
-6. Add visualization and debugging tools
-7. Integrate with AI agent implementation
+1. Analyze Graph-of-Thought pattern requirements for non-linear reasoning.
+2. Design TypeScript graph data structures (`ThoughtGraph`, `ThoughtNode`, `ThoughtEdge`) supporting DAGs.
+3. Implement node/edge representations with metadata (status, results, confidence). Use IPLD for persistence structure.
+4. Create efficient graph traversal (DFS, BFS) and manipulation utilities.
+5. Implement core reasoning algorithms (e.g., expanding nodes via AI calls, synthesizing results).
+6. Add utilities for graph visualization (e.g., exporting to DOT or Mermaid format) and debugging.
+7. Integrate with AI agent (for node processing) and Task System (for scheduling node execution).
+8. **Challenge:** Managing graph complexity and ensuring efficient persistence/retrieval via IPLD.
 
 **CLI Interface Example**:
 ```
@@ -319,18 +322,25 @@ The integration should proceed in the following sequence to ensure dependencies 
 ### TypeScript Class Implementation Pattern
 
 ```typescript
-// Example TypeScript class implementation
+// Example TypeScript class implementation for the AI Agent
 export interface AgentOptions {
+  /** The model identifier (e.g., 'gpt-4', 'claude-3') */
   model: string;
+  /** Controls randomness (0.0-1.0). Lower is more deterministic. */
   temperature?: number;
+  /** Maximum tokens to generate in the response. */
   maxTokens?: number;
+  /** List of tools available to the agent. */
   tools?: Tool[];
 }
 
+/**
+ * Core class managing AI interactions, tools, and memory.
+ */
 export class TypeScriptAgent {
   private options: AgentOptions;
   private tools: Map<string, Tool> = new Map();
-  private memory: MessageMemory;
+  private memory: MessageMemory; // Assumes MessageMemory class exists
   
   constructor(options: AgentOptions) {
     this.options = {
@@ -344,37 +354,68 @@ export class TypeScriptAgent {
       options.tools.forEach(tool => this.registerTool(tool));
     }
     
-    // Initialize memory
+    // Initialize memory management
     this.memory = new MessageMemory();
   }
+
+  /**
+   * Processes a user message, interacts with the model and tools, and returns a response.
+   * @param message The user's input message.
+   * @param context Optional context for the execution.
+   * @returns A promise resolving to the agent's response.
+   */
   
   async processMessage(message: string, context?: any): Promise<AgentResponse> {
-    // Log the incoming message
+    // Add user message to conversation history
     this.memory.addMessage({ role: 'user', content: message });
-    
-    // Process the message
+
+    // Core logic: Generate response using model, potentially calling tools
     const response = await this.generateResponse(message, context);
-    
-    // Log the response
+
+    // Add agent's response to conversation history
     this.memory.addMessage({ role: 'assistant', content: response.content });
     
     return response;
   }
   
+  /**
+   * Registers a tool, making it available for the agent to use.
+   * @param tool The tool instance to register.
+   */
   registerTool(tool: Tool): void {
     this.tools.set(tool.name, tool);
   }
+
+  /**
+   * Retrieves the list of registered tools.
+   * @returns An array of registered tool instances.
+   */
   
   getTools(): Tool[] {
     return Array.from(this.tools.values());
   }
   
-  private async generateResponse(message: string, context?: any): Promise<AgentResponse> {
-    // Implementation of response generation
-    // This would include calling the AI model, processing tools, etc.
-    
+  /**
+   * Internal method to orchestrate response generation.
+   * This involves prompt construction, model invocation, tool execution logic, etc.
+   * @param message The user message.
+   * @param context Optional context.
+   * @returns The agent's response.
+   */
+  private async generateResponse(message: string, context?: any): Promise<AgentResponse> { // Assumes AgentResponse type exists
+    // 1. Construct prompt using message, memory, context, and available tools.
+    // 2. Call the appropriate AI model adapter with the prompt and options.
+    // 3. Parse model response: Check for tool calls.
+    // 4. If tool calls requested:
+    //    a. Validate tool calls.
+    //    b. Execute tools via ToolExecutor.
+    //    c. Get tool results.
+    //    d. Potentially call model again with tool results.
+    // 5. Format final response content.
+
+    // Placeholder implementation:
     return {
-      id: Date.now().toString(),
+      id: generateUUID(), // Use a proper UUID generator
       content: "Example response",
       role: 'assistant',
       timestamp: new Date().toISOString()
@@ -386,60 +427,115 @@ export class TypeScriptAgent {
 ### TypeScript Tool Implementation Pattern
 
 ```typescript
-// Example tool implementation
+// Example tool implementation for file operations
 export interface ToolParameter {
+  /** Name of the parameter (used in arguments object). */
   name: string;
+  /** Data type expected for the parameter. */
   type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  /** Description for help messages and agent understanding. */
   description: string;
+  /** Whether the parameter is mandatory. */
   required: boolean;
+  /** Default value if not provided. */
   default?: any;
 }
 
+/**
+ * Interface defining the structure for all tools.
+ */
 export interface Tool {
+  /** Unique name identifying the tool. */
   name: string;
+  /** Description of what the tool does, for AI and user understanding. */
   description: string;
+  /** Definition of the parameters the tool accepts. */
   parameters: ToolParameter[];
-  execute(params: any, context?: any): Promise<any>;
+  /** The asynchronous function that executes the tool's logic. */
+  execute(params: any, context?: any): Promise<any>; // Consider a more specific return type
 }
 
+/**
+ * Example implementation of a tool for file system operations.
+ */
 export class FileTool implements Tool {
-  name = 'file';
-  description = 'Read or write files on the filesystem';
+  readonly name = 'file';
+  readonly description = 'Read, write, or list files on the local filesystem.';
   
   parameters: ToolParameter[] = [
     {
       name: 'action',
       type: 'string',
       description: 'Action to perform (read, write, list)',
-      required: true
+      required: true,
+      // Potentially add choices: ['read', 'write', 'list']
     },
     {
       name: 'path',
       type: 'string',
-      description: 'File or directory path',
+      description: 'The absolute or relative path to the file or directory.',
       required: true
     },
     {
       name: 'content',
       type: 'string',
       description: 'Content to write (for write action)',
-      required: false
+      required: false // Only required for 'write' action
     }
   ];
+
+  /**
+   * Executes the file operation based on the provided parameters.
+   * @param params Parsed parameters matching the 'parameters' definition.
+   * @param context Optional execution context (e.g., access to config, base path).
+   * @returns A promise resolving to the result of the file operation.
+   */
   
   async execute(params: any, context?: any): Promise<any> {
     const { action, path, content } = params;
     
+    // Input validation should ideally happen before execute is called (e.g., in ToolExecutor)
+    // but basic checks can be added here.
     switch (action) {
       case 'read':
+        // Add validation: path must be provided
         return this.readFile(path);
       case 'write':
+        // Add validation: path and content must be provided
+        if (content === undefined || content === null) {
+          throw new Error("Parameter 'content' is required for write action.");
+        }
         return this.writeFile(path, content);
       case 'list':
+        // Add validation: path must be provided
         return this.listDirectory(path);
       default:
-        throw new Error(`Unsupported action: ${action}`);
+        // Provide valid actions in the error message
+        throw new Error(`Unsupported action: '${action}'. Valid actions are 'read', 'write', 'list'.`);
     }
+  }
+
+  // --- Private helper methods using Node.js 'fs/promises' ---
+
+  private async readFile(path: string): Promise<{ success: boolean; content: string }> {
+    // Implementation using fs.readFile(path, 'utf8')
+    // Handle potential errors (file not found, permissions)
+    console.log(`Reading file: ${path}`); // Example logging
+    return { success: true, content: 'Example file content from readFile' };
+  }
+
+  private async writeFile(path: string, content: string): Promise<{ success: boolean; bytesWritten: number }> {
+    // Implementation using fs.writeFile(path, content, 'utf8')
+    // Handle potential errors (directory not found, permissions)
+    console.log(`Writing to file: ${path}`); // Example logging
+    return { success: true, bytesWritten: Buffer.byteLength(content, 'utf8') };
+  }
+
+  private async listDirectory(path: string): Promise<{ success: boolean; entries: string[] }> {
+    // Implementation using fs.readdir(path)
+    // Handle potential errors (path not found, not a directory)
+    console.log(`Listing directory: ${path}`); // Example logging
+    return { success: true, entries: ['file1.txt', 'subdir/'] };
   }
   
   private async readFile(path: string): Promise<any> {
@@ -462,195 +558,339 @@ export class FileTool implements Tool {
 ### Graph-of-Thought Implementation Pattern
 
 ```typescript
-// Example Graph-of-Thought implementation
+// Example Graph-of-Thought data structures and basic class
+/** Enum defining different types of nodes in the thought graph. */
 export enum NodeType {
+  INPUT = 'input', // Added Input type
   QUESTION = 'question',
   FACT = 'fact',
   HYPOTHESIS = 'hypothesis',
-  CONCLUSION = 'conclusion'
+  CONCLUSION = 'conclusion',
+  DECOMPOSITION = 'decomposition', // Added Decomposition type
+  SYNTHESIS = 'synthesis' // Added Synthesis type
 }
 
+/** Interface representing a node in the thought graph. */
 export interface GraphNode {
+  /** Unique identifier for the node (e.g., UUID or CID). */
   id: string;
+  /** The main content of the node (text, code, query, etc.). */
   content: string;
+  /** The type of the node, indicating its role in the reasoning process. */
   type: NodeType;
+  /** Current status of the node's processing. */
+  status: 'Pending' | 'Ready' | 'InProgress' | 'CompletedSuccess' | 'CompletedFailure';
+  /** Result of the node's processing (can be complex object or CID). */
+  result?: any;
+  /** Optional metadata (timestamps, confidence scores, etc.). */
   metadata?: Record<string, any>;
 }
 
+/** Interface representing a directed edge between two nodes. */
 export interface GraphEdge {
-  source: string; // Node ID
-  target: string; // Node ID
+  /** ID of the source node. */
+  source: string;
+  /** ID of the target node. */
+  target: string;
+  /** Type of relationship (e.g., 'depends_on', 'elaborates', 'conflicts_with'). */
   type: string;
+  /** Optional weight for the edge. */
   weight?: number;
 }
 
+/**
+ * Class representing the Graph-of-Thought structure.
+ * Manages nodes and edges, providing traversal and manipulation methods.
+ */
 export class GraphOfThought {
+  readonly id: string; // Graph identifier
   private nodes: Map<string, GraphNode> = new Map();
   private edges: GraphEdge[] = [];
+  // Adjacency lists for efficient traversal
+  private adj: Map<string, string[]> = new Map();
+  private revAdj: Map<string, string[]> = new Map();
   
-  constructor(id?: string) {
+  constructor(id?: string) { // Assumes generateUUID exists
     this.id = id || generateUUID();
   }
+
+  /**
+   * Adds a node to the graph.
+   * @param node The node object to add.
+   * @returns The ID of the added node.
+   */
   
   addNode(node: GraphNode): string {
+    if (this.nodes.has(node.id)) {
+      // Handle update or throw error based on desired behavior
+      console.warn(`Node with ID ${node.id} already exists. Overwriting.`);
+    }
     this.nodes.set(node.id, node);
+    // Initialize adjacency lists for the new node
+    if (!this.adj.has(node.id)) this.adj.set(node.id, []);
+    if (!this.revAdj.has(node.id)) this.revAdj.set(node.id, []);
     return node.id;
   }
+
+  /**
+   * Retrieves a node by its ID.
+   * @param id The ID of the node to retrieve.
+   * @returns The node object or undefined if not found.
+   */
   
   getNode(id: string): GraphNode | undefined {
     return this.nodes.get(id);
   }
   
+  /**
+   * Adds a directed edge between two nodes.
+   * @param source ID of the source node.
+   * @param target ID of the target node.
+   * @param type Type of the relationship.
+   * @param weight Optional weight.
+   */
   addEdge(source: string, target: string, type: string, weight: number = 1): void {
     if (!this.nodes.has(source) || !this.nodes.has(target)) {
-      throw new Error(`Cannot create edge: one or both nodes don't exist`);
+      throw new Error(`Cannot create edge: Source (${source}) or Target (${target}) node does not exist.`);
     }
+    // Add edge to list
     
     this.edges.push({ source, target, type, weight });
+    // Update adjacency lists
+    this.adj.get(source)?.push(target);
+    this.revAdj.get(target)?.push(source);
   }
+
+  // ... (Getters for edges, adjacency lists remain similar) ...
   
-  getOutgoingEdges(nodeId: string): GraphEdge[] {
-    return this.edges.filter(edge => edge.source === nodeId);
+  // Example: Get direct children (targets of outgoing edges)
+  getChildren(nodeId: string): string[] {
+    return this.adj.get(nodeId) || [];
   }
-  
-  getIncomingEdges(nodeId: string): GraphEdge[] {
-    return this.edges.filter(edge => edge.target === nodeId);
+
+  // Example: Get direct parents (sources of incoming edges)
+  getParents(nodeId: string): string[] {
+    return this.revAdj.get(nodeId) || [];
   }
-  
-  traverse(startNodeId: string, visitor: (node: GraphNode, depth: number) => void): void {
+
+
+  /**
+   * Performs a Depth-First Search traversal starting from a given node.
+   * @param startNodeId The ID of the node to start traversal from.
+   * @param visitor A function called for each visited node.
+   */
+  traverseDFS(startNodeId: string, visitor: (node: GraphNode, depth: number) => void): void {
     const visited = new Set<string>();
-    
-    const dfs = (nodeId: string, depth: number) => {
-      if (visited.has(nodeId)) return;
-      
+    const stack: [string, number][] = [[startNodeId, 0]]; // Use a stack for DFS
+
+    while (stack.length > 0) {
+      const [nodeId, depth] = stack.pop()!;
+      if (!nodeId || visited.has(nodeId)) continue;
+
       const node = this.getNode(nodeId);
-      if (!node) return;
-      
+      if (!node) continue;
+
       visited.add(nodeId);
       visitor(node, depth);
-      
-      const outgoing = this.getOutgoingEdges(nodeId);
-      for (const edge of outgoing) {
-        dfs(edge.target, depth + 1);
+
+      // Add children to the stack (reverse order to visit left branches first if desired)
+      const children = this.getChildren(nodeId).reverse();
+      for (const childId of children) {
+        if (!visited.has(childId)) {
+          stack.push([childId, depth + 1]);
+        }
       }
-    };
-    
-    dfs(startNodeId, 0);
+    }
   }
+
+  /**
+   * Serializes the graph to a JSON-compatible object.
+   * @returns A plain object representing the graph.
+   */
   
-  toJSON(): any {
-    return {
-      id: this.id,
-      nodes: Array.from(this.nodes.values()),
-      edges: this.edges
-    };
-  }
-  
-  static fromJSON(data: any): GraphOfThought {
-    const graph = new GraphOfThought(data.id);
-    
-    // Add nodes
-    data.nodes.forEach((node: GraphNode) => {
-      graph.addNode(node);
-    });
-    
-    // Add edges
-    data.edges.forEach((edge: GraphEdge) => {
-      graph.addEdge(edge.source, edge.target, edge.type, edge.weight);
-    });
-    
-    return graph;
-  }
+  // ... (toJSON and fromJSON methods would need updating for adjacency lists if included) ...
 }
+
+// Note: For IPLD persistence, serialization would involve converting this structure
+// into linked CBOR blocks, likely storing node content separately.
 ```
 
 ### Fibonacci Heap Implementation Pattern
 
 ```typescript
-// Example Fibonacci Heap implementation for task scheduling
+// Example Fibonacci Heap implementation for task scheduling (Conceptual)
+// Note: A full, correct Fibonacci Heap implementation is complex.
+// This pattern focuses on the interface and key aspects.
+// Consider using a well-tested library if available.
+
+/** Interface for a node within the Fibonacci Heap. */
 export interface HeapNode<T> {
+  /** Priority value (lower means higher priority). */
   key: number;
+  /** The actual task or task ID. */
   value: T;
-  degree: number;
-  marked: boolean;
-  parent: HeapNode<T> | null;
-  child: HeapNode<T> | null;
-  left: HeapNode<T>;
-  right: HeapNode<T>;
+  // Internal heap structure properties:
+  degree: number; // Number of children
+  marked: boolean; // Flag for cascading cuts
+  parent: HeapNode<T> | null; // Pointer to parent node
+  child: HeapNode<T> | null; // Pointer to one child node
+  left: HeapNode<T>; // Pointer to left sibling in circular list
+  right: HeapNode<T>; // Pointer to right sibling in circular list
 }
 
+/**
+ * Fibonacci Heap implementation for prioritizing tasks.
+ * Provides O(1) amortized insert/decreaseKey and O(log n) amortized extractMin.
+ */
 export class FibonacciHeap<T> {
-  private min: HeapNode<T> | null = null;
-  private nodeCount: number = 0;
-  private nodeMap: Map<T, HeapNode<T>> = new Map();
+  private min: HeapNode<T> | null = null; // Pointer to the node with the minimum key
+  private nodeCount: number = 0; // Total number of nodes in the heap
+  // Map to quickly find a node by its value (Task ID) for decreaseKey operation.
+  // Requires Task IDs to be unique and hashable.
+  private nodeMap: Map<string, HeapNode<T>> = new Map(); // Assuming T has an 'id' property
   
-  constructor(private comparator: (a: T, b: T) => number = () => 0) {}
+  // Optional comparator if keys can be equal and value comparison is needed.
+  // constructor(private comparator: (a: T, b: T) => number = () => 0) {}
+  constructor() {}
   
+  /** Checks if the heap is empty. */
   isEmpty(): boolean {
-    return this.nodeCount === 0;
+    return this.min === null; // Or check nodeCount === 0
   }
+
+  /** Returns the number of tasks in the heap. */
   
   size(): number {
     return this.nodeCount;
   }
   
-  insert(key: number, value: T): HeapNode<T> {
-    // Implementation of Fibonacci heap insert operation
-    const node = this.createNode(key, value);
-    
+  /**
+   * Inserts a task with a given priority into the heap.
+   * Amortized time complexity: O(1).
+   * @param key The priority (lower is higher urgency).
+   * @param value The task object or ID (must have a unique 'id' property).
+   * @returns The newly created heap node.
+   */
+  insert(key: number, value: T & { id: string }): HeapNode<T> {
+    if (this.nodeMap.has(value.id)) {
+      throw new Error(`Value with ID ${value.id} already exists in the heap.`);
+    }
+    const node = this._createNode(key, value); // Internal helper to create node
+
+    // Add node to the root list
     if (this.min === null) {
+      // Heap was empty
+      node.left = node;
+      node.right = node;
       this.min = node;
     } else {
-      this.insertNodeIntoList(node, this.min);
+      // Insert node into the root list (circular doubly linked list)
+      node.right = this.min;
+      node.left = this.min.left;
+      this.min.left.right = node;
+      this.min.left = node;
+      // Update min pointer if necessary
       if (node.key < this.min.key) {
         this.min = node;
       }
     }
-    
+
     this.nodeCount++;
-    this.nodeMap.set(value, node);
+    this.nodeMap.set(value.id, node); // Map ID to node
     return node;
   }
+
+  /**
+   * Removes and returns the task with the highest priority (minimum key).
+   * Amortized time complexity: O(log n).
+   * @returns The highest priority task or null if the heap is empty.
+   */
   
-  extractMin(): T | null {
-    // Implementation of Fibonacci heap extract-min operation
-    if (this.min === null) return null;
-    
-    const minNode = this.min;
-    const value = minNode.value;
-    
-    // Handle children
-    if (minNode.child !== null) {
-      let child = minNode.child;
-      const firstChild = child;
-      
-      do {
-        child.parent = null;
-        child = child.right;
-      } while (child !== firstChild);
-      
-      if (this.min.right === this.min) {
-        // Min was the only root
-        this.min = firstChild;
-      } else {
-        this.mergeNodeLists(this.min, firstChild);
-      }
+  // ... (Complex implementation involving promoting children and consolidation) ...
+  // ... (Placeholder - requires full implementation) ...
+  extractMin(): (T & { id: string }) | null {
+     const minValue = this.min?.value;
+     if (minValue) {
+       // Full implementation needed here
+       // 1. Remove min node from root list
+       // 2. Promote min node's children to root list
+       // 3. If heap is not empty, call consolidate()
+       // 4. Update nodeCount and nodeMap
+       // this.nodeMap.delete(minValue.id);
+       // this.nodeCount--;
+     }
+     return minValue || null;
+   }
+
+
+  /**
+   * Decreases the priority key of a task already in the heap.
+   * Amortized time complexity: O(1).
+   * @param value The task object or ID (must have a unique 'id' property).
+   * @param newKey The new, lower priority key.
+   * @returns True if the key was decreased, false otherwise.
+   */
+  decreaseKey(value: T & { id: string }, newKey: number): boolean {
+    const node = this.nodeMap.get(value.id);
+    if (!node) {
+      console.error(`Cannot decrease key: Value with ID ${value.id} not found.`);
+      return false; // Node not found
     }
-    
-    // Remove min from root list
-    this.removeNodeFromList(minNode);
-    
-    if (minNode.right === minNode) {
-      this.min = null;
-    } else {
-      this.min = minNode.right;
-      this.consolidate();
+
+    if (newKey > node.key) {
+      console.error(`Cannot decrease key: New key ${newKey} is greater than current key ${node.key}.`);
+      return false; // New key must be smaller
     }
-    
-    this.nodeCount--;
-    this.nodeMap.delete(value);
-    return value;
+    if (newKey === node.key) {
+        return true; // No change needed
+    }
+
+    node.key = newKey;
+    const parent = node.parent;
+
+    // If heap property is violated (node key < parent key)
+    if (parent !== null && node.key < parent.key) {
+      this._cut(node, parent); // Cut node from parent
+      this._cascadingCut(parent); // Perform cascading cuts up the tree
+    }
+
+    // Update overall minimum pointer if necessary
+    if (this.min === null || node.key < this.min.key) {
+      this.min = node;
+    }
+
+    return true;
   }
+
+  // --- Private Helper Methods (Essential for Heap Operations) ---
+
+  private _createNode(key: number, value: T & { id: string }): HeapNode<T> {
+    const node: HeapNode<T> = {
+      key, value,
+      degree: 0, marked: false,
+      parent: null, child: null,
+      left: null!, right: null! // Will be set immediately
+    };
+    node.left = node;
+    node.right = node;
+    return node;
+  }
+
+  // _consolidate(): Merges roots of same degree until all root degrees are unique. Crucial for extractMin.
+  private _consolidate(): void { /* ... Complex implementation ... */ }
+
+  // _cut(node, parent): Removes node from parent's child list and adds it to the root list.
+  private _cut(node: HeapNode<T>, parent: HeapNode<T>): void { /* ... Implementation ... */ }
+
+  // _cascadingCut(node): Recursively cuts marked ancestors if their child is cut.
+  private _cascadingCut(node: HeapNode<T>): void { /* ... Implementation ... */ }
+
+  // _link(child, parent): Makes child a child of parent. Used in consolidate.
+  // private _link(child: HeapNode<T>, parent: HeapNode<T>): void { /* ... Implementation ... */ }
+
+  // Helpers for manipulating circular doubly linked lists (insert, remove, merge)
+  // ...
+}
   
   decreaseKey(value: T, newKey: number): boolean {
     // Implementation of Fibonacci heap decrease-key operation
@@ -710,57 +950,153 @@ export class FibonacciHeap<T> {
 ### IPFS Kit MCP Client Implementation Pattern
 
 ```typescript
-// Example IPFS Kit MCP client implementation
+// Example IPFS Kit MCP client implementation using Fetch API
 export interface IPFSKitConfig {
+  /** Base URL of the IPFS Kit MCP Server API (e.g., http://localhost:5001). */
   baseUrl: string;
-  apiKey?: string;
+  /** Optional API key if required by the server. */
+  /** Request timeout in milliseconds. */
   timeout?: number;
 }
 
+/**
+ * Client for interacting with an IPFS Kit MCP Server.
+ */
 export class IPFSKitClient {
-  private config: IPFSKitConfig;
-  private httpClient: any; // Axios or similar
+  private config: Required<IPFSKitConfig>; // Use Required for defaults
+  // Using native fetch, no need for httpClient property if not using Axios
   
   constructor(config: IPFSKitConfig) {
+    // Set defaults
     this.config = {
-      timeout: 30000, // 30 seconds default
-      ...config
+      baseUrl: config.baseUrl,
+      apiKey: config.apiKey || '', // Default to empty string if undefined
+      timeout: config.timeout || 30000, // 30 seconds default
     };
-    
-    // Initialize HTTP client
-    this.httpClient = this.createHttpClient();
-  }
-  
-  async addContent(content: string | Buffer): Promise<{ cid: string }> {
-    const formData = new FormData();
-    
-    if (typeof content === 'string') {
-      formData.append('file', new Blob([content]));
-    } else {
-      formData.append('file', new Blob([content]));
+
+    // Validate base URL
+    if (!this.config.baseUrl) {
+        throw new Error("IPFSKitClient: baseUrl is required in config.");
     }
     
-    const response = await this.httpClient.post('/api/v0/add', formData);
-    return { cid: response.data.Hash };
+    // No need to initialize httpClient if using native fetch directly
   }
+
+  /**
+   * Adds content (file or buffer) to the IPFS server.
+   * @param content The content to add as a string or Buffer.
+   * @returns A promise resolving to the CID of the added content.
+   */
+  
+  async addContent(content: string | Buffer | Blob): Promise<{ cid: string }> {
+    const formData = new FormData();
+    const blob = content instanceof Blob ? content : new Blob([content]);
+    formData.append('file', blob);
+
+    const url = `${this.config.baseUrl}/api/v0/add`;
+    const response = await this._fetchWithTimeout(url, {
+      method: 'POST',
+      body: formData,
+      // Headers might be needed for API key, automatically set by FormData for content-type
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(`IPFS add failed: ${data.Message || response.statusText}`);
+    }
+    // Assuming standard Kubo API response format
+    return { cid: data.Hash };
+  }
+
+  /**
+   * Retrieves content for a given CID.
+   * @param cid The Content Identifier (CID) string.
+   * @returns A promise resolving to a Buffer containing the content.
+   */
   
   async getContent(cid: string): Promise<Buffer> {
-    const response = await this.httpClient.get(`/api/v0/cat?arg=${cid}`, {
-      responseType: 'arraybuffer'
-    });
-    
-    return Buffer.from(response.data);
+    const url = `${this.config.baseUrl}/api/v0/cat?arg=${cid}`;
+    const response = await this._fetchWithTimeout(url, { method: 'POST' }); // cat is often POST
+
+    if (!response.ok) {
+        const errorData = await response.text(); // Read error message
+        throw new Error(`IPFS cat failed for ${cid}: ${response.statusText} - ${errorData}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
   }
+
+  /**
+   * Lists CIDs currently pinned by the server (or associated pinning service).
+   * @returns A promise resolving to an array of pinned CID strings.
+   */
   
   async listPins(): Promise<string[]> {
-    const response = await this.httpClient.get('/api/v0/pin/ls');
-    return Object.keys(response.data.Keys || {});
+    const url = `${this.config.baseUrl}/api/v0/pin/ls?type=recursive`; // Usually want recursive pins
+    const response = await this._fetchWithTimeout(url, { method: 'POST' }); // pin/ls is often POST
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`IPFS pin ls failed: ${errorData.Message || response.statusText}`);
+    }
+    const data = await response.json();
+    return Object.keys(data.Keys || {}); // Standard Kubo API response
   }
+
+  /**
+   * Requests the server (or associated pinning service) to pin a CID.
+   * @param cid The CID to pin.
+   * @returns A promise resolving to true if the pin request was successful (may be asynchronous).
+   */
   
-  async pinContent(cid: string): Promise<boolean> {
-    const response = await this.httpClient.post(`/api/v0/pin/add?arg=${cid}`);
-    return response.data.Pins.includes(cid);
+  async pinContent(cid: string): Promise<{ Pins: string[] }> {
+    const url = `${this.config.baseUrl}/api/v0/pin/add?arg=${cid}`;
+    const response = await this._fetchWithTimeout(url, { method: 'POST' });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`IPFS pin add failed for ${cid}: ${errorData.Message || response.statusText}`);
+    }
+    return await response.json(); // Returns { Pins: [cid] } on success
   }
+
+  // --- Optional: WebSocket/WebRTC methods ---
+  // connectWebSocket(): WebSocket { ... }
+  // connectWebRTC(): RTCDataChannel { ... }
+
+  // --- Private Helper Methods ---
+
+  /**
+   * Wrapper around fetch with timeout and potential API key injection.
+   */
+  private async _fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
+    const headers = new Headers(options.headers || {});
+    if (this.config.apiKey) {
+      headers.set('Authorization', `Bearer ${this.config.apiKey}`); // Example Auth
+    }
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        signal: controller.signal,
+      });
+      return response;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timed out after ${this.config.timeout}ms: ${url}`);
+      }
+      throw error; // Re-throw other errors
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  // Removed createHttpClient and wsUrl as they are not needed for fetch-based example
   
   // WebSocket/WebRTC methods for real-time operations
   connectWebSocket(): WebSocket {

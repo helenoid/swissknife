@@ -1,6 +1,6 @@
 # CLI Documentation Standards
 
-This document establishes standards for documentation related to the SwissKnife CLI application. These standards ensure consistency, completeness, and clarity across all documentation artifacts created during the integration process.
+This document establishes standards for creating and maintaining documentation related to the SwissKnife CLI application, including analysis documents, API specifications, command references, and user guides. Adhering to these standards ensures consistency, completeness, and clarity across all project documentation.
 
 ## Documentation File Structure
 
@@ -21,7 +21,11 @@ docs/
 
 ## Document Templates
 
-### 1. Component Analysis Template
+The following templates should be used as a starting point for common documentation types to ensure consistency.
+
+### 1. Component Analysis Template (`docs/phase1/analysis/`)
+
+*Purpose: To provide an in-depth analysis of a specific component being considered for integration.*
 
 ```markdown
 # [Component Name] Analysis
@@ -57,10 +61,12 @@ Specific testing requirements or considerations for this component.
 Documentation needs specific to this component.
 ```
 
-### 2. Command Documentation Template
+### 2. Command Documentation Template (`docs/commands/`)
+
+*Purpose: To document the usage, options, and examples for a specific user-facing CLI command. Note: Parts of this may be auto-generated from code definitions.*
 
 ```markdown
-# [Command Name]
+# `swissknife [command-name]`
 
 [Brief description of the command's purpose]
 
@@ -116,10 +122,12 @@ swissknife [command] [example command line]
 - [`[related-command2]`](./[related-command2].md): [Brief description]
 ```
 
-### 3. Implementation Document Template
+### 3. Implementation Document Template (`docs/architecture/` or similar)
+
+*Purpose: To document the internal design, architecture, and API of a specific implemented component or service.*
 
 ```markdown
-# [Component Name] Implementation
+# [Component Name] Implementation Details
 
 ## Overview
 Brief description of the implemented component.
@@ -288,18 +296,33 @@ Use the following notation for documenting command syntax:
 
 ## Term Glossary
 
-Maintain a consistent glossary of terms used throughout documentation:
+Maintain a consistent glossary of key terms used throughout the project documentation.
 
-- **Command**: A top-level CLI command
-- **Subcommand**: A command nested under a top-level command
-- **Option**: A modifier for a command or subcommand
-- **Parameter**: A value passed to a command, subcommand, or option
-- **Flag**: A boolean option that doesn't require a value
-- **Service**: A long-running background process
-- **Worker**: A thread or process that executes tasks
-- **Task**: A unit of work to be processed by a worker
-- **Model**: A machine learning model used for inference
-- **Provider**: A service that provides models or other resources
+- **Agent (AI Agent)**: The core component responsible for processing user requests, interacting with models, and using tools.
+- **Backend (Storage)**: A specific implementation providing storage capabilities (e.g., FilesystemBackend, IPFSBackend).
+- **CLI**: Command-Line Interface; the primary user interaction method for SwissKnife.
+- **Command**: A user-invokable action in the CLI (e.g., `swissknife agent chat`). Can have subcommands.
+- **Component**: A logical unit of functionality within the architecture (e.g., Storage System, Model System).
+- **Configuration**: Settings that control the application's behavior, loaded hierarchically.
+- **Context (Execution Context)**: An object passed to command handlers providing access to arguments, configuration, and services.
+- **GoT (Graph-of-Thought)**: A reasoning structure used by the Task System for complex problem-solving.
+- **IPFS (InterPlanetary File System)**: Content-addressable, peer-to-peer storage network.
+- **IPFS Kit MCP Server**: The specific external server providing IPFS capabilities via the Model Context Protocol.
+- **Mapping Store (IPFS)**: Internal mechanism used by the IPFSBackend to map virtual paths to CIDs.
+- **MCP (Model Context Protocol)**: A protocol for communication between AI models/agents and external tools/resources.
+- **Milestone**: A significant point or deliverable in the project timeline.
+- **Model**: An AI model (e.g., LLM, embedding model) used for generation or analysis.
+- **Mount Point (Storage)**: A virtual path prefix mapped to a specific storage backend in the VFS.
+- **Option / Flag**: A modifier specified on the command line (e.g., `--verbose`, `-f <file>`) to alter command behavior.
+- **Parameter / Argument**: A value required by or passed to a command, option, or tool.
+- **Provider (Model)**: An implementation that interacts with a specific source of AI models (e.g., OpenAI API, local runtime).
+- **Registry**: A central store for managing definitions (e.g., CommandRegistry, ModelRegistry, StorageRegistry).
+- **Service**: A distinct functional unit within the architecture, often accessible via the Execution Context (e.g., AgentService, StorageService). Can also refer to long-running background processes.
+- **Storage Operations / VFS**: The high-level API providing a unified interface over different storage backends.
+- **Task**: A unit of work managed by the Task System, potentially executed by workers.
+- **TaskNet**: The enhanced task processing system including GoT, scheduling, decomposition, etc.
+- **Tool**: A capability invokable by the AI Agent (or directly) to interact with external systems or perform specific actions.
+- **Worker (Worker Thread)**: A Node.js `worker_thread` used for parallel execution of tasks locally.
 
 ## Documentation Testing
 

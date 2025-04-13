@@ -32,193 +32,328 @@ In the `ipfs_accelerate_js` repository, the Storage System:
 
 ### 2.1 Component Structure
 
+```mermaid
+graph TD
+    subgraph src/storage/
+        A[backend.ts] --> B(Storage Backend Interface);
+        C[backends/] --> D{Backend Implementations};
+        D -- implements --> A;
+        E[registry.ts] --> F(Backend Registry & Mounts);
+        F --> C;
+        G[path-resolver.ts] --> H(Path Resolution);
+        H --> F;
+        I[operations.ts] --> J(High-Level Operations);
+        J --> H;
+        J --> C;
+        K[addressing.ts] --> L(Content Addressing);
+        M[metadata.ts] --> N(Metadata Management);
+        O[cache.ts] --> P(Storage Caching);
+        J --> O;
+        Q[types.ts] --> R(Shared Type Definitions);
+        S[utils/] --> T(...Utility Functions...);
+    end
+    subgraph backends/
+        B_FS[filesystem.ts] --> B_FS_Impl(Local Filesystem Backend);
+        B_IPFS[ipfs.ts] --> B_IPFS_Impl(IPFS Backend);
+        B_Mem[memory.ts] --> B_Mem_Impl(In-Memory Backend);
+        B_Dots[...] --> B_More(...);
+    end
+    subgraph utils/
+        U_CID[cid.ts] --> U_CID_Desc(CID Utilities);
+        U_Mime[mime.ts] --> U_Mime_Desc(MIME Type Detection);
+        U_Path[path.ts] --> U_Path_Desc(Path Manipulation);
+    end
+
+    style D fill:#eee,stroke:#333
+    style T fill:#eee,stroke:#333
 ```
-src/storage/
-├── backend.ts             # Storage backend interface
-├── backends/              # Backend implementations
-│   ├── filesystem.ts      # Local filesystem backend
-│   ├── ipfs.ts            # IPFS storage backend
-│   ├── memory.ts          # In-memory storage backend
-│   └── ...
-├── registry.ts            # Storage backend registry
-├── path-resolver.ts       # Path resolution across backends
-├── operations.ts          # High-level storage operations
-├── addressing.ts          # Content addressing utilities
-├── metadata.ts            # Content metadata management
-├── cache.ts               # Storage caching system
-├── types.ts               # Type definitions
-└── utils/                 # Utility functions
-    ├── cid.ts             # CID utilities
-    ├── mime.ts            # MIME type detection
-    └── path.ts            # Path manipulation utilities
-```
+*   **backend.ts:** Defines the common `StorageBackend` interface that all storage implementations must adhere to.
+*   **backends/:** Contains concrete implementations for different storage types (local filesystem, IPFS via client, in-memory for testing).
+*   **registry.ts:** Manages registered backend instances and maps virtual mount points (e.g., `/ipfs`, `/local`) to specific backend instances.
+*   **path-resolver.ts:** Takes a virtual path (e.g., `/ipfs/some/file`) and determines which backend is responsible and the relative path within that backend.
+*   **operations.ts:** Provides a high-level, unified API (e.g., `readFile`, `writeFile`, `copy`) that uses the `PathResolver` and delegates to the appropriate backend. This is the primary interface for other parts of the application.
+*   **addressing.ts:** Utilities related to content addressing (primarily CID generation/validation for IPFS).
+*   **metadata.ts:** Logic for handling metadata associated with stored content (e.g., MIME types, timestamps, potentially custom metadata).
+*   **cache.ts:** Implements caching strategies specifically for storage operations (e.g., caching reads from slower backends like IPFS).
+*   **types.ts:** Common TypeScript interfaces and types for the storage system.
+*   **utils/:** Helper functions for CID handling, MIME type detection, path manipulation, etc.
 
 ### 2.2 Key Classes and Interfaces
 
 #### StorageBackend Interface
 
 ```typescript
+/**
+ * Common interface for all storage backend implementations.
+ * Defines a contract for file and directory operations.
+ */
 interface StorageBackend {
-  id: string;
-  name: string;
-  isReadOnly: boolean;
+  /** Unique identifier for the backend type (e.g., 'filesystem', 'ipfs'). */
+  readonly id: string; // Make readonly
+  /** Human-readable name (e.g., 'Local Filesystem'). */
+  readonly name: string; // Make readonly
+  /** Flag indicating if the backend is read-only by nature or configuration. */
+  readonly isReadOnly: boolean; // Make readonly
   
-  // Basic file operations
-  readFile(path: string): Promise<Buffer>;
-  writeFile(path: string, data: Buffer | string): Promise<void>;
-  exists(path: string): Promise<boolean>;
-  stat(path: string): Promise<FileStat>;
+  // --- Basic file operations (relative path within backend) ---
+  /** Reads the entire content of a file at the given relative path. */
+  readFile(relativePath: string): Promise<Buffer>;
+  /** Writes data to a file at the given relative path. Creates directories if needed. */
+  writeFile(relativePath: string, data: Buffer | string): Promise<void>;
+  /** Checks if a file or directory exists at the given relative path. */
+  exists(relativePath: string): Promise<boolean>;
+  /** Retrieves metadata (stats) for a file or directory at the relative path. */
+  stat(relativePath: string): Promise<FileStat>;
   
-  // Directory operations
-  readdir(path: string): Promise<DirEntry[]>;
-  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  // --- Directory operations (relative path within backend) ---
+  /** Reads the contents of a directory at the relative path. */
+  readdir(relativePath: string): Promise<DirEntry[]>;
+  /** Creates a directory at the relative path. */
+  mkdir(relativePath: string, options?: { recursive?: boolean }): Promise<void>;
   
-  // Delete operations
-  unlink(path: string): Promise<void>;
-  rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  // --- Delete operations (relative path within backend) ---
+  /** Deletes a file at the relative path. */
+  unlink(relativePath: string): Promise<void>;
+  /** Deletes an empty directory at the relative path, or recursively if specified. */
+  rmdir(relativePath: string, options?: { recursive?: boolean }): Promise<void>;
   
-  // Additional operations
-  rename(oldPath: string, newPath: string): Promise<void>;
-  copyFile(src: string, dest: string): Promise<void>;
+  // --- Optional additional operations (relative paths within backend) ---
+  /** Renames or moves a file or directory within the same backend. */
+  rename?(oldRelativePath: string, newRelativePath: string): Promise<void>;
+  /** Copies a file within the same backend. */
+  copyFile?(srcRelativePath: string, destRelativePath: string): Promise<void>;
+  /** Creates a readable stream for a file at the relative path. */
+  createReadStream?(relativePath: string, options?: any): Promise<NodeJS.ReadableStream>;
+  /** Creates a writable stream for a file at the relative path. */
+  createWriteStream?(relativePath: string, options?: any): Promise<NodeJS.WritableStream>;
   
-  // Storage information
-  getAvailableSpace(): Promise<SpaceInfo>;
+  // --- Optional storage information ---
+  /** Gets information about available space (if applicable). */
+  getAvailableSpace?(): Promise<SpaceInfo>;
 }
 
+/** Represents file or directory metadata/statistics. */
 interface FileStat {
   isDirectory: boolean;
   isFile: boolean;
-  size: number;
-  createTime: Date;
-  modifyTime: Date;
-  accessTime: Date;
-  mode?: number;
+  size: number; // Size in bytes
+  createTime: Date; // Creation timestamp
+  modifyTime: Date; // Last modification timestamp
+  accessTime: Date; // Last access timestamp
+  mode?: number; // Filesystem permissions (numeric)
+  // Could add CID for IPFS entries
 }
 
+/** Represents an entry within a directory listing. */
 interface DirEntry {
-  name: string;
-  path: string;
+  name: string; // Base name of the entry
+  path: string; // Full path within the backend
   isDirectory: boolean;
   isFile: boolean;
-  size?: number;
+  size?: number; // Optional size
 }
 
+/** Represents information about storage space. */
 interface SpaceInfo {
-  total: number;
-  used: number;
-  available: number;
+  total: number; // Total space in bytes
+  used: number; // Used space in bytes
+  available: number; // Available space in bytes
 }
 ```
 
 #### StorageRegistry
 
 ```typescript
+/**
+ * Manages registered storage backends and virtual mount points.
+ * Responsible for mapping virtual paths to the correct backend instance.
+ */
 class StorageRegistry {
+  // Stores backend instances, keyed by their unique ID (e.g., 'filesystem-default', 'ipfs-main').
   private backends: Map<string, StorageBackend>;
-  private defaultBackend: string;
-  private mounts: Map<string, string>; // Mount point to backend ID
+  // ID of the backend used for paths without an explicit mount (e.g., '/').
+  private defaultBackendId: string;
+  // Maps virtual mount points (e.g., '/ipfs', '/local/data') to backend IDs.
+  // Mount points should be absolute paths starting with '/'.
+  private mounts: Map<string, string>;
   
+  /** Registers a backend instance. */
   registerBackend(backend: StorageBackend): void;
+  /** Removes a backend instance. */
   unregisterBackend(backendId: string): void;
+  /** Retrieves a backend instance by its ID. */
   getBackend(backendId: string): StorageBackend | undefined;
+  /** Gets all registered backend instances. */
   getBackends(): StorageBackend[];
+  /** Sets the default backend ID. */
   setDefaultBackend(backendId: string): void;
+  /** Gets the default backend instance. */
   getDefaultBackend(): StorageBackend;
   
+  /** Mounts a backend instance at a specific virtual path. */
   mount(mountPoint: string, backendId: string): void;
+  /** Unmounts a virtual path. */
   unmount(mountPoint: string): void;
+  /** Gets the current mount configuration. */
   getMounts(): Map<string, string>;
-  getBackendForPath(path: string): StorageBackend;
+  /** Determines the responsible backend and calculates the relative path for a given absolute virtual path. */
+  getBackendForPath(absoluteVirtualPath: string): { backend: StorageBackend; relativePath: string; mountPoint: string };
 }
 ```
 
 #### FilesystemBackend
 
 ```typescript
+/**
+ * Storage backend implementation using the local Node.js filesystem.
+ */
 class FilesystemBackend implements StorageBackend {
-  id = 'filesystem';
-  name = 'Local Filesystem';
-  isReadOnly = false;
+  readonly id = 'filesystem';
+  readonly name = 'Local Filesystem';
+  readonly isReadOnly = false; // Typically read-write
   
-  constructor(private baseDir: string) {}
-  
-  async readFile(path: string): Promise<Buffer> {
-    const fullPath = this.resolvePath(path);
-    return await fs.readFile(fullPath);
+  // Base directory on the local filesystem where this backend operates.
+  constructor(private baseDir: string) {
+      // Ensure baseDir exists or create it? Needs careful consideration.
   }
   
-  async writeFile(path: string, data: Buffer | string): Promise<void> {
-    const fullPath = this.resolvePath(path);
-    // Ensure parent directory exists
-    await this.ensureDir(dirname(fullPath));
+  /** Reads a file relative to the base directory. */
+  async readFile(relativePath: string): Promise<Buffer> {
+    const fullPath = this._resolvePath(relativePath);
+    // Add error handling for file not found, permissions etc.
+    return await fs.readFile(fullPath); // Assumes fs is 'fs/promises'
+  }
+  
+  /** Writes a file relative to the base directory. */
+  async writeFile(relativePath: string, data: Buffer | string): Promise<void> {
+    const fullPath = this._resolvePath(relativePath);
+    // Ensure parent directory exists using recursive mkdir
+    await fs.mkdir(dirname(fullPath), { recursive: true }); // dirname from 'path'
+    // Add error handling for permissions etc.
     return await fs.writeFile(fullPath, data);
   }
   
-  // Other method implementations...
+  // Implement other StorageBackend methods (exists, stat, readdir, mkdir, unlink, rmdir)...
   
-  private resolvePath(path: string): string {
-    // Resolve relative to base directory
-    // Handle path traversal security concerns
-    return resolve(this.baseDir, path);
-  }
-  
-  private async ensureDir(dirPath: string): Promise<void> {
-    // Create directory if it doesn't exist
-    if (!(await this.exists(dirPath))) {
-      await fs.mkdir(dirPath, { recursive: true });
+  /** Safely resolves a relative path within the base directory. Prevents path traversal. */
+  private _resolvePath(relativePath: string): string {
+    const normalizedRelative = normalize(relativePath); // normalize from 'path'
+    if (normalizedRelative.startsWith('..')) {
+        throw new Error(`Path traversal attempt detected: ${relativePath}`);
     }
+    // Using resolve ensures the path is absolute and within baseDir (or should be checked)
+    const fullPath = resolve(this.baseDir, normalizedRelative); // resolve from 'path'
+    // Extra check: Ensure resolved path is still within baseDir
+    if (!fullPath.startsWith(resolve(this.baseDir))) {
+         throw new Error(`Resolved path is outside base directory: ${fullPath}`);
+    }
+    return fullPath;
   }
+
+  // Removed ensureDir as fs.mkdir({ recursive: true }) handles it.
 }
+// Assumes fs, dirname, normalize, resolve imports from 'fs/promises' and 'path'
 ```
 
 #### IPFSBackend
 
 ```typescript
+/**
+ * Storage backend implementation using an IPFS client (e.g., IPFSKitClient).
+ * Requires a mechanism (mappingStore) to map virtual paths to immutable CIDs.
+ */
 class IPFSBackend implements StorageBackend {
-  id = 'ipfs';
-  name = 'IPFS Storage';
-  isReadOnly = false;
+  readonly id = 'ipfs';
+  readonly name = 'IPFS Storage';
+  // IPFS is content-addressed; writing usually means adding new content
+  // and updating the path mapping. True 'overwrite' isn't standard.
+  // Can be considered read-only for existing CIDs, but allows adding new content.
+  readonly isReadOnly = false; // Or true depending on interpretation? Let's say false for adding.
+
+  // Requires an IPFS client instance and a way to store path->CID mappings.
+  // Requires an IPFS client instance and a way to store path->CID mappings.
+  constructor(
+      private ipfsClient: IPFSClient, // Assumes IPFSClient interface/class from ipfs_kit_commands.md context
+      private mappingStore: MappingStore // Interface for path->CID storage
+  ) {}
   
-  constructor(private ipfsClient: IPFSClient, private options: IPFSOptions) {}
-  
-  async readFile(path: string): Promise<Buffer> {
-    const cid = await this.pathToCID(path);
-    return await this.ipfsClient.cat(cid);
+  /** Reads content by resolving the virtual path to a CID. */
+  async readFile(virtualPath: string): Promise<Buffer> {
+    const cid = await this._pathToCID(virtualPath);
+    // Add error handling
+    return await this.ipfsClient.getContent(cid); // Use IPFSKitClient method
   }
   
-  async writeFile(path: string, data: Buffer | string): Promise<void> {
-    const content = typeof data === 'string' ? Buffer.from(data) : data;
-    const cid = await this.ipfsClient.add(content);
-    await this.mapPathToCID(path, cid);
+  /** Adds content to IPFS and updates the path mapping. */
+  async writeFile(virtualPath: string, data: Buffer | string): Promise<void> {
+    const { cid } = await this.ipfsClient.addContent(data); // Use IPFSKitClient method
+    // Update the mapping store to point the virtual path to the new CID
+    await this._mapPathToCID(virtualPath, cid);
   }
+
+  // Implement other StorageBackend methods (exists, stat, readdir, mkdir, unlink, rmdir)...
+  // These often require interacting with the mappingStore or IPFS DAG APIs.
+  // For example, readdir might involve reading a directory CID and listing its links.
+  // mkdir might involve creating an empty directory structure in IPFS and mapping it.
+  // unlink/rmdir would typically only remove the mapping, not the IPFS data itself.
   
   // Other method implementations...
   
-  private async pathToCID(path: string): Promise<string> {
-    // Retrieve CID for path from mapping store
-    const mapping = await this.options.mappingStore.get(path);
-    if (!mapping) {
-      throw new Error(`No content found for path: ${path}`);
+  /** Resolves a virtual path to its corresponding CID using the mapping store. */
+  private async _pathToCID(virtualPath: string): Promise<string> {
+    const mapping = await this.mappingStore.get(virtualPath);
+    if (!mapping || !mapping.cid) {
+      throw new Error(`IPFSBackend: No content found for path: ${virtualPath}`);
     }
     return mapping.cid;
   }
+
+  /** Updates the mapping store to associate a virtual path with a CID. */
   
-  private async mapPathToCID(path: string, cid: string): Promise<void> {
-    // Store path to CID mapping
-    await this.options.mappingStore.set(path, { cid, timestamp: Date.now() });
+  private async _mapPathToCID(virtualPath: string, cid: string): Promise<void> {
+    // Store path -> CID mapping, potentially with timestamp or versioning info
+    await this.mappingStore.set(virtualPath, { cid, timestamp: Date.now() });
   }
 }
+// Assumes MappingStore interface exists: { get(path: string): Promise<{cid: string} | null>; set(path: string, mapping: {cid: string, timestamp: number}): Promise<void>; }
 ```
 
 #### PathResolver
 
 ```typescript
+/**
+ * Resolves virtual paths (e.g., '/ipfs/file.txt', '/local/data.csv')
+ * to the responsible backend and the relative path within that backend.
+ */
 class PathResolver {
   constructor(private registry: StorageRegistry) {}
+
+  /** Resolves a full virtual path. */
   
-  resolvePath(path: string): { backend: StorageBackend, path: string } {
-    // Normalize path
-    const normalizedPath = this.normalizePath(path);
+  resolvePath(virtualPath: string): { backend: StorageBackend; relativePath: string; mountPoint: string } {
+    // 1. Normalize the input path (handle ., .., slashes) using POSIX standard
+    const normalizedPath = this._normalizePath(virtualPath);
+
+    // 2. Find the longest matching mount point from the registry
+    //    (e.g., for path '/ipfs/subdir/file', match '/ipfs')
+    //    The registry method needs to return the backend, relative path, and mount point found.
+    const { backend, relativePath, mountPoint } = this.registry.getBackendForPath(normalizedPath);
+
+    return { backend, relativePath, mountPoint };
+  }
+
+  /** Normalizes a path (e.g., removes redundant slashes, resolves . and ..). */
+  private _normalizePath(virtualPath: string): string {
+    // Use Node.js path.posix module for consistent virtual path handling
+    // Ensure path is absolute within the virtual filesystem
+    const absolutePath = virtualPath.startsWith('/') ? virtualPath : `/${virtualPath}`;
+    const normalized = posix.normalize(absolutePath); // posix from 'path'
+    // Prevent escaping the root - although mount logic should handle this primarily
+    if (normalized.startsWith('../')) {
+        throw new Error(`Invalid path: ${virtualPath}`);
+    }
+    return normalized;
+  }
     
     // Find appropriate backend
     const backend = this.registry.getBackendForPath(normalizedPath);
@@ -244,40 +379,71 @@ class PathResolver {
 #### StorageOperations
 
 ```typescript
+/**
+ * Provides a high-level, unified API for storage operations,
+ * abstracting away path resolution and backend delegation.
+ */
 class StorageOperations {
   constructor(
-    private registry: StorageRegistry,
+    private registry: StorageRegistry, // Needed indirectly by PathResolver
     private pathResolver: PathResolver
   ) {}
+
+  /** Reads a file using its virtual path. */
   
-  async readFile(path: string): Promise<Buffer> {
-    const { backend, path: resolvedPath } = this.pathResolver.resolvePath(path);
-    return await backend.readFile(resolvedPath);
+  async readFile(virtualPath: string): Promise<Buffer> {
+    const { backend, relativePath } = this.pathResolver.resolvePath(virtualPath);
+    // Add logging/tracing here
+    return await backend.readFile(relativePath);
   }
+
+  /** Writes a file using its virtual path. */
   
-  async writeFile(path: string, data: Buffer | string): Promise<void> {
-    const { backend, path: resolvedPath } = this.pathResolver.resolvePath(path);
+  async writeFile(virtualPath: string, data: Buffer | string): Promise<void> {
+    const { backend, relativePath } = this.pathResolver.resolvePath(virtualPath);
     
+    // Check read-only status before attempting write
     if (backend.isReadOnly) {
-      throw new Error(`Cannot write to read-only backend: ${backend.name}`);
+      throw new Error(`Storage backend '${backend.name}' mounted at this path is read-only.`);
     }
+    // Add logging/tracing here
     
-    return await backend.writeFile(resolvedPath, data);
+    return await backend.writeFile(relativePath, data);
   }
+
+  // Implement other high-level operations (readdir, mkdir, unlink, stat, etc.)
+  // following the pattern: resolve path -> delegate to backend.
   
   // Other high-level operations...
   
-  async copy(sourcePath: string, destPath: string): Promise<void> {
-    const sourceResolved = this.pathResolver.resolvePath(sourcePath);
-    const destResolved = this.pathResolver.resolvePath(destPath);
+  /** Copies a file or directory between potentially different backends. */
+  /** Copies a file or directory between potentially different backends. */
+  async copy(sourceVirtualPath: string, destVirtualPath: string, options?: { recursive?: boolean }): Promise<void> {
+    // TODO: Implement recursive copy for directories.
+    // This simplified version only handles files.
+    const source = this.pathResolver.resolvePath(sourceVirtualPath);
+    const dest = this.pathResolver.resolvePath(destVirtualPath);
     
-    // If both on same backend, use backend's copy
-    if (sourceResolved.backend.id === destResolved.backend.id) {
-      return await sourceResolved.backend.copyFile(
-        sourceResolved.path,
-        destResolved.path
-      );
+    // Optimization: If source and destination are on the same backend,
+    // try to use the backend's native copyFile if available.
+    if (source.backend.id === dest.backend.id && source.backend.copyFile) {
+      try {
+        // Ensure backend.copyFile exists before calling
+        await source.backend.copyFile(source.relativePath, dest.relativePath);
+        return; // Copied using backend's optimized method
+      } catch (e) {
+        // Log warning, fall back to read/write copy
+        console.warn(`Backend copy failed, falling back to read/write: ${e.message}`);
+      }
     }
+
+    // Standard cross-backend copy: Read from source, write to destination.
+    // This needs to handle directories recursively.
+    // For simplicity, showing file copy:
+    // TODO: Implement recursive directory copy logic here.
+    const content = await source.backend.readFile(source.relativePath);
+    await dest.backend.writeFile(dest.relativePath, content);
+    // Full implementation needs recursive directory handling.
     
     // Otherwise read from source and write to destination
     const content = await sourceResolved.backend.readFile(sourceResolved.path);
@@ -296,26 +462,25 @@ class StorageOperations {
 6. **Path Mapping**: Path-to-CID mappings are maintained for IPFS content
 7. **Error Handling**: Backend-specific errors are translated to application-level errors
 
-### 2.4 Data Flow Diagram
+### 2.4 Data Flow Diagram (Read Operation Example)
 
-```
-File Operation Request
-    ↓
-Path Resolver
-    ↓
-Storage Registry → Backend Lookup
-    ↓
-Backend Operation
-    | 
-    ├── Filesystem Backend → OS File Operations
-    │
-    └── IPFS Backend → IPFS Client → IPFS Network
-    |
-    └── Memory Backend → In-Memory Store
-    ↓
-Result Transformation
-    ↓
-Return Result
+```mermaid
+graph TD
+    A[User/Service calls StorageOperations.readFile('/ipfs/file.txt')] --> B(PathResolver.resolvePath);
+    B -- '/ipfs/file.txt' --> C(StorageRegistry.getBackendForPath);
+    C -- Mounts Info --> B;
+    B -- Returns { backend: IPFSBackend, relativePath: 'file.txt', mountPoint: '/ipfs' } --> A;
+    A -- Calls backend.readFile('file.txt') --> D(IPFSBackend);
+    D -- Resolves path 'file.txt' --> E(MappingStore.get('file.txt'));
+    E -- Returns { cid: 'Qm...' } --> D;
+    D -- Calls ipfsClient.getContent('Qm...') --> F(IPFSClient);
+    F -- HTTP/WS Request --> G((IPFS Network/Server));
+    G -- Raw Data --> F;
+    F -- Buffer --> D;
+    D -- Buffer --> A;
+    A -- Returns Buffer --> H[Calling User/Service];
+
+    style G fill:#ddd, stroke:#333
 ```
 
 ## 3. Dependencies Analysis
@@ -324,11 +489,11 @@ Return Result
 
 | Dependency | Usage | Criticality | Notes |
 |------------|-------|-------------|-------|
-| Configuration System | Backend settings, mount points | High | Essential for storage setup |
-| Logging System | Operation logging, errors | Medium | Used for troubleshooting |
-| Error Handling | Backend-specific errors | Medium | Used for error reporting |
-| IPFS Client | IPFS backend functionality | High | Required for IPFS operations |
-| Authentication | Access control (optional) | Low | Used for backend authentication |
+| Configuration System | Reading backend configurations (e.g., local `baseDir`, IPFS API URL), mount point definitions. | High | Essential for initializing and configuring the `StorageRegistry` and backends. |
+| Logging System | Logging storage operations (read, write, copy), errors, cache activity. | Medium | Important for debugging, auditing, and monitoring storage interactions. |
+| Error Handling | Defining and handling storage-specific errors (e.g., `FileNotFoundError`, `PermissionError`, `NetworkError`, `BackendNotMountedError`). | Medium | Needs consistent error reporting across different backends for reliable application logic. |
+| IPFS Client (`IPFSKitClient`) | Used by the `IPFSBackend` to perform actual IPFS operations (`add`, `cat`, etc.). | High (if IPFS used) | Core dependency for any IPFS functionality. Assumed to be provided/configured externally. |
+| Authentication | Handled via Configuration System (e.g., retrieving API keys for IPFS client or other potential cloud backends). | Low/Medium | Storage system relies on configured credentials; doesn't manage auth itself. |
 
 ### 3.2 External Dependencies
 
@@ -341,23 +506,38 @@ Return Result
 | sanitize-filename | ^1.6.3 | Path security | Yes | path filtering utilities |
 | p-queue | ^7.3.0 | Operation rate limiting | Yes | async limiter, bottleneck |
 
-### 3.3 Dependency Graph
+### 3.3 Dependency Graph (Conceptual)
 
-```
-StorageSystem
-  ├── StorageRegistry
-  │     ├── FilesystemBackend
-  │     │     ├── fs-extra
-  │     │     └── mime-types
-  │     ├── IPFSBackend
-  │     │     ├── ipfs-http-client
-  │     │     ├── multiformats
-  │     │     └── p-queue
-  │     └── MemoryBackend
-  ├── PathResolver
-  │     └── sanitize-filename
-  └── StorageOperations
-        └── StorageRegistry
+```mermaid
+graph TD
+    StoreSys[Storage System] --> StoreOps(Storage Operations API);
+    StoreOps --> PathRes(Path Resolver);
+    StoreOps --> StoreReg(Storage Registry);
+    PathRes --> StoreReg;
+
+    StoreReg --> Backends{Backends};
+    Backends --> FSBackend(Filesystem Backend);
+    Backends --> IPFSBackend(IPFS Backend);
+    Backends --> MemBackend(Memory Backend);
+
+    StoreSys --> StoreCache(Storage Cache);
+    StoreSys --> StoreMeta(Metadata Mgmt);
+    StoreSys --> StoreAddr(Addressing Utils);
+
+    FSBackend --> Dep_FS(fs-extra / Node fs);
+    IPFSBackend --> IPFSClient(IPFS Client);
+    IPFSBackend --> MappingStore(Path/CID Mapping Store);
+    IPFSBackend --> Dep_Multi(multiformats);
+    IPFSClient --> Dep_HTTP(HTTP Client / fetch); # IPFS Client uses HTTP
+
+    StoreSys --> CfgSys(Configuration System); # For backend config
+    StoreSys --> LogSys(Logging System); # For logging ops/errors
+
+    style Dep_FS fill:#eee,stroke:#333
+    style Dep_HTTP fill:#eee,stroke:#333
+    style Dep_Multi fill:#eee,stroke:#333
+    style IPFSClient fill:#ccf,stroke:#333 # External dependency via interface
+    style MappingStore fill:#f9d,stroke:#333 # Important internal state for IPFSBackend
 ```
 
 ## 4. Node.js Compatibility Assessment
@@ -374,17 +554,14 @@ StorageSystem
 
 ### 4.2 Compatibility Issues
 
-1. **Path Separators**: Some path handling assumes POSIX-style paths
-   - **Solution**: Use Node.js `path` module consistently for cross-platform compatibility
-   
-2. **Browser Storage Interfaces**: Some storage utilities use browser IndexedDB
-   - **Solution**: Replace with Node.js filesystem-based storage
-
-3. **IPFS Browser Node**: Some IPFS functionality assumes browser IPFS node
-   - **Solution**: Use ipfs-http-client connected to external IPFS daemon
-
-4. **Worker Threads**: Some parallel operations use browser Web Workers
-   - **Solution**: Replace with Node.js worker_threads module
+1. **Path Handling**: Ensuring consistent behavior with POSIX-style virtual paths (e.g., `/ipfs/data`) while interacting with platform-specific local filesystem paths (`C:\Users\..` or `/home/user/..`). Path traversal vulnerabilities must be prevented.
+   - **Solution**: Use `path.posix` exclusively for manipulating virtual paths within the storage system's core logic (Registry, Resolver, Operations). The `FilesystemBackend` is the *only* component that translates relative virtual paths to absolute OS-specific paths using `path.resolve` and `path.join`, ensuring results stay within its configured `baseDir`. Rigorous validation in `_resolvePath` is critical.
+2. **Browser Storage APIs**: The source repository (`ipfs_accelerate_js`) likely contains code using `IndexedDB` or `localStorage` for caching or the path-to-CID mapping store.
+   - **Solution**: This code is incompatible with Node.js and must be entirely replaced. Implement the `MappingStore` for `IPFSBackend` using a Node.js-friendly persistent mechanism (e.g., SQLite via `better-sqlite3`, LevelDB via `level`, or even structured JSON files). Implement caching (`cache.ts`) using in-memory stores (`lru-cache`) or filesystem-based caches.
+3. **IPFS Client Compatibility**: The source might use `js-ipfs` (in-browser node) or an older `ipfs-http-client`.
+   - **Solution**: Standardize on using the project's dedicated `IPFSKitClient` which connects to the external IPFS Kit MCP Server via HTTP API. This ensures consistency and leverages the managed server.
+4. **Concurrency/Parallelism**: Browser code might use Web Workers. Node.js has `worker_threads`.
+   - **Solution**: For CPU-intensive tasks within storage (unlikely for basic ops, maybe for hashing large files), use `worker_threads`. For I/O-bound concurrency (multiple IPFS requests, parallel local reads), use `Promise.all` combined with rate-limiting libraries like `p-queue` within backends to avoid overwhelming resources or hitting API limits.
 
 ### 4.3 Performance Considerations
 
@@ -553,25 +730,21 @@ StorageSystem
 
 ### 6.1 Identified Challenges
 
-1. **Cross-Platform Path Handling**: Ensuring consistent path behavior across platforms
-   - **Impact**: High - potential file operation failures on different OS
-   - **Solution**: Use Node.js path module consistently, implement platform-agnostic path resolver
-
-2. **IPFS Daemon Management**: Handling IPFS daemon lifecycle
-   - **Impact**: High - IPFS backend availability depends on daemon
-   - **Solution**: Implement daemon management with health checks and auto-restart
-
-3. **CID to Path Mapping**: Maintaining reliable path-to-CID mappings
-   - **Impact**: Medium - broken links between paths and content
-   - **Solution**: Create robust mapping store with verification and repair
-
-4. **Large File Handling**: Managing memory usage with large files
-   - **Impact**: Medium - potential memory exhaustion
-   - **Solution**: Implement streaming operations and chunked processing
-
-5. **Backend Switching**: Handling backend availability changes
-   - **Impact**: Medium - potential operation failures
-   - **Solution**: Implement graceful fallback mechanisms
+1. **Cross-Platform Path Robustness**: As mentioned in compatibility, ensuring correct translation between virtual POSIX paths and OS-specific filesystem paths is critical and error-prone.
+   - **Impact**: High (Data Loss / Incorrect Operations / Security).
+   - **Solution**: Extensive unit and integration testing for `PathResolver` and `FilesystemBackend` on Windows, Linux, and macOS. Strict validation within `_resolvePath` to prevent traversal.
+2. **IPFS Backend State Management**: The `IPFSBackend` needs a persistent and reliable `mappingStore` to link virtual paths (which appear mutable to the user) to immutable IPFS CIDs. Representing and updating directory structures atomically in this mapping is complex.
+   - **Impact**: High (Data Loss / Inconsistent State / Poor Performance).
+   - **Solution**: Choose a robust `mappingStore` implementation (e.g., SQLite offers atomicity). Define how directories are represented (e.g., a JSON object listing entries and their CIDs, stored itself as a mapped file/object). Implement atomic updates for operations like rename, mkdir, rmdir that modify directory structures. Consider using IPNS or WNFS concepts if more advanced mutable filesystem semantics over IPFS are needed, but this significantly increases complexity. Start simple.
+3. **Large File Handling & Streaming**: Ensuring large files are processed using streams across all relevant operations (`readFile`, `writeFile`, `copy`, `ipfs add`, `ipfs get`) and backends.
+   - **Impact**: Medium (Memory Exhaustion / Poor Performance).
+   - **Solution**: Make `createReadStream` and `createWriteStream` core parts of the `StorageBackend` interface. Implement them using Node.js streams for `FilesystemBackend` and the streaming capabilities of the `IPFSKitClient` for `IPFSBackend`. Refactor `StorageOperations.copy` and CLI commands to use these streams.
+4. **Error Normalization**: Translating diverse errors from `fs`, `ipfs-http-client`, network issues, etc., into a consistent set of `StorageError` types.
+   - **Impact**: Medium (User Experience / Reliability).
+   - **Solution**: Define specific error subclasses (`FileNotFoundError`, `PermissionError`, `NetworkError`, `InvalidPathError`, etc.) extending a base `StorageError`. Implement error mapping within each backend's methods.
+5. **Concurrency Control**: Preventing race conditions when multiple operations target the same virtual path or backend resource simultaneously (e.g., two processes writing to the same file path mapped to IPFS).
+   - **Impact**: Medium (Data Corruption / Inconsistent State).
+   - **Solution**: For critical state like the `mappingStore`, use atomic database transactions if using SQLite. For network requests (IPFS), use `p-queue` in the `IPFSBackend` to limit concurrent API calls. For local filesystem writes, rely on OS-level file locking if necessary, although often careful application logic can avoid direct conflicts.
 
 ### 6.2 Technical Debt
 
@@ -1013,11 +1186,11 @@ StorageSystem
 
 ### 10.2 Recommendations Summary
 
-1. Implement platform-agnostic path handling throughout the system
-2. Replace browser storage interfaces with Node.js filesystem alternatives
-3. Use streaming operations for large file handling
-4. Implement comprehensive CLI commands for storage operations
-5. Add progress reporting for long-running operations
+1. **Prioritize Robust Path Handling & Security:** Implement and rigorously test the `PathResolver` and `FilesystemBackend._resolvePath` for cross-platform correctness and path traversal prevention. Rationale: Foundational for correctness and security; errors here are critical.
+2. **Mandate Streaming Interface:** Make `createReadStream` and `createWriteStream` mandatory methods in the `StorageBackend` interface. Rationale: Enforces support for large files, a common requirement, and simplifies the `StorageOperations` layer.
+3. **Implement Reliable IPFS Mapping Store:** Choose and implement a persistent, Node.js-based `mappingStore` (e.g., SQLite via `better-sqlite3`) with atomic updates for directory operations. Rationale: Core requirement for a functional `IPFSBackend` that mimics filesystem semantics.
+4. **Implement Streaming in Operations:** Ensure `StorageOperations.copy` and relevant CLI commands (`file copy`, `ipfs add`, `ipfs get`) correctly utilize the streaming methods from the backends. Rationale: Prevents memory issues with large files.
+5. **Standardize Storage Errors:** Define and use a clear hierarchy of `StorageError` subclasses throughout the backends and operations layer. Rationale: Creates a predictable and user-friendly error handling experience.
 
 ### 10.3 Next Steps
 

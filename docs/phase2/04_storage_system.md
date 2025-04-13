@@ -1,110 +1,148 @@
-# Phase 2: Storage System Implementation
+# Phase 2: Storage System Implementation (VFS Foundation)
 
-**Timeline:** Week 4 of Phase 2 (Days 1-4)
+**Timeline:** Week 4 of Phase 2 (Aligned with Roadmap)
 
-This document details the implementation plan for the Storage System domain during Phase 2. The focus is on establishing the core storage provider interface, implementing local file storage, and integrating with the external IPFS Kit MCP Server.
+This document details the implementation plan for the foundational components of the Storage System (Virtual Filesystem - VFS) during Phase 2. The focus is on establishing the core VFS architecture, implementing the local filesystem backend, and creating the client for the external IPFS Kit MCP Server to enable the IPFS backend.
 
-## Goals
+## Goals (Phase 2 Foundation)
 
--   Define a common `StorageProvider` interface for all storage backends.
--   Implement a `FileStorage` provider for local disk storage.
--   Develop an `MCPClient` to communicate with the IPFS Kit MCP Server API (REST and WebSocket).
--   Implement an `IPFSStorage` provider that uses the `MCPClient`.
--   Set up basic caching mechanisms (local memory/disk).
+-   Implement the core VFS interfaces: `StorageBackend`, `StorageRegistry`, `PathResolver`, `StorageOperations`.
+-   Implement the `FilesystemBackend` for local disk storage, ensuring cross-platform compatibility and security.
+-   Implement the `IPFSKitClient` (renamed from `MCPClient` for clarity) to communicate with the IPFS Kit MCP Server's HTTP API.
+-   Implement a basic `IPFSBackend` that utilizes the `IPFSKitClient` and a simple (likely in-memory or basic file-based) `MappingStore` for path-to-CID translation.
+-   Integrate the `StorageOperations` service into the `ExecutionContext`.
+-   *Defer advanced caching, complex `MappingStore` implementations, and additional backends to later phases.*
 
-## Implementation Details
+## Implementation Details (Phase 2 Focus)
 
-### 1. Local Storage Implementation (Day 1-2)
+### 1. VFS Core Interfaces & Registry (`src/storage/backend.ts`, `src/storage/registry.ts`, `src/storage/path-resolver.ts`, `src/storage/operations.ts`) (Week 4, Day 1-2)
 
--   **`StorageProvider` Interface (`src/storage/provider.ts`):**
-    -   Defines the standard methods for storage operations: `add`, `get`, `list`, `delete`.
-    -   Specifies common `StorageOptions` (e.g., `metadata`, `pin` for IPFS).
--   **`FileStorage` Class (`src/storage/local/file-storage.ts`):**
-    -   Implements the `StorageProvider` interface for local file system storage.
-    -   Uses content hashing (e.g., SHA-256) for content addressing/IDs.
-    -   Manages files within a configured `basePath`.
-    -   Handles metadata persistence (e.g., in a `metadata.json` file).
-    -   Includes options for directory creation (`createDir`).
--   **Local Caching:**
-    -   Implement basic in-memory caching (e.g., LRU cache).
-    -   (Optional) Implement a simple disk-based cache layer.
+-   **`StorageBackend` Interface (`src/storage/backend.ts`):** Implement the interface as defined in `api_specifications.md`, including core methods (`readFile`, `writeFile`, `exists`, `stat`, `readdir`, `mkdir`, `unlink`, `rmdir`) and optional streaming methods (`createReadStream`, `createWriteStream`).
+-   **`StorageRegistry` Service (`src/storage/registry.ts`):** Implement the registry to manage backend instances and mount points. Include logic for `registerBackend`, `mount`, `unmount`, and `getBackendForPath` (finding the longest matching mount point). Load initial mounts from `ConfigurationManager`.
+-   **`PathResolver` Service (`src/storage/path-resolver.ts`):** Implement the resolver using the `StorageRegistry` to map virtual paths to the correct backend and relative path, ensuring POSIX normalization and preventing path traversal.
+-   **`StorageOperations` Service (`src/storage/operations.ts`):** Implement the high-level VFS API. Methods should use `PathResolver` to find the correct backend and delegate the operation (e.g., `readFile(virtualPath)` resolves the path and calls `backend.readFile(relativePath)`). Implement basic file `copy` (read/write).
 
-### 2. IPFS Kit MCP Client Implementation (Day 3-4)
+### 2. Filesystem Backend (`src/storage/backends/filesystem.ts`) (Week 4, Day 2-3)
 
--   **`MCPClient` Class (`src/storage/ipfs/mcp-client.ts`):**
-    -   Handles communication with the IPFS Kit MCP Server.
-    -   Uses `axios` for REST API calls (`/api/v0/add`, `/api/v0/cat`, `/api/v0/pin/add`, `/api/v0/pin/ls`).
-    -   Configurable `baseUrl`, `timeout`, and `authentication` (API Key or Bearer Token).
-    -   Includes methods for core IPFS operations: `addContent`, `getContent`, `pinContent`, `listPins`.
-    -   Implements WebSocket connection logic (`connectWebSocket`, `disconnect`, `isConnected`) using `ws` library for real-time updates (if needed in later phases).
--   **`IPFSStorage` Class (`src/storage/ipfs/ipfs-storage.ts`):**
-    -   Implements the `StorageProvider` interface using the `MCPClient`.
-    -   Maps provider methods (`add`, `get`, `list`, `delete`) to MCP client calls.
-    -   Handles the `pin` option during the `add` operation.
-    -   Note: `delete` typically maps to `unpin` in IPFS context (may require additional MCP API endpoint).
+-   **`FilesystemBackend` Class:** Implement the `StorageBackend` interface using Node.js `fs/promises`.
+    -   Constructor takes `baseDir` configuration.
+    -   Implement all core methods (`readFile`, `writeFile`, `exists`, `stat`, `readdir`, `mkdir`, `unlink`, `rmdir`).
+    -   Implement `createReadStream` and `createWriteStream`.
+    -   Ensure robust error handling (map `fs` errors to standard `StorageError` types).
+    -   Implement secure path resolution (`_resolvePath`) to prevent path traversal.
+-   **Testing:** Write comprehensive unit tests using `memfs` or `mock-fs` to simulate filesystem operations without touching the actual disk. Test edge cases and error conditions.
 
-## Key Interfaces
+### 3. IPFS Kit Client (`src/ipfs/client.ts`) (Week 4, Day 3-4)
+
+-   **`IPFSKitClient` Class:** Implement the client to interact with the IPFS Kit MCP Server's HTTP API.
+    -   Use `axios` or Node.js `fetch` for making requests.
+    -   Implement methods for core operations needed by `IPFSBackend`: `addContent`, `getContent` (`cat`), potentially `pinAdd`, `dagGet`, `filesLs` (if using MFS-like features on server).
+    -   Handle configuration (API URL, timeout, auth) via constructor/`ConfigurationManager`.
+    -   Implement robust error handling for network and API errors.
+    -   Implement streaming for `addContent` and `getContent`.
+-   **Testing:** Write integration tests that run against a *real* (local or test environment) IPFS Kit MCP Server or Kubo node to validate API interactions. Mocking can be used for specific error case unit tests.
+
+### 4. IPFS Backend & Mapping Store (`src/storage/backends/ipfs.ts`, `src/storage/mapping-store.ts`) (Week 4, Day 4-5)
+
+-   **`MappingStore` Interface & Basic Implementation (`src/storage/mapping-store.ts`):**
+    -   Define the interface: `get(virtualPath): Promise<{cid: string} | null>`, `set(virtualPath, {cid})`, `delete(virtualPath)`, `list(prefix)` etc.
+    -   **Phase 2:** Implement a *simple* version, e.g., using a single JSON file on disk (via `FilesystemBackend` or direct `fs`) or an in-memory `Map`. This is *not* robust but sufficient for initial functionality. Defer SQLite or more advanced implementations to later phases.
+-   **`IPFSBackend` Class (`src/storage/backends/ipfs.ts`):**
+    -   Implement the `StorageBackend` interface.
+    -   Constructor takes `IPFSKitClient` and `MappingStore` instances.
+    -   `readFile`: Call `mappingStore.get()` then `ipfsClient.getContent()`.
+    -   `writeFile`: Call `ipfsClient.addContent()` then `mappingStore.set()`.
+    -   `exists`: Check `mappingStore.get()`.
+    -   `stat`: May need `ipfsClient.filesStat` or `dagGet` depending on how directories/metadata are stored. Requires defining the mapping strategy.
+    -   `readdir`, `mkdir`, `unlink`, `rmdir`: Implement basic versions interacting primarily with the `MappingStore`. Define how directories are represented in the mapping (e.g., a mapped object listing links).
+    -   Implement streaming methods using `ipfsClient` streams.
+-   **Testing:** Write integration tests for `IPFSBackend` using a mock `IPFSKitClient` and the simple `MappingStore` to verify the logic.
+
+## Key Interfaces (Phase 2 VFS Focus)
 
 ```typescript
-// src/storage/provider.ts
-export interface StorageOptions {
-  metadata?: Record<string, any>;
-  pin?: boolean; // Specific to IPFS
+// src/storage/backend.ts
+/** Common interface for storage backends. */
+export interface StorageBackend {
+  readonly id: string;
+  readonly name: string;
+  readonly isReadOnly: boolean;
+  readFile(relativePath: string): Promise<Buffer>;
+  writeFile(relativePath: string, data: Buffer | string): Promise<void>;
+  exists(relativePath: string): Promise<boolean>;
+  stat(relativePath: string): Promise<FileStat>;
+  readdir(relativePath: string): Promise<DirEntry[]>;
+  mkdir(relativePath: string, options?: { recursive?: boolean }): Promise<void>;
+  unlink(relativePath: string): Promise<void>;
+  rmdir(relativePath: string, options?: { recursive?: boolean }): Promise<void>;
+  // Optional methods (implement if feasible for backend)
+  rename?(oldRelativePath: string, newRelativePath: string): Promise<void>;
+  copyFile?(srcRelativePath: string, destRelativePath: string): Promise<void>;
+  createReadStream?(relativePath: string, options?: any): Promise<NodeJS.ReadableStream>;
+  createWriteStream?(relativePath: string, options?: any): Promise<NodeJS.WritableStream>;
+  getAvailableSpace?(): Promise<SpaceInfo>;
+}
+// FileStat, DirEntry, SpaceInfo defined in api_specifications.md
+
+// src/storage/registry.ts
+/** Manages storage backends and mount points. */
+export interface StorageRegistry {
+  registerBackend(backend: StorageBackend): void;
+  getBackend(backendId: string): StorageBackend | undefined;
+  mount(mountPoint: string, backendId: string): void;
+  unmount(mountPoint: string): void;
+  getMounts(): Map<string, string>;
+  getBackendForPath(absoluteVirtualPath: string): { backend: StorageBackend; relativePath: string; mountPoint: string };
 }
 
-export interface StorageProvider {
-  add(content: Buffer | string, options?: StorageOptions): Promise<string>; // Returns content ID (hash or CID)
-  get(id: string): Promise<Buffer>;
-  list(query?: any): Promise<string[]>; // Returns list of IDs
-  delete(id: string): Promise<boolean>;
+// src/storage/path-resolver.ts
+/** Resolves virtual paths to backends and relative paths. */
+export interface PathResolver {
+  resolvePath(virtualPath: string): { backend: StorageBackend; relativePath: string; mountPoint: string };
 }
 
-// src/types/storage.ts (or provider.ts)
-export interface FileStorageOptions {
-  basePath: string;
-  createDir?: boolean;
+// src/storage/operations.ts
+/** High-level VFS API. */
+export interface StorageOperations {
+  readFile(virtualPath: string): Promise<Buffer>;
+  writeFile(virtualPath: string, data: Buffer | string): Promise<void>;
+  // ... other core methods mirroring StorageBackend but using virtual paths ...
+  copy(sourceVirtualPath: string, destVirtualPath: string, options?: { recursive?: boolean }): Promise<void>;
+  createReadStream(virtualPath: string, options?: any): Promise<NodeJS.ReadableStream>;
+  createWriteStream(virtualPath: string, options?: any): Promise<NodeJS.WritableStream>;
+  resolve(virtualPath: string): { backend: StorageBackend; relativePath: string; mountPoint: string };
 }
 
-// src/storage/ipfs/mcp-client.ts
-export interface MCPClientOptions {
-  baseUrl: string;
-  timeout?: number;
-  authentication?: {
-    type: 'apiKey' | 'token';
-    value: string;
-  };
-}
-
-export declare class MCPClient {
-  constructor(options: MCPClientOptions);
-  addContent(content: string | Buffer): Promise<{ cid: string }>;
+// src/ipfs/client.ts (Simplified - see ipfs_kit_commands.md for more)
+/** Client for IPFS Kit MCP Server HTTP API. */
+export interface IPFSKitClient {
+  addContent(content: string | Buffer | Blob): Promise<{ cid: string }>;
   getContent(cid: string): Promise<Buffer>;
-  pinContent(cid: string): Promise<boolean>;
-  listPins(): Promise<string[]>;
-  connectWebSocket(): Promise<any>; // Returns WebSocket instance
-  disconnect(): void;
-  isConnected(): boolean;
+  // Add other methods as needed by IPFSBackend (pinAdd, filesLs, dagGet...)
 }
 
-// src/storage/ipfs/ipfs-storage.ts
-export declare class IPFSStorage implements StorageProvider {
-  constructor(options: MCPClientOptions);
-  // Implements StorageProvider methods using MCPClient
-}
-
-// src/storage/local/file-storage.ts
-export declare class FileStorage implements StorageProvider {
-  constructor(options: FileStorageOptions);
-  // Implements StorageProvider methods using local filesystem
+// src/storage/mapping-store.ts (Phase 2 Simple Version)
+/** Interface for storing path-to-CID mappings for IPFSBackend. */
+export interface MappingStore {
+  /** Retrieves the mapping for a virtual path. */
+  get(virtualPath: string): Promise<{ cid: string; timestamp?: number } | null>;
+  /** Sets or updates the mapping for a virtual path. */
+  set(virtualPath: string, mapping: { cid: string; timestamp: number }): Promise<void>;
+  /** Deletes the mapping for a virtual path. */
+  delete(virtualPath: string): Promise<void>;
+  /** Lists mappings under a given prefix (for readdir). */
+  list(prefix: string): Promise<Array<{ path: string; cid: string }>>;
 }
 ```
 
-## Deliverables
+## Deliverables (Phase 2 Foundation)
 
--   Defined `StorageProvider` interface.
--   Functional `FileStorage` implementation with metadata handling.
--   Working `MCPClient` capable of basic add, get, and pin operations via REST API.
--   Functional `IPFSStorage` implementation using the `MCPClient`.
--   Basic in-memory caching layer.
--   Unit tests for `FileStorage` and `MCPClient`.
--   Integration tests for `IPFSStorage` (requires a running MCP server instance).
+-   Implemented core VFS interfaces (`StorageBackend`, `StorageRegistry`, `PathResolver`, `StorageOperations`).
+-   Functional `FilesystemBackend` implementation using Node.js `fs/promises`.
+-   Functional `IPFSKitClient` capable of core `add` and `get` operations via HTTP API.
+-   Basic `IPFSBackend` implementation using `IPFSKitClient` and a simple file/memory-based `MappingStore`.
+-   `StorageOperations` service integrated and accessible via `ExecutionContext`.
+-   Unit tests for `FilesystemBackend` (using `memfs`), `PathResolver`, `StorageRegistry`.
+-   Integration tests for `StorageOperations` interacting with `FilesystemBackend`.
+-   Integration tests for `IPFSBackend` using a mock `IPFSKitClient`.
+-   Initial integration tests for `IPFSKitClient` against a real IPFS node (if feasible).
