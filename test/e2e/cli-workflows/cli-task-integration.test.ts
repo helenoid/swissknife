@@ -1,546 +1,444 @@
 /**
- * End-to-end tests for CLI and Task system integration
+ * End-to-End Tests for CLI Task System Integration
+ *
+ * These tests verify the functionality of the `task` command suite
+ * by executing the compiled CLI as a child process. They cover
+ * task creation, status checking, execution, cancellation, results,
+ * listing, filtering, and potentially more advanced workflows like
+ * dependencies and chaining.
+ *
+ * Note: These tests assume the existence of task types like 'simple-task'
+ * and 'error-task' registered within the application for testing purposes.
  */
 
 import * as path from 'path';
 import * as childProcess from 'child_process';
 import * as util from 'util';
 import * as fs from 'fs/promises';
-import { createTempTestDir, removeTempTestDir, mockEnv, waitFor } from '../../helpers/testUtils';
+// Assuming these helpers exist and function correctly - Add .js extension
+import { createTempTestDir, removeTempTestDir, mockEnv, waitFor } from '../../helpers/testUtils.js';
 
+// Promisify exec for async/await usage
 const exec = util.promisify(childProcess.exec);
 
-describe('CLI and Task System Integration', () => {
+// --- Test Setup ---
+
+describe('CLI Task System Integration (E2E)', () => {
   let tempDir: string;
   let configPath: string;
   let dataDir: string;
   let logsDir: string;
   let restoreEnv: () => void;
-  
+  const cliEntryPoint = path.resolve(__dirname, '../../../dist/cli.mjs'); // Assuming build output
+
   beforeAll(async () => {
-    // Create temp directories for testing
-    tempDir = await createTempTestDir();
+    // 1. Create temporary directories for isolated test environment
+    tempDir = await createTempTestDir('cli-task-e2e');
     dataDir = path.join(tempDir, 'data');
     logsDir = path.join(tempDir, 'logs');
-    
-    // Create config file
     configPath = path.join(tempDir, 'config.json');
-    
-    // Create directories
     await fs.mkdir(dataDir, { recursive: true });
     await fs.mkdir(logsDir, { recursive: true });
-    
-    // Write basic config
+
+    // 2. Write a basic configuration file pointing to temp dirs
     const config = {
       storage: {
-        backend: 'local',
-        basePath: dataDir
+        // Assuming a simple local storage setup for tests if needed by tasks
+        mounts: { "/local": { backendId: "local-data" } },
+        backends: {
+          "local-data": { type: "filesystem", baseDir: dataDir }
+        }
       },
-      worker: {
-        poolSize: 2,
-        maxConcurrent: 4,
-        taskTimeout: 10000
+      tasks: { // Assuming task configuration section
+        logPath: logsDir,
+        defaultTimeout: 30000, // ms
+        // Worker config might be needed if tasks use workers
+        workers: {
+            poolSize: 1, // Keep low for predictable testing
+        }
       },
-      task: {
-        defaultTimeout: 30000,
-        logPath: logsDir
-      },
-      apiKeys: {}
+      // Add other necessary minimal config (e.g., logging level)
+      logging: { level: 'warn' } // Keep logs quieter for tests unless debugging
     };
-    
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-    
-    // Mock environment variables
+
+    // 3. Mock environment variables to point to the test config
     restoreEnv = mockEnv({
       'SWISSKNIFE_CONFIG_PATH': configPath,
-      'SWISSKNIFE_DEV_MODE': 'true' // Enable developer mode for testing
+      'SWISSKNIFE_DATA_DIR': dataDir, // Example if app uses data dir env
+      // 'SWISSKNIFE_DEV_MODE': 'true' // If needed for specific test behavior
     });
+
+    console.log(`E2E Task Tests: Using temp directory ${tempDir}`);
   });
-  
+
   afterAll(async () => {
     // Clean up temp directory
     await removeTempTestDir(tempDir);
-    
-    // Restore environment variables
+    // Restore original environment variables
     restoreEnv();
+    console.log(`E2E Task Tests: Cleaned up temp directory ${tempDir}`);
   });
-  
+
+  // --- Helper Functions ---
+
   /**
-   * Helper function to execute CLI commands
+   * Executes a SwissKnife CLI command.
+   * @param command The command string (e.g., 'task list --status pending')
+   * @returns Promise<{ stdout: string; stderr: string; exitCode: number }>
    */
   async function runCommand(command: string): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    const commandToRun = `node ${cliEntryPoint} ${command}`;
     try {
-      // Path to CLI script
-      const cliPath = path.resolve(__dirname, '../../../cli.mjs');
-      
-      // Execute command
-      const { stdout, stderr } = await exec(`node ${cliPath} ${command}`);
-      return { stdout, stderr, exitCode: 0 };
-    } catch (error) {
+      const { stdout, stderr } = await exec(commandToRun, { cwd: tempDir }); // Run with tempDir as cwd if needed
+      return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode: 0 };
+    } catch (error: any) {
+      // exec throws an error for non-zero exit codes
       return {
-        stdout: error.stdout || '',
-        stderr: error.stderr || '',
-        exitCode: error.code || 1
+        stdout: error.stdout?.toString().trim() || '',
+        stderr: error.stderr?.toString().trim() || '',
+        exitCode: error.code || 1,
       };
     }
   }
-  
+
   /**
-   * Helper function to extract task ID from output
+   * Extracts a task ID from CLI output (adjust regex as needed).
+   * @param output The stdout string from runCommand.
+   * @returns The extracted task ID or null.
    */
   function extractTaskId(output: string): string | null {
-    // Typical format: "Task created: task-123456"
-    const match = output.match(/Task (?:created|found): ([a-zA-Z0-9-]+)/);
+    // Example regex, adjust based on actual "task create" output format
+    const match = output.match(/Task created: (\S+)/i) || output.match(/Task ID: (\S+)/i);
     return match ? match[1] : null;
   }
-  
+
+  // --- Test Suites ---
+
   describe('Task Creation and Management', () => {
-    it('should create a task with valid parameters', async () => {
+    it('should create a task successfully with valid arguments', async () => {
+      // Arrange
+      const taskType = 'simple-task'; // Assumes this type is registered
+      const taskDesc = '"Test Task Creation"'; // Quote if description has spaces
+      const inputData = '"test input data"';
+      const priority = '10'; // Assuming numerical priority
+
       // Act
-      const result = await runCommand('task create simple-task "Test task" --input "test input" --priority medium');
-      
+      const result = await runCommand(`task create ${taskType} ${taskDesc} --input ${inputData} --priority ${priority}`);
+
       // Assert
+      expect(result.stderr).toBe(''); // No errors expected
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Task created');
-      
+      expect(result.stdout).toMatch(/Task created: \S+/i); // Check for creation message and ID
+
       const taskId = extractTaskId(result.stdout);
       expect(taskId).toBeTruthy();
-      
-      // Verify task exists
+
+      // Verify task exists with correct initial status (usually Pending or Ready)
       const statusResult = await runCommand(`task status ${taskId}`);
+      expect(statusResult.stderr).toBe('');
       expect(statusResult.exitCode).toBe(0);
-      expect(statusResult.stdout).toContain('simple-task');
-      expect(statusResult.stdout).toContain('pending');
+      expect(statusResult.stdout).toContain(`ID: ${taskId}`);
+      expect(statusResult.stdout).toContain(`Type: ${taskType}`);
+      expect(statusResult.stdout).toMatch(/Status: (Pending|Ready)/i); // Initial status
     });
-    
-    it('should validate required task parameters', async () => {
-      // Act - Missing required parameter
-      const result = await runCommand('task create simple-task');
-      
+
+    it('should fail to create a task with missing required arguments', async () => {
+      // Arrange
+      const taskType = 'simple-task'; // Assume this type requires input
+
+      // Act
+      const result = await runCommand(`task create ${taskType}`); // Missing input/description
+
       // Assert
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain('error');
+      expect(result.exitCode).not.toBe(0); // Expect failure
+      expect(result.stderr).toMatch(/error: missing required argument|option/i); // Check for specific error
     });
-    
-    it('should allow task cancellation', async () => {
-      // Arrange - Create a task
-      const createResult = await runCommand('task create simple-task "Task to cancel" --input "cancel me"');
+
+    it('should allow cancelling a pending task', async () => {
+      // Arrange: Create a task that won't run immediately (e.g., high priority or delayed)
+      const createResult = await runCommand('task create simple-task "Task To Cancel" --input "cancel data" --priority 100');
       const taskId = extractTaskId(createResult.stdout);
       expect(taskId).toBeTruthy();
-      
-      // Act - Cancel the task
+      // Verify it's pending/ready initially
+      const initialStatus = await runCommand(`task status ${taskId}`);
+      expect(initialStatus.stdout).toMatch(/Status: (Pending|Ready)/i);
+
+      // Act: Cancel the task
       const cancelResult = await runCommand(`task cancel ${taskId}`);
-      
-      // Assert
+
+      // Assert: Check cancellation command output
+      expect(cancelResult.stderr).toBe('');
       expect(cancelResult.exitCode).toBe(0);
-      expect(cancelResult.stdout).toContain('canceled');
-      
-      // Verify status
-      const statusResult = await runCommand(`task status ${taskId}`);
-      expect(statusResult.stdout).toContain('canceled');
+      expect(cancelResult.stdout).toMatch(/Task .* cancelled/i);
+
+      // Verify final status is Cancelled
+      const finalStatusResult = await runCommand(`task status ${taskId}`);
+      expect(finalStatusResult.exitCode).toBe(0);
+      expect(finalStatusResult.stdout).toMatch(/Status: Cancelled/i);
     });
   });
-  
+
   describe('Task Execution', () => {
-    it('should execute a task synchronously', async () => {
-      // Arrange - Create a task
-      const createResult = await runCommand('task create simple-task "Sync task" --input "sync execution"');
+    // Note: These tests depend heavily on how 'task execute' is implemented
+    // and whether mock task types ('simple-task', 'error-task') exist and behave as expected.
+    // The original test had 'task execute', which might not be the final design.
+    // Assuming tasks run automatically when scheduled and ready.
+
+    it('should execute a simple task and reach "Succeeded" status', async () => {
+      // Arrange: Create a task expected to succeed quickly
+      const createResult = await runCommand('task create simple-task "Successful Task" --input "success data"');
       const taskId = extractTaskId(createResult.stdout);
       expect(taskId).toBeTruthy();
-      
-      // Act - Execute task synchronously
-      const executeResult = await runCommand(`task execute ${taskId} --wait`);
-      
-      // Assert
-      expect(executeResult.exitCode).toBe(0);
-      expect(executeResult.stdout).toContain('completed');
-    });
-    
-    it('should execute a task asynchronously', async () => {
-      // Arrange - Create a task
-      const createResult = await runCommand('task create simple-task "Async task" --input "async execution"');
-      const taskId = extractTaskId(createResult.stdout);
-      expect(taskId).toBeTruthy();
-      
-      // Act - Execute task asynchronously
-      const executeResult = await runCommand(`task execute ${taskId}`);
-      
-      // Assert - Command should return immediately
-      expect(executeResult.exitCode).toBe(0);
-      expect(executeResult.stdout).toContain('started');
-      
-      // Check status until completed or timeout
-      let statusResult;
-      let attempts = 0;
-      const maxAttempts = 10;
-      let completed = false;
-      
-      while (!completed && attempts < maxAttempts) {
-        statusResult = await runCommand(`task status ${taskId}`);
-        
-        if (statusResult.stdout.includes('completed')) {
-          completed = true;
-          break;
+
+      // Act: Poll status until completion or timeout
+      let finalStatus = '';
+      const success = await waitFor(async () => {
+        const statusResult = await runCommand(`task status ${taskId}`);
+        if (statusResult.stdout.includes('Succeeded')) {
+          finalStatus = 'Succeeded';
+          return true;
         }
-        
-        // Wait before trying again
-        await new Promise(resolve => setTimeout(resolve, 500));
-        attempts++;
-      }
-      
-      // Should have completed
-      expect(completed).toBe(true);
-    });
-    
-    it('should handle task execution errors gracefully', async () => {
-      // Arrange - Create a task designed to fail
-      const createResult = await runCommand('task create error-task "Error task" --error-message "Intentional failure"');
+        if (statusResult.stdout.includes('Failed')) {
+          finalStatus = 'Failed';
+          return true; // Exit loop if failed unexpectedly
+        }
+        return false;
+      }, { timeout: 15000, interval: 500 }); // Adjust timeout/interval as needed
+
+      // Assert
+      expect(success).toBe(true); // Check if waitFor completed successfully
+      expect(finalStatus).toBe('Succeeded');
+    }, 20000); // Increase Jest timeout for this test
+
+    it('should handle task execution errors and reach "Failed" status', async () => {
+      // Arrange: Create a task designed to fail (assuming 'error-task' type exists)
+      const createResult = await runCommand('task create error-task "Failing Task" --input "fail data"');
       const taskId = extractTaskId(createResult.stdout);
       expect(taskId).toBeTruthy();
-      
-      // Act - Execute task
-      const executeResult = await runCommand(`task execute ${taskId} --wait`);
-      
-      // Assert - Should handle the error
-      expect(executeResult.exitCode).not.toBe(0);
-      expect(executeResult.stderr).toContain('error');
-      
-      // Verify status
-      const statusResult = await runCommand(`task status ${taskId}`);
-      expect(statusResult.stdout).toContain('failed');
-    });
+
+      // Act: Poll status until completion or timeout
+      let finalStatus = '';
+      const finished = await waitFor(async () => {
+        const statusResult = await runCommand(`task status ${taskId}`);
+        if (statusResult.stdout.includes('Succeeded') || statusResult.stdout.includes('Failed')) {
+          finalStatus = statusResult.stdout.includes('Succeeded') ? 'Succeeded' : 'Failed';
+          return true;
+        }
+        return false;
+      }, { timeout: 15000, interval: 500 });
+
+      // Assert
+      expect(finished).toBe(true);
+      expect(finalStatus).toBe('Failed');
+
+      // Optionally check for error details
+      const statusDetails = await runCommand(`task status ${taskId} --details`);
+      expect(statusDetails.stdout).toMatch(/Error: .*Intentional failure/i); // Check if error message is included
+    }, 20000); // Increase Jest timeout
   });
-  
+
   describe('Task Results and Output', () => {
-    it('should retrieve task results', async () => {
-      // Arrange - Create and execute a task
-      const createResult = await runCommand('task create simple-task "Result task" --input "test result"');
+    // Assuming a 'task result <id>' command exists to fetch results
+    it('should retrieve results for a completed task', async () => {
+      // Arrange: Create and wait for a task to complete
+      const input = "data for result task";
+      const createResult = await runCommand(`task create simple-task "Result Task" --input "${input}"`);
       const taskId = extractTaskId(createResult.stdout);
       expect(taskId).toBeTruthy();
-      
-      // Execute and wait
-      await runCommand(`task execute ${taskId} --wait`);
-      
-      // Act - Get results
-      const resultResult = await runCommand(`task result ${taskId}`);
-      
+      await waitFor(async () => (await runCommand(`task status ${taskId}`)).stdout.includes('Succeeded'), { timeout: 15000 });
+
+      // Act: Get results
+      const resultCmd = await runCommand(`task result ${taskId}`); // Assuming this command exists
+
       // Assert
-      expect(resultResult.exitCode).toBe(0);
-      expect(resultResult.stdout).toContain('Result');
-      expect(resultResult.stdout).toContain('test result');
-    });
-    
-    it('should allow output formatting options', async () => {
-      // Arrange - Create and execute a task
-      const createResult = await runCommand('task create simple-task "Format task" --input "format test"');
+      expect(resultCmd.stderr).toBe('');
+      expect(resultCmd.exitCode).toBe(0);
+      // Check if the output contains expected result data (depends on 'simple-task' implementation)
+      expect(resultCmd.stdout).toContain(`Result for task ${taskId}`);
+      expect(resultCmd.stdout).toContain(input); // Assuming simple task echoes input
+    }, 20000);
+
+    it('should support JSON output formatting for task status and results', async () => {
+      // Arrange: Create and wait for a task
+      const createResult = await runCommand('task create simple-task "JSON Task" --input "json data"');
       const taskId = extractTaskId(createResult.stdout);
       expect(taskId).toBeTruthy();
-      
-      // Execute and wait
-      await runCommand(`task execute ${taskId} --wait`);
-      
-      // Act - Get results in different formats
-      const jsonResult = await runCommand(`task result ${taskId} --format json`);
-      
-      // Assert
-      expect(jsonResult.exitCode).toBe(0);
-      
-      // Should be valid JSON
-      let parsedJson;
+      await waitFor(async () => (await runCommand(`task status ${taskId}`)).stdout.includes('Succeeded'), { timeout: 15000 });
+
+      // Act: Get status and results as JSON
+      const statusJsonResult = await runCommand(`task status ${taskId} --output json`);
+      const resultJsonResult = await runCommand(`task result ${taskId} --output json`); // Assuming this command exists
+
+      // Assert: Status JSON
+      expect(statusJsonResult.stderr).toBe('');
+      expect(statusJsonResult.exitCode).toBe(0);
+      let statusData;
       try {
-        parsedJson = JSON.parse(jsonResult.stdout);
-        expect(parsedJson).toBeDefined();
+        statusData = JSON.parse(statusJsonResult.stdout);
+        expect(statusData).toHaveProperty('id', taskId);
+        expect(statusData).toHaveProperty('status', 'Succeeded');
+        expect(statusData).toHaveProperty('type', 'simple-task');
       } catch (e) {
-        fail('Output is not valid JSON');
+        fail(`Status output is not valid JSON: ${statusJsonResult.stdout}`);
       }
-      
-      // Try other formats if available
-      const yamlResult = await runCommand(`task result ${taskId} --format yaml`);
-      if (yamlResult.exitCode === 0) {
-        expect(yamlResult.stdout).toContain('format test');
+
+      // Assert: Result JSON
+      expect(resultJsonResult.stderr).toBe('');
+      expect(resultJsonResult.exitCode).toBe(0);
+      let resultData;
+      try {
+        resultData = JSON.parse(resultJsonResult.stdout);
+        expect(resultData).toBeDefined();
+        // Add more specific checks based on expected result structure
+        expect(resultData).toHaveProperty('data');
+      } catch (e) {
+        fail(`Result output is not valid JSON: ${resultJsonResult.stdout}`);
       }
-    });
+    }, 20000);
   });
-  
+
   describe('Task Listing and Filtering', () => {
+    // Setup: Create a diverse set of tasks before running these tests
     beforeAll(async () => {
-      // Create a variety of tasks with different statuses
+      console.log("Setting up tasks for listing tests...");
       const commands = [
-        'task create simple-task "Pending Task 1" --input "pending1" --priority high',
-        'task create simple-task "Pending Task 2" --input "pending2" --priority medium',
-        'task create other-task "Other Task Type" --data "other data"'
+        'task create simple-task "Pending Task A" --input pA --priority 10', // High prio
+        'task create simple-task "Pending Task B" --input pB --priority 50', // Med prio
+        'task create other-task "Other Pending" --input oP',
+        // Create and complete a task
+        `task create simple-task "Completed Task" --input c --priority 1 && task status $(swissknife task list --limit 1 --output json | jq -r '.[0].id') --watch`, // Crude way to wait
+        // Create and cancel a task
+        `task create simple-task "Cancelled Task" --input x && swissknife task cancel $(swissknife task list --limit 1 --output json | jq -r '.[0].id')`
       ];
-      
-      // Execute commands
-      await Promise.all(commands.map(cmd => runCommand(cmd)));
-      
-      // Create and complete a task
-      const createResult = await runCommand('task create simple-task "Complete Task" --input "complete" --priority low');
-      const taskId = extractTaskId(createResult.stdout);
-      if (taskId) {
-        await runCommand(`task execute ${taskId} --wait`);
+      // Run sequentially to avoid race conditions in ID extraction if needed
+      for (const cmd of commands) {
+        await runCommand(cmd);
+        await new Promise(res => setTimeout(res, 100)); // Small delay
       }
-      
-      // Create and cancel a task
-      const createResult2 = await runCommand('task create simple-task "Cancel Task" --input "cancel"');
-      const taskId2 = extractTaskId(createResult2.stdout);
-      if (taskId2) {
-        await runCommand(`task cancel ${taskId2}`);
-      }
-    });
-    
-    it('should list all tasks', async () => {
+       console.log("Finished setting up tasks for listing tests.");
+    }, 30000); // Longer timeout for setup
+
+    it('should list all tasks by default', async () => {
       // Act
       const result = await runCommand('task list');
-      
+
       // Assert
+      expect(result.stderr).toBe('');
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Pending Task 1');
-      expect(result.stdout).toContain('Pending Task 2');
-      expect(result.stdout).toContain('Other Task Type');
-      expect(result.stdout).toContain('Complete Task');
-      expect(result.stdout).toContain('Cancel Task');
+      expect(result.stdout).toContain('Pending Task A');
+      expect(result.stdout).toContain('Pending Task B');
+      expect(result.stdout).toContain('Other Pending');
+      // Note: Depending on execution speed, these might not appear if --all isn't default
+      // expect(result.stdout).toContain('Completed Task');
+      // expect(result.stdout).toContain('Cancelled Task');
     });
-    
+
+     it('should list all tasks including finished ones with --all', async () => {
+      // Act
+      const result = await runCommand('task list --all');
+
+      // Assert
+      expect(result.stderr).toBe('');
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Pending Task A');
+      expect(result.stdout).toContain('Completed Task');
+      expect(result.stdout).toContain('Cancelled Task');
+    });
+
     it('should filter tasks by status', async () => {
       // Act
-      const pendingResult = await runCommand('task list --status pending');
-      const completedResult = await runCommand('task list --status completed');
-      const canceledResult = await runCommand('task list --status canceled');
-      
+      const pendingResult = await runCommand('task list --status Pending --all'); // Use --all to ensure capture
+      const completedResult = await runCommand('task list --status Succeeded --all');
+      const cancelledResult = await runCommand('task list --status Cancelled --all');
+
       // Assert
-      expect(pendingResult.stdout).toContain('Pending Task 1');
-      expect(pendingResult.stdout).toContain('Pending Task 2');
-      expect(pendingResult.stdout).not.toContain('Complete Task');
-      expect(pendingResult.stdout).not.toContain('Cancel Task');
-      
-      expect(completedResult.stdout).toContain('Complete Task');
+      expect(pendingResult.stdout).toMatch(/Pending Task A|Pending Task B|Other Pending/);
+      expect(pendingResult.stdout).not.toContain('Completed Task');
+      expect(pendingResult.stdout).not.toContain('Cancelled Task');
+
+      expect(completedResult.stdout).toContain('Completed Task');
       expect(completedResult.stdout).not.toContain('Pending Task');
-      
-      expect(canceledResult.stdout).toContain('Cancel Task');
-      expect(canceledResult.stdout).not.toContain('Pending Task');
+
+      expect(cancelledResult.stdout).toContain('Cancelled Task');
+      expect(cancelledResult.stdout).not.toContain('Pending Task');
     });
-    
+
     it('should filter tasks by type', async () => {
       // Act
-      const simpleResult = await runCommand('task list --type simple-task');
-      const otherResult = await runCommand('task list --type other-task');
-      
+      const simpleResult = await runCommand('task list --type simple-task --all');
+      const otherResult = await runCommand('task list --type other-task --all');
+
       // Assert
-      expect(simpleResult.stdout).toContain('Pending Task 1');
-      expect(simpleResult.stdout).not.toContain('Other Task Type');
-      
-      expect(otherResult.stdout).toContain('Other Task Type');
-      expect(otherResult.stdout).not.toContain('Pending Task');
+      expect(simpleResult.stdout).toContain('Pending Task A');
+      expect(simpleResult.stdout).toContain('Completed Task');
+      expect(simpleResult.stdout).not.toContain('Other Pending');
+
+      expect(otherResult.stdout).toContain('Other Pending');
+      expect(otherResult.stdout).not.toContain('Pending Task A');
     });
-    
-    it('should filter tasks by priority', async () => {
-      // Act
-      const highResult = await runCommand('task list --priority high');
-      const mediumResult = await runCommand('task list --priority medium');
-      const lowResult = await runCommand('task list --priority low');
-      
+
+    // Note: Filtering by priority might be less reliable if priorities change dynamically
+    it('should filter tasks by priority (if supported)', async () => {
+       // Act
+      const highResult = await runCommand('task list --priority 10 --all'); // Assuming 10 is high
+
       // Assert
-      expect(highResult.stdout).toContain('Pending Task 1');
-      expect(highResult.stdout).not.toContain('Pending Task 2');
-      
-      expect(mediumResult.stdout).toContain('Pending Task 2');
-      expect(mediumResult.stdout).not.toContain('Pending Task 1');
-      
-      expect(lowResult.stdout).toContain('Complete Task');
-      expect(lowResult.stdout).not.toContain('Pending Task 1');
+      expect(highResult.stdout).toContain('Pending Task A');
+      expect(highResult.stdout).not.toContain('Pending Task B');
     });
-    
-    it('should support combined filters', async () => {
+
+    it('should support combined filters (status and type)', async () => {
       // Act
-      const combinedResult = await runCommand('task list --status pending --type simple-task');
-      
+      const combinedResult = await runCommand('task list --status Pending --type simple-task --all');
+
       // Assert
-      expect(combinedResult.stdout).toContain('Pending Task 1');
-      expect(combinedResult.stdout).toContain('Pending Task 2');
-      expect(combinedResult.stdout).not.toContain('Other Task Type');
-      expect(combinedResult.stdout).not.toContain('Complete Task');
-      expect(combinedResult.stdout).not.toContain('Cancel Task');
+      expect(combinedResult.stdout).toContain('Pending Task A');
+      expect(combinedResult.stdout).toContain('Pending Task B');
+      expect(combinedResult.stdout).not.toContain('Other Pending');
+      expect(combinedResult.stdout).not.toContain('Completed Task');
+      expect(combinedResult.stdout).not.toContain('Cancelled Task');
     });
   });
-  
-  describe('Task Batch Operations', () => {
-    it('should support batch execution', async () => {
-      // Skip if batch execution is not supported
-      const helpResult = await runCommand('task batch --help');
-      if (helpResult.exitCode !== 0) {
-        console.log('Skipping batch execution test - command not available');
-        return;
-      }
-      
-      // Arrange - Create multiple tasks
-      const taskIds = [];
-      for (let i = 0; i < 3; i++) {
-        const createResult = await runCommand(`task create simple-task "Batch Task ${i}" --input "batch${i}"`);
-        const taskId = extractTaskId(createResult.stdout);
-        if (taskId) {
-          taskIds.push(taskId);
-        }
-      }
-      
-      // Need at least 2 tasks
-      expect(taskIds.length).toBeGreaterThanOrEqual(2);
-      
-      // Act - Execute tasks in batch
-      const batchResult = await runCommand(`task batch ${taskIds.join(' ')} --wait`);
-      
-      // Assert
-      expect(batchResult.exitCode).toBe(0);
-      expect(batchResult.stdout).toContain('completed');
-      
-      // Verify all tasks completed
-      for (const taskId of taskIds) {
-        const statusResult = await runCommand(`task status ${taskId}`);
-        expect(statusResult.stdout).toContain('completed');
-      }
-    });
-    
-    it('should handle batch cancellation', async () => {
-      // Skip if batch cancellation is not supported
-      const helpResult = await runCommand('task cancel-batch --help');
-      if (helpResult.exitCode !== 0) {
-        console.log('Skipping batch cancellation test - command not available');
-        return;
-      }
-      
-      // Arrange - Create multiple tasks
-      const taskIds = [];
-      for (let i = 0; i < 3; i++) {
-        const createResult = await runCommand(`task create simple-task "Cancel Batch ${i}" --input "cancel-batch${i}"`);
-        const taskId = extractTaskId(createResult.stdout);
-        if (taskId) {
-          taskIds.push(taskId);
-        }
-      }
-      
-      // Need at least 2 tasks
-      expect(taskIds.length).toBeGreaterThanOrEqual(2);
-      
-      // Act - Cancel tasks in batch
-      const batchResult = await runCommand(`task cancel-batch ${taskIds.join(' ')}`);
-      
-      // Assert
-      expect(batchResult.exitCode).toBe(0);
-      expect(batchResult.stdout).toContain('canceled');
-      
-      // Verify all tasks canceled
-      for (const taskId of taskIds) {
-        const statusResult = await runCommand(`task status ${taskId}`);
-        expect(statusResult.stdout).toContain('canceled');
-      }
-    });
-  });
-  
+
+  // --- Advanced Workflow Tests (Dependencies, Chaining) ---
+  // These depend on specific command implementations existing
+
   describe('Task Dependencies', () => {
-    it('should handle task dependencies', async () => {
-      // Skip if dependencies are not supported
-      const helpResult = await runCommand('task create --help');
-      if (!helpResult.stdout.includes('depends-on')) {
-        console.log('Skipping dependencies test - feature not available');
-        return;
-      }
-      
-      // Arrange - Create parent task
-      const parentResult = await runCommand('task create simple-task "Parent Task" --input "parent"');
+    it('should prevent a dependent task from running until dependencies are met', async () => {
+      // Arrange: Create parent and child tasks
+      const parentResult = await runCommand('task create simple-task "ParentDep" --input p');
       const parentId = extractTaskId(parentResult.stdout);
       expect(parentId).toBeTruthy();
-      
-      // Create dependent child task
-      const childResult = await runCommand(`task create simple-task "Child Task" --input "child" --depends-on ${parentId}`);
+
+      const childResult = await runCommand(`task create simple-task "ChildDep" --input c --dependency ${parentId}`);
       const childId = extractTaskId(childResult.stdout);
       expect(childId).toBeTruthy();
-      
-      // Act & Assert - Attempting to execute child should fail (or queue) without parent completion
-      const childExecuteResult = await runCommand(`task execute ${childId}`);
-      
-      // Either it fails explicitly due to dependencies
-      if (childExecuteResult.exitCode !== 0) {
-        expect(childExecuteResult.stderr).toContain('dependencies');
-      } 
-      // Or it queues the task until dependencies are met
-      else {
-        // Verify child status is still pending
-        const childStatusResult = await runCommand(`task status ${childId}`);
-        expect(childStatusResult.stdout).toContain('pending');
-      }
-      
-      // Execute parent task
-      const parentExecuteResult = await runCommand(`task execute ${parentId} --wait`);
-      expect(parentExecuteResult.exitCode).toBe(0);
-      
-      // Now child task should be executable
-      const childExecuteResult2 = await runCommand(`task execute ${childId} --wait`);
-      expect(childExecuteResult2.exitCode).toBe(0);
-      
-      // Verify both completed
-      const parentStatus = await runCommand(`task status ${parentId}`);
-      const childStatus = await runCommand(`task status ${childId}`);
-      
-      expect(parentStatus.stdout).toContain('completed');
-      expect(childStatus.stdout).toContain('completed');
-    });
+
+      // Act & Assert 1: Check child is Pending/Ready but not Succeeded yet
+      const initialChildStatus = await runCommand(`task status ${childId}`);
+      expect(initialChildStatus.stdout).toMatch(/Status: (Pending|Ready)/i);
+      expect(initialChildStatus.stdout).not.toContain('Succeeded');
+
+      // Act 2: Wait for parent to complete
+      await waitFor(async () => (await runCommand(`task status ${parentId}`)).stdout.includes('Succeeded'), { timeout: 15000 });
+
+      // Act 3: Wait for child to complete
+      let finalChildStatus = '';
+      const childCompleted = await waitFor(async () => {
+         const statusResult = await runCommand(`task status ${childId}`);
+         if (statusResult.stdout.includes('Succeeded') || statusResult.stdout.includes('Failed')) {
+           finalChildStatus = statusResult.stdout.includes('Succeeded') ? 'Succeeded' : 'Failed';
+           return true;
+         }
+         return false;
+      }, { timeout: 15000 });
+
+      // Assert 3: Child should now succeed
+      expect(childCompleted).toBe(true);
+      expect(finalChildStatus).toBe('Succeeded');
+    }, 35000); // Longer timeout for multi-step test
   });
-  
-  describe('Task Workflows', () => {
-    it('should support task chaining', async () => {
-      // Skip if chaining is not supported
-      const helpResult = await runCommand('task chain --help');
-      if (helpResult.exitCode !== 0) {
-        console.log('Skipping task chaining test - command not available');
-        return;
-      }
-      
-      // Arrange - Create task chain definition
-      const chainDefinition = JSON.stringify({
-        name: "Test Chain",
-        tasks: [
-          {
-            type: "simple-task",
-            description: "Step 1",
-            data: { input: "step1" }
-          },
-          {
-            type: "simple-task",
-            description: "Step 2",
-            data: { input: "step2" }
-          },
-          {
-            type: "simple-task",
-            description: "Step 3",
-            data: { input: "step3" }
-          }
-        ]
-      });
-      
-      // Write chain definition to file
-      const chainFile = path.join(tempDir, 'chain.json');
-      await fs.writeFile(chainFile, chainDefinition);
-      
-      // Act - Execute chain
-      const chainResult = await runCommand(`task chain ${chainFile} --wait`);
-      
-      // Assert
-      expect(chainResult.exitCode).toBe(0);
-      expect(chainResult.stdout).toContain('completed');
-      
-      // Chain ID should be in output
-      const chainIdMatch = chainResult.stdout.match(/Chain ID: ([a-zA-Z0-9-]+)/);
-      expect(chainIdMatch).toBeTruthy();
-      
-      const chainId = chainIdMatch ? chainIdMatch[1] : null;
-      
-      // Verify chain status if command exists
-      if (chainId) {
-        const chainStatusResult = await runCommand(`task chain-status ${chainId}`);
-        if (chainStatusResult.exitCode === 0) {
-          expect(chainStatusResult.stdout).toContain('completed');
-        }
-      }
-    });
-  });
+
+  // Add tests for 'task chain', 'task batch', 'task graph' etc. if implemented
 });

@@ -1,5 +1,5 @@
-// Mock logger
-jest.mock('@/utils/logger.js', () => ({ // Use alias
+// Mock logger - Assuming logger is correctly mocked via jest.mock
+jest.mock('../../src/utils/logger', () => ({
   logger: {
     debug: jest.fn(),
     info: jest.fn(),
@@ -8,118 +8,186 @@ jest.mock('@/utils/logger.js', () => ({ // Use alias
   },
 }));
 
-// Use relative paths with .js extension
-import { CommandRegistry } from '../../../src/command-registry.js';
-// Use relative path for types, add .js extension
-import { Command, CommandOption, ExecutionContext } from '../../../src/types/cli.js';
+// Use relative paths - Assuming module resolution handles '.js' or lack thereof
+import { CommandRegistry } from '../../src/cli/registry';
+import { Command, CommandOption, ExecutionContext } from '../../src/types/cli';
+import { logger } from '../../src/utils/logger';
 
-// Define a mock command implementation matching Phase 2 Command interface
-class MockCommand implements Command {
-  id: string;
-  name: string;
-  description: string = 'A mock command';
-  options?: CommandOption[];
-  // Mock handler function
-  handler = jest.fn().mockResolvedValue(0); // Resolves with exit code 0
 
-  constructor(id: string, name?: string, desc: string = 'A mock command', options?: CommandOption[]) {
-    this.id = id;
-    this.name = name || id.split(':').pop() || id; // Default name from last part of id
+// Define a mock command implementation aligning with the target Command interface
+class MockCliCommand implements Command {
+  readonly name: string;
+  readonly description: string;
+  readonly options?: CommandOption[];
+  readonly handler: (context: ExecutionContext) => Promise<number>;
+  readonly subcommands?: Command[];
+  readonly aliases?: string[];
+  readonly examples?: string[];
+  readonly isEnabled: boolean = true;
+  readonly isHidden: boolean = false;
+
+  constructor(
+    name: string,
+    desc: string = 'A mock command description',
+    options?: CommandOption[],
+    handler?: (context: ExecutionContext) => Promise<number>
+  ) {
+    this.name = name;
     this.description = desc;
     this.options = options;
+    this.handler = handler || jest.fn().mockResolvedValue(0); // Default mock handler
   }
 }
 
 describe('CommandRegistry', () => {
   let registry: CommandRegistry;
-  let mockContext: ExecutionContext; // Use the imported type
+  const mockContext = {} as ExecutionContext; // Minimal context for these tests
 
   beforeEach(() => {
-    // Reset mocks
-    jest.clearAllMocks();
-    // Instantiate registry
-    registry = new CommandRegistry();
-    // Mock context (can be simple for registry tests)
-    mockContext = {} as ExecutionContext;
+    jest.clearAllMocks(); // Reset mocks
+    registry = new CommandRegistry(); // Create fresh registry
   });
 
-  it('should register a command successfully', () => {
-    const command = new MockCommand('test:cmd', 'test-cmd');
+  // --- Registration and Retrieval ---
+
+  it('should register a single command successfully', () => {
+    // Arrange
+    const command = new MockCliCommand('test-cmd', 'Test command description');
+
+    // Act
     registry.register(command);
+    const retrievedCommand = registry.getCommand('test-cmd');
+    const allCommands = registry.listCommands();
 
-    expect(registry.get(command.id)).toBe(command); // Use get(id)
-    // Assuming listCommands exists based on original test
-    expect(registry.listCommands()).toEqual([command]);
-    // listCommandNames might not exist, check listCommands length instead
-    expect(registry.listCommands().length).toBe(1);
+    // Assert
+    expect(retrievedCommand).toBe(command);
+    expect(allCommands).toHaveLength(1);
+    expect(allCommands[0]).toBe(command);
   });
 
-  it('should return undefined for a non-existent command ID', () => {
-    expect(registry.get('nonexistent:cmd')).toBeUndefined(); // Use get(id)
+  it('should return undefined when getting a command that is not registered', () => {
+    // Arrange (Registry is empty)
+
+    // Act
+    const result = registry.getCommand('nonexistent-cmd');
+
+    // Assert
+    expect(result).toBeUndefined();
   });
 
-  it('should overwrite a command if registered with the same ID and log a warning', () => {
-    const command1 = new MockCommand('test:cmd', 'test-cmd', 'Description 1');
-    const command2 = new MockCommand('test:cmd', 'test-cmd', 'Description 2');
+  it('should overwrite an existing command when registering with the same name and log a warning', () => {
+    // Arrange
+    const command1 = new MockCliCommand('test-cmd', 'Description 1');
+    const command2 = new MockCliCommand('test-cmd', 'Description 2'); // Same name
+    registry.register(command1); // Initial registration
 
-    registry.register(command1);
-    expect(registry.get('test:cmd')).toBe(command1);
+    // Act
+    registry.register(command2); // Re-register with the same name
+    const retrievedCommand = registry.getCommand('test-cmd');
+    const allCommands = registry.listCommands();
 
-    registry.register(command2); // Register again with same ID
-    expect(registry.get('test:cmd')).toBe(command2);
-    expect(registry.get('test:cmd')?.description).toBe('Description 2');
-    expect(registry.listCommands().length).toBe(1);
-
-    // Check if logger.warn was called (requires logger mock setup)
-    // Use relative path for require
-    const mockLogger = require('../../src/utils/logger.js').logger;
-    expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('already registered. Overwriting.'));
+    // Assert
+    expect(retrievedCommand).toBe(command2); // Should now be the second command
+    expect(retrievedCommand?.description).toBe('Description 2');
+    expect(allCommands).toHaveLength(1); // Count should remain 1
+    expect(allCommands[0]).toBe(command2);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith("Command 'test-cmd' already registered. Overwriting.");
   });
 
-  it('should list multiple registered commands', () => {
-    const command1 = new MockCommand('cmd1');
-    const command2 = new MockCommand('cmd2');
-
+  it('should list all registered commands', () => {
+    // Arrange
+    const command1 = new MockCliCommand('cmd1');
+    const command2 = new MockCliCommand('cmd2');
     registry.register(command1);
     registry.register(command2);
 
-    // listCommandNames might not exist, check listCommands instead
+    // Act
     const commands = registry.listCommands();
+    const commandNames = commands.map((cmd: Command) => cmd.name);
+
+    // Assert
     expect(commands).toHaveLength(2);
-    expect(commands).toContain(command1);
-    expect(commands).toContain(command2);
-    // Check names from the retrieved commands
-    const names = commands.map(cmd => cmd.name);
-    expect(names).toContain('cmd1');
-    expect(names).toContain('cmd2');
+    expect(commands).toEqual(expect.arrayContaining([command1, command2]));
+    expect(commandNames).toEqual(expect.arrayContaining(['cmd1', 'cmd2']));
   });
 
-  // Update placeholder validation tests for Phase 2 Command interface
-  it('should ideally throw or warn if registering a command without an ID', () => {
-     const invalidCommand = new MockCommand(''); // Empty ID
-     // Depending on future validation, this might throw
-     expect(() => registry.register(invalidCommand)).not.toThrow(); // Current expectation based on no explicit validation
-     // OR expect(() => registry.register(invalidCommand)).toThrow(/must have an ID/);
+  // --- Basic Validation on Registration ---
+  // Note: More complex validation (options, etc.) is likely handled by the CLI framework (commander/yargs)
+
+  it('should throw an error if attempting to register a command without a name', () => {
+    // Arrange
+    const invalidCommand = new MockCliCommand('', 'Command with no name');
+
+    // Act & Assert
+    expect(() => registry.register(invalidCommand))
+      .toThrow('Command registration failed: Command name cannot be empty.');
   });
 
-   it('should ideally throw or warn if registering a command without a name', () => {
-     // MockCommand defaults name from ID, so test by forcing empty name
-     const invalidCommand = new MockCommand('id-exists', ''); // Empty name
-     expect(() => registry.register(invalidCommand)).not.toThrow(); // Current expectation
-     // OR expect(() => registry.register(invalidCommand)).toThrow(/must have a name/);
+  it('should throw an error if attempting to register a command without a description', () => {
+    // Arrange
+    const invalidCommand = new MockCliCommand('no-desc-cmd', ''); // Empty description
+
+    // Act & Assert
+    expect(() => registry.register(invalidCommand))
+      .toThrow("Command registration failed: Command description cannot be empty for command 'no-desc-cmd'.");
   });
 
-   it('should ideally throw or warn if registering a command without a description', () => {
-     const invalidCommand = new MockCommand('no-desc', 'no-desc', ''); // Empty description
-     expect(() => registry.register(invalidCommand)).not.toThrow(); // Current expectation
-     // OR expect(() => registry.register(invalidCommand)).toThrow(/must have a description/);
+  it('should throw an error if attempting to register a command without a handler function', () => {
+    // Arrange
+    const invalidCommand = new MockCliCommand('no-handler-cmd') as any; // Use 'as any' to bypass TS check for test
+    delete invalidCommand.handler; // Remove the handler
+
+    // Act & Assert
+    expect(() => registry.register(invalidCommand as Command)) // Cast back for method signature
+      .toThrow("Command registration failed: Command handler is required for command 'no-handler-cmd'.");
   });
 
-   it('should ideally throw or warn if registering a command without a handler', () => {
-     const invalidCommand = new MockCommand('no-handler');
-     (invalidCommand as any).handler = undefined; // Force missing handler
-     expect(() => registry.register(invalidCommand)).not.toThrow(); // Current expectation
-     // OR expect(() => registry.register(invalidCommand)).toThrow(/must have a handler/);
+  // --- Alias Handling ---
+
+  it('should register and resolve command aliases correctly', () => {
+    // Arrange
+    const command = new MockCliCommand('original-command');
+    registry.register(command);
+
+    // Act
+    registry.registerAlias('alias1', 'original-command');
+    registry.registerAlias('alias2', 'original-command');
+
+    // Assert
+    expect(registry.getCommand('alias1')).toBe(command);
+    expect(registry.getCommand('alias2')).toBe(command);
+    expect(registry.getCommand('original-command')).toBe(command); // Original name still works
   });
+
+  it('should warn and not register an alias if it conflicts with an existing command name', () => {
+     // Arrange
+     const command1 = new MockCliCommand('cmd1');
+     const command2 = new MockCliCommand('cmd2');
+     registry.register(command1);
+     registry.register(command2);
+
+     // Act
+     registry.registerAlias('cmd1', 'cmd2'); // Attempt to register alias 'cmd1' pointing to 'cmd2'
+
+     // Assert
+     expect(logger.warn).toHaveBeenCalledWith("Alias 'cmd1' conflicts with an existing command name. Alias not registered.");
+     expect(registry.getCommand('cmd1')).toBe(command1); // Should still resolve to the original command, not cmd2 via alias
+  });
+
+   it('should warn and not register an alias if the target command does not exist', () => {
+     // Arrange (Registry is empty or only has other commands)
+     registry.register(new MockCliCommand('another-cmd'));
+
+     // Act
+     registry.registerAlias('my-alias', 'non-existent-command');
+
+     // Assert
+     expect(logger.warn).toHaveBeenCalledWith("Cannot register alias 'my-alias': Target command 'non-existent-command' not found.");
+     expect(registry.getCommand('my-alias')).toBeUndefined(); // Alias should not resolve
+  });
+
+  // TODO: Add tests for subcommands if CommandRegistry handles them directly
+  // (though often subcommand routing is handled by the CLI framework like commander/yargs)
 
 });

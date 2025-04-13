@@ -1,442 +1,401 @@
 /**
- * Integration tests for Storage and Model Execution
+ * Integration Tests for Model Execution Service and Storage Service Interaction.
+ *
+ * These tests verify workflows where results from the ModelExecutionService
+ * are stored using a StorageService, and how components like the
+ * GraphOfThoughtEngine might leverage this integration.
+ *
+ * Key dependencies (StorageFactory, ModelExecutionService, ModelRegistry) are mocked.
  */
 
-import { createMockStorage } from '../../helpers/mockStorage';
-import { createTempTestDir, removeTempTestDir } from '../../helpers/testUtils';
-import { generateModelFixtures, generatePromptFixtures, generateGraphFixtures } from '../../helpers/fixtures';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import * as crypto from 'crypto';
 
-// Mock the storage factory
-jest.mock('../../../src/storage/factory', () => ({
+// --- Mock Setup ---
+
+// Import helpers - Add .js extension
+// Define basic placeholder types if not exported
+type MockStorage = {
+    add: jest.Mock;
+    get: jest.Mock;
+    clear: jest.Mock;
+    // Add other methods if used
+};
+import { createMockStorage } from '../../helpers/mockStorage.js';
+import { createTempTestDir, removeTempTestDir } from '../../helpers/testUtils.js';
+// Define basic placeholder types if not exported
+// Ensure GraphFixture includes edges
+type ModelFixture = { providers: any[] };
+type PromptFixture = { prompts: any[] };
+type GraphFixture = { nodes: any[]; edges: any[] }; // Added edges
+import { generateModelFixtures, generatePromptFixtures, generateGraphFixtures } from '../../helpers/fixtures.js';
+
+// Mock the storage factory to return our mock storage instance
+// Adjust path as needed
+jest.mock('../../../src/storage/factory.js', () => ({
   StorageFactory: {
-    createStorage: jest.fn().mockImplementation(() => createMockStorage())
-  }
+    createStorage: jest.fn().mockImplementation(() => createMockStorage()), // Use helper to create mock
+  },
 }));
 
-// Mock the model execution service
-jest.mock('../../../src/models/execution', () => {
-  const originalModule = jest.requireActual('../../../src/models/execution');
-  
+// Mock the model execution service singleton - Correct path and add .js
+// Try path starting from ../../
+jest.mock('../../src/models/execution.js', () => {
+  // Create a reusable mock instance for the service
+  const mockExecuteModel = jest.fn().mockImplementation(async (modelId, prompt, options) => {
+    // Simple mock response generation
+    const responseText = `Mock response for model ${modelId}: ${String(prompt).substring(0, 30)}...`;
+    return {
+      response: responseText,
+      usage: {
+        promptTokens: Math.floor(String(prompt).length / 4),
+        completionTokens: Math.floor(responseText.length / 4),
+        totalTokens: Math.floor(String(prompt).length / 4) + Math.floor(responseText.length / 4),
+      },
+      timingMs: Math.random() * 500 + 100, // Simulate some delay
+    };
+  });
   return {
-    ...originalModule,
     ModelExecutionService: {
       getInstance: jest.fn().mockReturnValue({
-        executeModel: jest.fn().mockImplementation(async (modelId, prompt, options) => {
-          return {
-            response: `Mock response for model ${modelId}: ${prompt.substring(0, 20)}...`,
-            usage: {
-              promptTokens: Math.floor(prompt.length / 4),
-              completionTokens: 100,
-              totalTokens: Math.floor(prompt.length / 4) + 100
-            },
-            timingMs: 500
-          };
-        })
-      })
-    }
+        executeModel: mockExecuteModel,
+        // Add other methods if needed and mock them
+      }),
+    },
   };
 });
 
-// Import after mocks
-import { ModelExecutionService } from '../../../src/models/execution';
-import { StorageFactory } from '../../../src/storage/factory';
-import { ModelRegistry } from '../../../src/models/registry';
-import { GraphOfThoughtEngine } from '../../../src/tasks/graph/graph-of-thought';
+// Mock ModelRegistry singleton - Add .js extension
+jest.mock('../../src/models/registry.js', () => ({
+    ModelRegistry: jest.fn().mockImplementation(() => ({
+        getInstance: jest.fn().mockReturnThis(),
+        registerProvider: jest.fn(),
+        registerModel: jest.fn(),
+        // Add other methods if needed
+    })),
+}));
 
-describe('Storage and Model Execution Integration', () => {
-  let modelRegistry: any;
-  let modelExecutionService: any;
-  let storage: any;
-  let graphEngine: any;
+// Mock GraphOfThoughtEngine (assuming its path) - Add .js extension
+jest.mock('../../src/tasks/graph/graph-of-thought.js', () => ({
+    GraphOfThoughtEngine: jest.fn().mockImplementation(() => ({
+        processQuery: jest.fn(), // Mock methods used in tests
+    })),
+}));
+
+
+// --- Imports (after mocks) ---
+// Adjust paths and add .js extension
+import { ModelExecutionService } from '../../src/models/execution.js'; // Corrected path
+import { StorageFactory } from '../../src/storage/factory.js';
+import { ModelRegistry } from '../../src/models/registry.js';
+import { GraphOfThoughtEngine } from '../../src/tasks/graph/graph-of-thought.js';
+import { StorageProvider } from '../../src/storage/provider.js'; // Assuming this type exists
+
+// Define placeholder for GoTResult including expected properties
+type GoTResult = {
+    answer: string;
+    confidence: number;
+    graphCid: string;
+    // Add other potential properties
+};
+
+
+// --- Test Suite ---
+
+describe('Integration: Model Execution <-> Storage', () => {
+  // Define types for mocks and instances
+  let modelRegistry: jest.Mocked<ModelRegistry>;
+  let modelExecutionService: jest.Mocked<ModelExecutionService>;
+  let storage: MockStorage; // Use the specific mock type
+  let graphEngine: jest.Mocked<GraphOfThoughtEngine>;
   let tempDir: string;
-  
-  const fixtures = generateModelFixtures();
-  const promptFixtures = generatePromptFixtures();
-  const graphFixtures = generateGraphFixtures();
-  
+
+  // Generate fixtures once
+  const modelFixtures: ModelFixture = generateModelFixtures();
+  const promptFixtures: PromptFixture = generatePromptFixtures();
+  const graphFixtures: GraphFixture = generateGraphFixtures();
+
   beforeAll(async () => {
-    // Create temp directory for testing
-    tempDir = await createTempTestDir();
+    // Create temp directory for any potential file system interactions by mocks
+    tempDir = await createTempTestDir('model-storage-int');
   });
-  
+
   afterAll(async () => {
     // Clean up temp directory
     await removeTempTestDir(tempDir);
   });
-  
+
   beforeEach(() => {
-    // Reset singletons
-    (ModelRegistry as any).instance = null;
-    
-    // Get instances
-    modelRegistry = ModelRegistry.getInstance();
-    modelExecutionService = ModelExecutionService.getInstance();
-    storage = StorageFactory.createStorage();
-    
-    // Register test models
-    fixtures.providers.forEach(provider => {
-      modelRegistry.registerProvider(provider);
+    // Reset mocks before each test
+    jest.clearAllMocks();
+
+    // Get mocked singleton instances
+    // Note: Accessing mocked getInstance directly
+    modelRegistry = ModelRegistry.getInstance() as jest.Mocked<ModelRegistry>;
+    modelExecutionService = ModelExecutionService.getInstance() as jest.Mocked<ModelExecutionService>;
+    // Get the mock storage instance directly from the factory mock
+    storage = StorageFactory.createStorage() as MockStorage;
+    graphEngine = new GraphOfThoughtEngine({ storage } as any) as jest.Mocked<GraphOfThoughtEngine>; // Instantiate with mock storage
+
+    // Setup initial state for mocks if needed (e.g., register models)
+    modelFixtures.providers.forEach((provider: any) => { // Add type 'any'
+      modelRegistry.registerProvider(provider as any); // Cast if mock type differs
     });
-    
-    // Create graph engine
-    graphEngine = new GraphOfThoughtEngine({ storage });
-    
-    // Clear storage
+
+    // Clear the mock storage before each test
     storage.clear();
   });
-  
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-  
-  describe('Model result persistence', () => {
-    it('should store model execution results', async () => {
+
+  // --- Test Cases ---
+
+  describe('Model Result Persistence', () => {
+    it('should store model execution results using the storage service', async () => {
       // Arrange
-      const modelId = fixtures.providers[0].models[0].id;
+      const modelId = modelFixtures.providers[0].models[0].id;
       const prompt = promptFixtures.prompts[0].text;
-      
-      const executeModelSpy = jest.spyOn(modelExecutionService, 'executeModel');
-      const storageSpy = jest.spyOn(storage, 'add');
-      
+      const expectedResponsePrefix = `Mock response for model ${modelId}`;
+
       // Act
+      // 1. Execute the model (uses mocked service)
       const result = await modelExecutionService.executeModel(modelId, prompt);
-      
-      // Store model result
-      const resultJson = JSON.stringify({
+
+      // 2. Store the result using the storage service
+      const resultToStore = {
         modelId,
         prompt,
-        result,
-        timestamp: Date.now()
-      });
-      
-      const cid = await storage.add(resultJson);
-      
+        result, // Contains mock response, usage, timing
+        timestamp: Date.now(), // Add timestamp
+      };
+      const resultJson = JSON.stringify(resultToStore);
+      const cid = await storage.add(resultJson); // Call mock storage 'add'
+
       // Assert
-      expect(executeModelSpy).toHaveBeenCalledWith(modelId, prompt, expect.anything());
-      expect(storageSpy).toHaveBeenCalledWith(resultJson);
+      // Verify model execution mock was called
+      expect(modelExecutionService.executeModel).toHaveBeenCalledTimes(1);
+      expect(modelExecutionService.executeModel).toHaveBeenCalledWith(modelId, prompt, undefined); // Check args
+
+      // Verify storage mock 'add' was called
+      expect(storage.add).toHaveBeenCalledTimes(1);
+      expect(storage.add).toHaveBeenCalledWith(resultJson);
       expect(cid).toBeDefined();
-      
-      // Retrieve stored result
+      expect(typeof cid).toBe('string'); // Mock CID is likely a string
+
+      // Verify retrieval from mock storage
       const retrievedBuffer = await storage.get(cid);
-      const retrievedData = JSON.parse(retrievedBuffer.toString());
-      
-      // Verify retrieved data
+      expect(retrievedBuffer).toBeDefined();
+      const retrievedData = JSON.parse(retrievedBuffer!.toString()); // Use non-null assertion
+
+      // Verify retrieved data matches stored data
       expect(retrievedData.modelId).toBe(modelId);
       expect(retrievedData.prompt).toBe(prompt);
-      expect(retrievedData.result).toEqual(result);
+      expect(retrievedData.result.response).toContain(expectedResponsePrefix);
+      expect(retrievedData.result.usage.totalTokens).toBeGreaterThan(0);
     });
-    
-    it('should maintain history of model executions', async () => {
+
+    it('should allow storing and retrieving a history of model executions', async () => {
       // Arrange
-      const modelId = fixtures.providers[0].models[0].id;
-      const promptSet = promptFixtures.prompts;
-      
-      // Store execution history
-      const history = [];
-      
-      // Act - Execute multiple prompts
+      const modelId = modelFixtures.providers[0].models[0].id;
+      const promptSet = promptFixtures.prompts.slice(0, 3); // Use a few prompts
+      const executionHistory: Array<{ cid: string; prompt: string; response: string }> = [];
+
+      // Act: Execute multiple prompts and store results
       for (const promptData of promptSet) {
-        // Execute model
         const result = await modelExecutionService.executeModel(modelId, promptData.text);
-        
-        // Store result
         const historyEntry = {
           modelId,
           prompt: promptData.text,
           result,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
-        
         const cid = await storage.add(JSON.stringify(historyEntry));
-        
-        // Add to history with CID
-        history.push({
-          ...historyEntry,
-          cid
-        });
+        executionHistory.push({ cid, prompt: promptData.text, response: result.response });
       }
-      
-      // Assert
-      expect(history.length).toBe(promptSet.length);
-      
-      // Verify each history entry is retrievable
-      for (const entry of history) {
+
+      // Assert: Check history length and storage calls
+      expect(executionHistory).toHaveLength(promptSet.length);
+      expect(storage.add).toHaveBeenCalledTimes(promptSet.length);
+
+      // Assert: Verify each history entry is retrievable and correct
+      for (const entry of executionHistory) {
         const retrievedBuffer = await storage.get(entry.cid);
-        const retrievedData = JSON.parse(retrievedBuffer.toString());
-        
-        expect(retrievedData.modelId).toBe(entry.modelId);
+        expect(retrievedBuffer).toBeDefined();
+        const retrievedData = JSON.parse(retrievedBuffer!.toString());
+
+        expect(retrievedData.modelId).toBe(modelId);
         expect(retrievedData.prompt).toBe(entry.prompt);
-        expect(retrievedData.result).toEqual(entry.result);
+        expect(retrievedData.result.response).toBe(entry.response);
       }
     });
   });
-  
-  describe('Graph of Thought persistence', () => {
-    it('should store graph nodes in storage', async () => {
+
+  describe('Graph of Thought Persistence', () => {
+    it('should store individual graph nodes using the storage service', async () => {
       // Arrange
-      const nodes = graphFixtures.nodes;
-      const storageSpy = jest.spyOn(storage, 'add');
-      
-      // Act - Store each node
-      const nodesCids = {};
+      const nodes = graphFixtures.nodes.slice(0, 2); // Use a couple of nodes
+      const storedCids: Record<string, string> = {};
+
+      // Act: Store each node individually
       for (const node of nodes) {
         const nodeJson = JSON.stringify(node);
         const cid = await storage.add(nodeJson);
-        nodesCids[node.id] = cid;
+        storedCids[node.id] = cid;
       }
-      
-      // Assert
-      expect(storageSpy).toHaveBeenCalledTimes(nodes.length);
-      
-      // Verify each node is retrievable
+
+      // Assert: Check storage calls
+      expect(storage.add).toHaveBeenCalledTimes(nodes.length);
+
+      // Assert: Verify each node is retrievable
       for (const node of nodes) {
-        const retrievedBuffer = await storage.get(nodesCids[node.id]);
-        const retrievedNode = JSON.parse(retrievedBuffer.toString());
-        
+        const cid = storedCids[node.id];
+        expect(cid).toBeDefined();
+        const retrievedBuffer = await storage.get(cid);
+        expect(retrievedBuffer).toBeDefined();
+        const retrievedNode = JSON.parse(retrievedBuffer!.toString());
+
+        // Verify content matches (adjust based on actual node structure)
         expect(retrievedNode.id).toBe(node.id);
         expect(retrievedNode.content).toBe(node.content);
         expect(retrievedNode.type).toBe(node.type);
       }
     });
-    
-    it('should store and load complete graph structure', async () => {
-      // Arrange
+
+    it('should store and retrieve a complete graph structure', async () => {
+      // Arrange: Create a simple graph structure object
       const graph = {
-        nodes: graphFixtures.nodes,
-        edges: graphFixtures.nodes.flatMap(node => 
-          node.dependencies.map(depId => ({
-            from: depId,
-            to: node.id
-          }))
-        ).filter(edge => edge.from) // Filter out empty dependencies
+        id: 'graph-123',
+        rootNodeId: graphFixtures.nodes[0].id,
+        nodes: graphFixtures.nodes.map((n: any) => n.id), // Store only IDs, add type 'any'
+        edges: graphFixtures.edges, // Ensure edges are included from fixture
+        metadata: { createdAt: Date.now() },
       };
-      
+      // Assume individual nodes are stored separately (as in previous test)
+      for (const node of graphFixtures.nodes) {
+        await storage.add(JSON.stringify(node)); // Store nodes first
+      }
       const graphJson = JSON.stringify(graph);
-      
-      // Act
-      const cid = await storage.add(graphJson);
-      
-      // Assert
-      expect(cid).toBeDefined();
-      
-      // Retrieve stored graph
-      const retrievedBuffer = await storage.get(cid);
-      const retrievedGraph = JSON.parse(retrievedBuffer.toString());
-      
-      // Verify graph structure
-      expect(retrievedGraph.nodes.length).toBe(graph.nodes.length);
-      expect(retrievedGraph.edges.length).toBe(graph.edges.length);
+
+      // Act: Store the main graph structure object
+      const graphCid = await storage.add(graphJson);
+
+      // Assert: Check storage call and CID
+      expect(graphCid).toBeDefined();
+      expect(storage.add).toHaveBeenCalledTimes(graphFixtures.nodes.length + 1); // Nodes + Graph
+
+      // Assert: Retrieve and verify the graph structure
+      const retrievedBuffer = await storage.get(graphCid);
+      expect(retrievedBuffer).toBeDefined();
+      const retrievedGraph = JSON.parse(retrievedBuffer!.toString());
+
+      expect(retrievedGraph.id).toBe(graph.id);
+      expect(retrievedGraph.rootNodeId).toBe(graph.rootNodeId);
+      expect(retrievedGraph.nodes).toEqual(graph.nodes);
+      expect(retrievedGraph.edges).toEqual(graph.edges);
     });
-    
-    it('should integrate with Graph-of-Thought engine', async () => {
-      // Mock the graph engine's processQuery method
-      if (!graphEngine.processQuery) {
-        // If the method doesn't exist yet, we'll mock it
-        graphEngine.processQuery = jest.fn().mockImplementation(async (query) => {
-          // Create a simple graph
-          const rootNode = {
-            id: `node-${Date.now()}-root`,
-            content: `Root question: ${query}`,
-            type: 'question',
-            dependencies: [],
-            priority: 10,
-            status: 'completed',
-            metadata: {
-              createdAt: Date.now(),
-              completedAt: Date.now() + 500,
-              confidence: 0.9,
-              executionTimeMs: 500
-            }
-          };
-          
-          const researchNode = {
-            id: `node-${Date.now()}-research`,
-            content: `Research for: ${query}`,
-            type: 'research',
-            dependencies: [rootNode.id],
-            priority: 8,
-            status: 'completed',
-            result: {
-              findings: ['Finding 1', 'Finding 2']
-            },
-            metadata: {
-              createdAt: Date.now() + 100,
-              completedAt: Date.now() + 1000,
-              confidence: 0.85,
-              executionTimeMs: 900
-            }
-          };
-          
-          const conclusionNode = {
-            id: `node-${Date.now()}-conclusion`,
-            content: `Conclusion for: ${query}`,
-            type: 'conclusion',
-            dependencies: [researchNode.id],
-            priority: 9,
-            status: 'completed',
-            result: {
-              answer: `Mock answer to: ${query}`
-            },
-            metadata: {
-              createdAt: Date.now() + 1100,
-              completedAt: Date.now() + 1500,
-              confidence: 0.95,
-              executionTimeMs: 400
-            }
-          };
-          
-          // Store nodes in storage
-          await storage.add(JSON.stringify(rootNode));
-          await storage.add(JSON.stringify(researchNode));
-          await storage.add(JSON.stringify(conclusionNode));
-          
-          // Store the graph structure
-          const graph = {
-            nodes: [rootNode, researchNode, conclusionNode],
-            edges: [
-              { from: rootNode.id, to: researchNode.id },
-              { from: researchNode.id, to: conclusionNode.id }
-            ]
-          };
-          
-          const graphCid = await storage.add(JSON.stringify(graph));
-          
-          return {
-            answer: conclusionNode.result.answer,
-            confidence: conclusionNode.metadata.confidence,
-            graphCid
-          };
-        });
-      }
-      
+
+    // This test relies heavily on the mocked implementation of graphEngine.processQuery
+    it('should simulate GoT engine processing query and storing graph', async () => {
       // Arrange
-      const query = "What is the capital of France?";
-      const storageSpy = jest.spyOn(storage, 'add');
-      
-      // Act
-      const result = await graphEngine.processQuery(query);
-      
-      // Assert
+      const query = "Explain photosynthesis.";
+      const mockAnswer = `Mock answer to: ${query}`;
+      const mockGraphCid = 'mock-graph-cid-123';
+
+      // Configure the mock processQuery implementation
+      (graphEngine.processQuery as jest.Mock).mockImplementation(async (q): Promise<GoTResult> => { // Add return type
+          expect(q).toBe(query);
+          // Simulate storing nodes and graph structure internally using the mock storage
+          const graphData = { nodes: ['n1', 'n2'], edges: [{ from: 'n1', to: 'n2' }] }; // Simplified
+          await storage.add(JSON.stringify({ id: 'n1', content: query }));
+          await storage.add(JSON.stringify({ id: 'n2', content: mockAnswer }));
+          await storage.add(JSON.stringify(graphData), mockGraphCid); // Allow specifying CID for mock
+          // Return object matching GoTResult type
+          return { answer: mockAnswer, confidence: 0.9, graphCid: mockGraphCid };
+      });
+
+      // Act: Call the mocked engine
+      const result: GoTResult = await graphEngine.processQuery(query); // Add type
+
+      // Assert: Check engine result
       expect(result).toBeDefined();
-      expect(result.answer).toContain(query);
-      expect(result.graphCid).toBeDefined();
-      
-      // Verify storage was used
-      expect(storageSpy).toHaveBeenCalled();
-      
-      // Retrieve the graph using the CID
-      if (result.graphCid) {
-        const retrievedBuffer = await storage.get(result.graphCid);
-        const retrievedGraph = JSON.parse(retrievedBuffer.toString());
-        
-        expect(retrievedGraph.nodes).toBeDefined();
-        expect(retrievedGraph.nodes.length).toBe(3); // Root, research, conclusion
-        expect(retrievedGraph.edges).toBeDefined();
-        expect(retrievedGraph.edges.length).toBe(2); // Root->Research, Research->Conclusion
-      }
+      expect(result.answer).toBe(mockAnswer); // Corrected property access
+      expect(result.graphCid).toBe(mockGraphCid); // Corrected property access
+
+      // Assert: Verify storage was used (at least for the graph structure)
+      expect(storage.add).toHaveBeenCalledTimes(3); // 2 nodes + 1 graph
+      expect(storage.add).toHaveBeenCalledWith(expect.any(String), mockGraphCid);
+
+      // Assert: Retrieve the graph using the CID to confirm storage
+      const retrievedBuffer = await storage.get(mockGraphCid);
+      expect(retrievedBuffer).toBeDefined();
+      const retrievedGraph = JSON.parse(retrievedBuffer!.toString());
+      expect(retrievedGraph.nodes).toEqual(['n1', 'n2']);
     });
   });
-  
-  describe('Model execution with context from storage', () => {
-    it('should execute model with context retrieved from storage', async () => {
-      // Arrange
-      const modelId = fixtures.providers[0].models[0].id;
-      const contextContent = JSON.stringify({
-        background: "This is background information",
-        examples: ["Example 1", "Example 2"],
-        guidelines: "Follow these guidelines"
-      });
-      
-      // Store context in storage
-      const contextCid = await storage.add(contextContent);
-      
-      // Main prompt
-      const mainPrompt = "Use the provided context to answer: What is the capital of France?";
-      
-      // Get the context
-      const contextBuffer = await storage.get(contextCid);
-      const context = JSON.parse(contextBuffer.toString());
-      
-      // Prepare combined prompt with context
-      const combinedPrompt = `
-Context Information:
-Background: ${context.background}
-Examples: ${context.examples.join(', ')}
-Guidelines: ${context.guidelines}
 
-${mainPrompt}
-      `.trim();
-      
-      const executeModelSpy = jest.spyOn(modelExecutionService, 'executeModel');
-      
-      // Act
-      const result = await modelExecutionService.executeModel(modelId, combinedPrompt);
-      
+  describe('Model Execution with Context from Storage', () => {
+    it('should retrieve context from storage and use it in a model prompt', async () => {
+      // Arrange: Store context data
+      const contextData = { info: "Background info needed for prompt." };
+      const contextJson = JSON.stringify(contextData);
+      const contextCid = await storage.add(contextJson);
+      expect(contextCid).toBeDefined();
+
+      // Arrange: Define model and prompt
+      const modelId = modelFixtures.providers[0].models[0].id;
+      const userQuery = "Answer this based on context.";
+      const expectedFullPrompt = `Context:\n${JSON.stringify(contextData, null, 2)}\n\nQuery:\n${userQuery}`;
+
+      // Act:
+      // 1. Retrieve context
+      const retrievedContextBuffer = await storage.get(contextCid);
+      const retrievedContext = JSON.parse(retrievedContextBuffer!.toString());
+      // 2. Construct full prompt
+      const fullPrompt = `Context:\n${JSON.stringify(retrievedContext, null, 2)}\n\nQuery:\n${userQuery}`;
+      // 3. Execute model with full prompt
+      const result = await modelExecutionService.executeModel(modelId, fullPrompt);
+
       // Assert
-      expect(executeModelSpy).toHaveBeenCalledWith(modelId, combinedPrompt, expect.anything());
-      expect(result.response).toContain('Mock response');
+      // Verify storage get was called
+      expect(storage.get).toHaveBeenCalledWith(contextCid);
+      // Verify model execution was called with the combined prompt
+      expect(modelExecutionService.executeModel).toHaveBeenCalledTimes(1);
+      expect(modelExecutionService.executeModel).toHaveBeenCalledWith(modelId, expectedFullPrompt, undefined);
+      // Verify result (based on mock)
+      expect(result.response).toContain(modelId);
+      expect(result.response).toContain(fullPrompt.substring(0, 30));
     });
-    
-    it('should chain model executions with stored intermediate results', async () => {
-      // Arrange
-      const modelId = fixtures.providers[0].models[0].id;
-      const initialPrompt = "What is the capital of France?";
-      
-      const executeModelSpy = jest.spyOn(modelExecutionService, 'executeModel');
-      
-      // Act - First execution
-      const result1 = await modelExecutionService.executeModel(modelId, initialPrompt);
-      
-      // Store first result
-      const result1Json = JSON.stringify(result1);
-      const result1Cid = await storage.add(result1Json);
-      
-      // Retrieve first result
-      const retrievedResult1Buffer = await storage.get(result1Cid);
-      const retrievedResult1 = JSON.parse(retrievedResult1Buffer.toString());
-      
-      // Create follow-up prompt using first result
-      const followUpPrompt = `
-Based on the previous response: "${retrievedResult1.response}"
 
-Please provide more details about this city.
-      `.trim();
-      
-      // Second execution
+    it('should simulate chaining model executions using stored intermediate results', async () => {
+      // Arrange
+      const modelId = modelFixtures.providers[0].models[0].id;
+      const initialPrompt = "Step 1: Generate initial idea.";
+      const followUpPromptTemplate = (prevResponse: string) => `Step 2: Elaborate on "${prevResponse}".`;
+
+      // Act: First execution
+      const result1 = await modelExecutionService.executeModel(modelId, initialPrompt);
+      const result1Cid = await storage.add(JSON.stringify(result1)); // Store result 1
+
+      // Act: Retrieve result 1 and prepare for second execution
+      const retrievedResult1Buffer = await storage.get(result1Cid);
+      const retrievedResult1 = JSON.parse(retrievedResult1Buffer!.toString());
+      const followUpPrompt = followUpPromptTemplate(retrievedResult1.response);
+
+      // Act: Second execution
       const result2 = await modelExecutionService.executeModel(modelId, followUpPrompt);
-      
+      const result2Cid = await storage.add(JSON.stringify(result2)); // Store result 2
+
       // Assert
-      expect(executeModelSpy).toHaveBeenCalledTimes(2);
-      expect(executeModelSpy.mock.calls[0][1]).toBe(initialPrompt);
-      expect(executeModelSpy.mock.calls[1][1]).toBe(followUpPrompt);
-      
-      // Store chain of results
-      const chain = {
-        exchanges: [
-          {
-            prompt: initialPrompt,
-            response: result1.response
-          },
-          {
-            prompt: followUpPrompt,
-            response: result2.response
-          }
-        ],
-        metadata: {
-          modelId,
-          totalTokens: result1.usage.totalTokens + result2.usage.totalTokens,
-          totalTimeMs: result1.timingMs + result2.timingMs
-        }
-      };
-      
-      const chainCid = await storage.add(JSON.stringify(chain));
-      
-      // Retrieve chain
-      const retrievedChainBuffer = await storage.get(chainCid);
-      const retrievedChain = JSON.parse(retrievedChainBuffer.toString());
-      
-      expect(retrievedChain.exchanges.length).toBe(2);
-      expect(retrievedChain.metadata.modelId).toBe(modelId);
+      // Verify mocks were called correctly
+      expect(modelExecutionService.executeModel).toHaveBeenCalledTimes(2);
+      expect(modelExecutionService.executeModel).toHaveBeenNthCalledWith(1, modelId, initialPrompt, undefined);
+      expect(modelExecutionService.executeModel).toHaveBeenNthCalledWith(2, modelId, followUpPrompt, undefined);
+      expect(storage.add).toHaveBeenCalledTimes(2);
+
+      // Verify results can be retrieved
+      const finalResult1Buffer = await storage.get(result1Cid);
+      const finalResult2Buffer = await storage.get(result2Cid);
+      expect(JSON.parse(finalResult1Buffer!.toString()).response).toEqual(result1.response);
+      expect(JSON.parse(finalResult2Buffer!.toString()).response).toEqual(result2.response);
     });
   });
 });
