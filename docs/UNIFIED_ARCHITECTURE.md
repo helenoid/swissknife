@@ -87,7 +87,6 @@ graph TD
         AI(jest.config.cjs);
         AJ(README.md);
     end
-    # ... (Further breakdown omitted for brevity - see PROJECT_STRUCTURE.md) ...
 
     style A fill:#def
     style P fill:#def
