@@ -205,4 +205,4 @@ pnpm remove -g swissknife
 
 ## License
 
-Distributed under the [MIT License](LICENSE.md).
+Distributed under the [AGPL License](LICENSE.md).
