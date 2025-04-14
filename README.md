@@ -1,5 +1,5 @@
 # SwissKnife
-
+```
 ███████╗██╗    ██╗██╗███████╗███████╗ ██████████╔═════╗██████████
 ██╔════╝██║    ██║██║██╔════╝██╔════╝ ██████████║█████║██████████
 ███████╗██║ █╗ ██║██║███████╗███████╗ ██████████║█████║██████████
@@ -12,7 +12,7 @@
 ██╔═██╗ ██║╚██╗██║██║██╔══╝  ██╔══╝   ██████████║█████║██████████
 ██║  ██╗██║ ╚████║██║██║     ███████╗ ██████████║█████║██████████
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚══════╝ ██████████╚═════╝██████████
-                                  
+```
 SwissKnife is a powerful, terminal-based AI toolkit built entirely in TypeScript for the Node.js environment. It provides a unified interface to interact with various AI models, manage complex tasks, interact with decentralized storage (IPFS), and extend capabilities via the Model Context Protocol (MCP).
 
 ## Key Features
