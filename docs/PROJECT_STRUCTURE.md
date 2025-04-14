@@ -4,239 +4,103 @@ This document outlines the domain-driven project structure of SwissKnife, organi
 
 ## Directory Structure
 
+```mermaid
+graph TD
+    subgraph Root
+        A(src/) --> B(ai/);
+        A --> C(auth/);
+        A --> D(cli/);
+        A --> E(commands/);
+        A --> F(components/);
+        A --> G(config/);
+        A --> H(constants/);
+        A --> I(entrypoints/);
+        A --> J(ml/);
+        A --> K(services/);
+        A --> L(storage/);
+        A --> M(tasks/);
+        A --> N(types/);
+        A --> O(utils/);
+        P(test/) --> Q(unit/);
+        P --> R(integration/);
+        P --> S(e2e/);
+        P --> T(helpers/);
+        P --> U(mocks/);
+        P --> V(fixtures/);
+        P --> W(plans/);
+        X(docs/) --> Y(phase1/);
+        X --> Z(phase2/);
+        X --> AA(phase3/);
+        X --> AB(phase4/);
+        X --> AC(phase5/);
+        X --> AD(architecture/);
+        X --> AE(guides/);
+        AF(scripts/);
+        AG(package.json);
+        AH(tsconfig.json);
+        AI(jest.config.cjs);
+        AJ(README.md);
+    end
+
+    subgraph src/ai
+        B --> B1(agent/);
+        B --> B2(models/);
+        B --> B3(tools/);
+        B --> B4(thinking/);
+    end
+
+    subgraph src/cli
+        D --> D1(parser.ts);
+        D --> D2(registry.ts);
+        D --> D3(executor.ts);
+        D --> D4(context.ts);
+        D --> D5(help.ts);
+        D --> D6(formatter.ts);
+    end
+
+     subgraph src/commands
+        E --> E1(agent.ts);
+        E --> E2(config.ts);
+        E --> E3(mcp.ts);
+        E --> E4(task.ts);
+        E --> E5(ipfs.ts);
+        E --> E6(file.ts);
+    end
+
+    subgraph src/tasks
+        M --> M1(manager.ts);
+        M --> M2(scheduler/);
+        M --> M3(execution/);
+        M --> M4(workers/);
+        M --> M5(coordination/);
+        M --> M6(decomposition/);
+        M --> M7(synthesis/);
+        M --> M8(graph/);
+        M --> M9(dependencies/);
+    end
+
+     subgraph src/storage
+        L --> L1(operations.ts);
+        L --> L2(registry.ts);
+        L --> L3(path-resolver.ts);
+        L --> L4(backend.ts);
+        L --> L5(backends/);
+        L --> L6(ipfs/);
+        L --> L7(cache.ts);
+    end
+
+    subgraph src/storage/backends
+        L5 --> L5a(filesystem.ts);
+        L5 --> L5b(ipfs.ts);
+        L5 --> L5c(memory.ts);
+    end
+
+    style A fill:#def
+    style P fill:#def
+    style X fill:#def
+    style AF fill:#def
 ```
-/
-├── src/                                # Main source code directory
-│   ├── ai/                            # AI capabilities domain
-│   │   ├── agent/                     # Agent implementation
-│   │   │   ├── agent.ts               # Core agent implementation
-│   │   │   ├── context.ts             # Agent context management
-│   │   │   ├── memory.ts              # Message history and memory
-│   │   │   └── index.ts               # Agent module exports
-│   │   │
-│   │   ├── tools/                     # Tool system
-│   │   │   ├── tool.ts                # Tool interface definition
-│   │   │   ├── registry.ts            # Tool registration system
-│   │   │   ├── executor.ts            # Tool execution system
-│   │   │   ├── implementations/       # Built-in tools
-│   │   │   │   ├── shell.ts           # Shell command tool
-│   │   │   │   ├── filesystem.ts      # File system tool
-│   │   │   │   ├── search.ts          # Code search tool
-│   │   │   │   └── web.ts             # Web-related tools
-│   │   │   └── index.ts               # Tool system exports
-│   │   │
-│   │   ├── models/                    # Model providers and execution
-│   │   │   ├── model.ts               # Model interface definition
-│   │   │   ├── registry.ts            # Model registration and lookup
-│   │   │   ├── providers/             # Model provider implementations
-│   │   │   │   ├── openai.ts          # OpenAI provider
-│   │   │   │   ├── anthropic.ts       # Anthropic provider
-│   │   │   │   ├── local.ts           # Local model provider
-│   │   │   │   └── custom.ts          # Custom provider implementation
-│   │   │   └── index.ts               # Model system exports
-│   │   │
-│   │   ├── thinking/                  # Advanced thinking capabilities
-│   │   │   ├── graph.ts               # Graph-of-thought implementation
-│   │   │   ├── patterns.ts            # Thinking patterns
-│   │   │   ├── strategies.ts          # Reasoning strategies
-│   │   │   └── index.ts               # Thinking module exports
-│   │   │
-│   │   └── index.ts                   # AI domain exports
-│   │
-│   ├── cli/                           # CLI and UI components
-│   │   ├── commands/                  # Command system
-│   │   │   ├── registry.ts            # Command registration system
-│   │   │   ├── parser.ts              # Command line parser
-│   │   │   ├── context.ts             # Command execution context
-│   │   │   ├── definitions/           # Command implementations
-│   │   │   │   ├── agent.ts           # Agent-related commands
-│   │   │   │   ├── model.ts           # Model-related commands
-│   │   │   │   ├── task.ts            # Task-related commands
-│   │   │   │   ├── storage.ts         # Storage-related commands
-│   │   │   │   └── config.ts          # Configuration commands
-│   │   │   └── index.ts               # Command system exports
-│   │   │
-│   │   ├── ui/                        # Terminal UI components
-│   │   │   ├── components/            # Reusable UI components
-│   │   │   │   ├── message.tsx        # Message display component
-│   │   │   │   ├── input.tsx          # Input component
-│   │   │   │   ├── selection.tsx      # Selection component
-│   │   │   │   └── progress.tsx       # Progress indicator component
-│   │   │   ├── screens/               # Screen definitions
-│   │   │   │   ├── chat.tsx           # Chat interface screen
-│   │   │   │   ├── config.tsx         # Configuration screen
-│   │   │   │   ├── model.tsx          # Model selection screen
-│   │   │   │   └── help.tsx           # Help screen
-│   │   │   └── index.ts               # UI module exports
-│   │   │
-│   │   ├── formatters/                # Output formatting
-│   │   │   ├── code.ts                # Code formatting
-│   │   │   ├── markdown.ts            # Markdown formatting
-│   │   │   └── table.ts               # Table formatting
-│   │   │
-│   │   └── index.ts                   # CLI domain exports
-│   │
-│   ├── ml/                            # ML acceleration domain
-│   │   ├── tensor/                    # Tensor operations
-│   │   │   ├── tensor.ts              # Tensor data structure
-│   │   │   ├── operations.ts          # Tensor operations
-│   │   │   └── index.ts               # Tensor module exports
-│   │   │
-│   │   ├── hardware/                  # Hardware acceleration
-│   │   │   ├── accelerator.ts         # Hardware accelerator interface
-│   │   │   ├── webgpu.ts              # WebGPU accelerator
-│   │   │   ├── webnn.ts               # WebNN accelerator
-│   │   │   ├── wasm.ts                # WASM accelerator
-│   │   │   └── index.ts               # Hardware module exports
-│   │   │
-│   │   ├── inference/                 # Model inference
-│   │   │   ├── engine.ts              # Inference engine
-│   │   │   ├── executor.ts            # Model execution
-│   │   │   └── index.ts               # Inference module exports
-│   │   │
-│   │   ├── optimizers/                # Model optimization
-│   │   │   ├── quantization.ts        # Model quantization
-│   │   │   ├── pruning.ts             # Model pruning
-│   │   │   └── index.ts               # Optimizer module exports
-│   │   │
-│   │   └── index.ts                   # ML domain exports
-│   │
-│   ├── tasks/                         # Task processing domain
-│   │   ├── scheduler/                 # Task scheduling
-│   │   │   ├── fibonacci-heap.ts      # Fibonacci heap implementation
-│   │   │   ├── scheduler.ts           # Task scheduler
-│   │   │   └── index.ts               # Scheduler module exports
-│   │   │
-│   │   ├── decomposition/             # Task decomposition
-│   │   │   ├── decomposer.ts          # Task decomposition engine
-│   │   │   ├── strategies.ts          # Decomposition strategies
-│   │   │   └── index.ts               # Decomposition module exports
-│   │   │
-│   │   ├── delegation/                # Task delegation
-│   │   │   ├── delegator.ts           # Task delegation engine
-│   │   │   ├── assignment.ts          # Task assignment logic
-│   │   │   └── index.ts               # Delegation module exports
-│   │   │
-│   │   ├── graph/                     # Graph-of-thought implementation
-│   │   │   ├── graph.ts               # Graph data structure
-│   │   │   ├── traversal.ts           # Graph traversal algorithms
-│   │   │   ├── visualization.ts       # Graph visualization
-│   │   │   └── index.ts               # Graph module exports
-│   │   │
-│   │   ├── manager.ts                 # Task management system
-│   │   └── index.ts                   # Tasks domain exports
-│   │
-│   ├── storage/                       # Storage domain
-│   │   ├── local/                     # Local storage
-│   │   │   ├── file-storage.ts        # File-based storage
-│   │   │   ├── metadata.ts            # Metadata management
-│   │   │   └── index.ts               # Local storage exports
-│   │   │
-│   │   ├── ipfs/                      # IPFS integration
-│   │   │   ├── mcp-client.ts          # MCP client implementation
-│   │   │   ├── content.ts             # Content management
-│   │   │   ├── cid.ts                 # CID utilities
-│   │   │   └── index.ts               # IPFS module exports
-│   │   │
-│   │   ├── cache/                     # Caching system
-│   │   │   ├── memory-cache.ts        # Memory cache
-│   │   │   ├── disk-cache.ts          # Disk cache
-│   │   │   ├── mmf-cache.ts           # Memory-mapped file cache
-│   │   │   └── index.ts               # Cache module exports
-│   │   │
-│   │   ├── indexing/                  # Content indexing
-│   │   │   ├── index-engine.ts        # Indexing engine
-│   │   │   ├── search.ts              # Search functionality
-│   │   │   └── index.ts               # Indexing module exports
-│   │   │
-│   │   ├── provider.ts                # Storage provider interface
-│   │   └── index.ts                   # Storage domain exports
-│   │
-│   ├── workers/                       # Worker thread domain
-│   │   ├── pool.ts                    # Worker pool management
-│   │   ├── thread.ts                  # Worker thread implementation
-│   │   ├── queue.ts                   # Task queue
-│   │   └── index.ts                   # Worker domain exports
-│   │
-│   ├── config/                        # Configuration domain
-│   │   ├── manager.ts                 # Configuration manager
-│   │   ├── schema.ts                  # JSON schema validation
-│   │   ├── persistence.ts             # Configuration persistence
-│   │   ├── migration.ts               # Configuration migration
-│   │   └── index.ts                   # Configuration domain exports
-│   │
-│   ├── utils/                         # Utility functions
-│   │   ├── async.ts                   # Async utilities
-│   │   ├── logging.ts                 # Logging system
-│   │   ├── performance.ts             # Performance monitoring
-│   │   ├── serialization.ts           # Data serialization
-│   │   └── index.ts                   # Utilities exports
-│   │
-│   ├── types/                         # Shared TypeScript types
-│   │   ├── ai.ts                      # AI-related types
-│   │   ├── storage.ts                 # Storage-related types
-│   │   ├── task.ts                    # Task-related types
-│   │   ├── config.ts                  # Configuration types
-│   │   └── index.ts                   # Types exports
-│   │
-│   └── index.ts                       # Main entry point
-│
-├── test/                              # Test directory
-│   ├── unit/                         # Unit tests
-│   │   ├── ai/                       # AI domain tests
-│   │   ├── cli/                      # CLI domain tests
-│   │   ├── ml/                       # ML domain tests
-│   │   ├── tasks/                    # Tasks domain tests
-│   │   └── storage/                  # Storage domain tests
-│   │
-│   ├── integration/                  # Integration tests
-│   │   ├── ai-storage.test.ts        # AI and storage integration test
-│   │   ├── ml-tasks.test.ts          # ML and tasks integration test
-│   │   └── end-to-end.test.ts        # End-to-end workflow test
-│   │
-│   ├── mocks/                        # Mock implementations
-│   │   ├── mcp-server.ts             # Mock MCP server
-│   │   ├── model-provider.ts         # Mock model provider
-│   │   └── storage-provider.ts       # Mock storage provider
-│   │
-│   └── fixtures/                     # Test fixtures
-│       ├── models/                   # Model fixtures
-│       ├── content/                  # Content fixtures
-│       └── configs/                  # Configuration fixtures
-│
-├── docs/                              # Documentation
-│   ├── unified_integration_plan.md   # Unified integration plan
-│   ├── UNIFIED_ARCHITECTURE.md       # Unified architecture overview
-│   ├── PROJECT_STRUCTURE.md          # This document
-│   ├── CLEAN_ROOM_IMPLEMENTATION.md  # Clean room implementation details
-│   ├── domains/                      # Domain-specific documentation
-│   │   ├── ai.md                     # AI domain documentation
-│   │   ├── ml.md                     # ML domain documentation
-│   │   ├── tasks.md                  # Tasks domain documentation
-│   │   └── storage.md                # Storage domain documentation
-│   │
-│   ├── guides/                       # User and developer guides
-│   │   ├── getting-started.md        # Getting started guide
-│   │   ├── configuration.md          # Configuration guide
-│   │   ├── extending.md              # Extension guide
-│   │   └── contributing.md           # Contribution guide
-│   │
-│   └── api/                          # API documentation
-│       ├── ai.md                     # AI API documentation
-│       ├── ml.md                     # ML API documentation
-│       ├── tasks.md                  # Tasks API documentation
-│       └── storage.md                # Storage API documentation
-│
-├── scripts/                           # Build and utility scripts
-│   ├── build.js                      # Build script
-│   ├── install.sh                    # Installation script
-│   └── release.js                    # Release script
-│
-├── package.json                       # Package configuration
-├── tsconfig.json                      # TypeScript configuration
-├── jest.config.js                     # Jest configuration
-└── README.md                          # Main README file
-```
+*(Note: This is a simplified representation. Refer to the actual filesystem or `CLAUDE.md` for precise file names and nesting.)*
 
 ## Core Domains
 
@@ -244,57 +108,62 @@ The project is organized into the following functional domains, all implemented 
 
 ### AI Domain (`src/ai/`)
 
-Contains all AI-related functionality, including clean room implementations of Goose features:
+Handles core artificial intelligence capabilities:
+- **Agent (`agent/`)**: Manages conversation flow, state, memory, and orchestrates interactions between models and tools.
+- **Models (`models/`)**: Defines model interfaces (`ModelProvider`), manages model registration (`ModelRegistry`), handles model selection (`ModelSelector`), and executes model calls (`ModelExecutionService`). Includes provider implementations (OpenAI, Anthropic, local via ML Engine).
+- **Tools (`tools/`)**: Defines the `Tool` interface, manages tool registration and execution (`ToolExecutor`), and includes implementations for various capabilities (shell, filesystem, web search).
+- **Thinking (`thinking/`)**: Implements advanced reasoning patterns, primarily the Graph-of-Thought (GoT) engine and associated structures.
 
-- **Agent System**: Core agent functionality for processing messages and executing actions
-- **Tool System**: Extensible registry for tool definitions and execution
-- **Model Providers**: Integrations with various AI model providers
-- **Advanced Thinking**: Graph-of-thought implementation and reasoning strategies
+### CLI Domain (`src/cli/`, `src/commands/`, `src/components/`)
 
-### CLI Domain (`src/cli/`)
-
-Handles the command-line interface and user interaction:
-
-- **Command System**: Registration, parsing, and execution of commands
-- **UI Components**: Rich terminal UI built with React/Ink
-- **Formatters**: Output formatting for code, markdown, and structured data
-- **Screens**: Specialized UI screens for different functions
+Manages all aspects of the command-line interface:
+- **Core (`cli/`)**: Handles command parsing (`parser.ts`), registration (`registry.ts`), execution (`executor.ts`), context (`context.ts`), help generation (`help.ts`), and output formatting (`formatter.ts`).
+- **Command Implementations (`commands/`)**: Contains the logic for each user-facing command (e.g., `agent`, `config`, `task`, `mcp`). Often utilizes Ink/React for rendering interactive UI elements.
+- **UI Components (`components/`)**: Reusable React components built for the Ink terminal UI framework (e.g., custom selectors, message displays, progress indicators).
 
 ### ML Domain (`src/ml/`)
 
-Provides machine learning acceleration capabilities:
-
-- **Tensor Operations**: Core data structures for ML operations
-- **Hardware Acceleration**: Leveraging available hardware (GPU, WebNN, etc.)
-- **Inference Engine**: Executing ML models efficiently
-- **Optimizers**: Techniques to optimize model performance
+Focuses on local machine learning model execution and acceleration within the Node.js environment:
+- **Engine (`inference/engine.ts`)**: Orchestrates model loading and inference execution.
+- **Loader (`loader.ts`)**: Handles loading models (e.g., ONNX format) from storage.
+- **Hardware (`hardware.ts`)**: Detects available hardware capabilities (CPU features, GPU via bindings) for acceleration.
+- **Bindings (`onnx/`, `tensorflow/`)**: Wrappers or integrations for Node.js ML runtimes (e.g., `onnxruntime-node`, `tensorflow.js-node`).
+- **Tensor Ops (`tensor/`)**: Utilities for working with tensor data if needed beyond runtime libraries.
 
 ### Tasks Domain (`src/tasks/`)
 
-Implements advanced task processing for complex problem solving:
-
-- **Fibonacci Heap Scheduler**: Efficient priority-based task scheduling
-- **Task Decomposition**: Breaking problems into manageable subtasks
-- **Delegation System**: Assigning tasks to appropriate handlers
-- **Graph-of-Thought**: Non-linear, graph-based reasoning structure
+Implements the enhanced TaskNet system for complex workflow management:
+- **Manager (`manager.ts`)**: Central service for creating, tracking, and retrieving task status and results.
+- **Scheduler (`scheduler/`)**: High-performance task prioritization using a Fibonacci Heap implementation. Includes dynamic priority calculation logic.
+- **Execution (`execution/`)**: `TaskExecutor` responsible for running tasks (locally via worker pool or potentially delegating).
+- **Workers (`workers/`)**: Manages a pool of Node.js `worker_threads` for local parallel task execution.
+- **Coordination (`coordination/`)**: Implements Merkle Clocks and Hamming Distance logic for potential future distributed task delegation.
+- **Decomposition (`decomposition/`)**: Strategies and engine for breaking down complex tasks.
+- **Synthesis (`synthesis/`)**: Strategies and engine for aggregating results from subtasks.
+- **Graph (`graph/`)**: Contains the Graph-of-Thought implementation (`GoTEngine`, `ThoughtGraph`, `ThoughtNode`, etc.).
+- **Dependencies (`dependencies/`)**: Manages the dependency relationships between tasks.
 
 ### Storage Domain (`src/storage/`)
 
-Manages storage operations with both local and IPFS capabilities:
-
-- **Local Storage**: File-based storage with metadata
-- **IPFS Integration**: Client for Python IPFS Kit MCP Server
-- **Caching System**: Multi-level caching for performance
-- **Content Indexing**: Search and retrieval capabilities
+Provides a Virtual Filesystem (VFS) abstraction over different storage backends:
+- **Operations (`operations.ts`)**: High-level unified API (`readFile`, `writeFile`, `list`, `copy`, etc.).
+- **Registry (`registry.ts`)**: Manages backend instances and mount points (e.g., `/local`, `/ipfs`).
+- **Path Resolver (`path-resolver.ts`)**: Maps virtual paths to the correct backend and relative path.
+- **Backend Interface (`backend.ts`)**: Defines the common contract for all storage implementations.
+- **Backends (`backends/`)**: Concrete implementations (e.g., `filesystem.ts`, `ipfs.ts` using the IPFS client).
+- **IPFS Client (`ipfs/`)**: Client for interacting with an IPFS node API (e.g., IPFS Kit MCP Server).
+- **Caching (`cache.ts`)**: Optional caching layer for storage operations.
 
 ### Support Domains
 
-Additional domains that provide infrastructure and utilities:
-
-- **Workers Domain**: Multi-threading support for background tasks
-- **Configuration Domain**: Managing user and system settings
-- **Utilities**: Shared helper functions across domains
-- **Types**: TypeScript type definitions for cross-domain communication
+Provide cross-cutting concerns and utilities:
+- **Auth (`auth/`)**: Handles API key management, potentially user authentication/authorization (UCANs).
+- **Config (`config/`)**: Manages loading, saving, and accessing hierarchical configuration.
+- **Services (`services/`)**: Higher-level services coordinating multiple domains (e.g., `mcpClient.ts`).
+- **Utils (`utils/`)**: Common helper functions (logging, encryption, async utilities, etc.).
+- **Types (`types/`)**: Shared TypeScript interfaces and type definitions used across domains.
+- **Constants (`constants/`)**: Application-wide constants, product information.
+- **Entrypoints (`entrypoints/`)**: Main CLI entry (`cli.ts`) and secondary ones (`mcp.ts`).
 
 ## Key Implementation Principles
 
@@ -325,67 +194,67 @@ All functionality is independently implemented following clean room methodology:
 - Optimized for TypeScript and Node.js environment
 - Enhanced with TypeScript-specific improvements
 
-### 4. MCP Server Integration
+### 4. IPFS / MCP Integration
 
-The Python-based IPFS Kit MCP Server is the only external component:
-
-- Well-defined client interface in the Storage domain
-- REST and WebSocket API communication
-- Clear separation through typed interfaces
-- Fallback mechanisms for offline operation
+- SwissKnife acts as a **client** to an external IPFS node, typically accessed via its HTTP API (like Kubo or the IPFS Kit MCP Server).
+- The `IPFSKitClient` (or a similar generic IPFS client) within `src/storage/ipfs/` handles communication.
+- SwissKnife can also **act as an MCP server** itself (via `src/entrypoints/mcp.ts`), exposing its own tools (like filesystem access, command execution) to MCP clients (e.g., the Claude extension).
 
 ## Cross-Domain Integration
 
 Domains interact through well-defined TypeScript interfaces:
 
 ```typescript
-// Example: AI domain using Storage domain
+// Example: Agent using StorageOperations (via ExecutionContext)
 // src/ai/agent/agent.ts
-import { StorageProvider } from '../../storage/provider';
+import { StorageOperations } from '../../storage/operations.js'; // Adjust path
+import type { ExecutionContext } from '../../types/cli.js'; // Adjust path
 
 export class Agent {
-  private storage: StorageProvider;
-  
-  constructor(options: { storage: StorageProvider }) {
-    this.storage = options.storage;
-  }
-  
-  async processMessage(message: string): Promise<string> {
-    // Store message in storage
-    const messageId = await this.storage.add(message);
-    
-    // Process and generate response
-    const response = "Generated response";
-    
-    // Store response
-    const responseId = await this.storage.add(response);
-    
-    return response;
+  // Agent likely gets storageOps via its own context or constructor
+  private storageOps: StorageOperations;
+
+  // ... constructor ...
+
+  async someAgentMethod(context: ExecutionContext, dataToStore: string, virtualPath: string) {
+    // Get storage operations from the context provided by the command executor
+    const storage = context.getService('storage'); // Assuming service locator pattern
+
+    // Use storage operations
+    await storage.writeFile(virtualPath, dataToStore);
+    console.log(`Agent stored data at ${virtualPath}`);
   }
 }
 ```
 
 ```typescript
-// Example: Tasks domain using Storage domain
-// src/tasks/graph/graph.ts
-import { StorageProvider } from '../../storage/provider';
-import { CID } from '../../types/storage';
+// Example: GoT Engine using StorageOperations
+// src/tasks/graph/persistence.ts (Conceptual)
+import { StorageOperations } from '../../storage/operations.js'; // Adjust path
+// Assume CID type is available or use string
 
-export class GraphOfThought {
-  private storage: StorageProvider;
-  
-  constructor(options: { storage: StorageProvider }) {
-    this.storage = options.storage;
+export class GraphPersistence {
+  constructor(private storageOps: StorageOperations) {}
+
+  async saveGraph(graphData: any, graphId: string): Promise<string> { // Returns CID string
+    const virtualPath = `/graphs/${graphId}.json`; // Example path in VFS
+    const { cid } = await this.storageOps.writeFile(virtualPath, JSON.stringify(graphData));
+    console.log(`Graph ${graphId} saved to ${virtualPath} (CID: ${cid})`);
+    return cid;
   }
-  
-  async storeGraph(): Promise<CID> {
-    const serialized = JSON.stringify(this.getSerializableGraph());
-    return await this.storage.add(serialized);
-  }
-  
-  async loadGraph(cid: CID): Promise<void> {
-    const serialized = await this.storage.get(cid);
-    this.deserializeGraph(JSON.parse(serialized.toString()));
+
+  async loadGraph(cid: string): Promise<any> {
+    // Reading directly via CID might bypass VFS path resolution,
+    // depending on IPFS client capabilities exposed via StorageOperations
+    // or requiring direct client usage.
+    // This example assumes reading via a known virtual path if mapped.
+    // const virtualPath = await this.findPathForCid(cid); // Needs reverse lookup
+    // const buffer = await this.storageOps.readFile(virtualPath);
+    // return JSON.parse(buffer.toString());
+
+    // Simpler: Assume we read via CID if possible through storageOps or client
+    const buffer = await this.storageOps.readFile(`/ipfs/${cid}`); // Example read via CID path
+    return JSON.parse(buffer.toString());
   }
 }
 ```

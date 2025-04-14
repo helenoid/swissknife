@@ -127,10 +127,10 @@ export interface HelpGenerator {
 export interface CommandMiddleware {
   /** Runs before the command handler. Can modify context or prevent execution by returning false. */
   preExecute?(context: ExecutionContext): Promise<boolean | void>;
-  
+
   /** Runs after the command handler successfully completes. */
   postExecute?(context: ExecutionContext, exitCode: number): Promise<void>;
-  
+
   /** Runs if the command handler throws an error. */
   onError?(context: ExecutionContext, error: Error): Promise<void>;
 }
@@ -151,7 +151,7 @@ Defines how tools (capabilities invokable by the AI Agent or directly via CLI) a
 export interface Tool<InputT = Record<string, any>, OutputT = any> {
   /** Unique name used to identify and call the tool. */
   readonly name: string;
-  
+
   /** Description of the tool's purpose and functionality for AI and user understanding. */
   readonly description: string;
   /** Schema defining the input parameters the tool accepts. Used for validation and generation. */
@@ -204,7 +204,7 @@ export class ToolError extends Error {
 }
 ```
 *Note: The original `Tool` interface included rendering methods and complex message types. These are simplified here, assuming rendering is handled by the CLI/Agent layer and execution returns data or throws.*
-  
+
 ### 2.2 Tool Management APIs
 
 ```typescript
@@ -334,26 +334,26 @@ export interface ModelProvider {
   readonly id: string;
   /** Human-readable name (e.g., 'OpenAI'). */
   readonly name: string;
-  
+
   /** Optional: Fetches available models supported by this provider. */
   getModels?(): Promise<ModelInfo[]>;
   /** Optional: Fetches detailed info for a specific model ID from this provider. */
   getModel?(modelId: string): Promise<ModelInfo | undefined>;
-  
+
   /** Generates a completion (typically chat-based). */
   generateCompletion(
     modelId: string,
     messages: ChatMessage[],
     options: ResolvedRequestOptions // Includes resolved settings like temperature, maxTokens, tools
   ): Promise<CompletionResult>; // Contains the response message, usage, cost, etc.
-  
+
   /** Generates a completion as an asynchronous stream of chunks. */
   generateCompletionStream(
     modelId: string,
     messages: ChatMessage[],
     options: ResolvedRequestOptions
   ): AsyncGenerator<CompletionChunk>; // Stream yields chunks (delta content, usage updates)
-  
+
   /** Optional: Generates embeddings for input text(s). */
   generateEmbedding?(
     modelId: string,
@@ -483,7 +483,7 @@ export interface WorkerThreadHandler {
 }
 ```
 *Note: This simplifies the original Worker API, focusing on the pool concept for local execution relevant to Phase 1/2, deferring complex status/capabilities/distribution to Phase 3 TaskNet.*
-  
+
 ## 5. Storage System API (Virtual Filesystem)
 
 Defines the unified interface for interacting with different storage backends (local filesystem, IPFS).
@@ -502,7 +502,7 @@ export interface StorageBackend {
   readonly name: string;
   /** Flag indicating if the backend is read-only. */
   readonly isReadOnly: boolean;
-  
+
   // --- Core Methods (Relative Paths) ---
   readFile(relativePath: string): Promise<Buffer>;
   writeFile(relativePath: string, data: Buffer | string): Promise<void>;
@@ -562,7 +562,7 @@ export interface StorageRegistry {
 }
 ```
 *Note: Simplified by combining `VirtualFilesystem` concepts into `StorageOperations` and `StorageRegistry`.*
-  
+
 ### 5.3 IPFS Backend Specifics (Conceptual)
 
 *   The `IPFSBackend` implementation needs a `MappingStore` dependency (defined in `storage_system_analysis.md`) to manage the path-to-CID relationship.
@@ -650,7 +650,7 @@ export interface IdentityManager {
   resolveDid(did: string): Promise<any>; // DID Document structure
 }
 ```
-  
+
 ### 6.3 UCAN Authorization API
 
 ```typescript
@@ -697,7 +697,7 @@ export interface UcanService {
 
   /** Verifies the signature, structure, and time validity of a UCAN token. */
   verify(token: string): Promise<UcanVerificationResult>;
-  
+
   /** Checks if a given capability is authorized by a valid UCAN chain (including proofs). */
   isAuthorized(
     requiredCapability: UcanCapability,
@@ -775,7 +775,7 @@ export interface McpClient extends Client {
 }
 ```
 *Recommendation: Use the types and client implementation directly from `@modelcontextprotocol/sdk` where possible.*
-  
+
 ## 8. Error Handling API
 
 Defines a base error class and potentially specific subclasses for different system areas.
@@ -869,7 +869,7 @@ export interface OutputFormatter {
   // Potentially methods for raw output, JSON, YAML specific formatting
 }
 ```
-  
+
 ## 10. Documentation Generation API (Conceptual)
 
 Defines how documentation (like CLI command references) could be generated from definitions.

@@ -4,15 +4,19 @@ This guide helps new developers get started with the SwissKnife project, a power
 
 ## Project Overview
 
-SwissKnife is a command-line interface built with a unified TypeScript codebase organized by domain. It provides advanced capabilities including:
+SwissKnife is a powerful, terminal-based AI coding tool built entirely in TypeScript. It provides a unified interface to interact with various AI models (OpenAI, Anthropic, local models, etc.) for coding assistance, content generation, and complex task execution.
 
-- AI agent with Graph-of-Thought reasoning
-- ML acceleration for efficient neural network execution
-- Advanced task management with Fibonacci heap scheduling
-- IPFS storage integration via MCP Server
-- Rich terminal UI using React/Ink
+The core architecture integrates several advanced components:
+- **AI Agent**: Manages conversations, uses tools, and orchestrates complex reasoning.
+- **Graph-of-Thought (GoT) Engine**: Enables non-linear problem-solving for complex tasks.
+- **Enhanced TaskNet**: Features a high-performance Fibonacci Heap scheduler and advanced task decomposition/synthesis. Includes coordination mechanisms (Merkle Clock, Hamming Distance) for potential future distributed execution.
+- **ML Engine**: Integrates local model inference capabilities using Node.js bindings (e.g., ONNX Runtime).
+- **Virtual Filesystem (VFS)**: Abstracts storage operations over multiple backends (local filesystem, IPFS).
+- **IPFS Integration**: Uses an IPFS client (e.g., connecting to IPFS Kit MCP Server) for content-addressable storage.
+- **MCP Integration**: Supports acting as an MCP server and managing connections to other MCP servers.
+- **Rich CLI**: Interactive terminal UI built with Ink/React.
 
-The application follows a domain-driven design with all functionality implemented directly in TypeScript, creating a cohesive, maintainable system.
+All functionality is implemented in TypeScript following clean room principles, based on requirements derived from previous projects like Goose and IPFS Accelerate, but without direct code translation or Rust dependencies. See [CLEAN_ROOM_IMPLEMENTATION.md](./CLEAN_ROOM_IMPLEMENTATION.md).
 
 ## Prerequisites
 
@@ -63,43 +67,37 @@ The codebase is organized by domain rather than by source component, creating cl
 
 ### Domain Organization
 
-```
-/src
-├── ai/                      # AI capabilities domain
-│   ├── agent/               # Core agent functionality
-│   ├── tools/               # Tool system and implementations
-│   ├── models/              # Model providers and execution
-│   └── thinking/            # Enhanced thinking patterns
-│
-├── cli/                     # CLI and UI components
-│   ├── commands/            # Command definitions
-│   ├── ui/                  # React/Ink components
-│   ├── screens/             # Screen definitions
-│   └── formatters/          # Output formatting
-│
-├── ml/                      # Machine learning acceleration
-│   ├── tensor/              # Tensor operations
-│   ├── optimizers/          # Model optimization
-│   ├── hardware/            # Hardware acceleration
-│   └── inference/           # Inference execution
-│
-├── tasks/                   # Task processing system
-│   ├── scheduler/           # Fibonacci heap scheduler
-│   ├── decomposition/       # Task decomposition
-│   ├── delegation/          # Task delegation
-│   └── graph/               # Graph-of-thought implementation
-│
-├── storage/                 # Storage systems
-│   ├── local/               # Local storage
-│   ├── ipfs/                # IPFS client integration with MCP server
-│   ├── cache/               # Multi-tier caching
-│   └── indexing/            # Content indexing
-│
-├── workers/                 # Worker thread system
-├── config/                  # Configuration system
-├── utils/                   # Shared utilities
-└── types/                   # Shared TypeScript types
-```
+The project follows a domain-driven structure within `src/`:
+
+- `src/`
+  - `ai/`: Core AI agent logic, model interactions, tool execution, thinking processes (GoT).
+    - `agent/`: The main `Agent` class and related components.
+    - `models/`: `ModelRegistry`, `ModelProvider` interfaces and implementations, `ModelExecutionService`.
+    - `tools/`: `ToolExecutor`, `Tool` interface, specific tool implementations.
+    - `thinking/`: `ThinkingManager`, `GoTEngine`, graph structures (`node.ts`, `graph.ts`).
+  - `auth/`: Authentication, authorization, API key management (`api-key-manager.ts`), UCAN logic.
+  - `cli/`: CLI entry point (`cli.ts`), command parsing, execution context, help generation, output formatting.
+  - `commands/`: Implementations of specific CLI commands (e.g., `agent.ts`, `config.ts`, `mcp.ts`, `task.ts`). Uses Ink/React for UI.
+  - `components/`: Reusable React components for the Ink-based CLI UI.
+  - `config/`: `ConfigurationManager` for handling settings.
+  - `constants/`: Shared constants, product info, potentially default model definitions.
+  - `entrypoints/`: Secondary entry points (e.g., `mcp.ts` for running as an MCP server).
+  - `ml/`: Machine Learning engine, model loading, inference execution, hardware detection (Node.js specific).
+  - `services/`: Higher-level services coordinating multiple components (e.g., `mcpClient.ts` managing MCP connections).
+  - `storage/`: Virtual Filesystem (VFS) abstraction (`operations.ts`, `backend.ts`, `registry.ts`, `path-resolver.ts`) and backends (`filesystem.ts`, `ipfs.ts`). Includes IPFS client (`mcp-client.ts` or `ipfs-client.ts`).
+  - `tasks/`: Enhanced TaskNet system.
+    - `manager.ts`: `TaskManager` for creating and tracking tasks.
+    - `scheduler/`: `TaskScheduler` using `FibonacciHeap`.
+    - `execution/`: `TaskExecutor` for running tasks locally or delegating.
+    - `workers/`: Local worker pool using `worker_threads`.
+    - `coordination/`: Merkle Clock and Hamming Distance logic for distribution.
+    - `decomposition/`: Task decomposition strategies.
+    - `synthesis/`: Result synthesis strategies.
+    - `graph/`: GoT structures (`node.ts`, `graph.ts`, `manager.ts` might live here or top-level tasks).
+  - `types/`: Shared TypeScript type definitions (e.g., `ai.ts`, `cli.ts`, `tasks.ts`).
+  - `utils/`: Common utilities (logging, encryption, environment detection, etc.).
+
+See [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for more details.
 
 ### Key Components
 
@@ -107,8 +105,24 @@ The codebase is organized by domain rather than by source component, creating cl
 - **Model Registry**: Management of different AI models from various providers
 - **Graph-of-Thought**: Advanced non-linear reasoning system
 - **Fibonacci Heap Scheduler**: Efficient task prioritization and execution
-- **IPFS Kit MCP Client**: API-based integration with IPFS Kit MCP Server
-- **CLI Command System**: Rich terminal interface with command registry
+- **IPFS Client**: API-based integration with an IPFS node (e.g., IPFS Kit MCP Server).
+- **CLI Command System**: Rich terminal interface with command registry, parsing, and execution logic.
+
+## Detailed Documentation
+
+For in-depth information about the architecture and implementation details for each development phase, refer to the following documents:
+
+- **Phase 1:** [Analysis & Planning](./phase1/) (Includes component inventory, mapping, architecture definition, integration strategy)
+- **Phase 2:** [Core Implementation](./phase2/) (Covers AI, ML, Task, Storage, CLI core implementations)
+- **Phase 3:** [TaskNet Enhancement](./phase3/) (Details GoT, Scheduler, Coordination, Decomposition/Synthesis)
+- **Phase 4:** [CLI Integration](./phase4/) (Details command implementations and cross-component workflows)
+- **Phase 5:** [Optimization & Finalization](./phase5/) (Covers performance, testing, final docs, release prep)
+
+See also:
+- [Unified Architecture](./UNIFIED_ARCHITECTURE.md)
+- [Project Structure](./PROJECT_STRUCTURE.md)
+- [Developer Guide](./DEVELOPER_GUIDE.md)
+- [Contributing Guide](./CONTRIBUTING.md)
 
 ## Making Changes
 
@@ -234,9 +248,36 @@ export function registerCustomCommands() {
 }
 ```
 
-## Interacting with IPFS Kit MCP Server
+## Interacting with Storage (including IPFS)
 
-SwissKnife integrates with the IPFS Kit MCP Server through a client API:
+SwissKnife uses a Virtual Filesystem (VFS) accessed via `StorageOperations` to interact with different storage backends.
+
+```typescript
+// Example: Using StorageOperations
+import { StorageOperations } from '../storage/operations'; // Adjust path
+import { ConfigManager } from '../config/manager'; // Adjust path
+
+async function storeAndReadFile(filePath: string, virtualDestPath: string) {
+  // StorageOperations instance (likely obtained via ExecutionContext)
+  const storageOps = new StorageOperations(/* registry, resolver */);
+
+  // Read local file
+  const content = await fs.readFile(filePath); // Use Node fs for local read
+
+  // Write to the virtual path (which might resolve to IPFS backend)
+  await storageOps.writeFile(virtualDestPath, content);
+  console.log(`File written to ${virtualDestPath}`);
+
+  // Read back from the virtual path
+  const retrievedContent = await storageOps.readFile(virtualDestPath);
+  console.log(`Read back ${retrievedContent.length} bytes.`);
+  return retrievedContent;
+}
+
+// Example usage:
+// storeAndReadFile('./local-data.txt', '/ipfs/my-data.txt');
+// storeAndReadFile('./image.png', '/local/images/image.png');
+```
 
 ```typescript
 // Example: Using the MCP client

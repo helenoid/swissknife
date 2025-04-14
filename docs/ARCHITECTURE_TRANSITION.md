@@ -27,13 +27,41 @@ The previous architecture consisted of multiple separate components with varying
 
 ### New Unified Architecture
 
-The new architecture unifies all components into a single TypeScript codebase:
+The new architecture unifies all core components into a single TypeScript codebase, emphasizing domain-driven design and direct integration:
 
-- **Single Codebase**: All functionality in one unified TypeScript codebase
-- **Domain-Driven Organization**: Code organized by functional domain
-- **Direct TypeScript Integration**: Components communicate through typed interfaces
-- **Single External Dependency**: IPFS Kit MCP Server as the only external component
-- **Clean Room Implementation**: All functionality reimplemented directly in TypeScript
+- **Single Codebase**: All core functionality resides in the `src/` directory as TypeScript.
+- **Domain-Driven Organization**: Code is structured by functional domains (AI, Tasks, Storage, CLI, etc.). See [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md).
+- **Direct TypeScript Integration**: Internal components communicate directly via TypeScript imports and interfaces.
+- **API-Based External Integration**: External services (like AI models or the IPFS Kit MCP Server) are accessed via dedicated client classes using network APIs (HTTP/WS).
+- **Clean Room Implementation**: Functionality is reimplemented based on requirements, not direct code porting. See [CLEAN_ROOM_IMPLEMENTATION.md](./CLEAN_ROOM_IMPLEMENTATION.md).
+
+#### High-Level Architecture Diagram (New)
+
+```mermaid
+graph TD
+    subgraph SwissKnife CLI Application (TypeScript / Node.js)
+        A[CLI Interface (Ink/React)] --> B(Command System);
+        B --> C(Execution Context);
+        C --> D[AI Service (Agent, GoT)];
+        C --> E[Task Service (TaskNet)];
+        C --> F[Storage Service (VFS)];
+        C --> G[ML Service (Engine)];
+        C --> H[Auth Service];
+        C --> I[Config Service];
+        C --> J[Logging Service];
+        C --> K[MCP Service];
+
+        D --> G; D --> E; D --> F; # AI uses ML, Tasks, Storage
+        E --> D; E --> F; # Tasks use AI(GoT), Storage
+        F --> L((IPFS Kit Client)); # Storage uses IPFS Client
+        G --> F; # ML uses Storage
+        H --> I; # Auth uses Config
+        K --> I; # MCP uses Config
+    end
+
+    style L fill:#ddd, stroke:#333
+```
+*This diagram shows the main service domains accessible via the `ExecutionContext`.*
 
 ## Key Architectural Changes
 
@@ -43,10 +71,10 @@ The new architecture unifies all components into a single TypeScript codebase:
 | **Language** | Multiple (TypeScript, Rust) | TypeScript only |
 | **Component Boundaries** | Repository/package boundaries | Domain boundaries within a single codebase |
 | **Cross-Component Communication** | Integration bridges | Direct TypeScript imports |
-| **External Dependencies** | Multiple systems | Single MCP Server |
+| **External Dependencies** | Multiple systems | Single MCP Server (via IPFS Kit Client) |
 | **Type Safety** | Limited across components | Full TypeScript type safety |
 | **Testing Approach** | Component-specific | Domain and cross-domain testing |
-| **Extension Mechanism** | Component-specific | Unified plugin system |
+| **Extension Mechanism** | Component-specific | (Future: Unified plugin system) |
 
 ## Codebase Organization Changes
 
@@ -67,24 +95,39 @@ The new architecture unifies all components into a single TypeScript codebase:
 └── rust/                    # Rust components
 ```
 
-### New Directory Structure
+### New Directory Structure (Simplified)
 
+```mermaid
+graph TD
+    subgraph src/
+        A(ai/);
+        B(auth/);
+        C(cli/);
+        D(commands/);
+        E(components/);
+        F(config/);
+        G(constants/);
+        H(entrypoints/);
+        I(graph/); # Added for GoT
+        J(hooks/);
+        K(inference/);
+        L(integration/);
+        M(ml/);
+        N(models/); # Separate from ai/models? Review structure doc
+        O(patches/);
+        P(screens/);
+        Q(services/);
+        R(storage/);
+        S(tasks/);
+        T(tools/); # Agent tools likely under ai/tools
+        U(types/);
+        V(utils/);
+        W(vector/);
+        X(workers/); # Node.js worker threads likely under tasks/workers
+    end
+    style src/ fill:#def
 ```
-/src
-├── ai/                      # AI capabilities domain
-│   ├── agent/               # Core agent functionality
-│   ├── tools/               # Tool system and implementations
-│   ├── models/              # Model providers and execution
-│   └── thinking/            # Enhanced thinking patterns
-├── cli/                     # CLI and UI components
-├── ml/                      # Machine learning acceleration
-├── tasks/                   # Task processing system
-├── storage/                 # Storage systems
-├── workers/                 # Worker thread system
-├── config/                  # Configuration system
-├── utils/                   # Shared utilities
-└── types/                   # Shared TypeScript types
-```
+*(Refer to [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for the definitive, detailed breakdown)*. This structure organizes code by functional domain, replacing the previous component-source-based organization.
 
 ## Integration Approach Changes
 
@@ -108,23 +151,16 @@ The new architecture unifies all components into a single TypeScript codebase:
 
 ### New Integration Approach
 
-1. **Direct TypeScript Integration**
-   - Components communicate directly through TypeScript imports
-   - Type-safe interfaces for all cross-domain communication
-   - No serialization between domains
-   - Unified error handling and logging
+1. **Internal Integration (Direct TypeScript)**:
+   - Services within different domains (`src/ai`, `src/tasks`, etc.) communicate directly via imported TypeScript classes and interfaces, using standard `import`/`export`.
+   - Dependency injection is primarily handled by passing the `ExecutionContext` (defined in `src/cli/context.ts`) into command handlers. This context object provides access methods (e.g., `getService()`) to retrieve singleton or request-scoped instances of core services (Agent, Storage, Config, etc.).
+   - Shared types are defined in `src/types/`.
+   - This eliminates serialization overhead and the complexity of language bridges found in the previous architecture.
 
-2. **Domain-Driven Design**
-   - Clear domain boundaries with well-defined interfaces
-   - Shared type definitions for cross-domain communication
-   - Consistent error handling across domains
-   - Unified configuration system
-
-3. **MCP Server API Integration**
-   - Well-defined API client for IPFS Kit MCP Server
-   - Type-safe API interfaces
-   - REST and WebSocket communication
-   - CID-based content addressing
+2. **External Integration (API Clients)**:
+   - External systems like AI Model APIs (OpenAI, Anthropic, Lilypad) or the IPFS Kit MCP Server are accessed through dedicated client classes (e.g., `OpenAIProvider` in `src/ai/models/providers/`, `IPFSClient` in `src/storage/ipfs/`).
+   - These clients encapsulate the network communication (HTTP/WS), API specifics (endpoints, request/response formats), and authentication (retrieving keys via `ApiKeyManager`).
+   - This maintains loose coupling, meaning changes to external APIs ideally only require updates within the corresponding client class.
 
 ## Cross-Component Communication Changes
 
@@ -144,13 +180,13 @@ import { IPFSBridge } from '../integration/ipfs-bridge';
 async function processWithAI(input: string) {
   const aiBridge = new AIBridge();
   const ipfsBridge = new IPFSBridge();
-  
+
   // Store input in IPFS
   const cid = await ipfsBridge.storeContent(input);
-  
+
   // Process with AI via bridge
   const result = await aiBridge.processContent(cid);
-  
+
   // Retrieve result from IPFS
   return ipfsBridge.retrieveContent(result.outputCid);
 }
@@ -158,33 +194,48 @@ async function processWithAI(input: string) {
 
 ### New Communication Model
 
+```mermaid
+graph LR
+    A[Domain A Service] -- Imports & Calls --> B(Domain B Interface);
+    B -- Implemented By --> C[Domain B Service];
 ```
-Domain A → TypeScript Import → Type-Safe Interface → Domain B
-```
+*Internal communication uses standard TypeScript imports and method calls against defined interfaces.*
 
-Example of new cross-domain communication:
+```mermaid
+graph LR
+    A[Domain Service (e.g., Storage)] --> B(API Client Class);
+    B -- HTTP/WS Request --> C((External Service API));
+    C -- Response --> B;
+    B -- Processed Data --> A;
+```
+*External communication is mediated by client classes.*
+
+Example of new cross-domain communication (Conceptual):
 
 ```typescript
-// New approach with direct imports
-import { Agent } from '../ai/agent';
-import { StorageProvider } from '../storage/provider';
-import { ModelRegistry } from '../ai/models/registry';
+// New approach using ExecutionContext and Services (Conceptual)
+import type { ExecutionContext } from '@/cli/context.js'; // Use correct path
+import { Agent } from '@/ai/agent/agent.js'; // Use Agent class or a Service wrapper
+import { StorageOperations } from '@/storage/operations.js'; // Use VFS Operations
 
-async function processWithAI(input: string, storageProvider: StorageProvider) {
-  // Store input using storage provider
-  const cid = await storageProvider.add(input);
-  
-  // Process with AI via direct interface
-  const agent = new Agent({
-    model: ModelRegistry.getInstance().getDefaultModel()
-  });
-  
-  const result = await agent.processMessage(`Process content from CID: ${cid}`);
-  
-  // Store result
-  const resultCid = await storageProvider.add(result);
-  
-  return { resultCid, result };
+async function processWithAI(context: ExecutionContext, input: string, storagePath: string) {
+  // Get services from context
+  const storageOps = context.getService(StorageOperations);
+  const agent = context.getService(Agent); // Assuming Agent is registered as a service
+
+  // Store input using storage service
+  await storageOps.writeFile(storagePath, input);
+  context.formatter.info(`Input stored at ${storagePath}`);
+
+  // Process with AI agent service
+  const response = await agent.processMessage(`Process content from ${storagePath}`); // Assuming processMessage returns structured response
+
+  // Store result (example assumes result is string content)
+  const resultPath = storagePath + '.result';
+  await storageOps.writeFile(resultPath, response.content); // Access content property
+  context.formatter.success(`Result stored at ${resultPath}`);
+
+  return { resultPath };
 }
 ```
 
@@ -217,7 +268,7 @@ const result = await bridge.processMessage('Hello');
 // src/ai/agent/agent.ts
 export class Agent {
   constructor(private options: AgentOptions) {}
-  
+
   async processMessage(message: string): Promise<string> {
     // Implementation
     return 'Response';
@@ -257,27 +308,48 @@ const cid = await bridge.storeContent('Hello');
 **New Code (direct domain access):**
 
 ```typescript
-// src/storage/ipfs/mcp-client.ts
-export class MCPClient {
-  constructor(private options: MCPClientOptions) {}
-  
-  async addContent(content: string): Promise<{ cid: string }> {
-    // Direct implementation using API
-    return { cid: 'example-cid' };
+// src/storage/ipfs/ipfs-client.ts (Conceptual - Matches API Key Mgmt Doc)
+export class IPFSClient { // Renamed from MCPClient for clarity
+  private apiKeyManager: ApiKeyManager;
+  private configManager: ConfigManager;
+  private apiUrl: string;
+
+  constructor(options?: { apiUrl?: string }) {
+    this.apiKeyManager = ApiKeyManager.getInstance();
+    this.configManager = ConfigManager.getInstance();
+    this.apiUrl = options?.apiUrl || this.configManager.get('storage.ipfs.apiUrl', 'http://127.0.0.1:5001');
   }
+
+  private _getAuthHeaders(): Record<string, string> { /* ... */ }
+
+  async addContent(content: string | Buffer): Promise<{ cid: string }> { // Renamed method
+    const headers = this._getAuthHeaders();
+    // Make request using this.apiUrl and headers via fetch/axios
+    console.log(`Adding content via ${this.apiUrl}...`);
+    // ... implementation ...
+    return { cid: "example-cid-from-api" };
+  }
+  async getContent(cid: string): Promise<Buffer> { // Renamed method
+     const headers = this._getAuthHeaders();
+     // Make request using this.apiUrl and headers via fetch/axios
+     // ... implementation ...
+     return Buffer.from("example");
+  }
+  // ... other IPFS methods
 }
 
-// Usage
-import { MCPClient } from '../storage/ipfs/mcp-client';
-import { ConfigManager } from '../config/manager';
+// Usage (likely within IPFSBackend)
+import { IPFSClient } from '@/storage/ipfs/ipfs-client.js'; // Adjust path
+import { ConfigManager } from '@/config/manager.js'; // Adjust path
 
 const config = ConfigManager.getInstance();
-const mcpClient = new MCPClient({
-  baseUrl: config.get('storage.mcp.baseUrl')
+const ipfsClient = new IPFSClient({ // Instantiated by StorageRegistry based on config
+  apiUrl: config.get('storage.ipfs.apiUrl', 'http://127.0.0.1:5001')
 });
 
-const result = await mcpClient.addContent('Hello');
-const cid = result.cid;
+// IPFSBackend would call ipfsClient.addContent(...) or ipfsClient.getContent(...)
+// const result = await ipfsClient.addContent('Hello');
+// const cid = result.cid;
 ```
 
 ### 3. Centralized Configuration
@@ -315,10 +387,10 @@ const storageSettings = config.get('storage');
 
 ### New Testing Approach
 
-- Domain-specific unit tests
-- Cross-domain integration tests
-- End-to-end tests for complete workflows
-- Consistent test patterns across all domains
+- **Unit Tests (`test/unit/`)**: Focus on individual modules/classes within each domain (e.g., `src/ai/agent/agent.test.ts`), mocking internal and external dependencies using Jest (`jest.mock`).
+- **Integration Tests (`test/integration/`)**: Verify interactions between different services *within* the SwissKnife codebase (e.g., `AgentService` using `StorageOperations`). External API calls (to AI models, IPFS server) should still be mocked (e.g., using `msw` or `nock`).
+- **End-to-End Tests (`test/e2e/`)**: Execute the compiled CLI application (`dist/cli.mjs`) as a subprocess to test full user workflows from the command line, potentially interacting with real (or containerized) external services like a local IPFS node.
+- **Consistent Tooling**: Use Jest as the primary test runner, configured via `jest.config.cjs`. Use `pnpm test` to run the full suite.
 
 **Example of new domain test:**
 
@@ -330,17 +402,17 @@ import { ModelMock } from '../../mocks/model-mock';
 describe('Agent', () => {
   let agent: Agent;
   let modelMock: ModelMock;
-  
+
   beforeEach(() => {
     modelMock = new ModelMock();
     agent = new Agent({ model: modelMock });
   });
-  
+
   test('should process message correctly', async () => {
     modelMock.setNextResponse('Hello, world!');
-    
+
     const result = await agent.processMessage('Hi');
-    
+
     expect(result).toBe('Hello, world!');
     expect(modelMock.getLastInput()).toContain('Hi');
   });
@@ -350,50 +422,73 @@ describe('Agent', () => {
 **Example of cross-domain integration test:**
 
 ```typescript
-// test/integration/ai-storage.test.ts
-import { Agent } from '../../src/ai/agent';
-import { MCPClient } from '../../src/storage/ipfs/mcp-client';
-import { ModelRegistry } from '../../src/ai/models/registry';
-import { TestMCPServer } from '../mocks/mcp-server';
+// test/integration/ai-storage.test.ts (Conceptual - Updated)
+import { Agent } from '@/ai/agent/agent.js'; // Use Agent class directly or Service
+import { StorageOperations } from '@/storage/operations.js';
+import { MockModel } from '@/test/mocks/ai.js'; // Mock AI Model
+import { InMemoryStorageBackend } from '@/storage/backends/memory.js';
+import { StorageRegistry } from '@/storage/registry.js';
+import { PathResolver } from '@/storage/path-resolver.js';
+import { ToolExecutor } from '@/ai/tools/executor.js';
+import type { Tool } from '@/ai/tools/tool.js';
+
+// Mock Storage Tool
+const mockStorageTool: Tool = {
+    name: 'save_to_storage',
+    description: 'Saves content to storage',
+    parameters: [{ name: 'path', type: 'string', required: true }, { name: 'content', type: 'string', required: true }],
+    async execute(args: { path: string; content: string }, context?: any) {
+        const storageOps = context?.storageOps as StorageOperations; // Assume context provides storageOps
+        if (!storageOps) throw new Error("StorageOperations not found in context");
+        await storageOps.writeFile(args.path, args.content);
+        return { success: true, path: args.path };
+    }
+};
 
 describe('AI and Storage Integration', () => {
   let agent: Agent;
-  let mcpClient: MCPClient;
-  let mcpServer: TestMCPServer;
-  
-  beforeAll(async () => {
-    // Start mock MCP server
-    mcpServer = new TestMCPServer();
-    await mcpServer.start();
-    
-    // Create real MCP client with mock server URL
-    mcpClient = new MCPClient({
-      baseUrl: mcpServer.url
-    });
-    
-    // Create agent with default model
-    agent = new Agent({
-      model: ModelRegistry.getInstance().getDefaultModel()
-    });
+  let storageOps: StorageOperations;
+  let memoryBackend: InMemoryStorageBackend;
+  let toolExecutor: ToolExecutor;
+
+  beforeEach(() => {
+    // Setup in-memory storage
+    memoryBackend = new InMemoryStorageBackend();
+    const storageRegistry = new StorageRegistry();
+    storageRegistry.registerBackend(memoryBackend);
+    storageRegistry.mount('/mem', memoryBackend.id); // Mount in-memory backend
+    const pathResolver = new PathResolver(storageRegistry);
+    storageOps = new StorageOperations(storageRegistry, pathResolver);
+
+    // Setup tool executor and register mock storage tool
+    toolExecutor = new ToolExecutor();
+    toolExecutor.registerTool(mockStorageTool);
+
+    // Setup agent with mock model and the tool executor
+    const mockModel = new MockModel();
+    agent = new Agent({ model: mockModel, tools: [mockStorageTool], toolExecutor }); // Pass executor
+    // Inject storageOps into tool context if needed (depends on ToolExecutor design)
+    // toolExecutor.setContext({ storageOps });
   });
-  
-  afterAll(async () => {
-    await mcpServer.stop();
-  });
-  
-  test('should store agent results in IPFS', async () => {
-    // Process message with agent
-    const response = await agent.processMessage('Store this in IPFS');
-    
-    // Store in IPFS via MCP client
-    const result = await mcpClient.addContent(response);
-    
-    // Verify storage
-    expect(result.cid).toBeDefined();
-    
-    // Retrieve and verify content
-    const retrieved = await mcpClient.getContent(result.cid);
-    expect(retrieved.toString()).toBe(response);
+
+  it('should allow agent to use a tool to write results to storage', async () => {
+    // Arrange
+    const prompt = "Generate 'hello world' and save to /mem/output.txt";
+    const mockModelResponse = { // Simulate model asking to use the tool
+        content: null,
+        toolCalls: [{ id: 'call1', type: 'function', function: { name: 'save_to_storage', arguments: JSON.stringify({ path: '/mem/output.txt', content: 'hello world' }) } }]
+    };
+    const mockModel = agent.getModel() as MockModel; // Get the mock model instance
+    mockModel.setNextResponse(mockModelResponse);
+
+    // Act
+    await agent.processMessage(prompt); // Agent processes, calls model, executes tool
+
+    // Assert
+    const fileExists = await storageOps.exists('/mem/output.txt');
+    expect(fileExists).toBe(true);
+    const content = await storageOps.readFile('/mem/output.txt');
+    expect(content.toString()).toBe("hello world");
   });
 });
 ```
@@ -408,72 +503,13 @@ describe('AI and Storage Integration', () => {
 
 ### New External Integration
 
-- Single external dependency: IPFS Kit MCP Server
-- Unified API client for all IPFS operations
-- Consistent error handling and response processing
-- Clean separation through well-defined interfaces
+- **Primary External Dependency**: AI Model APIs (OpenAI, Anthropic, Lilypad, etc.) accessed via `ModelProvider` implementations in `src/ai/models/providers/`.
+- **Secondary External Dependency**: IPFS HTTP API (provided by the IPFS Kit MCP Server or a local Kubo daemon) accessed via the `IPFSClient` in `src/storage/ipfs/`.
+- **Unified Clients**: Dedicated TypeScript clients (`IPFSClient`, specific `ModelProvider` classes) manage interactions with these external APIs, handling authentication, request formatting, and response parsing.
+- **Loose Coupling**: Changes in external service APIs ideally require updates only within the corresponding client/provider class, minimizing impact on the rest of the SwissKnife application.
 
-**Example of MCP Server integration:**
-
-```typescript
-// src/storage/ipfs/mcp-client.ts
-export class MCPClient {
-  constructor(private options: MCPClientOptions) {}
-  
-  private getAuthHeaders(): Record<string, string> {
-    // Auth header implementation
-    return {};
-  }
-  
-  async addContent(content: string | Buffer): Promise<{ cid: string }> {
-    try {
-      const response = await fetch(`${this.options.baseUrl}/api/v0/add`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: this.createFormData(content)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to add content: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      return { cid: data.Hash };
-    } catch (error) {
-      console.error('Error adding content to IPFS:', error);
-      throw error;
-    }
-  }
-  
-  async getContent(cid: string): Promise<Buffer> {
-    try {
-      const response = await fetch(`${this.options.baseUrl}/api/v0/cat?arg=${cid}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders()
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to retrieve content: ${response.statusText}`);
-      }
-      
-      const buffer = await response.arrayBuffer();
-      return Buffer.from(buffer);
-    } catch (error) {
-      console.error(`Error retrieving content for CID ${cid}:`, error);
-      throw error;
-    }
-  }
-  
-  private createFormData(content: string | Buffer): FormData {
-    const formData = new FormData();
-    const blob = content instanceof Buffer 
-      ? new Blob([content]) 
-      : new Blob([Buffer.from(content)]);
-    formData.append('file', blob);
-    return formData;
-  }
-}
-```
+**Example of IPFS Client integration:**
+*(See updated `IPFSClient` conceptual example in section 5.2)*
 
 ## Conclusion
 
@@ -489,7 +525,8 @@ The transition from a multi-component integration approach to a unified TypeScri
 By following the patterns and guidance in this document, developers can successfully migrate code from the previous architecture to the new unified approach, while maintaining functionality and improving code quality.
 
 For more detailed information on the unified architecture, refer to:
-- [Unified Integration Plan](./unified_integration_plan.md)
+- [Unified Architecture](./UNIFIED_ARCHITECTURE.md)
 - [Project Structure](./PROJECT_STRUCTURE.md)
 - [Contributing Guide](./CONTRIBUTING.md)
-- [Migration Guide](./MIGRATION_GUIDE.md)
+- [Developer Guide](./DEVELOPER_GUIDE.md)
+- Detailed Phase Documentation (`./phase1/` to `./phase5/`)

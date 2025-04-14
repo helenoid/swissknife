@@ -6,337 +6,381 @@ This document provides a comprehensive guide to API key management in the SwissK
 
 SwissKnife requires API keys for various AI model providers. The unified architecture provides a centralized approach to API key management through the Configuration domain:
 
-1. **Environment Variables**: Setting keys directly in the environment
-2. **Configuration System**: Storing keys in a secure, persistent configuration
-3. **In-App Configuration**: Using the `/model` or `/config` commands to manage keys
-4. **Type-Safe Access**: Accessing keys through well-defined TypeScript interfaces
+1. **Environment Variables**: Setting keys directly in the environment (highest priority by default).
+2. **Configuration System**: Storing keys (potentially encrypted) in a persistent configuration file.
+3. **In-App Configuration**: Using the `config` or specific commands (like `apikey`) to manage stored keys.
+4. **Secure Access**: Accessing keys through a dedicated `ApiKeyManager` service.
 
 ## API Key Flow in the Unified Architecture
 
 Here's the complete lifecycle of API keys in the SwissKnife unified architecture:
 
 1. **Key Entry**: Keys enter the system via:
-   - Environment variables (e.g., `SWISSKNIFE_OPENAI_API_KEY`)
-   - User input via the configuration commands
-   - Configuration file during initial setup
+   - Environment variables (e.g., `OPENAI_API_KEY`).
+   - User input via CLI commands (`apikey add`, `config set`).
+   - Direct editing of the configuration file (less recommended).
 
-2. **Key Storage**: Keys are stored in:
-   - Secure configuration system with optional encryption
-   - Environment variables as fallback
-   - In-memory cache for active sessions
+2. **Key Storage**: Keys are managed via:
+   - **Environment Variables**: Read at runtime, highest priority by default.
+   - **Configuration File**: Stored (ideally encrypted) under a specific path (e.g., `apiKeys.<provider>`). Managed by `ConfigManager` and `ApiKeyManager`.
+   - **Secure Storage (Optional)**: Potentially using OS keychain via libraries like `keytar` for enhanced security (managed by `ApiKeyManager`).
 
-3. **Key Retrieval**: Keys are retrieved using:
-   - Configuration domain's type-safe interfaces
-   - Provider-specific key management
-   - Automatic failover and rotation mechanisms
+3. **Key Retrieval**: Keys are retrieved by services (like `ModelProvider`) using the `ApiKeyManager`:
+   - Checks environment variables first (unless `preferStored` option is used).
+   - Falls back to stored keys (decrypting if necessary).
+   - Handles key rotation if multiple keys are available and rotation is enabled.
+   - Skips keys marked as failed (unless explicitly requested).
 
 4. **Key Usage**: Keys are used in:
-   - API requests to model providers through the AI domain
-   - Authentication for external services
-   - MCP server authentication when necessary
+   - API requests to model providers (`src/ai/models/providers/`).
+   - Authentication for other external services if needed.
+   - Authentication for the IPFS Kit MCP Server if configured.
 
-5. **Key Rotation**: Keys are managed through:
-   - Automatic rotation to prevent rate limiting
-   - Manual configuration via CLI commands
-   - Intelligent failover when keys are marked as invalid or expired
+5. **Key Rotation & Failure**: Managed by `ApiKeyManager`:
+   - Rotates through available keys for a provider on subsequent requests if enabled.
+   - Allows marking keys as failed (e.g., after a 401/429 error) to skip them temporarily.
+   - Provides commands to reset the failed status.
 
 ## API Key Management Architecture
 
-The unified architecture uses a domain-driven approach to API key management:
+API key management primarily resides within the Authentication/Configuration domains (`src/auth/`, `src/config/`) but is utilized by other domains, especially the AI domain (`src/ai/`).
 
+```mermaid
+graph TD
+    subgraph Config/Auth Domain (`src/config/`, `src/auth/`)
+        A[ConfigManager] --> B(Loads/Saves config file);
+        C[ApiKeyManager] --> A;
+        C --> D(Secure Storage - Keychain/Env Var/Encrypted Config);
+        C --> E(Key Rotation Logic);
+        C --> F(Failure Tracking);
+    end
+
+    subgraph AI Domain (`src/ai/`)
+        G[Model Providers] --> C;
+        H[Model Registry] --> G;
+    end
+
+    I[CLI Commands (`src/commands/`)] --> C;
+    I --> A;
+
+    style A fill:#ccf,stroke:#333
+    style C fill:#ccf,stroke:#333
+    style G fill:#dae8fc,stroke:#333
+    style I fill:#d5e8d4,stroke:#333
 ```
-┌───────────────────────────────────────────────────────────────────────┐
-│                    Configuration Domain                              │
-│                                                                       │
-│  ┌────────────────────────┐    ┌──────────────────────────────────┐  │
-│  │  ConfigManager         │    │  APIKeyManager                   │  │
-│  │                        │    │                                  │  │
-│  │  - Central config store│    │  - Secure key storage           │  │
-│  │  - Type-safe access    │    │  - Key rotation                 │  │
-│  │  - Persistence         │    │  - Failure tracking             │  │
-│  └───────────┬────────────┘    └────────────────┬─────────────────┘  │
-│              │                                   │                    │
-│              └───────────────┬──────────────────┘                    │
-│                              │                                        │
-└──────────────────────────────┼────────────────────────────────────────┘
-                               │
-                               ▼
-┌───────────────────────────────────────────────────────────────────────┐
-│                          AI Domain                                   │
-│                                                                       │
-│  ┌────────────────────────┐    ┌──────────────────────────────────┐  │
-│  │  ModelRegistry         │    │  ModelProviders                  │  │
-│  │                        │    │                                  │  │
-│  │  - Model registration  │    │  - OpenAI, Claude, etc.         │  │
-│  │  - Provider management │    │  - Authentication               │  │
-│  │  - Default selection   │    │  - API integration              │  │
-│  └────────────────────────┘    └──────────────────────────────────┘  │
-└───────────────────────────────────────────────────────────────────────┘
-```
+
+-   **ConfigManager**: Handles loading/saving the general configuration file where non-sensitive settings and potentially *encrypted* keys are stored.
+-   **ApiKeyManager**: Provides a dedicated interface for securely retrieving API keys. It checks environment variables first, then falls back to stored (potentially encrypted) keys from `ConfigManager`. It can also manage key rotation and track failed keys.
+-   **Model Providers**: Use `ApiKeyManager` to get the necessary credentials before making API calls.
+-   **CLI Commands**: Use `ApiKeyManager` or `ConfigManager` to allow users to view, add, or remove keys.
 
 ### Key Components
 
 #### 1. ConfigManager
 
-The `ConfigManager` provides a centralized configuration system with type-safe access patterns:
+The `ConfigManager` provides a centralized configuration system with type-safe access patterns.
 
 ```typescript
-// src/config/manager.ts
+// src/config/manager.ts (Conceptual - assumes singleton pattern)
 export class ConfigManager {
   private static instance: ConfigManager;
   private config: Record<string, any> = {};
-  
+  private configPath: string; // Path to user config file
+
   private constructor() {
-    // Private constructor for singleton pattern
+    // Determine configPath based on OS
+    // Load config on initialization
     this.loadConfig();
   }
-  
+
   static getInstance(): ConfigManager {
     if (!ConfigManager.instance) {
       ConfigManager.instance = new ConfigManager();
     }
     return ConfigManager.instance;
   }
-  
+
+  /** Gets config path */
+  getConfigPath(): string {
+      return this.configPath;
+  }
+
+  /** Gets entire config object */
+  getAllConfig(): Record<string, any> {
+      return { ...this.config }; // Return a copy
+  }
+
+  /** Gets a value using dot notation */
   get<T>(key: string, defaultValue?: T): T {
     // Dotted path access with type safety
     const parts = key.split('.');
     let current = this.config;
-    
-    for (let i = 0; i < parts.length - 1; i++) {
-      if (!current[parts[i]]) {
+    for (const part of parts) {
+      if (current === null || typeof current !== 'object' || !(part in current)) {
         return defaultValue as T;
       }
-      current = current[parts[i]];
+      current = current[part];
     }
-    
-    return (current[parts[parts.length - 1]] ?? defaultValue) as T;
+    return current as T ?? defaultValue;
   }
-  
+
+  /** Sets a value using dot notation (updates in-memory config) */
   set<T>(key: string, value: T): void {
-    // Set value with dotted path support
+    // Set value with dotted path support using lodash.set or similar
+    // _.set(this.config, key, value);
+    // This example shows manual traversal:
     const parts = key.split('.');
     let current = this.config;
-    
     for (let i = 0; i < parts.length - 1; i++) {
-      if (!current[parts[i]]) {
-        current[parts[i]] = {};
+      const part = parts[i];
+      if (current[part] === null || typeof current[part] !== 'object') {
+        current[part] = {};
       }
-      current = current[parts[i]];
+      current = current[part];
     }
-    
     current[parts[parts.length - 1]] = value;
   }
-  
+
+  /** Saves the current in-memory config to the config file */
   async save(): Promise<boolean> {
-    // Save configuration to disk
     try {
-      // Implementation details
+      const configDir = path.dirname(this.configPath);
+      await fs.mkdir(configDir, { recursive: true });
+      await fs.writeFile(this.configPath, JSON.stringify(this.config, null, 2));
       return true;
     } catch (error) {
-      console.error('Failed to save configuration:', error);
+      console.error(`Failed to save configuration to ${this.configPath}:`, error);
       return false;
     }
   }
-  
+
+  /** Loads config from file into memory */
   private loadConfig(): void {
-    // Load configuration from disk
     try {
-      // Implementation details
+      if (fsSync.existsSync(this.configPath)) { // Use sync for constructor
+        const fileContent = fsSync.readFileSync(this.configPath, 'utf-8');
+        this.config = JSON.parse(fileContent);
+      } else {
+        this.config = {}; // Initialize empty if file doesn't exist
+      }
     } catch (error) {
-      console.error('Failed to load configuration:', error);
-      this.config = {}; // Initialize with empty config
+      console.error(`Failed to load configuration from ${this.configPath}:`, error);
+      this.config = {}; // Initialize empty on error
     }
   }
 }
+// Requires imports for path, fs, fsSync
 ```
 
 #### 2. APIKeyManager
 
-The `APIKeyManager` provides specialized handling for API keys, including security, rotation, and failure management:
+The `APIKeyManager` provides specialized handling for API keys, including security, rotation, and failure management.
 
 ```typescript
-// src/config/api-key-manager.ts
-import { ConfigManager } from './manager';
-import { CryptoUtils } from '../utils/crypto';
+// src/auth/api-key-manager.ts (Note: Likely in auth domain)
+import { ConfigManager } from '@/config/manager.js'; // Use correct path/alias
+import { CryptoUtils } from '@/utils/encryption.js'; // Use correct path/alias
 
-export interface APIKeySet {
-  keys: string[];
-  currentIndex: number;
-  failedKeys: string[];
+// Interface for how keys might be stored in config (example)
+export interface APIKeyStorage {
+  // Store encrypted keys under apiKeys.<provider> = [...]
+  apiKeys?: Record<string, string[]>;
+  // Store failed keys (unencrypted) under apiKeysFailed.<provider> = [...]
+  apiKeysFailed?: Record<string, string[]>;
+  // Store rotation index under apiKeysIndex.<provider> = number
+  apiKeysIndex?: Record<string, number>;
 }
 
-export class APIKeyManager {
-  private static instance: APIKeyManager;
+export class ApiKeyManager { // Renamed class to avoid conflict
+  private static instance: ApiKeyManager;
   private configManager: ConfigManager;
-  private keyCache: Map<string, string> = new Map();
-  
+  // Optional: In-memory cache for decrypted keys to avoid repeated decryption
+  private decryptedKeyCache: Map<string, string[]> = new Map();
+
   private constructor() {
     this.configManager = ConfigManager.getInstance();
   }
-  
-  static getInstance(): APIKeyManager {
-    if (!APIKeyManager.instance) {
-      APIKeyManager.instance = new APIKeyManager();
+
+  static getInstance(): ApiKeyManager {
+    if (!ApiKeyManager.instance) {
+      ApiKeyManager.instance = new ApiKeyManager();
     }
-    return APIKeyManager.instance;
+    return ApiKeyManager.instance;
   }
-  
-  getAPIKey(provider: string, options: { rotate?: boolean, allowFailed?: boolean } = {}): string | null {
-    const { rotate = false, allowFailed = false } = options;
-    
-    // First check environment variable
-    const envVarName = `SWISSKNIFE_${provider.toUpperCase().replace(/[^A-Z0-9]/g, '_')}_API_KEY`;
+
+  /**
+   * Retrieves the best available API key for a given provider.
+   * Checks environment variables first (unless preferStored=true), then stored keys.
+   * Handles rotation and failed key tracking.
+   * @param provider The provider ID (e.g., 'openai').
+   * @param options Options like rotation preference.
+   * @returns The API key string or null if none found/valid.
+   */
+  getBestApiKey(provider: string, options: { rotate?: boolean; allowFailed?: boolean; preferStored?: boolean } = {}): string | null {
+    const { rotate = false, allowFailed = false, preferStored = false } = options;
+
+    // 1. Check Environment Variable
+    const envVarName = `${provider.toUpperCase()}_API_KEY`; // Convention might vary
     const envKey = process.env[envVarName];
-    
-    if (envKey) {
-      // Add to configuration if not already present
-      this.addEnvKeyToConfig(provider, envKey);
+
+    // Return ENV key immediately if found and not preferring stored
+    if (envKey && !preferStored) {
+      this._addEnvKeyToConfigIfNotPresent(provider, envKey); // Add to config if missing
       return envKey;
     }
-    
-    // Get key set from configuration
-    const keySetPath = `api.${provider}.keys`;
-    const keySet = this.configManager.get<APIKeySet>(keySetPath, { keys: [], currentIndex: 0, failedKeys: [] });
-    
-    // Filter out failed keys if not allowing failed keys
-    const availableKeys = allowFailed 
-      ? keySet.keys 
-      : keySet.keys.filter(key => !keySet.failedKeys.includes(key));
-    
-    if (availableKeys.length === 0) {
-      return null;
+
+    // 2. Get Stored Keys (Encrypted) from Config
+    const configKey = `apiKeys.${provider}`; // Key in config file (e.g., apiKeys.openai)
+    const storedEncryptedKeys = this.configManager.get<string[]>(configKey, []);
+
+    // Use cached decrypted keys if available, otherwise decrypt
+    let storedDecryptedKeys = this.decryptedKeyCache.get(provider);
+    if (!storedDecryptedKeys) {
+        storedDecryptedKeys = storedEncryptedKeys.map(k => CryptoUtils.decrypt(k)); // Decrypt all
+        this.decryptedKeyCache.set(provider, storedDecryptedKeys); // Cache decrypted keys
     }
-    
-    // Get current index and potentially rotate
-    let index = keySet.currentIndex;
-    
-    if (rotate) {
-      index = (index + 1) % availableKeys.length;
-      keySet.currentIndex = index;
-      this.configManager.set(keySetPath, keySet);
+
+
+    // 3. Filter out failed keys if necessary
+    const failedKeysPath = `apiKeysFailed.${provider}`; // Separate storage for failed keys?
+    const failedKeys = this.configManager.get<string[]>(failedKeysPath, []);
+    const availableStoredKeys = allowFailed
+      ? storedDecryptedKeys
+      : storedDecryptedKeys.filter(key => !failedKeys.includes(key));
+
+    // If no stored keys available, return ENV key (if it exists and wasn't returned earlier) or null
+    if (availableStoredKeys.length === 0) {
+      return envKey || null;
     }
-    
-    return availableKeys[index];
+
+    // 4. Select Key (Rotation or First Available)
+    const rotationIndexPath = `apiKeysIndex.${provider}`; // Store index separately
+    let currentIndex = this.configManager.get<number>(rotationIndexPath, 0);
+
+    // Ensure index is valid before potential rotation
+    currentIndex = Math.min(currentIndex, availableStoredKeys.length - 1);
+    if (currentIndex < 0) currentIndex = 0; // Handle edge case if index was invalid
+
+    if (rotate && availableStoredKeys.length > 1) {
+      currentIndex = (currentIndex + 1) % availableStoredKeys.length;
+      this.configManager.set(rotationIndexPath, currentIndex);
+      // Consider saving config immediately after index change if rotation is frequent
+      // this.configManager.save();
+    }
+
+    // Return selected stored key
+    return availableStoredKeys[currentIndex];
   }
-  
-  addAPIKey(provider: string, apiKey: string): boolean {
-    const keySetPath = `api.${provider}.keys`;
-    const keySet = this.configManager.get<APIKeySet>(keySetPath, { keys: [], currentIndex: 0, failedKeys: [] });
-    
-    // Check if key already exists
-    if (keySet.keys.includes(apiKey)) {
-      return false;
+
+  /** Adds a new API key (encrypted) to the configuration. */
+  async addApiKey(provider: string, apiKey: string): Promise<boolean> {
+    const configKey = `apiKeys.${provider}`;
+    const storedEncryptedKeys = this.configManager.get<string[]>(configKey, []);
+    const encryptedKey = CryptoUtils.encrypt(apiKey);
+
+    // Check if encrypted key already exists to prevent duplicates
+    if (storedEncryptedKeys.includes(encryptedKey)) {
+      return false; // Key already exists
     }
-    
-    // Add the new key
-    keySet.keys.push(apiKey);
-    
-    // Save to configuration
-    this.configManager.set(keySetPath, keySet);
+
+    // Add the new encrypted key
+    storedEncryptedKeys.push(encryptedKey);
+    this.configManager.set(configKey, storedEncryptedKeys);
+    this.decryptedKeyCache.delete(provider); // Invalidate cache
+    await this.configManager.save(); // Persist changes
     return true;
   }
-  
-  removeAPIKey(provider: string, apiKey: string): boolean {
-    const keySetPath = `api.${provider}.keys`;
-    const keySet = this.configManager.get<APIKeySet>(keySetPath, { keys: [], currentIndex: 0, failedKeys: [] });
-    
-    // Check if key exists
-    const index = keySet.keys.indexOf(apiKey);
-    if (index === -1) {
-      return false;
+
+  /** Removes an API key from the configuration. */
+  async removeApiKey(provider: string, apiKeyToRemove: string): Promise<boolean> {
+    const configKey = `apiKeys.${provider}`;
+    const storedEncryptedKeys = this.configManager.get<string[]>(configKey, []);
+    let found = false;
+
+    // Filter out the key to remove (compare decrypted values)
+    const newEncryptedKeys = storedEncryptedKeys.filter(encryptedKey => {
+        if (CryptoUtils.decrypt(encryptedKey) === apiKeyToRemove) {
+            found = true;
+            return false; // Remove this key
+        }
+        return true;
+    });
+
+    if (!found) {
+      return false; // Key not found
     }
-    
-    // Remove the key
-    keySet.keys.splice(index, 1);
-    
-    // Remove from failed keys if present
-    const failedIndex = keySet.failedKeys.indexOf(apiKey);
-    if (failedIndex !== -1) {
-      keySet.failedKeys.splice(failedIndex, 1);
+
+    // Update config and save
+    this.configManager.set(configKey, newEncryptedKeys);
+    this.decryptedKeyCache.delete(provider); // Invalidate cache
+
+    // Also remove from failed keys list if present
+    const failedKeysPath = `apiKeysFailed.${provider}`;
+    const failedKeys = this.configManager.get<string[]>(failedKeysPath, []);
+    const newFailedKeys = failedKeys.filter(key => key !== apiKeyToRemove);
+    if (newFailedKeys.length !== failedKeys.length) {
+        this.configManager.set(failedKeysPath, newFailedKeys);
     }
-    
-    // Adjust current index if needed
-    if (keySet.currentIndex >= keySet.keys.length && keySet.keys.length > 0) {
-      keySet.currentIndex = keySet.keys.length - 1;
+
+    // Adjust rotation index if necessary
+    const rotationIndexPath = `apiKeysIndex.${provider}`;
+    let currentIndex = this.configManager.get<number>(rotationIndexPath, 0);
+    if (currentIndex >= newEncryptedKeys.length && newEncryptedKeys.length > 0) {
+        this.configManager.set(rotationIndexPath, newEncryptedKeys.length - 1);
     }
-    
-    // Save to configuration
-    this.configManager.set(keySetPath, keySet);
+
+    await this.configManager.save();
     return true;
   }
-  
-  markAPIKeyAsFailed(provider: string, apiKey: string): boolean {
-    const keySetPath = `api.${provider}.keys`;
-    const keySet = this.configManager.get<APIKeySet>(keySetPath, { keys: [], currentIndex: 0, failedKeys: [] });
-    
-    // Check if key exists
-    if (!keySet.keys.includes(apiKey)) {
-      return false;
-    }
-    
-    // Add to failed keys if not already present
-    if (!keySet.failedKeys.includes(apiKey)) {
-      keySet.failedKeys.push(apiKey);
-      this.configManager.set(keySetPath, keySet);
-    }
-    
-    return true;
-  }
-  
-  unmarkAPIKeyAsFailed(provider: string, apiKey: string): boolean {
-    const keySetPath = `api.${provider}.keys`;
-    const keySet = this.configManager.get<APIKeySet>(keySetPath, { keys: [], currentIndex: 0, failedKeys: [] });
-    
-    // Check if key exists
-    if (!keySet.keys.includes(apiKey)) {
-      return false;
-    }
-    
-    // Remove from failed keys if present
-    const failedIndex = keySet.failedKeys.indexOf(apiKey);
-    if (failedIndex !== -1) {
-      keySet.failedKeys.splice(failedIndex, 1);
-      this.configManager.set(keySetPath, keySet);
+
+  /** Marks an API key as failed (e.g., due to auth error). */
+  async markApiKeyAsFailed(provider: string, apiKey: string): Promise<boolean> {
+    const failedKeysPath = `apiKeysFailed.${provider}`;
+    const failedKeys = this.configManager.get<string[]>(failedKeysPath, []);
+
+    // Check if key exists in the main list first (optional, depends on desired behavior)
+    const configKey = `apiKeys.${provider}`;
+    const storedEncryptedKeys = this.configManager.get<string[]>(configKey, []);
+    const exists = storedEncryptedKeys.some(ek => CryptoUtils.decrypt(ek) === apiKey);
+    if (!exists) return false; // Don't mark if it wasn't even stored
+
+    if (!failedKeys.includes(apiKey)) {
+      failedKeys.push(apiKey);
+      this.configManager.set(failedKeysPath, failedKeys);
+      await this.configManager.save();
       return true;
     }
-    
+    return false; // Already marked
+  }
+
+  /** Removes a key from the failed list. */
+  async unmarkApiKeyAsFailed(provider: string, apiKey: string): Promise<boolean> {
+    const failedKeysPath = `apiKeysFailed.${provider}`;
+    const failedKeys = this.configManager.get<string[]>(failedKeysPath, []);
+    const index = failedKeys.indexOf(apiKey);
+    if (index !== -1) {
+      failedKeys.splice(index, 1);
+      this.configManager.set(failedKeysPath, failedKeys);
+      await this.configManager.save();
+      return true;
+    }
     return false;
   }
-  
-  private addEnvKeyToConfig(provider: string, apiKey: string): void {
-    const added = this.addAPIKey(provider, apiKey);
-    if (added) {
-      this.configManager.save().catch(error => {
-        console.error(`Failed to save environment API key to configuration:`, error);
-      });
+
+  /** Helper to add ENV var key to config if it's not already there */
+  private _addEnvKeyToConfigIfNotPresent(provider: string, apiKey: string): void {
+    const configKey = `apiKeys.${provider}`;
+    const storedEncryptedKeys = this.configManager.get<string[]>(configKey, []);
+    const alreadyStored = storedEncryptedKeys.some(ek => CryptoUtils.decrypt(ek) === apiKey);
+
+    if (!alreadyStored) {
+        this.addApiKey(provider, apiKey).catch(error => { // Add async keyword if needed
+            console.error(`Failed to automatically save environment API key for ${provider} to configuration:`, error);
+        });
     }
   }
-  
-  async encryptAndStoreKey(provider: string, apiKey: string): Promise<boolean> {
-    try {
-      const encryptedKey = await CryptoUtils.encrypt(apiKey);
-      this.configManager.set(`api.${provider}.encryptedKeys`, encryptedKey);
-      return await this.configManager.save();
-    } catch (error) {
-      console.error(`Failed to encrypt and store API key:`, error);
-      return false;
-    }
-  }
-  
-  async getEncryptedKey(provider: string): Promise<string | null> {
-    try {
-      const encryptedKey = this.configManager.get<string>(`api.${provider}.encryptedKeys`, null);
-      if (!encryptedKey) {
-        return null;
-      }
-      
-      return await CryptoUtils.decrypt(encryptedKey);
-    } catch (error) {
-      console.error(`Failed to decrypt API key:`, error);
-      return null;
-    }
-  }
+
+  // Removed encryptAndStoreKey and getEncryptedKey as add/get handle encryption/decryption
 }
 ```
 
@@ -345,96 +389,51 @@ export class APIKeyManager {
 The unified architecture seamlessly integrates API key management with model providers:
 
 ```typescript
-// src/ai/models/providers/openai.ts
-import { APIKeyManager } from '../../../config/api-key-manager';
-import { ConfigManager } from '../../../config/manager';
-import { ModelProvider, Model, ModelResponse, GenerateOptions } from '../../types/model';
+// src/ai/models/providers/openai.ts (Conceptual)
+import { ApiKeyManager } from '@/auth/api-key-manager.js'; // Use correct path
+import { ConfigManager } from '@/config/manager.js'; // Use correct path
+import type { ModelProvider, Model, ModelResponse, GenerateOptions } from '@/types/ai.js'; // Use correct path
 
 export class OpenAIProvider implements ModelProvider {
-  id = 'openai';
-  name = 'OpenAI';
-  
+  readonly id = 'openai';
+  readonly name = 'OpenAI';
+
   private configManager: ConfigManager;
-  private apiKeyManager: APIKeyManager;
-  
+  private apiKeyManager: ApiKeyManager;
+
   constructor() {
     this.configManager = ConfigManager.getInstance();
-    this.apiKeyManager = APIKeyManager.getInstance();
+    this.apiKeyManager = ApiKeyManager.getInstance();
   }
-  
-  getAvailableModels(): string[] {
-    return ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'];
-  }
-  
-  createModel(modelId: string): Model {
-    return {
-      id: modelId,
-      provider: this.id,
-      name: `OpenAI ${modelId}`,
-      
-      async generate(options: GenerateOptions): Promise<ModelResponse> {
-        // Get API key with rotation
-        const apiKey = this.apiKeyManager.getAPIKey('openai', { rotate: true });
-        
-        if (!apiKey) {
-          throw new Error('No OpenAI API key available');
-        }
-        
-        try {
-          // Make API request with the key
-          const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-              model: modelId,
-              messages: options.messages,
-              max_tokens: options.maxTokens,
-              temperature: options.temperature,
-              tools: options.tools?.map(tool => ({
-                type: 'function',
-                function: {
-                  name: tool.name,
-                  description: tool.description,
-                  parameters: tool.parameters
-                }
-              }))
-            })
-          });
-          
-          if (!response.ok) {
-            // Handle authentication and rate limit errors
-            if (response.status === 401 || response.status === 429) {
-              this.apiKeyManager.markAPIKeyAsFailed('openai', apiKey);
-            }
-            
-            throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
-          }
-          
-          const data = await response.json();
-          
-          return {
-            content: data.choices[0].message.content || '',
-            toolCalls: data.choices[0].message.tool_calls?.map(tc => ({
-              id: tc.id,
-              name: tc.function.name,
-              arguments: JSON.parse(tc.function.arguments)
-            })) || []
-          };
-        } catch (error) {
-          console.error('Error generating content with OpenAI:', error);
-          throw error;
-        }
-      }
-    };
-  }
-  
-  getDefaultModel(): Model {
-    const defaultModelId = this.configManager.get<string>('ai.openai.defaultModel', 'gpt-4o');
-    return this.createModel(defaultModelId);
-  }
+
+  // ... getAvailableModels, createModel, getDefaultModel ...
+
+  // Example generate method within createModel
+  // async generate(options: GenerateOptions): Promise<ModelResponse> {
+  //   const apiKey = this.apiKeyManager.getBestApiKey('openai', { rotate: true });
+  //   if (!apiKey) throw new Error('No OpenAI API key available');
+  //
+  //   try {
+  //     const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  //       method: 'POST',
+  //       headers: { 'Authorization': `Bearer ${apiKey}`, /* ... */ },
+  //       body: JSON.stringify({ /* ... */ })
+  //     });
+  //
+  //     if (!response.ok) {
+  //       if (response.status === 401 || response.status === 429) {
+  //         await this.apiKeyManager.markApiKeyAsFailed('openai', apiKey); // Use await
+  //       }
+  //       throw new Error(`OpenAI API error: ${response.status}`);
+  //     }
+  //     // ... process response ...
+  //   } catch (error) {
+  //     if (error.message.includes('network') || error.message.includes('fetch')) {
+  //        await this.apiKeyManager.markApiKeyAsFailed('openai', apiKey); // Use await
+  //     }
+  //     throw error;
+  //   }
+  // }
 }
 ```
 
@@ -443,760 +442,403 @@ export class OpenAIProvider implements ModelProvider {
 The unified architecture provides a consistent command interface for API key management:
 
 ```typescript
-// src/cli/commands/definitions/api-key-command.ts
-import { CommandRegistry } from '../../registry';
-import { APIKeyManager } from '../../../config/api-key-manager';
-import { ConfigManager } from '../../../config/manager';
+// src/cli/commands/apikey.ts (Conceptual)
+// Assumes Command structure and ExecutionContext type
+import { ApiKeyManager } from '@/auth/api-key-manager.js'; // Use correct path
+import { ConfigManager } from '@/config/manager.js'; // Use correct path
 
-export function registerAPIKeyCommands() {
-  const commandRegistry = CommandRegistry.getInstance();
-  const apiKeyManager = APIKeyManager.getInstance();
-  const configManager = ConfigManager.getInstance();
-  
-  commandRegistry.registerCommand({
-    id: 'apikey',
+// --- Helper function to mask API keys ---
+function maskApiKey(key: string): string {
+  return key.length <= 8 ? '****' : `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
+}
+
+// --- Command Definitions ---
+export const listApiKeysCommand: Command = {
+    name: 'list',
+    description: 'List configured API keys',
+    options: [ { name: 'provider', type: 'string', description: 'Optional provider name' } ],
+    async handler(context: CommandContext) {
+        const { provider } = context.args;
+        const apiKeyManager = ApiKeyManager.getInstance();
+        const configManager = ConfigManager.getInstance(); // Needed to access full structure
+
+        if (provider) {
+            // List keys for specific provider (including failed status)
+            const configKey = `apiKeys.${provider}`;
+            const failedKeysPath = `apiKeysFailed.${provider}`;
+            const rotationIndexPath = `apiKeysIndex.${provider}`;
+
+            const encryptedKeys = configManager.get<string[]>(configKey, []);
+            const failedKeys = configManager.get<string[]>(failedKeysPath, []);
+            const currentIndex = configManager.get<number>(rotationIndexPath, 0);
+            const decryptedKeys = encryptedKeys.map(k => CryptoUtils.decrypt(k));
+
+            context.formatter.info(`API keys for ${provider}:`);
+            if (decryptedKeys.length === 0) {
+                context.formatter.info('  No stored API keys configured.');
+            } else {
+                decryptedKeys.forEach((key, index) => {
+                    const isFailed = failedKeys.includes(key);
+                    // Note: currentIndex applies to the *available* (non-failed) keys,
+                    // so determining 'current' accurately here is complex without simulating getBestApiKey.
+                    // Simplified display:
+                    context.formatter.info(`  - ${maskApiKey(key)} ${isFailed ? '(failed)' : ''}`);
+                });
+            }
+            // Also check ENV var
+            const envVarName = `${provider.toUpperCase()}_API_KEY`;
+            if (process.env[envVarName]) {
+                 context.formatter.info(`  (Environment variable ${envVarName} is also set)`);
+            }
+
+        } else {
+            // List all providers with key counts
+            const providers = await apiKeyManager.getProviders(); // Get providers with stored keys
+            context.formatter.info('Configured API keys by provider:');
+            if (providers.length === 0) {
+                 context.formatter.info('  No stored API keys found.');
+            } else {
+                for (const p of providers) {
+                    const keys = await apiKeyManager.getApiKeys(p, { includeEnvVar: false, includeInvalid: true }); // Get stored only
+                    const failedCount = configManager.get<string[]>(`apiKeysFailed.${p}`, []).length;
+                    context.formatter.info(`  - ${p}: ${keys.length} stored key(s)${failedCount > 0 ? ` (${failedCount} failed)` : ''}`);
+                }
+            }
+             context.formatter.info('\nEnvironment variables might also provide keys (e.g., OPENAI_API_KEY).');
+        }
+        return 0;
+    }
+};
+
+export const addApiKeyCommand: Command = {
+    name: 'add',
+    description: 'Add a new API key for a provider',
+    options: [
+        { name: 'provider', type: 'string', description: 'Provider name (e.g., openai)', required: true },
+        { name: 'key', type: 'string', description: 'The API key value', required: true },
+        // Encryption is now default, maybe add --no-encrypt?
+    ],
+    async handler(context: CommandContext) {
+        const { provider, key } = context.args;
+        const apiKeyManager = ApiKeyManager.getInstance();
+        const added = await apiKeyManager.addApiKey(provider, key); // Automatically encrypts and saves
+
+        if (added) {
+            context.formatter.success(`API key for ${provider} added and stored securely.`);
+        } else {
+            context.formatter.warn(`API key for ${provider} already exists or failed to add.`);
+            return 1;
+        }
+        return 0;
+    }
+};
+
+export const removeApiKeyCommand: Command = {
+    name: 'remove',
+    description: 'Remove a stored API key',
+    options: [
+        { name: 'provider', type: 'string', description: 'Provider name', required: true },
+        { name: 'key', type: 'string', description: 'The exact API key value to remove', required: true },
+    ],
+    async handler(context: CommandContext) {
+        const { provider, key } = context.args;
+        const apiKeyManager = ApiKeyManager.getInstance();
+        const removed = await apiKeyManager.removeApiKey(provider, key); // Automatically saves
+
+        if (removed) {
+            context.formatter.success(`API key for ${provider} removed.`);
+        } else {
+            context.formatter.error(`API key not found for ${provider}.`);
+            return 1;
+        }
+        return 0;
+    }
+};
+
+export const resetApiKeyCommand: Command = {
+    name: 'reset',
+    description: 'Reset failed status for API keys',
+    options: [
+        { name: 'provider', type: 'string', description: 'Provider name', required: true },
+        { name: 'key', type: 'string', description: 'Specific API key to reset, or "all"', required: true },
+    ],
+    async handler(context: CommandContext) {
+        const { provider, key } = context.args;
+        const apiKeyManager = ApiKeyManager.getInstance();
+        const configManager = ConfigManager.getInstance(); // Needed for 'all' case
+
+        if (key.toLowerCase() === 'all') {
+            // Reset all failed keys for the provider
+            const failedKeysPath = `apiKeysFailed.${provider}`;
+            const failedKeys = configManager.get<string[]>(failedKeysPath, []);
+            if (failedKeys.length > 0) {
+                configManager.set(failedKeysPath, []);
+                await configManager.save();
+                context.formatter.success(`Reset failed status for all ${provider} API keys.`);
+            } else {
+                context.formatter.info(`No keys marked as failed for ${provider}.`);
+            }
+        } else {
+            // Reset specific key
+            const reset = await apiKeyManager.unmarkApiKeyAsFailed(provider, key); // Automatically saves
+            if (reset) {
+                context.formatter.success(`Reset failed status for the specified ${provider} API key.`);
+            } else {
+                context.formatter.error(`API key not found or was not marked as failed for ${provider}.`);
+                return 1;
+            }
+        }
+        return 0;
+    }
+};
+
+// Main command definition (assuming subcommands)
+export const apiKeyCommand: Command = {
+    id: 'apikey', // Or just 'key' ?
     name: 'apikey',
     description: 'Manage API keys for various providers',
-    subcommands: [
-      {
-        id: 'list',
-        name: 'list',
-        description: 'List configured API keys',
-        args: [
-          {
-            name: 'provider',
-            description: 'Optional provider name to filter keys',
-            required: false
-          }
-        ],
-        handler: async (args, context) => {
-          const provider = args.provider;
-          
-          if (provider) {
-            // List keys for specific provider
-            const keySet = configManager.get(`api.${provider}.keys`, { keys: [], failedKeys: [] });
-            
-            context.ui.info(`API keys for ${provider}:`);
-            
-            if (keySet.keys.length === 0) {
-              context.ui.info('No API keys configured');
-              return 0;
-            }
-            
-            keySet.keys.forEach((key, index) => {
-              const isFailed = keySet.failedKeys.includes(key);
-              const isCurrent = index === keySet.currentIndex;
-              
-              context.ui.info(`${index + 1}. ${maskApiKey(key)} ${isCurrent ? '(current)' : ''} ${isFailed ? '(failed)' : ''}`);
-            });
-          } else {
-            // List all providers with key counts
-            const providers = configManager.get('api', {});
-            
-            context.ui.info('Configured API keys by provider:');
-            
-            if (Object.keys(providers).length === 0) {
-              context.ui.info('No API keys configured');
-              return 0;
-            }
-            
-            Object.entries(providers).forEach(([providerName, config]) => {
-              const keyCount = config.keys?.length || 0;
-              const failedCount = config.keys?.failedKeys?.length || 0;
-              
-              context.ui.info(`${providerName}: ${keyCount} keys${failedCount > 0 ? ` (${failedCount} failed)` : ''}`);
-            });
-          }
-          
-          return 0;
-        }
-      },
-      {
-        id: 'add',
-        name: 'add',
-        description: 'Add a new API key',
-        args: [
-          {
-            name: 'provider',
-            description: 'Provider name (e.g., openai, anthropic)',
-            required: true
-          },
-          {
-            name: 'key',
-            description: 'API key to add',
-            required: true
-          },
-          {
-            name: 'encrypt',
-            description: 'Whether to encrypt the key (true/false)',
-            required: false
-          }
-        ],
-        handler: async (args, context) => {
-          const { provider, key, encrypt } = args;
-          
-          // Add the key
-          const added = apiKeyManager.addAPIKey(provider, key);
-          
-          if (!added) {
-            context.ui.warn(`API key already exists for ${provider}`);
-            return 1;
-          }
-          
-          // Optionally encrypt the key
-          if (encrypt === 'true') {
-            const encrypted = await apiKeyManager.encryptAndStoreKey(provider, key);
-            
-            if (!encrypted) {
-              context.ui.error('Failed to encrypt API key');
-              return 1;
-            }
-            
-            context.ui.success(`API key for ${provider} added and encrypted`);
-          } else {
-            // Save the configuration
-            const saved = await configManager.save();
-            
-            if (!saved) {
-              context.ui.error('Failed to save configuration');
-              return 1;
-            }
-            
-            context.ui.success(`API key for ${provider} added`);
-          }
-          
-          return 0;
-        }
-      },
-      {
-        id: 'remove',
-        name: 'remove',
-        description: 'Remove an API key',
-        args: [
-          {
-            name: 'provider',
-            description: 'Provider name',
-            required: true
-          },
-          {
-            name: 'key',
-            description: 'API key to remove',
-            required: true
-          }
-        ],
-        handler: async (args, context) => {
-          const { provider, key } = args;
-          
-          // Remove the key
-          const removed = apiKeyManager.removeAPIKey(provider, key);
-          
-          if (!removed) {
-            context.ui.error(`API key not found for ${provider}`);
-            return 1;
-          }
-          
-          // Save the configuration
-          const saved = await configManager.save();
-          
-          if (!saved) {
-            context.ui.error('Failed to save configuration');
-            return 1;
-          }
-          
-          context.ui.success(`API key for ${provider} removed`);
-          return 0;
-        }
-      },
-      {
-        id: 'reset',
-        name: 'reset',
-        description: 'Reset failed status for API keys',
-        args: [
-          {
-            name: 'provider',
-            description: 'Provider name',
-            required: true
-          },
-          {
-            name: 'key',
-            description: 'Specific API key to reset, or "all" for all keys',
-            required: true
-          }
-        ],
-        handler: async (args, context) => {
-          const { provider, key } = args;
-          
-          if (key === 'all') {
-            // Reset all failed keys for the provider
-            const keySet = configManager.get(`api.${provider}.keys`, { keys: [], failedKeys: [] });
-            
-            keySet.failedKeys = [];
-            configManager.set(`api.${provider}.keys`, keySet);
-            
-            // Save the configuration
-            const saved = await configManager.save();
-            
-            if (!saved) {
-              context.ui.error('Failed to save configuration');
-              return 1;
-            }
-            
-            context.ui.success(`Reset all failed API keys for ${provider}`);
-          } else {
-            // Reset specific key
-            const reset = apiKeyManager.unmarkAPIKeyAsFailed(provider, key);
-            
-            if (!reset) {
-              context.ui.error(`API key not found or not marked as failed for ${provider}`);
-              return 1;
-            }
-            
-            // Save the configuration
-            const saved = await configManager.save();
-            
-            if (!saved) {
-              context.ui.error('Failed to save configuration');
-              return 1;
-            }
-            
-            context.ui.success(`Reset failed status for ${provider} API key`);
-          }
-          
-          return 0;
-        }
-      }
-    ],
-    handler: async (args, context) => {
-      // Show help for main command if no subcommand provided
-      context.ui.renderHelp(this);
-      return 0;
+    subcommands: [listApiKeysCommand, addApiKeyCommand, removeApiKeyCommand, resetApiKeyCommand],
+    async handler(context: CommandContext) {
+        // Show help if no subcommand is given
+        context.formatter.info("Usage: swissknife apikey <list|add|remove|reset> ...");
+        return 0;
     }
-  });
-}
+};
 
-// Helper function to mask API keys
-function maskApiKey(key: string): string {
-  if (key.length <= 8) {
-    return '****';
-  }
-  
-  return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
-}
+// Registration would happen elsewhere
+// registerCommand(apiKeyCommand);
 ```
 
 ## Integration with IPFS Kit MCP Server
 
-The unified architecture seamlessly handles API keys for MCP server authentication:
+The unified architecture seamlessly handles API keys for MCP server authentication if needed by the client.
 
 ```typescript
-// src/storage/ipfs/mcp-client.ts
-import { APIKeyManager } from '../../config/api-key-manager';
-import { ConfigManager } from '../../config/manager';
+// src/storage/ipfs/ipfs-client.ts (Conceptual)
+import { ApiKeyManager } from '@/auth/api-key-manager.js'; // Use correct path
+import { ConfigManager } from '@/config/manager.js'; // Use correct path
 
-export class MCPClient {
-  private apiKeyManager: APIKeyManager;
+export class IPFSClient { // Renamed from MCPClient for clarity if only using IPFS features
+  private apiKeyManager: ApiKeyManager;
   private configManager: ConfigManager;
-  private baseUrl: string;
-  
-  constructor(options?: { baseUrl?: string }) {
-    this.apiKeyManager = APIKeyManager.getInstance();
+  private apiUrl: string;
+
+  constructor(options?: { apiUrl?: string }) {
+    this.apiKeyManager = ApiKeyManager.getInstance();
     this.configManager = ConfigManager.getInstance();
-    this.baseUrl = options?.baseUrl || this.configManager.get('storage.mcp.baseUrl', 'http://localhost:5001');
+    // Get specific IPFS API URL from config
+    this.apiUrl = options?.apiUrl || this.configManager.get('storage.ipfs.apiUrl', 'http://127.0.0.1:5001');
   }
-  
-  private getAuthHeaders(): Record<string, string> {
+
+  private _getAuthHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
-    
-    // Get API key for MCP server
-    const apiKey = this.apiKeyManager.getAPIKey('mcp');
-    
+    // Get API key specifically configured for 'ipfs' provider if needed
+    const apiKey = this.apiKeyManager.getBestApiKey('ipfs'); // Use 'ipfs' as provider key
+
     if (apiKey) {
+      // Adjust header based on actual IPFS API auth method (might not be Bearer)
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
-    
     return headers;
   }
-  
-  async addContent(content: string | Buffer): Promise<{ cid: string }> {
-    // Implementation with authentication headers
-    const headers = this.getAuthHeaders();
-    
-    // Make request with headers
+
+  async add(content: string | Buffer): Promise<{ cid: string }> {
+    const headers = this._getAuthHeaders();
+    // Make request using this.apiUrl and headers
     // ...
-    
     return { cid: "example-cid" };
   }
-  
+
+  async cat(cid: string): Promise<Buffer> {
+     const headers = this._getAuthHeaders();
+     // Make request using this.apiUrl and headers
+     // ...
+     return Buffer.from("example");
+  }
+
   // Other methods with authentication...
 }
 ```
 
 ## Best Practices for API Key Management
 
-### 1. Type Safety
+### 1. Security First
 
-Always use the type-safe interfaces provided by the Configuration domain:
+- **Environment Variables**: Prefer loading sensitive keys from environment variables (e.g., `OPENAI_API_KEY`). The `ApiKeyManager` should detect these.
+- **Secure Storage**: If storing keys in config, ensure encryption is used (`encryptAndStoreKey`). Avoid storing plaintext keys in committed files. Consider OS keychain integration (`keytar`) for maximum security.
+- **Avoid Hardcoding**: Never hardcode API keys directly in the source code.
+
+### 2. Use the Abstraction (`ApiKeyManager`)
+
+Always retrieve keys via `ApiKeyManager.getBestApiKey()` instead of accessing `ConfigManager` or `process.env` directly. This ensures consistent handling of:
+- Environment variable overrides
+- Stored (and potentially encrypted) keys
+- Key rotation logic
+- Failed key tracking
 
 ```typescript
-// Good practice - using type-safe interfaces
-import { APIKeyManager } from '../../config/api-key-manager';
+// Good practice
+const apiKey = ApiKeyManager.getInstance().getBestApiKey('openai', { rotate: true });
 
-// Get instance
-const apiKeyManager = APIKeyManager.getInstance();
-
-// Get API key with typed options
-const apiKey = apiKeyManager.getAPIKey('openai', { rotate: true });
-
-// Bad practice - direct access to configuration
-import { ConfigManager } from '../../config/manager';
-const config = ConfigManager.getInstance();
-const keys = config.get('api.openai.keys', []);
-const key = keys[0]; // No rotation, no failure checking
+// Bad practice
+const envKey = process.env.OPENAI_API_KEY;
+const storedKeys = ConfigManager.getInstance().get('apiKeys.openai', []);
+const key = envKey || (storedKeys.length > 0 ? CryptoUtils.decrypt(storedKeys[0]) : null); // Doesn't handle rotation, failure, multiple keys etc.
 ```
 
-### 2. Key Rotation
+### 3. Implement Key Rotation
 
-Use the built-in rotation capabilities to distribute requests across multiple keys:
+If you have multiple keys for a provider (e.g., for load balancing or different quotas), use the `rotate: true` option when retrieving keys to distribute usage.
 
 ```typescript
 // Distribute requests using key rotation
-function makeRequestWithRotation(data: any) {
-  const apiKey = apiKeyManager.getAPIKey('openai', { rotate: true });
-  
-  if (!apiKey) {
-    throw new Error('No valid API key available');
-  }
-  
-  // Make API request with rotated key
-  return fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  });
+async function makeRequestWithRotation(provider: string, url: string, body: any) {
+  const apiKey = ApiKeyManager.getInstance().getBestApiKey(provider, { rotate: true });
+  if (!apiKey) throw new Error(`No valid API key for ${provider}`);
+
+  // Make API request using the rotated key
+  // ... (fetch call as in previous examples) ...
 }
 ```
 
-### 3. Failure Handling
+### 4. Handle Failures Gracefully
 
-Properly track and handle failed keys to ensure resilient operation:
+Mark keys as failed upon specific errors (401 Unauthorized, 429 Rate Limit) to enable automatic failover.
 
 ```typescript
-async function makeRequestWithFailureHandling(data: any) {
-  // Get API key, ignoring previously failed keys
-  const apiKey = apiKeyManager.getAPIKey('openai', { rotate: true });
-  
-  if (!apiKey) {
-    throw new Error('No valid API key available');
-  }
-  
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-    
-    if (!response.ok) {
-      // Mark key as failed for authentication or rate limit errors
-      if (response.status === 401 || response.status === 429) {
-        apiKeyManager.markAPIKeyAsFailed('openai', apiKey);
-        
-        // Try again with another key if authentication failed
-        return makeRequestWithFailureHandling(data);
-      }
-      
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+// Within ModelProvider or API client logic
+try {
+    const response = await fetch(url, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+    if (response.status === 401 || response.status === 429) {
+        await ApiKeyManager.getInstance().markApiKeyAsFailed(provider, apiKey);
+        // Optionally retry immediately with the next key
+        // return makeRequestWithFailureHandling(...);
     }
-    
-    return response.json();
-  } catch (error) {
-    // Mark key as failed for network errors
-    if (error.message.includes('network') || error.message.includes('fetch')) {
-      apiKeyManager.markAPIKeyAsFailed('openai', apiKey);
-    }
-    
-    throw error;
-  }
+    // ... handle other errors or success ...
+} catch (networkError) {
+    await ApiKeyManager.getInstance().markApiKeyAsFailed(provider, apiKey);
+    throw networkError;
 }
 ```
 
-### 4. Environment Variables
+### 5. User Configuration
 
-Always check for environment variables first, and add them to the configuration:
-
-```typescript
-// In your initialization code
-import { APIKeyManager } from '../../config/api-key-manager';
-import { ConfigManager } from '../../config/manager';
-
-function initializeAPIKeys() {
-  const apiKeyManager = APIKeyManager.getInstance();
-  const configManager = ConfigManager.getInstance();
-  
-  // Look for environment variables for all supported providers
-  const providers = ['openai', 'anthropic', 'mistral', 'cohere'];
-  
-  for (const provider of providers) {
-    const envVarName = `SWISSKNIFE_${provider.toUpperCase()}_API_KEY`;
-    const apiKey = process.env[envVarName];
-    
-    if (apiKey) {
-      console.log(`Found API key for ${provider} in environment variables`);
-      apiKeyManager.addAPIKey(provider, apiKey);
-    }
-  }
-  
-  // Save any keys found in environment variables
-  configManager.save().catch(error => {
-    console.error('Failed to save API keys from environment variables:', error);
-  });
-}
-```
-
-### 5. Security
-
-Use encryption for sensitive API keys when possible:
-
-```typescript
-// When adding a key from user input
-async function addSecureAPIKey(provider: string, apiKey: string) {
-  const apiKeyManager = APIKeyManager.getInstance();
-  
-  // Add the key to the regular key set
-  apiKeyManager.addAPIKey(provider, apiKey);
-  
-  // Also store an encrypted version
-  await apiKeyManager.encryptAndStoreKey(provider, apiKey);
-  
-  console.log(`API key for ${provider} added and encrypted`);
-}
-```
+Provide clear CLI commands (`apikey list/add/remove/reset`) for users to manage their stored keys easily. Guide users towards using environment variables for simplicity and security where possible.
 
 ## Troubleshooting Guide
 
 ### Issue: API Keys Not Persisting
 
 **Symptoms:**
-- Keys are not saved between sessions
-- Configuration file not updated
-- Keys disappear after restart
+- Keys added via `apikey add` are not available after restarting.
+- Configuration file (`~/.config/swissknife/config.json` or similar) is not updated.
 
 **Solutions:**
 
-1. **Ensure configuration is saved:**
-   ```typescript
-   // After adding a key
-   apiKeyManager.addAPIKey('openai', 'sk-12345');
-   
-   // Save the configuration
-   await ConfigManager.getInstance().save();
+1. **Verify `save()` Call:** Ensure `ConfigManager.save()` is called after `ApiKeyManager.addApiKey()` or `removeApiKey()`. The examples show `ApiKeyManager` methods now handle saving automatically.
+2. **Check File Permissions:** Ensure the application has write permissions to the configuration directory and file. Use `swissknife config path` to find the file location.
+   ```bash
+   ls -ld $(dirname $(swissknife config path)) # Check directory permissions
+   ls -l $(swissknife config path)           # Check file permissions
    ```
-
-2. **Check file permissions:**
-   ```typescript
-   import * as fs from 'fs';
-   
-   // Get configuration file path
-   const configPath = ConfigManager.getInstance().getConfigPath();
-   
-   // Check file permissions
-   try {
-     await fs.promises.access(configPath, fs.constants.W_OK);
-     console.log('Configuration file is writable');
-   } catch (error) {
-     console.error('Configuration file is not writable:', error);
-   }
-   ```
-
-3. **Debug configuration content:**
-   ```typescript
-   // Log configuration content
-   const config = ConfigManager.getInstance().getAllConfig();
-   console.log('Current configuration:', JSON.stringify(config, null, 2));
-   ```
+3. **Check ConfigManager Mock (Tests):** If occurring in tests, ensure the `ConfigManager` mock correctly simulates persistence or that `save()` is being called as expected.
+4. **Inspect Config File:** Manually inspect the JSON configuration file to see if the `apiKeys.<provider>` array is being updated correctly (keys should appear encrypted).
 
 ### Issue: API Key Rotation Not Working
 
 **Symptoms:**
-- Same API key used repeatedly
-- Rate limiting due to single key usage
-- No distribution of requests across keys
+- The same API key is used for consecutive requests despite multiple keys being stored.
+- Rate limiting occurs even with multiple keys configured.
 
 **Solutions:**
 
-1. **Verify rotation parameter:**
-   ```typescript
-   // Make sure to specify rotate: true
-   const apiKey = apiKeyManager.getAPIKey('openai', { rotate: true });
-   ```
+1. **Verify `rotate: true` Option:** Ensure the code calling `getBestApiKey` includes `{ rotate: true }` in the options object.
+2. **Check Multiple Keys Exist:** Use `apikey list <provider>` to confirm multiple *valid* (non-failed) keys are stored for the provider. Rotation only occurs if more than one valid key is available.
+3. **Check Rotation Index:** Inspect the configuration file for the `apiKeysIndex.<provider>` value to see if it's incrementing (this might require debug logging in `ApiKeyManager`).
+4. **Reset Failed Keys:** Use `apikey reset <provider> all` to ensure no keys are incorrectly marked as failed, preventing them from being used in rotation.
 
-2. **Check multiple keys exist:**
-   ```typescript
-   // Get all keys for a provider
-   const keys = apiKeyManager.getAllKeys('openai');
-   console.log(`Available keys: ${keys.length}`);
-   
-   if (keys.length <= 1) {
-     console.warn('Rotation requires multiple keys');
-   }
-   ```
-
-3. **Reset rotation state:**
-   ```typescript
-   // Reset the current index
-   apiKeyManager.resetKeyRotation('openai');
-   ```
-
-### Issue: Failed Keys Not Being Tracked
+### Issue: Failed Keys Still Being Used
 
 **Symptoms:**
-- Failed API keys continue to be used
-- Repeated authentication errors
-- No automatic failover
+- Requests continue to fail with 401/429 errors even after a key should have been marked as failed.
+- `getBestApiKey` returns a key known to be invalid.
 
 **Solutions:**
 
-1. **Verify key marking:**
-   ```typescript
-   // Make sure failed keys are marked correctly
-   apiKeyManager.markAPIKeyAsFailed('openai', failedKey);
-   
-   // Save configuration after marking
-   await ConfigManager.getInstance().save();
-   ```
-
-2. **Inspect failed keys list:**
-   ```typescript
-   // Get the current failed keys
-   const keySet = ConfigManager.getInstance().get('api.openai.keys', { keys: [], failedKeys: [] });
-   console.log('Failed keys:', keySet.failedKeys);
-   ```
-
-3. **Reset all failed keys:**
-   ```typescript
-   // Reset all failed keys for debugging
-   const keySet = ConfigManager.getInstance().get('api.openai.keys', { keys: [], failedKeys: [] });
-   keySet.failedKeys = [];
-   ConfigManager.getInstance().set('api.openai.keys', keySet);
-   await ConfigManager.getInstance().save();
-   ```
+1. **Verify `markApiKeyAsFailed` Call:** Ensure the code handling API errors (like 401/429) correctly calls `await ApiKeyManager.getInstance().markApiKeyAsFailed(provider, failedKey)`.
+2. **Check `allowFailed: false`:** Ensure the code calling `getBestApiKey` is *not* passing `{ allowFailed: true }` unless intended. The default is `false`.
+3. **Inspect Failed Keys List:** Use `apikey list <provider>` or inspect the configuration file for the `apiKeysFailed.<provider>` list to see which keys are marked.
+4. **Check Decryption:** Ensure the key being marked as failed matches exactly the decrypted key stored in the config (check for whitespace or encoding issues).
 
 ## Complete Examples
 
-### Example 1: Adding Multiple API Keys with Validation
-
-```typescript
-// src/cli/commands/definitions/model-setup-command.ts
-import { CommandRegistry } from '../../registry';
-import { APIKeyManager } from '../../../config/api-key-manager';
-import { ConfigManager } from '../../../config/manager';
-import { ModelRegistry } from '../../../ai/models/registry';
-
-async function validateAPIKey(provider: string, apiKey: string): Promise<boolean> {
-  try {
-    // Get model provider
-    const modelRegistry = ModelRegistry.getInstance();
-    const modelProvider = modelRegistry.getProvider(provider);
-    
-    if (!modelProvider) {
-      return false;
-    }
-    
-    // Temporarily add the key for validation
-    const apiKeyManager = APIKeyManager.getInstance();
-    apiKeyManager.addAPIKey(provider, apiKey);
-    
-    // Try to list models with the key
-    const model = modelProvider.createModel(modelProvider.getAvailableModels()[0]);
-    
-    // Make a minimal request to validate the key
-    await model.generate({
-      messages: [{ role: 'user', content: 'test' }],
-      maxTokens: 5
-    });
-    
-    return true;
-  } catch (error) {
-    console.error(`Error validating API key for ${provider}:`, error);
-    return false;
-  }
-}
-
-export function registerModelSetupCommand() {
-  const commandRegistry = CommandRegistry.getInstance();
-  const apiKeyManager = APIKeyManager.getInstance();
-  const configManager = ConfigManager.getInstance();
-  
-  commandRegistry.registerCommand({
-    id: 'model.setup',
-    name: 'model setup',
-    description: 'Interactive setup for model providers',
-    handler: async (args, context) => {
-      context.ui.info('Model Provider Setup');
-      context.ui.info('-------------------');
-      
-      // Select provider
-      const provider = await context.ui.prompt({
-        type: 'select',
-        message: 'Select AI model provider:',
-        choices: [
-          { title: 'OpenAI', value: 'openai' },
-          { title: 'Anthropic', value: 'anthropic' },
-          { title: 'Mistral', value: 'mistral' }
-        ]
-      });
-      
-      // Multiple API key entry
-      context.ui.info(`\nEnter API keys for ${provider} (leave empty to finish):`);
-      
-      const keys: string[] = [];
-      let keyNum = 1;
-      let key;
-      
-      do {
-        key = await context.ui.prompt({
-          type: 'password',
-          message: `API Key #${keyNum}:`,
-          placeholder: 'Leave empty to finish'
-        });
-        
-        if (key) {
-          // Validate the key
-          context.ui.info(`Validating API key #${keyNum}...`);
-          const isValid = await validateAPIKey(provider, key);
-          
-          if (isValid) {
-            context.ui.success(`API key #${keyNum} is valid`);
-            keys.push(key);
-            keyNum++;
-          } else {
-            context.ui.error(`API key #${keyNum} is invalid, please try again`);
-          }
-        }
-      } while (key);
-      
-      if (keys.length === 0) {
-        context.ui.warn('No API keys provided, setup canceled');
-        return 1;
-      }
-      
-      // Add all valid keys
-      for (const key of keys) {
-        apiKeyManager.addAPIKey(provider, key);
-      }
-      
-      // Save configuration
-      await configManager.save();
-      
-      context.ui.success(`Added ${keys.length} API keys for ${provider}`);
-      
-      // Set as default provider if it's the first one
-      const currentProvider = configManager.get('ai.defaultProvider', '');
-      
-      if (!currentProvider) {
-        configManager.set('ai.defaultProvider', provider);
-        await configManager.save();
-        context.ui.info(`Set ${provider} as the default provider`);
-      }
-      
-      return 0;
-    }
-  });
-}
-```
-
-### Example 2: Automatic Key Rotation and Failover
-
-```typescript
-// src/ai/models/providers/provider-base.ts
-import { APIKeyManager } from '../../../config/api-key-manager';
-
-export abstract class BaseModelProvider implements ModelProvider {
-  abstract id: string;
-  abstract name: string;
-  
-  protected apiKeyManager: APIKeyManager;
-  
-  constructor() {
-    this.apiKeyManager = APIKeyManager.getInstance();
-  }
-  
-  abstract getAvailableModels(): string[];
-  abstract createModel(modelId: string): Model;
-  abstract getDefaultModel(): Model;
-  
-  // Shared method for making API requests with key rotation and failover
-  protected async makeAuthenticatedRequest<T>(
-    url: string, 
-    body: any, 
-    maxRetries: number = 3
-  ): Promise<T> {
-    let retries = 0;
-    
-    while (retries < maxRetries) {
-      // Get API key with rotation
-      const apiKey = this.apiKeyManager.getAPIKey(this.id, { rotate: true });
-      
-      if (!apiKey) {
-        throw new Error(`No valid API key available for ${this.name}`);
-      }
-      
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify(body)
-        });
-        
-        if (!response.ok) {
-          // Handle authentication and rate limit errors
-          if (response.status === 401 || response.status === 429) {
-            this.apiKeyManager.markAPIKeyAsFailed(this.id, apiKey);
-            retries++;
-            continue; // Try with a different key
-          }
-          
-          throw new Error(`${this.name} API error: ${response.status} ${response.statusText}`);
-        }
-        
-        // Successful response
-        return await response.json();
-      } catch (error) {
-        // Network errors may also indicate a bad key
-        if (error.message.includes('network') || error.message.includes('fetch')) {
-          this.apiKeyManager.markAPIKeyAsFailed(this.id, apiKey);
-        }
-        
-        retries++;
-        
-        if (retries >= maxRetries) {
-          throw error;
-        }
-      }
-    }
-    
-    throw new Error(`Failed to make request to ${this.name} API after ${maxRetries} attempts`);
-  }
-}
-```
+*(Examples 1 and 2 demonstrating key validation, rotation, and failover are largely covered by the updated code snippets in previous sections and best practices. Refer to the `ApiKeyManager` and `BaseModelProvider` conceptual implementations.)*
 
 ## Conclusion
 
 The unified architecture of SwissKnife provides a robust, type-safe, and centralized approach to API key management. By leveraging the Configuration domain and specialized key management components, the system ensures:
 
-1. **Security**: Proper storage and optional encryption of sensitive keys
-2. **Reliability**: Automatic failover when keys are invalid or rate-limited
-3. **Efficiency**: Key rotation to distribute load across multiple keys
-4. **Maintainability**: Centralized management with clear interfaces
-5. **User Experience**: Consistent command interface for key management
+1. **Security**: Proper storage and optional encryption of sensitive keys, prioritizing environment variables.
+2. **Reliability**: Automatic failover when keys are invalid or rate-limited, by tracking failed keys.
+3. **Efficiency**: Key rotation to distribute load across multiple keys.
+4. **Maintainability**: Centralized management via `ApiKeyManager` with clear interfaces.
+5. **User Experience**: Consistent command interface (`apikey`) for key management.
 
-This approach eliminates the complexity of the previous implementation by providing a single source of truth for API keys within the unified TypeScript codebase, while maintaining the flexibility to incorporate environment variables, encrypted storage, and runtime key rotation.
+This approach provides a single source of truth for API keys within the unified TypeScript codebase, while maintaining flexibility through environment variables, secure storage, and runtime key rotation/failover.
+</final_file_content>
+
+IMPORTANT: For any future changes to this file, use the final_file_content shown above as your reference. This content reflects the current state of the file, including any auto-formatting (e.g., if you used single quotes but the formatter converted them to double quotes). Always base your SEARCH/REPLACE operations on this final version to ensure accuracy.<environment_details>
+# VSCode Visible Files
+docs/API_KEY_MANAGEMENT.md
+
+# VSCode Open Tabs
+test/unit/command-registry.test.ts
+test/messages.test.js
+test/messages.test.ts
+test/api_key_persistence.test.js
+test/model_selector.test.tsx
+test/staging-setup.js
+test/verify-build.js
+test/e2e/cli/commands.test.js
+test/e2e/cli-workflows/cli-task-integration.test.ts
+test/e2e/cli-workflows/cli-workflow.test.ts
+test/e2e/task-execution/task-workflow.test.ts
+test/integration/ai-storage/model-storage.test.ts
+test/integration/ai-storage/model-storage-advanced.test.ts
+test/integration/cli-models/model-commands.test.ts
+test/integration/workflows/complex-query.test.ts
+test/plans/phase3_tasknet_test_plan.md
+test/integration/graph/got-manager.test.ts
+test/integration/graph/got-node.test.ts
+test/integration/mcp/mcp-integration.test.ts
+test/integration/mcp/mcp-server-integration.test.ts
+test/integration/mcp/mcp-system-integration.test.ts
+test/integration/storage/mcp-client.test.ts
+test/unit/ai/agent.test.ts
+test/unit/ai/executor.test.ts
+test/unit/ai/registry.test.ts
+test/unit/auth/api-key-manager.test.ts
+test/unit/commands/help-generator.test.ts
+test/unit/commands/mcp.test.ts
+README.md
+CLAUDE.md
+docs/GETTING_STARTED.md
+docs/DEVELOPER_GUIDE.md
+docs/PROJECT_STRUCTURE.md
+docs/UNIFIED_ARCHITECTURE.md
+docs/CLI_GUIDE.md
+docs/CONTRIBUTING.md
+docs/BUILD_PROCESS.md
+docs/CICD.md
+docs/ADVANCED_AI_FEATURES.md
+docs/API_KEY_MANAGEMENT.md
+
+# Current Time
+4/13/2025, 7:54:11 PM (America/Los_Angeles, UTC-7:00)
+
+# Context Window Usage
+744,017 / 1,000K tokens used (74%)
+
+# Current Mode
+ACT MODE
+</environment_details>

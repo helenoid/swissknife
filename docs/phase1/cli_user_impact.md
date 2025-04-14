@@ -9,17 +9,17 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | Command Group | Current Behavior (Simplified) | New Behavior | Impact Level | Notes |
 |---------------|-------------------------------|--------------|--------------|-------|
 | `model ...` | Basic model selection via ID. | Enhanced selection (capabilities, cost), registry management, potential local model support. | Medium | Core usage similar, but advanced features added. |
-| `config ...` | Simple flat key-value store (JSON/TOML). | Hierarchical loading (global, user, project), schema validation, potentially different format (JSON primary). | High | Requires understanding new structure and potentially migrating existing configs. Offers more power. |
+| `config ...` | Simple flat key-value store (JSON/TOML). | Hierarchical loading (global, user, project), schema validation, potentially different format (JSON primary). | High | Requires understanding new structure and **migrating existing configs**. Offers more power. |
 | `agent ...` / `tools ...` | Fixed tool set, basic agent interaction. | Pluggable tool system, more sophisticated agent interaction (GoT), direct tool execution. | Medium | Core agent interaction similar, but tool management and advanced reasoning are new. |
 | `mcp ...` | Basic MCP server management. | Enhanced capabilities via SDK, potentially more transport options, clearer separation from core CLI. | Medium | Existing users might need to adapt to SDK-based commands/concepts. |
 | `storage ...` / `file ...` / `ipfs ...` | Likely separate or limited file/IPFS commands. | Unified VFS (`storage`, `file`) with distinct backends (local, IPFS). Dedicated `ipfs` commands for IPFS-specific actions. | High | Introduces VFS concept. Consolidates/replaces older file commands. |
 | `task ...` / `worker ...` | Minimal or non-existent. | New comprehensive TaskNet system (scheduling, decomposition, GoT, workers). | High (New) | Completely new functionality set. |
 | `ml ...` | Minimal or non-existent. | New commands for managing and running local ML models via MLEngine. | High (New) | New capability for local inference. |
-| `auth ...` | Minimal or non-existent. | New commands for key management, identity, potentially UCANs. | High (New) | New security and identity features. |
+| `auth ...` / `apikey ...` | Minimal or non-existent. | New commands for key management, identity, secure API key storage. | High (New) | New security and identity features. |
 
 **User Impact Summary:**
 - **Learning Curve:** Users will need to learn new commands (task, storage, ml, auth) and new options/concepts for existing commands (config scopes, model selection criteria).
-- **Configuration Migration:** Users with existing configurations will likely need to migrate them to the new hierarchical format. A migration tool or clear guide is essential.
+- **Configuration Migration:** Users with existing configurations will likely need to migrate them to the new hierarchical format and secure storage. **A migration tool or clear guide is essential.**
 - **Scripting:** Scripts relying on the exact output format or specific arguments of old commands may need updating. Structured output (JSON) should make future scripting more robust.
 - **Benefits:** Users gain significantly more power, flexibility, and consistency, particularly in storage, task management, and AI capabilities.
 
@@ -31,9 +31,10 @@ This document analyzes the anticipated impact on end-users resulting from the in
 |---------|-------------|----------------------|----------------------|-------|
 | `config set` | Option Added | `config set key value` | `config set key value [--scope user|project]` | Scope allows targeted config updates. Default might be 'user'. |
 | `model list` | Options Added | `model list` | `model list [--provider openai] [--capability chat]` | Adds filtering capabilities. |
-| `agent execute` | Option Added | `agent execute "Prompt"` | `agent execute "Prompt" [--model gpt-4-turbo]` | Allows overriding default model. |
+| `agent execute` | Option Added | `agent execute "Prompt"` | `agent execute "Prompt" [--model openai/gpt-4-turbo]` | Allows overriding default model (using prefixed ID). |
 | `file list` | New Command | (N/A or old command) | `file list /local/path` | Part of new VFS command set. |
 | `ipfs add` | New Command | (N/A or old command) | `ipfs add <local-file>` | Dedicated IPFS operations. |
+| `apikey add` | New Command | (N/A or old command) | `apikey add <provider> <key>` | Secure API key management. |
 
 **User Impact Summary:**
 - **Backward Compatibility:** Aim for backward compatibility for the *most common* use cases of existing commands where feasible.
@@ -55,7 +56,7 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | `task` | Interface for the enhanced TaskNet system (GoT, scheduling, decomposition, monitoring). | Ability to define, execute, and monitor complex, potentially long-running or distributed computational tasks. |
 | `worker` (or `task worker`) | Commands to manage local worker pool (if exposed). | Visibility and control over local parallel processing resources. |
 | `ml` | Commands for managing and running local ML models via MLEngine. | Enables local AI inference, potentially improving privacy, cost, and offline capability. |
-| `auth` | Commands for managing keys, identity, and potentially authorization tokens (UCANs). | Secure management of credentials needed for various services. |
+| `auth`, `apikey` | Commands for managing keys, identity, and securely storing API keys. | Secure management of credentials needed for various services. |
 | `vector` | Commands for interacting with a vector database/index. | Enables semantic search and retrieval capabilities within the CLI. |
 
 **User Impact Summary:**
@@ -68,14 +69,14 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | Feature Area | Current Capability (Simplified) | Enhanced Capability | Key User Benefits |
 |--------------|---------------------------------|---------------------|-------------------|
 | **Model Management** | Select model by ID. | Select by capabilities, cost, context; registry management; provider abstraction; caching. | Smarter model usage, cost savings, better performance, easier addition of new models. |
-| **Configuration** | Flat key-value store. | Hierarchical loading (global/user/project); schema validation; env var overrides. | More flexible and robust configuration; clearer precedence. |
+| **Configuration** | Flat key-value store. | Hierarchical loading (global/user/project); schema validation; env var overrides; secure API key storage. | More flexible and robust configuration; clearer precedence; secure credential handling. |
 | **Task Processing** | Simple, likely synchronous execution. | Advanced asynchronous scheduling (Fibonacci Heap), decomposition (GoT), local parallelism (workers), potential distribution (Merkle Clock). | Handles complex, long-running tasks efficiently; improved performance for parallelizable work. |
 | **Tool System** | Fixed set of tools. | Extensible registry; potentially dynamic loading; better integration with Agent. | More flexible and powerful agent capabilities; easier to add custom tools. |
-| **Authentication** | Basic API key handling. | Secure credential storage (keychain); potential for DID/UCAN based identity and authorization. | Improved security for API keys and potential for decentralized auth. |
+| **Authentication** | Basic API key handling. | Secure credential storage (keychain via `ApiKeyManager`); potential for DID/UCAN based identity and authorization. | Improved security for API keys and potential for decentralized auth. |
 
 **User Impact Summary:**
-- Existing concepts become more powerful and flexible, but may require users to adjust how they configure or interact with them (e.g., model selection flags, config file structure).
-- Overall, provides more sophisticated control and better performance/efficiency.
+- Existing concepts become more powerful and flexible, but may require users to adjust how they configure or interact with them (e.g., model selection flags, config file structure, API key setup).
+- Overall, provides more sophisticated control and better performance/efficiency/security.
 
 ## 3. Terminal UI and Output Changes
 
@@ -92,13 +93,13 @@ This document analyzes the anticipated impact on end-users resulting from the in
 **User Impact Summary:**
 - Output becomes significantly more consistent, informative, and script-friendly (with JSON/YAML options).
 - Enhanced progress reporting improves the experience for long-running tasks.
-- Scripts parsing previous plain-text output might break and need updating to use structured formats or adapt to new text formats.
+- **Scripts parsing previous plain-text output might break** and need updating to use structured formats or adapt to new text formats.
 
 ### 3.2 Interactive Elements
 
 | UI Element | Current Implementation (Assumed) | New Implementation | User Benefit |
 |----------|----------------------------------|--------------------|--------------|
-| **Prompts** | Basic Node.js `readline` or simple prompts. | Use `inquirer` or similar libraries for complex prompts (lists, confirmations, multi-select). | More intuitive and user-friendly way to provide input for interactive commands. |
+| **Prompts** | Basic Node.js `readline` or simple prompts. | Use `inquirer` or similar libraries for complex prompts (lists, confirmations, multi-select, password input). | More intuitive and user-friendly way to provide input for interactive commands (e.g., setup, confirmations). |
 | **REPL Shell** | Likely non-existent. | Dedicated interactive shell (`swissknife shell`) with history, autocompletion. | Improved experience for exploratory or sequential command execution. |
 | **Autocompletion** | Likely non-existent. | Shell completion scripts (Bash, Zsh, Fish) generated via CLI framework. | Faster command input, reduced typos, better discoverability of commands/options. |
 
@@ -133,7 +134,7 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | **Local ML Inference** | High CPU/GPU/RAM usage during inference. Initial model download time/size. | Configurable resource limits (if feasible). Clear documentation of requirements. Progress indicators for downloads. Option to use API models instead. |
 | **IPFS Operations** | Network latency affecting command speed. Daemon resource usage (if running locally). | Caching in Storage Service. Clear feedback during network operations. User manages their own IPFS daemon/gateway configuration. |
 | **Complex TaskNet Workflows** | Overhead from scheduling, decomposition, GoT processing. | Efficient implementation of core TaskNet components. Optimization in Phase 5. |
-| **First Run / Initialization** | Initial setup (config, downloads) might take longer. | Streamlined onboarding process. Clear progress indication. |
+| **First Run / Initialization** | Initial setup (config, downloads, key generation) might take longer. | Streamlined onboarding process. Clear progress indication. |
 
 **User Impact Summary:**
 - While overall performance should improve, new features like local ML or complex TaskNet workflows introduce new potential resource demands.
@@ -149,12 +150,12 @@ This document analyzes the anticipated impact on end-users resulting from the in
 // Example old config.json
 {
   "default_model": "gpt-4",
-  "api_key_openai": "sk-...",
+  "api_key_openai": "sk-...", // Plaintext key - SECURITY RISK!
   "ipfs_gateway": "http://127.0.0.1:8080"
 }
 ```
 
-**New Format (Hierarchical JSON):**
+**New Format (Hierarchical JSON with Secure Storage):**
 ```json
 // Example new ~/.config/swissknife/config.json
 {
@@ -163,12 +164,10 @@ This document analyzes the anticipated impact on end-users resulting from the in
   },
   "providers": {
     "openai": {
-      // API key likely stored securely in keychain, not here
+      // API key stored securely in keychain/env var, NOT here.
       "defaultTemperature": 0.7
     },
-    "anthropic": {
-      // API key stored securely
-    }
+    "anthropic": { /* ... */ }
   },
   "storage": {
     "mounts": {
@@ -197,40 +196,14 @@ This document analyzes the anticipated impact on end-users resulting from the in
 ```
 
 **User Impact:**
-- **Migration Required:** Users *must* migrate their existing configuration (especially API keys) to the new structure and potentially secure storage (keychain).
+- **Migration Required:** Users *must* migrate their existing configuration (especially API keys) to the new structure and secure storage (keychain or env vars). Plaintext keys in old config files will no longer work and pose a security risk.
 - **Increased Complexity:** The new format is more complex but also more powerful and organized.
-- **Benefit:** Allows much finer-grained control over different components (models, storage backends, output).
-- **Mitigation:** Provide a `swissknife config migrate` command or clear documentation to assist users in transitioning their settings. Store sensitive keys securely by default.
-  "model": {
-    "default": "gpt-4",
-    "preferences": {
-      "speed": "gpt-3.5-turbo",
-      "quality": "claude-3-opus",
-      "cost": "local-small"
-    }
-  },
-  "output": {
-    "format": "text",
-    "verbose": true,
-    "color": true
-  },
-  "storage": {
-    "default": "local",
-    "ipfs": {
-      "gateway": "https://ipfs.io"
-    }
-  }
-}
-```
-
-**User Impact:**
-- More structured configuration allows for finer control
-- Backward compatibility maintains support for simple options
-- New hierarchical structure is more maintainable for complex settings
+- **Benefit:** Allows much finer-grained control over different components (models, storage backends, output) and significantly improves security for credentials.
+- **Mitigation:** Provide a `swissknife config migrate` command or clear documentation to assist users in transitioning their settings, especially API keys to secure storage (`apikey add` command).
 
 ### 5.2 Environment Variables
 
-*Focus shifts towards hierarchical config files, but key overrides via env vars remain useful.*
+*Focus shifts towards hierarchical config files and secure storage, but key overrides via env vars remain useful.*
 
 | Environment Variable | Purpose | Overrides Config Path | Notes |
 |----------------------|---------|-----------------------|-------|
@@ -238,14 +211,15 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | `SWISSKNIFE_NO_COLOR` / `NO_COLOR` | Disable colored output | `output.color` | Standard convention. |
 | `SWISSKNIFE_LOG_LEVEL` | Set logging level | `logging.level` (if exists) | e.g., `debug`, `info`. |
 | `DEBUG` | Enable debug namespaces | `N/A` | Standard Node.js `debug` library usage. |
-| `OPENAI_API_KEY` | Provide OpenAI Key | `providers.openai.apiKey` (if stored insecurely) | Standard practice. Prefer keychain/secure storage. |
-| `ANTHROPIC_API_KEY`| Provide Anthropic Key | `providers.anthropic.apiKey` | Standard practice. Prefer keychain. |
+| `OPENAI_API_KEY` | Provide OpenAI Key | (Read by `ApiKeyManager`) | Standard practice. Preferred over config file. |
+| `ANTHROPIC_API_KEY`| Provide Anthropic Key | (Read by `ApiKeyManager`) | Standard practice. Preferred over config file. |
+| `LILYPAD_API_KEY` / `ANURA_API_KEY` | Provide Lilypad Key | (Read by `ApiKeyManager`) | Standard practice. Preferred over config file. |
 | `IPFS_API_URL` | Set IPFS API URL | `storage.backends.ipfs-*.apiUrl` | Override default connection. |
 | `SWISSKNIFE_MAX_WORKERS` | Limit local worker threads | `tasks.workers.maxPoolSize` | Performance tuning. |
 
 **User Impact Summary:**
-- Environment variables provide a convenient way to override specific settings, especially in CI/CD or containerized environments.
-- Priority: Env Var > Project Config > User Config > Global Config > Defaults.
+- Environment variables provide a convenient way to override specific settings, especially for API keys and in CI/CD or containerized environments.
+- Priority: Env Var > Secure Storage (Keychain) > Project Config > User Config > Global Config > Defaults.
 - Secure handling of API keys via env vars requires careful environment management by the user.
 
 ## 6. Migration Complexity Assessment
@@ -255,14 +229,14 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | Impact Area | Migration Complexity | Notes & Mitigation |
 |-------------|----------------------|--------------------|
 | **Basic Command Usage** | Low | Aim for backward compatibility in common command syntax. Provide clear deprecation warnings if syntax changes. |
-| **Configuration Files** | High | Significant changes to structure and location. **Mitigation:** Provide `swissknife config migrate` tool and clear documentation. Prioritize secure key migration. |
+| **Configuration Files** | High | Significant changes to structure, location, and **API key handling**. **Mitigation:** Provide `swissknife config migrate` tool and/or `apikey add` command with clear documentation. Prioritize secure key migration. |
 | **Scripting (Parsing Output)** | Medium-High | Scripts parsing old plain-text output *will likely break*. **Mitigation:** Encourage users to switch scripts to use `--output json` or `--output yaml`. Maintain consistency in structured output formats. |
 | **Scripting (Command Arguments)** | Low-Medium | Changes are mostly additive (new options). Breaking changes to existing args should be minimized or handled via deprecation warnings. **Mitigation:** Document all changes clearly in release notes. |
 | **Environment Variables** | Low | Maintain support for key existing variables like API keys where sensible. Introduce new variables for new features. |
-| **Conceptual Understanding** | Medium | Users need to learn about VFS, TaskNet, GoT, etc. **Mitigation:** Provide clear conceptual documentation and tutorials. |
+| **Conceptual Understanding** | Medium | Users need to learn about VFS, TaskNet, GoT, secure API key storage, etc. **Mitigation:** Provide clear conceptual documentation and tutorials. |
 
 **User Impact Summary:**
-- The biggest migration hurdles are configuration files and scripts parsing plain-text output.
+- The biggest migration hurdles are configuration files (especially API keys moving to secure storage) and scripts parsing plain-text output.
 - Basic interactive usage should have a lower migration burden if command compatibility is maintained.
 - Clear communication, documentation, and migration tools are essential.
 
@@ -271,16 +245,17 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | Feature | Backward Compatible? | Notes & Strategy |
 |---------|----------------------|------------------|
 | **Core Command Syntax** | Mostly Yes | Strive to keep basic invocation (`command <arg>`) compatible. Add new options/subcommands non-breakingly where possible. |
-| **Configuration File** | No (Format Change) | Requires migration (manual or via tool). Old format will likely not be read correctly. |
-| **Output (Text)** | Partially | Default text output format may change for clarity/consistency. Scripts parsing text are brittle. |
+| **Configuration File** | **No (Format & Security Change)** | Requires migration (manual or via tool). Old format (especially plaintext keys) will not be read correctly and is insecure. |
+| **Output (Text)** | Partially | Default text output format may change for clarity/consistency. Scripts parsing text are inherently brittle. |
 | **Output (JSON/YAML)** | Yes (New Feature) | Introduce structured output as a *new*, stable interface for scripting. |
 | **Environment Variables** | Mostly Yes | Maintain support for critical existing vars (e.g., API keys). |
 | **Internal APIs** | N/A (Not User-Facing) | Internal refactoring is expected. |
 
 **User Impact Summary:**
-- Users relying on configuration files or parsing text output face the most significant migration effort.
+- Users relying on configuration files (especially for API keys) or parsing text output face the most significant migration effort.
 - Users primarily using basic interactive commands should experience fewer breaking changes.
 - The introduction of stable structured output (`--output json`) provides a more robust path for future scripting.
+- Moving API keys out of config files is a necessary security improvement.
 
 ## 7. Documentation and Training Needs
 
@@ -289,30 +264,31 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | Documentation Artifact | Required Update Level | Priority | Notes |
 |------------------------|-----------------------|----------|-------|
 | **README.md** | High | High | Update installation, quick start, core concepts overview, links. |
-| **Getting Started Guide** | High | High | Revise for new installation, configuration, and basic workflows. |
+| **Getting Started Guide** | High | High | Revise for new installation, configuration (esp. API keys), and basic workflows. |
 | **Command Reference** | High | High | Update *all* commands with new syntax, options, examples. Add new command sections. (Potentially auto-generate parts). |
-| **Configuration Guide** | Complete Rewrite | High | Detail the new hierarchical structure, scopes, env var precedence, secure key handling, migration steps. |
+| **Configuration Guide** | Complete Rewrite | High | Detail the new hierarchical structure, scopes, env var precedence, **secure key handling (`apikey add`)**, migration steps. |
+| **API Key Management Doc** | High | High | Dedicated document explaining secure key storage options (env var, keychain). |
 | **User Guides (Features)** | High (New/Rewrite) | Medium | Create guides for VFS, TaskNet, Local ML, Auth, etc. |
 | **Examples/Tutorials** | High | High | Provide practical examples covering common and new workflows. |
 | **Developer Docs (API Ref)** | High | Medium | Auto-generate from TSDoc. Add architectural overviews. |
 | **Contribution Guide** | Low | Low | Minor updates based on final tooling/process. |
 
 **User Impact Summary:**
-- Significant documentation effort is required across the board.
+- Significant documentation effort is required across the board, with a focus on configuration and API key migration.
 - Clear, accurate, and example-rich documentation is critical for user adoption and migration.
-- Prioritize user-facing documentation (README, Getting Started, Commands, Config).
+- Prioritize user-facing documentation (README, Getting Started, Commands, Config, API Keys).
 
 ### 7.2 Training Requirements
 
 | User Profile | Key Training Needs | Recommended Resources |
 |--------------|--------------------|-----------------------|
-| **New Users** | Basic installation, configuration (esp. API keys), core commands (`agent`, `file`, `ipfs`). | README, Getting Started Guide, Command Reference (basic examples). |
-| **Existing Basic Users** | Configuration migration, changes to familiar commands, basic VFS concepts. | Migration Guide, Updated Command Reference, Getting Started Guide. |
-| **Advanced Users / Scripters** | Hierarchical config, structured output (`--output json`), TaskNet concepts, VFS paths, new command suites. | Migration Guide, Full Command Reference, Feature Guides (VFS, TaskNet), Structured Output examples. |
+| **New Users** | Basic installation, **secure API key setup (`apikey add` or env vars)**, core commands (`agent`, `file`, `ipfs`). | README, Getting Started Guide, API Key Management Doc, Command Reference (basic examples). |
+| **Existing Basic Users** | **Configuration migration (esp. API keys)**, changes to familiar commands, basic VFS concepts. | Migration Guide (Config/API Key section), Updated Command Reference (Highlighting changes), Getting Started Guide. |
+| **Advanced Users / Scripters** | Hierarchical config, **secure API key setup**, structured output (`--output json`), TaskNet concepts, VFS paths, new command suites. | Migration Guide (Full), Structured Output Docs, Beta Program Access, Discussion Forums, API Key Management Doc. |
 | **System Integrators / Developers using as lib** | Updated internal APIs (if used directly), new service interfaces, TaskNet/GoT concepts. | API Reference (TSDoc), Architecture Docs, Developer Guides. |
 
 **User Impact Summary:**
-- Different user groups require different levels of guidance.
+- Provide clear pathways and resources tailored to different user needs, emphasizing the new secure API key handling.
 - A dedicated Migration Guide is crucial for existing users, especially those with custom configurations or scripts.
 - Clear examples are essential for all user types.
 
@@ -323,24 +299,25 @@ This document analyzes the anticipated impact on end-users resulting from the in
 | Test Area | Focus | Importance | Notes |
 |-----------|-------|------------|-------|
 | **Backward Compatibility (Commands)** | Verify common existing command syntax/behavior still works or provides clear deprecation warnings. | High | Reduces friction for existing users. Use E2E tests based on old usage patterns. |
-| **Configuration Migration** | Test the `config migrate` utility (if built) or manual migration steps with various old config formats. | High | Critical for smooth user transition. |
+| **Configuration Migration** | Test the `config migrate` utility (if built) or manual migration steps (especially for API keys using `apikey add`). | Critical | Essential for smooth user transition and security. |
 | **Script Compatibility (Output)** | Test structured output (`--output json`) for stability and correctness. Manually assess impact of text output changes. | Medium-High | JSON output provides a stable interface for scripts going forward. |
 | **New Feature Usability** | Validate new commands and workflows are intuitive and match documentation. | High | Requires manual testing, potentially user feedback (beta program). |
 | **Performance (User Perception)** | Verify startup time and key command responsiveness meet targets on representative hardware. | High | Directly impacts user satisfaction. Use benchmarks and manual testing. |
 | **Cross-Platform Experience** | Ensure installation and core functionality work consistently across Linux, macOS, Windows (WSL2). | High | Essential for broad adoption. Use CI matrix and manual testing. |
 
 **User Impact Summary:**
-- Rigorous testing focused on compatibility, migration, and usability is needed.
+- Rigorous testing focused on compatibility, migration (especially config/keys), and usability is needed.
 - A beta testing program involving real users would be highly beneficial to catch workflow issues and gather feedback on the changes.
 
 ### 8.2 Automated Testing
 
 | Test Type | Coverage Required | Implementation |
 |-----------|-------------------|----------------|
-| Unit Tests | High (90%+) | Jest for component testing |
-| Integration Tests | High (85%+) | End-to-end command testing |
+| Unit Tests | High (80%+) | Jest for component testing |
+| Integration Tests | High (85%+) | Jest, mocking external APIs |
+| E2E Tests | Medium-High | Jest + `child_process` helper for CLI commands |
 | Performance Tests | Moderate | Benchmark suite for key operations |
-| Compatibility Tests | High | Matrix testing across platforms |
+| Compatibility Tests | High | CI Matrix testing across platforms |
 
 **User Impact:**
 - Comprehensive testing ensures reliable operation
@@ -355,28 +332,28 @@ This document analyzes the anticipated impact on end-users resulting from the in
 
 | Phase | Duration (Example) | Focus | Target Audience | User Impact / Communication |
 |-------|--------------------|-------|-----------------|-----------------------------|
-| **Internal Alpha** | 1-2 Weeks | Core functionality testing, major bug fixing. | Development Team, Internal Stakeholders | Internal feedback, identify major blockers. |
-| **Private Beta** | 2-4 Weeks | Feature validation, workflow testing, documentation review, performance feedback. | Select group of trusted power users, existing script users. | Gather real-world feedback on usability, migration, bugs. Provide dedicated support channel. |
-| **Public Beta / RC** | 2-4 Weeks | Wider testing, bug fixing, final documentation polish, release candidate stabilization. | Public users willing to test pre-release software. | Broader feedback, final bug hunting. Clear communication about beta status and potential issues. |
+| **Internal Alpha** | 1-2 Weeks | Core functionality testing, major bug fixing, **config/key migration testing**. | Development Team, Internal Stakeholders | Internal feedback, identify major blockers, validate migration path. |
+| **Private Beta** | 2-4 Weeks | Feature validation, workflow testing, documentation review, performance feedback, **migration testing**. | Select group of trusted power users, existing script users. | Gather real-world feedback on usability, migration, bugs. Provide dedicated support channel. |
+| **Public Beta / RC** | 2-4 Weeks | Wider testing, bug fixing, final documentation polish, release candidate stabilization. | Public users willing to test pre-release software. | Broader feedback, final bug hunting. Clear communication about beta status, migration steps, and potential issues. |
 | **General Availability (GA)** | - | Official stable release. | All Users | Announce release, publish final documentation and migration guides. Provide standard support. |
 
 **User Impact Summary:**
 - A phased rollout allows gathering feedback and fixing issues before impacting all users.
-- Clear communication at each stage is vital to manage expectations.
+- Clear communication at each stage, especially regarding configuration/key migration, is vital.
 - Providing migration support during beta phases is crucial.
 
 ### 9.2 Adoption Strategy
 
 | User Group | Recommended Adoption Strategy | Key Support Resources |
 |------------|-------------------------------|-----------------------|
-| **New Users** | Start directly with the new integrated version. | Getting Started Guide, Tutorials, Command Reference. |
-| **Existing Basic Users** | Migrate configuration when comfortable; adapt to minor command changes as needed. Can likely continue basic workflows with minimal disruption initially. | Migration Guide (Config section), Updated Command Reference (Highlighting changes). |
-| **Advanced Users / Scripters** | Plan for migration. Test scripts against beta/RC releases. Update scripts to use structured output (`--output json`). Migrate configuration early. | Migration Guide (Full), Structured Output Docs, Beta Program Access, Discussion Forums. |
+| **New Users** | Start directly with the new integrated version. | Getting Started Guide, Tutorials, Command Reference, API Key Management Doc. |
+| **Existing Basic Users** | **Migrate configuration (esp. API keys using `apikey add` or env vars)** when upgrading. Adapt to minor command changes as needed. | Migration Guide (Config/API Key section), Updated Command Reference (Highlighting changes), Getting Started Guide. |
+| **Advanced Users / Scripters** | Plan for migration. Test scripts against beta/RC releases. **Update scripts to use structured output (`--output json`)**. Migrate configuration and API keys early. | Migration Guide (Full), Structured Output Docs, Beta Program Access, Discussion Forums, API Key Management Doc. |
 | **Enterprise / Integrated Systems** | Plan and test migration thoroughly in a staging environment before upgrading production systems. Coordinate with SwissKnife team if needed. | Full Documentation Set, Migration Guide, Potential Dedicated Support, Beta Program Access. |
 
 **User Impact Summary:**
-- Provide clear pathways and resources tailored to different user needs.
-- Emphasize the benefits of migrating (new features, performance) while acknowledging the effort required, especially for configuration and scripting.
+- Provide clear pathways and resources tailored to different user needs, emphasizing the new secure API key handling.
+- Emphasize the benefits of migrating (new features, performance, security) while acknowledging the effort required, especially for configuration and scripting.
 - Consider allowing parallel installation of old and new versions temporarily to ease migration.
 
 ## 10. Conclusion and Recommendations
@@ -387,12 +364,12 @@ This document analyzes the anticipated impact on end-users resulting from the in
 2. **Improved Performance & Efficiency:** Faster startup, better memory management (streaming), parallel execution for CPU-bound tasks via workers.
 3. **Enhanced User Experience:** More consistent command structure, richer terminal UI (progress, tables, colors), structured output options (JSON/YAML), improved help and error messages, interactive shell.
 4. **Robust Configuration:** Flexible and powerful hierarchical configuration system.
-5. **Improved Security:** Secure credential storage (keychain), clearer permission model considerations.
+5. **Improved Security:** Secure credential storage (keychain/env vars), clearer permission model considerations.
 6. **Maintainability:** A modern, unified TypeScript codebase is easier to maintain and extend long-term.
 
 ### 10.2 Potential User Concerns
 
-1. **Migration Effort:** Users *must* migrate configuration files. Scripts parsing plain text output *will likely break* and need updating (ideally to use JSON output).
+1. **Migration Effort:** Users *must* migrate configuration files, **especially API keys to secure storage**. Scripts parsing plain text output *will likely break* and need updating (ideally to use JSON output).
 2. **Learning Curve:** Significant new functionality (TaskNet, VFS, Local ML) requires users to learn new concepts and commands.
 3. **Resource Requirements:** New features like local ML inference may increase baseline resource (RAM, disk space for models) requirements compared to the previous version.
 4. **Potential Instability (Initially):** As with any major refactor/integration, early releases after the merge might have unforeseen bugs or stability issues despite testing.
@@ -400,8 +377,8 @@ This document analyzes the anticipated impact on end-users resulting from the in
 
 ### 10.3 Recommendations
 
-1. **Communicate Clearly & Early:** Inform users well in advance about the upcoming changes, benefits, potential breaking changes, and the migration path through release notes, blog posts, or documentation updates.
-2. **Provide Migration Tools/Guides:** Create a dedicated Migration Guide. Develop a `swissknife config migrate` command if feasible to automate configuration updates.
+1. **Communicate Clearly & Early:** Inform users well in advance about the upcoming changes, benefits, potential breaking changes, and the migration path (especially for API keys) through release notes, blog posts, or documentation updates.
+2. **Provide Migration Tools/Guides:** Create a dedicated Migration Guide. Develop a `swissknife config migrate` command if feasible to automate configuration updates, and ensure `apikey add` is user-friendly.
 3. **Prioritize Backward Compatibility (Where Sensible):** Maintain compatibility for the most common command syntaxes and arguments to minimize disruption for basic users. Use deprecation warnings before removal.
 4. **Offer Structured Output:** Emphasize the `--output json` flag as the stable interface for scripting to reduce future breakage.
 5. **Phased Rollout & Beta Program:** Use Alpha/Beta releases to gather feedback from advanced users and identify migration issues before GA.

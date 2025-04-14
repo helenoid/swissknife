@@ -8,108 +8,99 @@ The SwissKnife architecture combines all features into a cohesive, modular syste
 
 ### 1.1 Core Principles
 
-- **Unified Codebase**: All functionality is implemented in a single TypeScript codebase
-- **Domain-Driven Design**: Code is organized by domain rather than by source
-- **Clean Room Implementation**: All functionality is independently implemented following clean room methodology
-- **External API Integration**: The Python MCP server is the only externally integrated component
-- **TypeScript-First**: Leverage TypeScript's type system for robust, maintainable code
+- **Unified TypeScript Codebase**: All core application logic resides within a single, cohesive TypeScript project.
+- **Domain-Driven Design**: Code is organized into distinct functional domains (AI, Tasks, Storage, CLI, etc.) with clear boundaries and interfaces.
+- **Clean Room Implementation**: Functionality inspired by previous projects (Goose, IPFS Accelerate) is reimplemented independently in TypeScript, not directly translated. See [CLEAN_ROOM_IMPLEMENTATION.md](./CLEAN_ROOM_IMPLEMENTATION.md).
+- **API-Based External Integration**: External services, primarily the IPFS Kit MCP Server (Python), are interacted with via well-defined client APIs (e.g., HTTP), ensuring loose coupling.
+- **Node.js Native**: Designed specifically for the Node.js runtime environment, leveraging its capabilities for CLI applications.
+- **Type Safety**: Utilizes TypeScript's static typing for robustness and maintainability.
 
-### 1.2 High-Level Architecture
+### 1.2 High-Level Architecture Diagram
 
+```mermaid
+graph TD
+    subgraph SwissKnife CLI Application (TypeScript / Node.js)
+        A[CLI Interface (Ink/React)] --> B(Command System);
+        B --> C(Execution Context);
+        C --> D[AI Service (Agent, GoT)];
+        C --> E[Task Service (TaskNet)];
+        C --> F[Storage Service (VFS)];
+        C --> G[ML Service (Engine)];
+        C --> H[Config Service];
+        C --> I[Auth Service];
+        C --> J[MCP Client Service];
+        C --> K[Other Services...];
+
+        F --> L[IPFS Client];
+    end
+
+    L -- HTTP API Calls --> M((IPFS Kit MCP Server - External));
+    D -- API Calls --> N((AI Model APIs - External));
+
+    style M fill:#ddd, stroke:#333
+    style N fill:#ddd, stroke:#333
 ```
-┌───────────────────────────────────────────────────────────────────────────┐
-│                     SwissKnife Unified TypeScript Codebase                │
-│                                                                           │
-│  ┌────────────────┐  ┌────────────────┐  ┌────────────────────────────┐  │
-│  │    CLI/UI      │  │  Command       │  │  Model                      │  │
-│  │  (React/Ink)   │  │  System        │  │  Registry                   │  │
-│  └────────────────┘  └────────────────┘  └────────────────────────────┘  │
-│                                                                           │
-│  ┌────────────────┐  ┌────────────────┐  ┌────────────────────────────┐  │
-│  │  AI            │  │  ML            │  │  TaskNet                    │  │
-│  │  Capabilities  │  │  Acceleration  │  │  System                     │  │
-│  └────────────────┘  └────────────────┘  └────────────────────────────┘  │
-│                                                                           │
-│  ┌────────────────┐  ┌────────────────┐  ┌────────────────────────────┐  │
-│  │   Storage      │  │  Config        │  │  Worker                     │  │
-│  │   System       │  │  System        │  │  System                     │  │
-│  └────────────────┘  └────────────────┘  └────────────────────────────┘  │
-│                                                                           │
-└───────────────────────────────────┬───────────────────────────────────────┘
-                                    │
-                                    │ API-Based Integration
-                                    ▼
-┌───────────────────────────────────────────────────────────────────────────┐
-│                          IPFS Kit MCP Server (Python)                     │
-└───────────────────────────────────────────────────────────────────────────┘
-```
+*   The core application is a single TypeScript/Node.js process.
+*   Functionality is divided into services/domains accessed via an `ExecutionContext`.
+*   External dependencies like the IPFS Kit MCP Server and AI Model APIs are accessed via dedicated clients using network protocols (primarily HTTP).
 
 ## 2. Domain Organization
 
 The codebase is organized into focused domains that contain related functionality.
 
-### 2.1 Project Structure
+### 2.1 Project Structure Diagram
 
+```mermaid
+graph TD
+    subgraph Root
+        A(src/) --> B(ai/);
+        A --> C(auth/);
+        A --> D(cli/);
+        A --> E(commands/);
+        A --> F(components/);
+        A --> G(config/);
+        A --> H(constants/);
+        A --> I(entrypoints/);
+        A --> J(ml/);
+        A --> K(services/);
+        A --> L(storage/);
+        A --> M(tasks/);
+        A --> N(types/);
+        A --> O(utils/);
+        P(test/) --> Q(unit/);
+        P --> R(integration/);
+        P --> S(e2e/);
+        P --> T(helpers/);
+        P --> U(mocks/);
+        P --> V(fixtures/);
+        P --> W(plans/);
+        X(docs/) --> Y(phase1/);
+        X --> Z(phase2/);
+        X --> AA(phase3/);
+        X --> AB(phase4/);
+        X --> AC(phase5/);
+        X --> AD(architecture/);
+        X --> AE(guides/);
+        AF(scripts/);
+        AG(package.json);
+        AH(tsconfig.json);
+        AI(jest.config.cjs);
+        AJ(README.md);
+    end
+    # ... (Further breakdown omitted for brevity - see PROJECT_STRUCTURE.md) ...
+
+    style A fill:#def
+    style P fill:#def
+    style X fill:#def
+    style AF fill:#def
 ```
-/src
-├── ai/                      # AI capabilities (clean room implementation)
-│   ├── agent/               # Core agent functionality
-│   ├── tools/               # Tool system and implementations
-│   ├── models/              # Model providers and execution
-│   └── thinking/            # Enhanced thinking patterns
-│
-├── cli/                     # CLI and UI components
-│   ├── commands/            # Command definitions and registry
-│   ├── ui/                  # React/Ink components
-│   ├── screens/             # Screen definitions
-│   └── formatters/          # Output formatting
-│
-├── ml/                      # Machine learning acceleration
-│   ├── tensor/              # Tensor operations
-│   ├── optimizers/          # Model optimization
-│   ├── hardware/            # Hardware acceleration
-│   └── inference/           # Inference execution
-│
-├── tasks/                   # Task processing system
-│   ├── scheduler/           # Fibonacci heap scheduler
-│   ├── decomposition/       # Task decomposition
-│   ├── delegation/          # Task delegation
-│   └── graph/               # Graph-of-thought implementation
-│
-├── storage/                 # Storage systems
-│   ├── local/               # Local storage
-│   ├── ipfs/                # IPFS client integration with MCP server
-│   ├── cache/               # Multi-tier caching
-│   └── indexing/            # Content indexing
-│
-├── config/                  # Configuration system
-│   ├── schema/              # JSON schema definitions
-│   ├── persistence/         # Configuration persistence
-│   └── migration/           # Configuration migration
-│
-├── workers/                 # Worker thread system
-│   ├── pool/                # Worker pool management
-│   ├── queue/               # Task queuing
-│   └── execution/           # Task execution
-│
-├── utils/                   # Shared utilities
-│   ├── async/               # Async utilities
-│   ├── logging/             # Logging system
-│   ├── performance/         # Performance monitoring
-│   └── serialization/       # Data serialization
-│
-└── types/                   # Shared TypeScript types
-    ├── ai.ts                # AI-related types
-    ├── storage.ts           # Storage-related types
-    ├── task.ts              # Task-related types
-    └── config.ts            # Configuration types
-```
+*(Refer to [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for a detailed file/directory breakdown)*.
 
 ## 3. Core Systems
 
-### 3.1 AI Capabilities System
+### 3.1 AI Domain (`src/ai/`)
 
-The AI capabilities system provides agent functionality, tool execution, and intelligent processing:
+Provides agent functionality, tool execution, model interaction, and advanced reasoning (GoT):
 
 ```typescript
 // src/ai/agent/agent.ts
@@ -133,67 +124,104 @@ export class Agent {
   
   constructor(options: AgentOptions) {
     this.model = options.model;
-    this.toolExecutor = new ToolExecutor();
-    this.thinkingManager = new ThinkingManager();
-    
-    // Register tools if provided
-    if (options.tools) {
-      for (const tool of options.tools) {
-        this.registerTool(tool);
-      }
-    }
+    // Internal instances managed by the Agent
+    this.toolExecutor = new ToolExecutor(/* ... */);
+    this.thinkingManager = new ThinkingManager(/* ... */);
+    this.memory = new MessageMemory(/* ... */);
+
+    options.tools?.forEach(tool => this.registerTool(tool));
   }
-  
+
   registerTool(tool: Tool): void {
-    this.tools.set(tool.name, tool);
+    // Delegate registration to ToolExecutor
     this.toolExecutor.registerTool(tool);
   }
-  
-  async processMessage(message: string): Promise<string> {
-    // Implementation of message processing
-    return "Response";
+
+  async processMessage(message: string): Promise<AgentMessage> { // Returns AgentMessage
+    // 1. Add message to memory
+    // 2. Create/Update GoT graph via ThinkingManager
+    // 3. Process graph (may involve model calls via ThinkingManager/Model)
+    // 4. Identify needed tools via ThinkingManager
+    // 5. Execute tools via ToolExecutor
+    // 6. Process graph again with tool results
+    // 7. Generate final response via ThinkingManager
+    // 8. Add response to memory
+    // 9. Return final AgentMessage
+    const finalResponse: AgentMessage = { role: 'assistant', content: "Mocked Response" }; // Placeholder
+    return finalResponse;
   }
 }
 ```
 
-### 3.2 Machine Learning Acceleration
+### 3.2 ML Domain (`src/ml/`)
 
-The ML acceleration system provides tensor operations, hardware acceleration, and model optimization:
+Provides local machine learning model execution capabilities using Node.js bindings:
 
 ```typescript
-// src/ml/inference/engine.ts
-import { Tensor } from '../tensor/tensor';
-import { Model } from '../models/model';
-import { HardwareAccelerator } from '../hardware/accelerator';
+// src/ml/engine.ts (Conceptual)
+import type { Model } from '@/types/ai.js'; // Use shared type
+// Assume Tensor type and HardwareInfo type exist
 
-export class InferenceEngine {
-  private accelerator: HardwareAccelerator;
+export class MLEngine {
+  private hardwareInfo: HardwareInfo | null = null;
+  private loadedModels: Map<string, LoadedModel>; // Map modelId to loaded instance
   
   constructor() {
-    this.accelerator = HardwareAccelerator.detect();
+    this._detectHardware();
+    this.loadedModels = new Map();
   }
-  
-  async loadModel(modelData: Buffer): Promise<Model> {
-    // Implementation of model loading
-    return new Model(modelData);
+
+  private async _detectHardware(): Promise<void> {
+    // Use Node.js specific methods to detect CPU/GPU capabilities
+    this.hardwareInfo = { /* ... detected info ... */ };
   }
-  
-  async runInference(model: Model, input: Tensor): Promise<Tensor> {
-    // Implementation of inference execution
-    return new Tensor();
+
+  async loadModel(modelId: string, modelPath: string): Promise<LoadedModel> {
+    // Load model from path using appropriate Node.js runtime (ONNX, TFJS)
+    // Configure execution providers based on hardwareInfo
+    const loadedModel = { /* ... runtime session ... */ };
+    this.loadedModels.set(modelId, loadedModel);
+    return loadedModel;
+  }
+
+  async runInference(modelId: string, input: InputTensors): Promise<OutputTensors> {
+    const model = this.loadedModels.get(modelId);
+    if (!model) throw new Error(`Model ${modelId} not loaded.`);
+    // Execute inference using the loaded model runtime
+    const output = { /* ... results ... */ };
+    return output;
   }
 }
 ```
 
-### 3.3 Advanced Task System
+### 3.3 TaskNet System (`src/tasks/`)
 
-The task system provides sophisticated task scheduling, decomposition, and processing:
+Implements advanced task processing, scheduling, and coordination:
 
 ```typescript
-// src/tasks/scheduler/fibonacci-heap.ts
-export class FibonacciHeap<T> {
-  // Implementation of Fibonacci heap for priority queue
-  insert(item: T, priority: number): void {
+// src/tasks/scheduler/scheduler.ts (Conceptual)
+import { FibonacciHeap } from './fibonacci-heap.js';
+import { GoTEngine } from '../graph/graph-of-thought.js'; // Conceptual import
+import type { Task } from '@/types/tasks.js'; // Use shared type
+
+export class TaskScheduler {
+  private taskHeap: FibonacciHeap<Task>;
+  // ... other dependencies like DependencyManager
+
+  constructor() {
+    this.taskHeap = new FibonacciHeap<Task>();
+  }
+
+  scheduleTask(task: Task): void {
+    const priority = this._calculatePriority(task);
+    this.taskHeap.insert(priority, task);
+  }
+
+  getNextTask(): Task | null {
+    return this.taskHeap.extractMin();
+  }
+
+  private _calculatePriority(task: Task): number {
     // Implementation
   }
   
@@ -203,13 +231,45 @@ export class FibonacciHeap<T> {
   }
 }
 
-// src/tasks/manager.ts
-import { FibonacciHeap } from './scheduler/fibonacci-heap';
-import { GraphOfThought } from './graph/graph-of-thought';
+// src/tasks/manager.ts (Conceptual)
+import { TaskScheduler } from './scheduler/scheduler.js';
+import { TaskExecutor } from './execution/executor.js';
+import { DependencyManager } from './dependencies/manager.js';
+import type { Task, TaskResult, TaskCreationOptions } from '@/types/tasks.js';
 
 export class TaskManager {
-  private taskHeap: FibonacciHeap<Task>;
-  private graphManager: GraphOfThought;
+  constructor(
+    private scheduler: TaskScheduler,
+    private executor: TaskExecutor,
+    private dependencyManager: DependencyManager,
+    // ... other dependencies like StorageOperations
+  ) {}
+
+  async createTask(options: TaskCreationOptions): Promise<Task> {
+    // 1. Create Task object
+    // 2. Register dependencies with DependencyManager
+    // 3. Schedule task with TaskScheduler if ready, otherwise mark pending
+    const task: Task = { id: 'task-id', ...options, status: 'Pending' }; // Placeholder
+    return task;
+  }
+
+  async getTask(taskId: string): Promise<Task | undefined> {
+    // Retrieve task state
+    return undefined;
+  }
+
+  async getTaskResult(taskId: string): Promise<any> {
+    // Retrieve task result (potentially from storage)
+    return null;
+  }
+
+  // Methods to update task status, handle completion/failure etc.
+}
+```
+
+### 3.4 Storage System (`src/storage/`) & IPFS Client
+
+Provides a Virtual Filesystem (VFS) abstraction over backends like local disk and IPFS. The IPFS backend uses a client to communicate with an external IPFS node/server (like IPFS Kit MCP Server).
   
   constructor() {
     this.taskHeap = new FibonacciHeap<Task>();
@@ -228,252 +288,154 @@ export class TaskManager {
 }
 ```
 
-### 3.4 IPFS Kit MCP Server Integration
-
-The IPFS Kit MCP Server is integrated through a client API:
-
 ```typescript
-// src/storage/ipfs/mcp-client.ts
-import axios from 'axios';
+// src/storage/ipfs/ipfs-client.ts (Conceptual - replaces mcp-client.ts example)
+import axios, { AxiosInstance } from 'axios'; // Use specific types
+import type { StorageOperations } from '../operations.js'; // Example dependency
 
-export interface MCPClientOptions {
-  baseUrl: string;
+export interface IPFSClientOptions {
+  apiUrl: string; // e.g., http://127.0.0.1:5001
   timeout?: number;
-  authentication?: {
-    type: 'apiKey' | 'token';
-    value: string;
-  };
+  // Add auth if needed
 }
 
-export class MCPClient {
-  private options: MCPClientOptions;
-  private httpClient: any;
+// This client interacts with a standard IPFS Kubo HTTP API
+export class IPFSClient {
+  private options: Required<IPFSClientOptions>;
+  private httpClient: AxiosInstance;
   
-  constructor(options: MCPClientOptions) {
+  constructor(options: IPFSClientOptions) {
     this.options = {
       timeout: 30000, // 30 seconds default
-      ...options
+      ...options,
     };
+    if (!this.options.apiUrl) throw new Error("IPFS API URL is required.");
     
     this.httpClient = axios.create({
-      baseURL: this.options.baseUrl,
+      baseURL: this.options.apiUrl,
       timeout: this.options.timeout,
-      headers: this.getAuthHeaders()
     });
   }
+  // Note: Standard IPFS API usually doesn't require auth headers like Bearer tokens
   
-  private getAuthHeaders(): Record<string, string> {
-    // Implementation of authentication headers
-    return {};
+  // Example: Add content using IPFS API
+  async add(content: Buffer | string): Promise<{ cid: string }> {
+    const formData = new FormData();
+    const blob = content instanceof Blob ? content : new Blob([Buffer.from(content)]);
+    formData.append('file', blob);
+
+    const response = await this.httpClient.post('/api/v0/add', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return { cid: response.data.Hash };
   }
-  
-  // Content operations
-  async addContent(content: string | Buffer): Promise<{ cid: string }> {
-    // Implementation of content addition
-    return { cid: "example-cid" };
+
+  // Example: Get content using IPFS API
+  async cat(cid: string): Promise<Buffer> {
+     const response = await this.httpClient.post(`/api/v0/cat?arg=${cid}`, null, {
+        responseType: 'arraybuffer',
+     });
+     return Buffer.from(response.data);
   }
-  
-  async getContent(cid: string): Promise<Buffer> {
-    // Implementation of content retrieval
-    return Buffer.from("example");
-  }
+  // ... other IPFS API methods (pin, ls, dag, etc.)
 }
 ```
 
 ## 4. Integration Approach
 
-### 4.1 Direct TypeScript Integration
+### 4.1 Internal Integration (TypeScript)
 
-Components communicate directly through TypeScript imports and well-defined interfaces:
+Core components within the `src/` directory communicate directly through TypeScript imports and well-defined interfaces, managed via the `ExecutionContext` where appropriate. This allows for tight coupling and efficient in-process communication.
 
 ```typescript
-// src/cli/commands/model-command.ts
-import { CommandRegistry } from './registry';
-import { ModelRegistry } from '../../ai/models/registry';
-import { Agent } from '../../ai/agent/agent';
+// Example: CLI command using ModelRegistry service via context
+// src/commands/model.ts (Conceptual)
+import type { Command, CommandContext } from '@/types/cli.js'; // Adjust path
+import { ModelRegistry } from '@/ai/models/registry.js'; // Adjust path
 
-export function registerModelCommands() {
-  const modelRegistry = ModelRegistry.getInstance();
-  const commandRegistry = CommandRegistry.getInstance();
-  
-  commandRegistry.registerCommand({
-    id: 'model',
-    name: 'model',
-    description: 'Manage and use AI models',
-    subcommands: [
-      {
-        id: 'list',
-        name: 'list',
-        description: 'List available models',
-        handler: async (args, context) => {
-          const models = modelRegistry.getAllModels();
-          // Display models
-          return 0;
-        }
-      },
-      {
-        id: 'use',
-        name: 'use',
-        description: 'Set default model',
-        handler: async (args, context) => {
-          // Set default model
-          return 0;
-        }
-      }
-      // More model commands...
-    ],
-    handler: async (args, context) => {
-      // Model command implementation
-      return 0;
+const listModelsCommand: Command = {
+    name: 'list',
+    description: 'List available AI models',
+    async handler(context: CommandContext) {
+        const modelRegistry = context.getService(ModelRegistry); // Get service via context
+        const models = modelRegistry.getAvailableModels();
+        context.formatter.table(models, ['id', 'name', 'provider']); // Use formatter
+        return 0;
     }
-  });
-}
+};
+
+// Registration would happen elsewhere, e.g., in src/commands.ts
+// commandRegistry.registerCommand({ name: 'model', subcommands: [listModelsCommand] });
 ```
 
-### 4.2 Type-Safe Interfaces
+### 4.2 External Integration (IPFS Kit MCP Server)
 
-All cross-domain communication is based on well-defined TypeScript interfaces:
+The external Python-based IPFS Kit MCP Server is accessed via its HTTP API using the `IPFSClient` (or similar) within the Storage domain. This maintains loose coupling.
 
 ```typescript
-// src/types/storage.ts
-export interface StorageProvider {
-  add(content: Buffer | string): Promise<string>;
-  get(id: string): Promise<Buffer>;
-  list(): Promise<string[]>;
-  delete(id: string): Promise<boolean>;
-}
+// src/storage/backends/ipfs.ts (Conceptual)
+import type { StorageBackend } from '../backend.js';
+import type { IPFSClient } from '../ipfs/ipfs-client.js'; // The client interacting via HTTP
+import type { MappingStore } from './mapping-store.js'; // Assumed interface/class
 
-// src/storage/ipfs/ipfs-storage.ts
-import { StorageProvider } from '../../types/storage';
-import { MCPClient } from './mcp-client';
+export class IPFSBackend implements StorageBackend {
+    readonly id = 'ipfs';
+    readonly name = 'IPFS Storage';
+    readonly isReadOnly = false;
 
-export class IPFSStorage implements StorageProvider {
-  private client: MCPClient;
-  
-  constructor(options: any) {
-    this.client = new MCPClient(options);
-  }
-  
-  async add(content: Buffer | string): Promise<string> {
-    const result = await this.client.addContent(content);
-    return result.cid;
-  }
-  
-  async get(id: string): Promise<Buffer> {
-    return this.client.getContent(id);
-  }
-  
-  async list(): Promise<string[]> {
-    // Implementation
-    return [];
-  }
-  
-  async delete(id: string): Promise<boolean> {
-    // Implementation
-    return true;
-  }
+    constructor(
+        private ipfsClient: IPFSClient,
+        private mappingStore: MappingStore
+    ) {}
+
+    async readFile(relativePath: string): Promise<Buffer> {
+        const mapping = await this.mappingStore.get(relativePath);
+        if (!mapping?.cid) throw new Error(`Path not found in IPFS mapping: ${relativePath}`);
+        return this.ipfsClient.cat(mapping.cid); // Delegate to HTTP client
+    }
+
+    async writeFile(relativePath: string, data: Buffer | string): Promise<void> {
+        const { cid } = await this.ipfsClient.add(data); // Delegate to HTTP client
+        await this.mappingStore.set(relativePath, { cid }); // Update mapping
+    }
+
+    // ... other methods using ipfsClient and mappingStore ...
 }
 ```
-
-### 4.3 MCP Server API Integration
-
-The Python MCP server is integrated via a RESTful API and WebSockets:
-
-1. **REST API**: For standard operations
-   - Content addition/retrieval
-   - Metadata operations
-   - Configuration
-   
-2. **WebSocket API**: For real-time operations
-   - Progress updates
-   - Event notifications
-   - Streaming data
-
-3. **Content-Addressed Storage**: Using CIDs for referencing
-   - Content linking
-   - Deduplication
-   - Versioning
 
 ## 5. Implementation Strategy
 
-### 5.1 Implementation Phases
+### 5.1 Implementation Phases Summary
 
-The implementation will proceed in these phases:
+The project follows a phased approach (details in `docs/phaseX/` directories):
 
-#### Phase 1: Foundation & Architecture (2 weeks)
-- Create unified project structure
-- Implement core domain boundaries
-- Set up IPFS Kit MCP client
-- Establish type definitions
+1.  **Phase 1: Analysis & Planning**: Define architecture, map components, plan integration.
+2.  **Phase 2: Core Implementation**: Build foundational TypeScript services (AI, ML, Task, Storage, CLI).
+3.  **Phase 3: TaskNet Enhancement**: Implement advanced GoT, scheduling, coordination, decomposition/synthesis.
+4.  **Phase 4: CLI Integration**: Develop comprehensive CLI commands and workflows.
+5.  **Phase 5: Optimization & Finalization**: Performance tuning, caching, testing, documentation polish, release prep.
 
-#### Phase 2: Core Systems (4 weeks)
-- Implement AI capabilities system
-- Implement ML acceleration system
-- Implement task system
-- Implement storage system with MCP integration
+### 5.2 Testing Strategy Overview
 
-#### Phase 3: Integration & CLI (3 weeks)
-- Implement CLI command system
-- Create rich terminal UI
-- Add cross-system workflows
-- Implement configuration persistence
+Testing is crucial and follows a multi-layered approach using Jest:
 
-#### Phase 4: Polish & Release (2 weeks)
-- Add comprehensive documentation
-- Implement error handling and recovery
-- Create end-to-end tests
-- Optimize performance
+1.  **Unit Tests (`test/unit/`)**: Isolate and test individual classes/functions using mocks.
+2.  **Integration Tests (`test/integration/`)**: Test interactions between related internal services, mocking external boundaries (APIs, network).
+3.  **End-to-End Tests (`test/e2e/`)**: Test full CLI workflows by executing the application as a user would.
 
-### 5.2 Testing Strategy
+*(See [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) and [Phase 3 Test Plan](./test/plans/phase3_tasknet_test_plan.md) for more details)*.
 
-The unified codebase will be tested using:
+## 6. Benefits of this Architecture
 
-1. **Unit Tests**: For individual components and functions
-2. **Integration Tests**: For cross-domain functionality
-3. **End-to-End Tests**: For complete workflows
-4. **API Tests**: For MCP server integration
+This unified TypeScript architecture provides several advantages:
 
-```typescript
-// Example integration test
-describe('AI and Storage Integration', () => {
-  it('should store agent results in IPFS', async () => {
-    // Create agent
-    const agent = new Agent({
-      model: ModelRegistry.getInstance().getModel('gpt-4')
-    });
-    
-    // Create storage
-    const storage = new IPFSStorage({
-      baseUrl: 'http://localhost:8000'
-    });
-    
-    // Process message
-    const response = await agent.processMessage('Store this message');
-    
-    // Store in IPFS
-    const cid = await storage.add(response);
-    
-    // Retrieve and verify
-    const retrieved = await storage.get(cid);
-    expect(retrieved.toString()).toEqual(response);
-  });
-});
-```
-
-## 6. Benefits of the Unified Approach
-
-This reconceptualized approach offers numerous benefits:
-
-1. **Simplified Architecture**: Direct TypeScript integration reduces complexity
-2. **Improved Performance**: In-process communication for most components
-3. **Consistent Patterns**: Unified coding standards across all features
-4. **Maintainability**: Single codebase with clear domain boundaries
-5. **Type Safety**: Full TypeScript type checking across all components
-6. **Developer Experience**: Simplified debugging and development workflow
-7. **Clean Implementation**: Built from the ground up following clean room methodology
+1. **Maintainability**: A single language and consistent structure make the codebase easier to understand, modify, and debug.
+2. **Type Safety**: TypeScript catches many errors at compile time, reducing runtime bugs.
+3. **Performance**: Direct in-process communication between core TypeScript components is generally faster than cross-process or cross-language communication (like bridges).
+4. **Developer Experience**: Developers only need expertise in TypeScript/Node.js for most tasks. Unified tooling (build, test, lint) simplifies the workflow.
+5. **Modularity**: Domain-driven design promotes separation of concerns and allows domains to evolve independently.
+6. **Testability**: Clear interfaces and dependency injection (via context) facilitate unit and integration testing.
 
 ## 7. Conclusion
 
-The unified SwissKnife architecture creates a cohesive system that combines all capabilities into a single TypeScript codebase. By organizing code by domain rather than by source, we create a more maintainable and performant system while still leveraging the power of the Python MCP server through well-defined API integration.
-
-This approach simplifies development, reduces integration complexity, and provides a robust foundation for future enhancements.
+The unified SwissKnife architecture provides a robust, maintainable, and performant foundation by leveraging TypeScript and Node.js for core functionality while interacting with external services like the IPFS Kit MCP Server via standard API clients. Organizing the codebase by domain ensures modularity and scalability. This approach simplifies development compared to managing multiple codebases or complex language bridges.

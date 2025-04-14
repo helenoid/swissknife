@@ -1,6 +1,6 @@
 # Developer Guide: Working with SwissKnife CI/CD
 
-This guide helps developers understand how to work effectively with the SwissKnife CI/CD system in day-to-day development workflows.
+This guide helps developers understand the development workflow, project structure, testing strategy, and CI/CD system for the SwissKnife project.
 
 ## Development Workflow
 
@@ -19,13 +19,28 @@ graph LR
     I -->|Issues| B
 ```
 
+## Project Architecture Overview
+
+SwissKnife is built on a unified TypeScript architecture, integrating AI capabilities, advanced task management (TaskNet with GoT), ML acceleration, and a virtual filesystem with IPFS support. Key principles include clean-room implementation and a domain-driven structure.
+
+For detailed architecture, see:
+- [Unified Architecture](./UNIFIED_ARCHITECTURE.md)
+- [Project Structure](./PROJECT_STRUCTURE.md)
+- Phase-specific documentation:
+    - [Phase 1: Analysis & Planning](./phase1/)
+    - [Phase 2: Core Implementation](./phase2/)
+    - [Phase 3: TaskNet Enhancement](./phase3/)
+    - [Phase 4: CLI Integration](./phase4/)
+    - [Phase 5: Optimization & Finalization](./phase5/)
+
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v18.x or 20.x)
-- npm 
+- Node.js (v18 or higher recommended)
+- npm or pnpm (pnpm is recommended for managing dependencies via `pnpm-lock.yaml`)
 - Git
+- Bun (required for the build process: `npm install -g bun`)
 
 ### Setting Up Your Development Environment
 
@@ -37,7 +52,12 @@ graph LR
 
 2. Install dependencies:
    ```bash
-   npm ci
+   # Using pnpm (recommended)
+   pnpm install
+
+   # Using npm (may require --legacy-peer-deps depending on conflicts)
+   npm install --legacy-peer-deps
+   # or simply 'npm install' if no peer dependency issues
    ```
 
 3. Setup pre-commit hooks (optional but recommended):
@@ -64,7 +84,8 @@ As you develop, follow these practices:
 - Follow the code style guidelines
 - Write tests for your changes
 - Keep commits focused and with clear messages
-- Run tests regularly
+- Run tests regularly (`npm test` or `pnpm test`)
+- Keep up-to-date with the `main` branch (`git pull origin main` frequently)
 
 ### 3. Local Testing
 
@@ -81,10 +102,10 @@ npm run lint
 npm run typecheck
 
 # Run tests
-npm run test
+npm run test # Runs all tests (unit, integration, e2e)
 
-# Build 
-npm run build
+# Build (Requires Bun)
+bun run build
 
 # Verify build
 npm run test:verify-build
@@ -124,67 +145,85 @@ When your PR is approved:
 
 ## Working with Tests
 
-### Running Different Types of Tests
+The project uses **Jest** as the test runner.
+
+### Test Structure
+
+Tests are organized mirroring the `src/` structure within the `test/` directory:
+
+- **`test/unit/`**: Tests for individual modules/classes in isolation. Dependencies should be mocked using `jest.mock()`.
+- **`test/integration/`**: Tests interactions between multiple internal components/services. External dependencies (APIs, network) should be mocked.
+- **`test/e2e/`**: Tests complete user workflows by running the built CLI application (`dist/cli.mjs`) as a child process. Assert on stdout, stderr, exit codes, and file system side effects.
+- **`test/helpers/`**: Reusable test utilities (e.g., creating temp dirs, mocking env vars, capturing console output).
+- **`test/mocks/`**: Reusable mock implementations for complex dependencies.
+- **`test/fixtures/`**: Static data or functions to generate data for tests.
+- **`test/plans/`**: Detailed test plans (like [Phase 3 Test Plan](./test/plans/phase3_tasknet_test_plan.md)).
+
+### Running Tests
+
+Use npm or pnpm scripts:
 
 ```bash
-# Run all tests
+# Run all tests (unit, integration, e2e) defined in package.json "test" script
 npm test
+pnpm test
 
-# Run only unit tests
-npm run test:unit
-
-# Run only integration tests  
-npm run test:integration
-
-# Run only end-to-end tests
-npm run test:e2e
-
-# Run tests in watch mode (for development)
+# Run tests in watch mode during development
 npm run test:watch
+pnpm test:watch
+
+# Run specific test file(s)
+npx jest test/unit/ai/agent.test.ts
+pnpm test test/unit/ai/agent.test.ts
+
+# Run tests with coverage report
+npm run test:coverage
+pnpm test:coverage
 ```
+*(Note: Specific scripts like `test:unit`, `test:integration`, `test:e2e` might exist or can be added to `package.json`)*
 
 ### Writing Tests
 
-Place tests in the appropriate directories:
+- Use TypeScript (`.test.ts`, `.test.tsx`).
+- Use `describe`, `it` (or `test`), `beforeEach`, `afterEach`, `beforeAll`, `afterAll` blocks.
+- Use Jest's assertion library (`expect`).
+- Use `jest.mock()` for mocking dependencies.
+- Follow Arrange-Act-Assert structure within tests.
+- Use helpers and fixtures from `test/helpers/` and `test/fixtures/` to keep tests clean.
 
-- Unit tests: `test/unit/`
-- Integration tests: `test/integration/`
-- End-to-end tests: `test/e2e/`
+Example Unit Test Structure:
 
-Use the test utilities and mocks provided in:
-- `test/utils/`
-- `test/mocks/`
-- `test/fixtures/`
+```typescript
+// test/unit/utils/some-util.test.ts
+import { someUtilFunction } from '@/utils/some-util.js'; // Use .js extension
 
-Example of a good test:
+// Mock dependencies if needed
+jest.mock('@/config/manager.js', () => ({ /* ... mock ... */ }));
 
-```javascript
-// test/unit/example.test.js
-const { someFunction } = require('../../src/example');
-const { createTestHelper } = require('../utils/test-helpers');
-
-describe('someFunction', () => {
+describe('someUtilFunction', () => {
   beforeEach(() => {
-    // Setup
+    // Reset mocks
+    jest.clearAllMocks();
   });
 
-  test('should handle valid input correctly', () => {
+  it('should handle valid input correctly', () => {
     // Arrange
-    const input = { /* test data */ };
-    
+    const input = 'test';
+    const expectedOutput = 'TEST';
+
     // Act
-    const result = someFunction(input);
-    
+    const result = someUtilFunction(input);
+
     // Assert
-    expect(result).toEqual(/* expected output */);
+    expect(result).toBe(expectedOutput);
   });
 
-  test('should handle errors properly', () => {
+  it('should throw an error for invalid input', () => {
     // Arrange
-    const invalidInput = { /* invalid test data */ };
-    
+    const invalidInput = null;
+
     // Act & Assert
-    expect(() => someFunction(invalidInput)).toThrow();
+    expect(() => someUtilFunction(invalidInput as any)).toThrow('Invalid input');
   });
 });
 ```
@@ -210,8 +249,9 @@ npm run test:e2e
 npm run build
 npm run test:verify-build
 
-# Benchmarking
+# Benchmarking (if configured)
 npm run benchmark
+pnpm benchmark
 ```
 
 ### Testing Deployments Locally
@@ -267,19 +307,23 @@ For urgent fixes to production:
 
 ### Common CI Failures
 
-1. **Linting Errors**
-   - Run `npm run lint` locally to see detailed errors
-   - Fix style issues with `npm run format`
-
-2. **Test Failures**
-   - Check the CI logs for which tests failed
-   - Run the specific failing test locally
-   - Fix the issues and push changes
-
-3. **Build Failures**
-   - Check for TypeScript errors: `npm run typecheck`
-   - Verify dependencies are correctly installed: `npm ci`
-   - Try cleaning node_modules: `rm -rf node_modules && npm ci`
+1. **Linting/Formatting Errors**:
+   - Run `pnpm run format:check` and `pnpm run lint` locally.
+   - Fix automatically with `pnpm run format`.
+2. **Type Errors**:
+   - Run `pnpm run typecheck` locally.
+   - Resolve TypeScript errors in the code.
+3. **Test Failures**:
+   - Check the CI logs for details on failing tests.
+   - Run the specific failing test file locally using Jest (e.g., `npx jest test/unit/some.test.ts`).
+   - Debug the test or the code being tested.
+4. **Build Failures**:
+   - Check for TypeScript errors (`pnpm run typecheck`).
+   - Ensure all dependencies are installed correctly (`pnpm install`).
+   - Try a clean build: `pnpm run clean && bun run build`.
+5. **Module Resolution Errors (in Tests)**:
+   - As noted during refactoring, persistent errors like "Cannot find module" in `.ts` test files likely indicate a project configuration issue (`tsconfig.json` or `jest.config.cjs`) related to ES Module resolution or path aliases.
+   - **Solution**: This requires a developer to investigate and correct the Jest/TypeScript configuration to properly handle `.js` extensions in imports and path mappings. Ensure `moduleResolution` in `tsconfig.json` and Jest's `moduleNameMapper` and `transform` settings are correctly configured for ESM.
 
 ### Getting Help
 

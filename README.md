@@ -2,253 +2,207 @@
 
 ![SwissKnife Logo](https://github.com/user-attachments/assets/7a9253a7-8bb0-40d5-a3f3-5e6096d7c789)
 
-A powerful, terminal-based AI coding tool with unified architecture that combines agent capabilities, ML acceleration, advanced task processing, and IPFS integration into one cohesive TypeScript codebase.
+SwissKnife is a powerful, terminal-based AI toolkit built entirely in TypeScript for the Node.js environment. It provides a unified interface to interact with various AI models, manage complex tasks, interact with decentralized storage (IPFS), and extend capabilities via the Model Context Protocol (MCP).
 
 ## Key Features
 
-- **Unified TypeScript Codebase**: All components integrated into a single, seamless TypeScript codebase
-- **AI Agent Capabilities**: Clean room implementation of Goose features with advanced coding assistance
-- **ML Acceleration**: Hardware-accelerated machine learning integrated directly into the CLI
-- **Graph-of-Thought Processing**: Sophisticated reasoning with non-linear, graph-based problem solving
-- **Fibonacci Heap Scheduling**: Efficient task prioritization and management
-- **IPFS Kit Integration**: Content-addressable storage via the Python-based IPFS Kit MCP Server
-- **Rich Terminal UI**: Interactive, responsive CLI experience with advanced formatting
+- **Unified TypeScript Architecture**: A cohesive system built entirely in TypeScript, integrating AI, task management, storage, and CLI components. Follows clean room principles based on original Goose concepts. See [docs/UNIFIED_ARCHITECTURE.md](docs/UNIFIED_ARCHITECTURE.md).
+- **Advanced AI Agent**: Features sophisticated reasoning, tool usage, and memory management.
+- **Graph-of-Thought (GoT) Engine**: Enables complex problem decomposition and non-linear reasoning paths for advanced tasks.
+- **Enhanced TaskNet System**: Includes a high-performance Fibonacci Heap scheduler for dynamic task prioritization and Merkle Clock coordination for potential distributed task execution.
+- **ML Engine Integration**: Supports local ML model execution with hardware acceleration detection (via Node.js bindings like ONNX Runtime).
+- **Virtual Filesystem (VFS)**: Provides a unified interface over multiple storage backends, including local filesystem and IPFS.
+- **IPFS Integration**: Leverages content-addressable storage via an IPFS client (connecting to IPFS Kit MCP Server or other IPFS nodes) integrated into the VFS.
+- **Rich Terminal UI**: Consistent command structure, interactive prompts, progress indicators, and formatted output (including tables, JSON, YAML). Uses Ink/React for some components.
+- **Model Context Protocol (MCP)**: Can act as an MCP server and includes services for managing MCP server connections and tools.
 
-See our [Unified Integration Plan](unified_integration_plan.md) and [Unified Architecture Documentation](docs/UNIFIED_ARCHITECTURE.md) for more details.
+See our [Unified Architecture Documentation](docs/UNIFIED_ARCHITECTURE.md) for a high-level overview. Detailed phase documentation is available in the `/docs` directory.
 
-## HOW TO USE
+## Installation
 
-### Option 1: Install from NPM (stable release)
+### Prerequisites
+
+- **Node.js**: Version 18.x LTS (Required). We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage Node versions.
+- **pnpm**: Version 8.x or 9.x (Required). Install globally via `npm install -g pnpm`.
+- **Git**: Latest version.
+- **(Optional) Build Tools**: If installing native dependencies (e.g., for local ML models, keychain access) or building from source on some platforms, you may need:
+    - C++ Compiler (Build Tools for Visual Studio on Windows, Xcode Command Line Tools on macOS, `build-essential` on Debian/Ubuntu).
+    - Python (v3.8-v3.11) for `node-gyp`.
+    - `make`.
+    *(See [Development Environment Docs](docs/phase1/cli_dev_environment.md) for details)*
+
+### Option 1: Install from NPM (Recommended for Users)
+
+*(Assuming the package is published as `swissknife`)*
 
 ```bash
-npm install -g swissknife
-cd your-project
-kode
+# Install globally using pnpm
+pnpm add -g swissknife
+
+# Verify installation
+swissknife --version
 ```
 
-### Option 2: Install from source (latest development version)
+### Option 2: Install from Source (for Development/Latest)
 
 ```bash
-# Clone the repository
-git clone https://github.com/endomorphosis/swissknife.git
+# 1. Clone the repository
+git clone https://github.com/organization/swissknife.git # Replace with actual URL
 cd swissknife
 
-# Run the installer script (this will install dependencies, build, and install globally)
-./install.sh
-# OR
-npm run install-global
+# 2. Install dependencies
+pnpm install
 
-# Use the tool
-cd swissknife
+# 3. Build the project
+pnpm build
+
+# 4. Link the package globally for testing
+pnpm link --global
+
+# Verify installation
+swissknife --version
+
+# Or run directly during development without linking:
+pnpm dev -- --help
 ```
 
-## Installation by Operating System
+*(Note: The previous `install.sh` script seems outdated and relied on `bun` and `npm`. Using `pnpm` directly is preferred.)*
 
-### macOS
+## Quick Start
 
-1. Prerequisites:
-   - Install Node.js 18+ via [official website](https://nodejs.org/) or using homebrew: `brew install node`
-   - Make sure you have Git installed: `brew install git`
+1.  **Install:** Follow the installation instructions above.
+2.  **Configure API Keys:** Securely add API keys for AI providers:
+    ```bash
+    # Example for OpenAI (will prompt securely or use keychain)
+    swissknife apikey add openai <your-openai-api-key>
 
-2. Install from NPM:
-   ```bash
-   npm install -g anon-kode
-   cd your-project
-   kode
-   ```
+    # Or set environment variables (e.g., OPENAI_API_KEY)
+    export OPENAI_API_KEY="sk-..."
+    ```
+    See `docs/API_KEY_MANAGEMENT.md` for details.
+3.  **Basic Usage:**
+    ```bash
+    # Get help
+    swissknife --help
+    swissknife agent --help
 
-3. Or build from source:
-   ```bash
-   git clone https://github.com/endomorphosis/swissknife.git
-   cd swissknife
-   ./install.sh
-   ```
+    # Start an interactive chat
+    swissknife agent chat
 
-### Windows
+    # Execute a single prompt
+    swissknife agent execute "Write a TypeScript function to calculate factorial"
 
-1. Prerequisites:
-   - Install Node.js 18+ from the [official website](https://nodejs.org/)
-   - Install Git from [git-scm.com](https://git-scm.com/download/win)
-   - Consider using Windows Terminal for best experience
+    # Add a file to IPFS (assuming IPFS backend is configured)
+    echo "hello world" > hello.txt
+    swissknife ipfs add hello.txt
+    ```
+4.  **Explore Documentation:** See the `/docs` directory, starting with `docs/GETTING_STARTED.md` and `docs/CLI_GUIDE.md`.
 
-2. Install from NPM:
-   ```bash
-   npm install -g anon-kode
-   cd your-project
-   kode
-   ```
+## Project Phases Overview
 
-3. Or build from source (in PowerShell or Command Prompt):
-   ```bash
-   git clone https://github.com/endomorphosis/swissknife.git
-   cd swissknife
-   # On Windows, install dependencies and build manually:
-   npm install --legacy-peer-deps
-   npm install -g bun
-   bun run build
-   npm install -g . --force
-   ```
+The development and integration process is structured into five phases:
 
-### Linux
+1.  **Phase 1: Analysis & Planning**: Focused on analyzing source components, defining the CLI-first architecture, mapping components, and establishing integration strategies. See [Phase 1 Docs](./docs/phase1/).
+2.  **Phase 2: Core Implementation**: Building the foundational TypeScript implementations for key domains: AI Agent, ML Engine, Task System (basic scheduler/GoT structure), Storage System (VFS, IPFS Client), and CLI command system. See [Phase 2 Docs](./docs/phase2/).
+3.  **Phase 3: TaskNet Enhancement**: Implementing advanced task processing features, including the full Graph-of-Thought engine, Fibonacci Heap scheduler with dynamic prioritization, Merkle Clock coordination for distribution, and sophisticated task decomposition/synthesis logic. See [Phase 3 Docs](./docs/phase3/).
+4.  **Phase 4: CLI Integration**: Developing comprehensive CLI commands (`agent`, `ipfs`, `task`, `model`, etc.) to expose all backend functionality. Focuses on integrating components into seamless user workflows, shared context, and consistent error handling. See [Phase 4 Docs](./docs/phase4/).
+5.  **Phase 5: Optimization & Finalization**: Performance profiling and optimization, implementing caching strategies, completing comprehensive testing (unit, integration, E2E), finalizing all documentation, polishing the user experience, and preparing for release. See [Phase 5 Docs](./docs/phase5/).
 
-1. Prerequisites:
-   - Install Node.js 18+ via package manager or [NodeSource](https://github.com/nodesource/distributions)
-   - Example for Ubuntu/Debian:
-     ```bash
-     curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-     sudo apt-get install -y nodejs git
-     ```
+## Use as MCP Server
 
-2. Install from NPM:
-   ```bash
-   npm install -g anon-kode
-   cd your-project
-   kode
-   ```
+To run SwissKnife as an MCP server (e.g., for use with the Claude VS Code Extension):
 
-3. Or build from source:
-   ```bash
-   git clone https://github.com/endomorphosis/swissknife.git
-   cd swissknife
-   ./install.sh
-   ```
+1.  Find the full path to the compiled entry point (usually after `pnpm build`):
+    ```bash
+    # Example: Find where pnpm installed the global link or use the local build
+    which swissknife
+    # OR use the path within the project's dist folder:
+    # /path/to/swissknife/dist/cli.js
+    ```
+2.  Add the configuration to your MCP client settings (e.g., Claude VS Code Extension settings):
 
-The installer script will:
-- Check your Node.js version (requires Node.js 18+)
-- Install Bun if not already installed
-- Install dependencies with appropriate flags
-- Build the project
-- Install the tool globally
-- Create `swissknife` commands
-
-For more information, run `./install.sh --help`
-
-You can use the onboarding to set up the model, or `/model`.
-If you don't see the models you want on the list, you can manually set them in `/config`
-As long as you have an openai-like endpoint, it should work.
-
-## Advanced Features
-
-### Graph-of-Thought Reasoning
-
-SwissKnife implements advanced Graph-of-Thought reasoning that represents problem-solving as a directed acyclic graph (DAG) instead of a linear sequence. This enables:
-
-- Parallel exploration of multiple reasoning paths
-- Sophisticated problem decomposition
-- Dynamic reprioritization of tasks
-- Resilience against reasoning dead-ends
-
-Enable Graph-of-Thought with the `/got` command or in settings.
-
-### Fibonacci Heap Scheduler
-
-Our task scheduler uses a Fibonacci heap implementation for optimal task prioritization:
-
-- O(1) amortized insertion time
-- O(1) amortized decrease-key operations
-- Dynamic priority adjustment based on dependencies
-- Intelligent workload balancing
-
-### IPFS Integration
-
-SwissKnife directly integrates with the Python-based IPFS Kit MCP Server for:
-
-- Content-addressed storage
-- IPLD data structures
-- Persistent knowledge graphs
-- Multi-tier caching
-
-## USE AS MCP SERVER
-
-Find the full path to `swissknife` with `which swissknife` then add the config to Claude Desktop:
-
-```json
-{
-  "mcpServers": {
-    "claude-code": {
-      "command": "/path/to/swissknife",
-      "args": ["mcp", "serve"]
+    ```json
+    {
+      "mcpServers": {
+        "swissknife-local": {
+          "command": "node", // Use node to run the JS file
+          "args": [
+            "/path/to/swissknife/dist/cli.js", // Use the FULL path to the compiled cli.js
+            "mcp",
+            "serve"
+            // Add any other args needed for the serve command, like --port if applicable
+          ],
+          "env": {
+            // Add any necessary environment variables like API keys if not using keychain
+            // "OPENAI_API_KEY": "sk-..."
+          }
+        }
+      }
     }
-  }
-}
-```
+    ```
+    *Replace `/path/to/swissknife/dist/cli.js` with the actual path.*
 
 ## Developer Documentation
 
-### Project Structure
-
-SwissKnife follows a domain-driven directory structure:
-
-```
-/src
-├── ai/                      # AI capabilities
-│   ├── agent/               # Core agent functionality
-│   ├── tools/               # Tool system and implementations
-│   └── models/              # Model providers and execution
-├── cli/                     # CLI and UI components
-├── ml/                      # Machine learning acceleration
-├── tasks/                   # Task processing system with Graph-of-Thought
-├── storage/                 # Storage systems with IPFS integration
-└── utils/                   # Shared utilities
-```
-
-See [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for more details.
+-   **Getting Started:** [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+-   **Developer Guide:** [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)
+-   **Project Structure:** [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)
+-   **Architecture:** [docs/UNIFIED_ARCHITECTURE.md](docs/UNIFIED_ARCHITECTURE.md)
+-   **API Specifications:** [docs/phase1/api_specifications.md](docs/phase1/api_specifications.md)
+-   **Testing Strategy:** [docs/phase1/cli_test_strategy.md](docs/phase1/cli_test_strategy.md)
+-   **Contribution Guidelines:** [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
+-   **Phase Details:** See subdirectories within `/docs` (e.g., `docs/phase1/`, `docs/phase2/`).
 
 ### Development Workflow
 
 ```bash
-# Install dependencies
-pnpm i  # or npm install --legacy-peer-deps
+# Install dependencies (use pnpm)
+pnpm install
 
-# Make sure Bun is installed (required for build)
-# If not installed: npm install -g bun
+# Run in development mode (uses ts-node)
+pnpm dev -- [cli arguments]
+# Example: pnpm dev -- agent chat --verbose
 
-# Development (run in development mode)
-pnpm run dev  # or npm run dev
+# Run tests
+pnpm test
+pnpm test:watch
 
-# Build (creates the executable)
-bun run build
+# Build for production
+pnpm build
 
-# Install globally for testing
-npm run install-global  # or ./install.sh
+# Run compiled version
+pnpm start -- [cli arguments]
 ```
 
 Get more logs while debugging:
 ```bash
-NODE_ENV=development pnpm run dev --verbose --debug
-# or
-NODE_ENV=development npm run dev -- --verbose --debug
+# Set log level and/or debug namespaces
+export LOG_LEVEL=debug
+export DEBUG=swissknife:*
+pnpm dev -- --verbose
 ```
-
-### Workflow
-
-1. Make changes to the code
-2. Test locally with `pnpm run dev` or `npm run dev`
-3. Build with `bun run build`
-4. Install globally with `npm run install-global`
-5. Test the global installation with `swissknife`
 
 ## Bug Reporting
 
-You can submit a bug from within the app with `/bug`, which generates a detailed bug report for GitHub issues with information about your environment.
+Please report bugs using GitHub Issues. Use the `/bug` command within the app (if functional) or manually create an issue following the Bug Report template. Provide clear steps to reproduce, environment details, and any relevant logs.
 
 ## Privacy
 
-- No telemetry or backend servers other than the AI providers you choose
-- All data processing happens locally except for AI model inference
+-   SwissKnife primarily processes data locally.
+-   No telemetry is collected by default.
+-   Interaction with external AI providers is subject to their respective privacy policies. API keys are stored securely using your OS keychain or environment variables.
 
 ## Uninstallation
 
-To uninstall the tool:
-
 ```bash
-# Uninstall the global package
-npm uninstall -g swissknife
+# Uninstall the global package (if installed globally)
+pnpm remove -g swissknife
 
-# If you installed Bun just for this project and don't need it anymore
-npm uninstall -g bun
+# If installed from source, remove the cloned directory
+# cd ..
+# rm -rf swissknife
 ```
 
 ## License
 
-[License terms](LICENSE.md)
+Distributed under the [MIT License](LICENSE.md).

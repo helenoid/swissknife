@@ -6,21 +6,21 @@ This document specifies the recommended hardware, operating systems, runtime env
 
 ### 1.1 Hardware Recommendations
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| CPU | 2 cores | 4+ cores |
-| RAM | 4 GB | 8+ GB |
-| Storage | 2 GB free | 10+ GB free |
-| Network | Regular internet connection | High-speed internet connection |
+| Component | Minimum | Recommended | Notes |
+|-----------|---------|-------------|-------|
+| CPU | 2 cores | 4+ cores | More cores improve build/test times. |
+| RAM | 8 GB | 16+ GB | Node.js builds, TS Server, and running tests can be memory intensive. More RAM needed if running local ML models. |
+| Storage | 5 GB free SSD | 20+ GB free SSD | SSD strongly recommended for performance. Space needed for Node modules, build artifacts, potential local models/cache. |
+| Network | Stable internet connection | High-speed internet connection | Required for dependency downloads, API access, Git operations. |
 
 ### 1.2 Operating System Support
 
 | OS | Version | Support Level | Notes |
 |----|---------|--------------|-------|
-| Linux | Ubuntu 20.04+ / Debian 11+ / Fedora 36+ | Full | Primary development environment. |
-| Linux | Other recent major distributions | Good | Most features expected to work, but may require additional setup for native dependencies. |
-| macOS | 11.0 (Big Sur)+ (x64 & ARM64) | Full | Fully supported on both Intel and Apple Silicon. |
-| Windows | 10 / 11 (x64) | Good | **WSL2 (Windows Subsystem for Linux 2) is strongly recommended** for a consistent Linux-like environment, better performance, and easier native dependency management. Native Windows development is possible but may encounter more compatibility hurdles. |
+| Linux | Ubuntu 22.04+ / Debian 12+ / Fedora 38+ | **Primary** | Recommended development environment. Best support for native dependencies. |
+| Linux | Other recent major distributions | Good | Most features expected to work, but may require additional setup for native dependencies (compilers, Python). |
+| macOS | 12.0 (Monterey)+ (x64 & ARM64) | **Primary** | Fully supported on both Intel and Apple Silicon. Native dependencies generally work well. |
+| Windows | 10 / 11 (x64) | **Good (WSL2 Recommended)** | **WSL2 (Windows Subsystem for Linux 2) with Ubuntu is strongly recommended** for a consistent Linux-like environment, better performance, and easier native dependency management. Native Windows development is possible but may encounter more compatibility hurdles with paths and native builds. |
 
 ## 2. Runtime Environment
 
@@ -28,28 +28,28 @@ This document specifies the recommended hardware, operating systems, runtime env
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| Node.js | **18.x LTS** | **Primary target version.** Use `nvm` (Node Version Manager) or similar to manage versions. |
-| Node.js | 20.x LTS | Secondary supported version. Ensure compatibility. |
-| npm | Bundled with Node.js | Used for installing global tools like `pnpm`. |
-| **pnpm** | **^8.x** | **Preferred package manager** for managing dependencies via `pnpm install`. Ensures efficient disk usage and consistent installs. |
-| yarn | 1.22+ / Berry | Supported if necessary, but `pnpm` is preferred. |
+| Node.js | **18.x LTS** | **Primary target version.** Use `nvm` (Node Version Manager) or similar to manage versions. Ensure consistency across the team. |
+| Node.js | 20.x LTS | Secondary supported version. Ensure compatibility via CI testing. |
+| npm | Bundled with Node.js | Used *only* for installing `pnpm` globally. |
+| **pnpm** | **^8.x or ^9.x** | **Required package manager** for managing dependencies via `pnpm install`. Ensures efficient disk usage and consistent installs via lockfile (`pnpm-lock.yaml`). |
 
-### 2.2 Python Requirements (for Neural Network Integration)
+### 2.2 Python Requirements (Optional - Build Tools & ML)
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| Python | 3.9+ | For ML model utilities |
-| pip | 21.0+ | For Python dependencies |
-| virtualenv | 20.0+ | For Python environment isolation |
+| Python | 3.8 - 3.11 | Required by `node-gyp` for building native Node modules. Also needed if contributing to Python-based ML utilities or external components. Ensure it's in the system PATH. |
+| pip | Bundled | For installing Python packages if needed. |
+| virtualenv / venv | Recommended | For isolating Python environments if doing Python development. |
 
-### 2.3 Build Tools
+### 2.3 Build Tools (for Native Modules)
 
 | Component | Version | Purpose | Notes |
 |-----------|---------|---------|-------|
-| C++ Compiler | `gcc`/`g++` (Linux/macOS) or MS Visual C++ Build Tools (Windows) | 9.0+ / Latest | Required by `node-gyp` for compiling native Node.js modules. |
-| `make` | 4.0+ | Common build utility used by some native modules. | Often included with build tools. |
-| `node-gyp` | latest | Tool for compiling native addon modules for Node.js. Usually installed automatically with Node.js or npm/pnpm. | Ensure it's configured correctly (e.g., `npm config set msvs_version 2022` on Windows if needed). |
-| Python | 3.7+ | `node-gyp` requires Python for its build scripts. | Ensure Python is in the system PATH. |
+| C++ Compiler | `gcc`/`g++` (Linux/macOS) or MS Visual C++ Build Tools (Windows) | Latest stable | Required by `node-gyp` for compiling native Node.js modules (e.g., `keytar`, `onnxruntime-node`, `better-sqlite3`). Installation varies by OS. |
+| `make` | Latest stable | Common build utility used by some native modules. | Often included with build tools (e.g., `build-essential` on Debian/Ubuntu, Xcode Command Line Tools on macOS). |
+| `node-gyp` | latest | Tool for compiling native addon modules for Node.js. Usually installed automatically as a dependency of `pnpm` or native modules. | Ensure it's configured correctly (e.g., `pnpm config set python /path/to/python3`, `pnpm config set msvs_version 2022` on Windows if needed). |
+
+*Note: If only using pre-built binaries for native modules, these build tools might not be strictly necessary for all developers, but are required for CI and potentially for developers on less common platforms.*
 
 ## 3. Development Tools
 
@@ -57,13 +57,17 @@ This document specifies the recommended hardware, operating systems, runtime env
 
 | Tool | Version | Purpose | Notes |
 |------|---------|---------|-------|
-| Git | 2.30+ | Version control | Essential. |
-| Git LFS | 3.0+ | For managing large binary files (e.g., ML models if checked in) | Install via `git lfs install`. |
+| Git | 2.34+ | Version control | Essential. |
+| Git LFS | 3.0+ | For managing large binary files (e.g., ML models if checked in - **avoid if possible**) | Install via `git lfs install`. Check if project actually uses LFS. |
 | GitHub CLI (`gh`) | latest | Optional: For interacting with GitHub (PRs, issues) from the CLI | Useful for streamlined workflow. |
 
-**Git Configuration**:
+**Recommended Git Configuration**:
 ```bash
-git config --global core.autocrlf input
+# Ensure consistent line endings (check project's .gitattributes)
+git config --global core.autocrlf input # Linux/macOS
+# git config --global core.autocrlf true # Windows (if not using WSL2 primarily)
+
+# Optional: Simplify rebasing
 git config --global pull.rebase true
 git config --global rebase.autoStash true
 ```
@@ -72,29 +76,36 @@ git config --global rebase.autoStash true
 
 | Editor | Version | Notes |
 |--------|---------|-------|
-| **VS Code** | Latest | **Primary recommended editor** due to excellent TypeScript/Node.js support and extension ecosystem. |
-| JetBrains IDEs (WebStorm, IntelliJ IDEA Ultimate) | Latest | Supported alternative with good TypeScript support. |
-| Other editors (Vim, Neovim, Sublime Text, etc.) | - | Supported, provided they have robust TypeScript and ESLint/Prettier integration configured. |
+| **VS Code** | Latest | **Primary recommended editor** due to excellent TypeScript/Node.js support and extension ecosystem. Use with recommended extensions. |
+| JetBrains IDEs (WebStorm, IntelliJ IDEA Ultimate) | Latest | Supported alternative with good TypeScript support. Ensure ESLint/Prettier integration. |
+| Other editors (Vim, Neovim, Sublime Text, etc.) | - | Supported, provided they have robust TypeScript language server integration (for intellisense/errors) and ESLint/Prettier integration configured. |
 
-**VS Code Extensions**:
-- ESLint
-- Prettier
-- TypeScript and JavaScript Language Features
-- Jest Runner
-- EditorConfig
-- GitHub Pull Requests
-- Markdown All in One
+**VS Code Extensions (Recommended)**:
+- `dbaeumer.vscode-eslint` (ESLint)
+- `esbenp.prettier-vscode` (Prettier - Code formatter)
+- `vscode.typescript-language-features` (Built-in TS/JS support)
+- `orta.vscode-jest` (Jest Runner)
+- `EditorConfig.EditorConfig` (EditorConfig for VS Code)
+- `GitHub.vscode-pull-request-github` (GitHub Pull Requests and Issues)
+- `eamodio.gitlens` (GitLens — Git supercharged)
+- `yzhang.markdown-all-in-one` (Markdown All in One)
+- `ms-vscode-remote.remote-containers` (Dev Containers - Recommended)
 
-**VS Code Configuration**:
+**VS Code Workspace Settings (`.vscode/settings.json`)**:
 ```json
 {
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit" // Use "explicit" or true based on preference
   },
+  "typescript.tsdk": "node_modules/typescript/lib", // Use workspace version of TS
   "typescript.updateImportsOnFileMove.enabled": "always",
-  "javascript.updateImportsOnFileMove.enabled": "always"
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "eslint.validate": ["javascript", "typescript", "javascriptreact", "typescriptreact"],
+  "files.eol": "\n", // Enforce LF line endings
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true
 }
 ```
 
@@ -102,12 +113,12 @@ git config --global rebase.autoStash true
 
 | Tool | Version | Purpose | Notes |
 |------|---------|---------|-------|
-| ESLint | ^8.x | Static code analysis, enforcing coding style | Configured via `.eslintrc.js`. |
-| Prettier | ^2.x / ^3.x | Automatic code formatting | Configured via `.prettierrc`. Integrated with ESLint. |
-| TypeScript | ^5.x | Language, type checking | Configured via `tsconfig.json`. |
-| Jest | ^29.x | Unit and integration testing framework | Configured via `jest.config.js`. |
-| Husky | ^8.x | Git hooks management (e.g., pre-commit) | Configured in `package.json` or `.husky/`. |
-| lint-staged | ^13.x | Run linters/formatters on staged files before commit | Configured in `package.json`. Used with Husky. |
+| ESLint | ^8.x | Static code analysis, enforcing coding style | Configured via `.eslintrc.js`. Run via `pnpm lint`. |
+| Prettier | ^3.x | Automatic code formatting | Configured via `.prettierrc`. Integrated with ESLint (`eslint-config-prettier`). Run via `pnpm format`. |
+| TypeScript | ^5.x | Language, type checking | Configured via `tsconfig.json`. Run via `pnpm typecheck` or `pnpm build`. |
+| Jest | ^29.x | Unit and integration testing framework | Configured via `jest.config.cjs`. Run via `pnpm test`. |
+| Husky | ^8.x / ^9.x | Git hooks management (e.g., pre-commit, pre-push) | Configured in `package.json` or `.husky/`. |
+| lint-staged | ^15.x | Run linters/formatters on staged files before commit | Configured in `package.json` or `.lintstagedrc.js`. Used with Husky pre-commit hook. |
 
 ## 4. Containerization
 
@@ -115,128 +126,141 @@ git config --global rebase.autoStash true
 
 | Component | Version | Purpose | Notes |
 |-----------|---------|---------|-------|
-| Docker Engine | 20.10+ | Container runtime | For running services (e.g., mock IPFS), build environments, or the dev container. |
-| Docker Compose | v2.x | Container orchestration | For defining and running multi-container setups (if needed). |
+| Docker Engine | 23.0+ | Container runtime | For running services (e.g., mock IPFS), build environments, or the dev container. |
+| Docker Compose | v2.15+ | Container orchestration | For defining and running multi-container setups (if needed, e.g., for integration tests). |
 | BuildKit | Enabled | Docker build feature | Should be enabled by default in recent Docker versions for faster, more efficient builds. |
 
 ### 4.2 Standard Images
 
 | Image | Purpose |
 |-------|---------|
-| `node:18-alpine` | Lightweight Node.js runtime |
-| `node:18` | Full Node.js environment |
-| `python:3.9-slim` | Python for ML tools |
+| `node:18-alpine` | Lightweight Node.js runtime for production containers. |
+| `node:18` / `node:18-bookworm` | Full Node.js environment for development/build containers. |
+| `python:3.9-slim` | Python environment if needed for build tools or external components. |
 
-### 4.3 Development Container
+### 4.3 Development Container (Recommended)
 
-A `.devcontainer/devcontainer.json` configuration is provided for use with VS Code Dev Containers or GitHub Codespaces, ensuring a fully pre-configured and consistent Linux-based environment.
+A `.devcontainer/devcontainer.json` configuration is provided for use with VS Code Dev Containers or GitHub Codespaces. This ensures a fully pre-configured and consistent Linux-based development environment with all necessary tools (Node.js, pnpm, Python, build tools, VSCode extensions) pre-installed. **Using the Dev Container is the recommended way to ensure consistency.**
 
 ```json
 // .devcontainer/devcontainer.json (Example Snippet)
 {
   "name": "SwissKnife Dev Container",
-  // Use a base image with Node.js pre-installed
+  // Use a pre-built image with Node.js and essential tools
   "image": "mcr.microsoft.com/devcontainers/typescript-node:18", // Specify Node 18 LTS
 
-  // Add features needed for development (e.g., Python, Docker, GitHub CLI)
+  // Add features needed for development (e.g., Python, Docker, GitHub CLI, common utils)
   "features": {
-    "ghcr.io/devcontainers/features/python:1": { // Example Python feature
+    "ghcr.io/devcontainers/features/common-utils:2": { // Installs git, curl, etc.
+        "installZsh": "false",
+        "configureZshAsDefaultShell": "false"
+    },
+    "ghcr.io/devcontainers/features/python:1": { // For node-gyp
       "version": "3.9"
     },
-    "ghcr.io/devcontainers/features/github-cli:1": {}, // Example GitHub CLI
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {} // If Docker needed inside container
+    "ghcr.io/devcontainers/features/github-cli:1": {}, // Optional GitHub CLI
+    // Add features for native dependencies if needed, e.g., specific build tools
+    // "ghcr.io/rockylinux-mirror/rockylinux:9": {} // Example for specific OS base if needed
   },
 
-  // Forward necessary ports (if running services)
+  // Forward necessary ports (if running services like mock servers)
   // "forwardPorts": [3000],
 
   // Set container environment variables if needed
   // "containerEnv": { "MY_VARIABLE": "value" },
 
-  // Run commands after container is created
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y build-essential || echo 'apt failed, continuing...' && pnpm install && pnpm husky install",
+  // Run commands after container is created (install pnpm, dependencies, husky)
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y build-essential python3-dev || echo 'apt failed, continuing...' && npm install -g pnpm && pnpm install && pnpm husky install",
 
   // Configure VS Code settings and extensions within the container
   "customizations": {
     "vscode": {
       "settings": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        // ... other settings ...
+        // Settings from .vscode/settings.json will often be picked up automatically
+        // Add any container-specific overrides here
       },
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "orta.vscode-jest", // Jest runner
-        "ms-vscode.vscode-typescript-next", // Use workspace TS version
-        "github.vscode-pull-request-github",
-        "eamodio.gitlens", // GitLens
-        "yzhang.markdown-all-in-one" // Markdown utilities
+        "orta.vscode-jest",
+        "EditorConfig.EditorConfig",
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "yzhang.markdown-all-in-one",
+        "ms-vscode-remote.remote-containers" // Dev Containers extension itself
         // Add other useful extensions
       ]
     }
   },
 
-  // Use non-root user
+  // Use non-root user provided by the base image
   "remoteUser": "node"
 }
 ```
 
 ## 5. Environment Setup
 
-Steps to set up the development environment manually (if not using Dev Containers).
+Steps to set up the development environment manually (if **not** using Dev Containers).
 
 ### 5.1 Initial Setup Steps
 
-1.  **Install Node.js:** Install Node.js LTS version 18.x. Using a version manager like `nvm` is highly recommended:
+1.  **Install Git:** Ensure Git is installed and configured.
+2.  **Install Node.js:** Install Node.js LTS version 18.x. Using a version manager like `nvm` is highly recommended:
     ```bash
+    # Example using nvm
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     nvm install 18
     nvm use 18
     nvm alias default 18
     ```
-2.  **Install pnpm:** Install the preferred package manager globally:
+3.  **Install pnpm:** Install the required package manager globally:
     ```bash
     npm install -g pnpm
     ```
-3.  **Install Build Tools:** Ensure necessary build tools (C++ compiler, make, Python 3) are installed for native module compilation (refer to `node-gyp` documentation for platform specifics).
-4.  **Clone Repository:** Clone the SwissKnife repository:
+4.  **Install Build Tools:** Ensure necessary build tools (C++ compiler, make, Python 3.8+) are installed for native module compilation (refer to `node-gyp` documentation and library requirements for platform specifics).
+    *   **Ubuntu/Debian:** `sudo apt-get update && sudo apt-get install -y build-essential python3`
+    *   **macOS:** Install Xcode Command Line Tools (`xcode-select --install`). Ensure Python 3 is available.
+    *   **Windows:** Install "Desktop development with C++" workload from Visual Studio Installer (includes MSVC) and Python 3 from python.org or Microsoft Store. Configure npm/pnpm: `pnpm config set msvs_version 2022` (or appropriate year), `pnpm config set python C:\path\to\python.exe`.
+5.  **Clone Repository:** Clone the SwissKnife repository:
     ```bash
-    git clone https://github.com/organization/swissknife.git
+    git clone https://github.com/organization/swissknife.git # Replace with actual URL
     cd swissknife
     ```
-5.  **Install Dependencies:** Install project dependencies using pnpm:
+6.  **Install Dependencies:** Install project dependencies using pnpm:
     ```bash
     pnpm install
     ```
-6.  **Setup Git Hooks:** Initialize Husky git hooks:
+7.  **Setup Git Hooks:** Initialize Husky git hooks:
     ```bash
     pnpm husky install
     ```
-7.  **Build Project:** Perform an initial build:
+8.  **Build Project:** Perform an initial build to generate JavaScript files:
     ```bash
     pnpm build
     ```
-8.  **Environment Variables:** Create a `.env.local` file (copied from `.env.example`) for local environment variables (API keys, etc.). **Do not commit `.env.local`**.
+9.  **Environment Variables:** Create a `.env` file (copied from `.env.example`) for local environment variables (API keys, etc.). **Do not commit `.env`**.
     ```bash
-    cp .env.example .env.local
-    # Edit .env.local with your specific settings/keys
+    cp .env.example .env
+    # Edit .env with your specific settings/keys
     ```
-9.  **(Optional) Install Editor Extensions:** Install recommended VS Code extensions listed in Section 3.2.
-
-*Note: The `setup-dev.sh` script mentioned previously could automate some of these steps.*
+10. **(Optional) Install Editor Extensions:** Install recommended VS Code extensions listed in Section 3.2.
 
 ### 5.2 Environment Variables
 
-Key environment variables used during development (typically set in `.env.local` which is gitignored):
+Key environment variables used during development (typically set in `.env` which is gitignored):
 
 | Variable | Purpose | Example Value | Notes |
 |----------|---------|---------------|-------|
 | `NODE_ENV` | Sets runtime environment | `development` | Affects logging, potentially other behaviors. Use `test` for testing. |
 | `LOG_LEVEL` | Controls logging verbosity | `debug` | e.g., `error`, `warn`, `info`, `debug`, `trace`. |
 | `DEBUG` | Enables specific debug namespaces | `swissknife:*` | For use with the `debug` library. |
-| `OPENAI_API_KEY` | API Key for OpenAI | `sk-...` | Loaded by config/credential manager. **Do not commit.** |
-| `ANTHROPIC_API_KEY` | API Key for Anthropic | `sk-ant-...` | Loaded by config/credential manager. **Do not commit.** |
-| `IPFS_API_URL` | URL for IPFS Kit Server | `http://localhost:5001` | Loaded by config. |
+| `OPENAI_API_KEY` | API Key for OpenAI | `sk-...` | Loaded by `ApiKeyManager`. **Do not commit.** |
+| `ANTHROPIC_API_KEY` | API Key for Anthropic | `sk-ant-...` | Loaded by `ApiKeyManager`. **Do not commit.** |
+| `LILYPAD_API_KEY` | API Key for Lilypad | `your-key` | Loaded by `ApiKeyManager`. **Do not commit.** |
+| `ANURA_API_KEY` | Alternative API Key for Lilypad | `your-key` | Loaded by `ApiKeyManager`. **Do not commit.** |
+| `IPFS_API_URL` | URL for IPFS Kit Server API | `http://localhost:5001` | Loaded by `ConfigManager`. |
 | `SWISSKNIFE_CONFIG_DIR` | Override default config dir | `/path/to/alt/config` | Optional override. |
 | `SWISSKNIFE_CACHE_DIR` | Override default cache dir | `/path/to/alt/cache` | Optional override. |
 
@@ -244,23 +268,26 @@ Key environment variables used during development (typically set in `.env.local`
 
 ## 6. Build System
 
-### 6.1 Build Scripts
+### 6.1 Build Scripts (`package.json`)
 
-| Script (`package.json`) | Purpose |
-|-------------------------|---------|
-| `pnpm build` | Compile TypeScript to JavaScript (`dist` folder) for production. |
-| `pnpm build:dev` | Compile TypeScript with source maps for development/debugging. |
-| `pnpm watch` | Run `tsc` in watch mode for continuous compilation during development. |
-| `pnpm clean` | Remove the `dist` directory and other build artifacts. |
-| `pnpm lint` | Run ESLint to check for code style issues and potential errors. |
-| `pnpm format` | Run Prettier to automatically format code. |
-| `pnpm test` | Run Jest test suite (unit, integration). |
-| `pnpm test:watch` | Run Jest in watch mode. |
-| `pnpm test:e2e` | Run End-to-End CLI tests (requires build). |
-| `pnpm test:cov` | Run tests and generate code coverage report. |
-| `pnpm start` | Run the compiled CLI from the `dist` folder (requires build). |
-| `pnpm dev` | Run the CLI directly using `ts-node` for development (no build needed). |
-| `pnpm husky install` | Setup Git hooks (run once after install). |
+| Script | Purpose | Notes |
+|-------------------------|---------|-------|
+| `pnpm build` | Compile TypeScript to JavaScript (`dist/`) for production. | Uses `tsc`. |
+| `pnpm build:dev` | Compile TypeScript with source maps for development/debugging. | Uses `tsc`. |
+| `pnpm watch` | Run `tsc` in watch mode for continuous compilation. | Useful during development. |
+| `pnpm clean` | Remove the `dist/` directory and other build artifacts. | Uses `rimraf` or similar. |
+| `pnpm lint` | Run ESLint to check for code style issues and potential errors. | Checks `src/` and `test/`. |
+| `pnpm format` | Run Prettier to automatically format code. | Formats `src/` and `test/`. |
+| `pnpm typecheck` | Run TypeScript compiler without emitting files to check types. | Uses `tsc --noEmit`. |
+| `pnpm test` | Run Jest test suite (unit, integration). | Runs all `*.test.ts` files. |
+| `pnpm test:watch` | Run Jest in watch mode. | Useful during TDD. |
+| `pnpm test:unit` | Run only unit tests (e.g., matching `test/unit/**/*.test.ts`). | Faster feedback loop. |
+| `pnpm test:integration` | Run only integration tests. | |
+| `pnpm test:e2e` | Run End-to-End CLI tests (requires build). | Runs tests in `test/e2e/`. |
+| `pnpm test:cov` | Run tests and generate code coverage report. | Uses Jest's `--coverage` flag. |
+| `pnpm start` | Run the compiled CLI from the `dist/` folder. | Requires `pnpm build`. Usage: `pnpm start -- <cli args>`. |
+| `pnpm dev` | Run the CLI directly using `ts-node` for development. | No build needed. Usage: `pnpm dev -- <cli args>`. |
+| `pnpm husky install` | Setup Git hooks (run once after install). | Installs hooks defined in `.husky/`. |
 
 ### 6.2 Build Configuration
 
@@ -270,26 +297,25 @@ TypeScript configuration (`tsconfig.json`): *Ensure alignment with Node.js versi
 // tsconfig.json (Key Settings)
 {
   "compilerOptions": {
-  "compilerOptions": {
-    "target": "ES2022", // Target modern Node.js versions
-    "module": "NodeNext", // Use modern Node.js module system
-    "moduleResolution": "NodeNext", // Module resolution strategy
-    "esModuleInterop": true, // Improve interoperability with CommonJS
+    "target": "ES2022", // Target modern Node.js versions (align with Node 18+)
+    "module": "NodeNext", // Use modern Node.js ES Module system
+    "moduleResolution": "NodeNext", // Module resolution strategy for NodeNext
+    "esModuleInterop": true, // Improve interoperability with CommonJS modules
     "sourceMap": true, // Generate source maps for debugging
-    "declaration": true, // Generate .d.ts files
+    "declaration": true, // Generate .d.ts files for type checking
     "declarationMap": true, // Generate source maps for .d.ts files
-    "strict": true, // Enable all strict type-checking options
-    "skipLibCheck": true, // Skip type checking of declaration files
-    "forceConsistentCasingInFileNames": true,
+    "strict": true, // Enable all strict type-checking options (recommended)
+    "skipLibCheck": true, // Skip type checking of declaration files (speeds up build)
+    "forceConsistentCasingInFileNames": true, // Prevent case-related import issues
     "outDir": "./dist", // Output directory for compiled JS
     "rootDir": "./src", // Root directory of source files
     "baseUrl": ".", // Base directory for path mapping
-    "paths": { // Path aliases
+    "paths": { // Path aliases for cleaner imports
       "@/*": ["src/*"]
     },
-    "lib": ["ES2022", "DOM"] // Include DOM lib for types used by some dependencies (like MCP SDK) even if not directly used
+    "lib": ["ES2022", "DOM"] // Include DOM lib for types used by some dependencies (like MCP SDK) even if not directly used in our code
   },
-  "include": ["src/**/*.ts"], // Files to include in compilation
+  "include": ["src/**/*.ts", "src/**/*.tsx"], // Files to include in compilation
   "exclude": ["node_modules", "dist", "test", "**/*.test.ts", "**/*.spec.ts"] // Files/dirs to exclude
 }
 ```
@@ -303,17 +329,17 @@ Key `package.json` settings:
 {
   "name": "swissknife",
   "version": "0.1.0", // Use Semantic Versioning
-  "type": "module", // Use ES Modules
+  "type": "module", // Use ES Modules (aligns with tsconfig)
   "engines": {
     "node": ">=18.0.0" // Specify minimum Node.js version
   },
   "bin": { // Define the CLI command
-    "swissknife": "./dist/cli.js"
+    "swissknife": "./dist/cli.js" // Points to the compiled entry point
   },
   "scripts": {
     // Build scripts (build, build:dev, watch, clean)
     // Linting & Formatting (lint, format)
-    // Testing (test, test:watch, test:e2e, test:cov)
+    // Testing (test, test:watch, test:unit, test:integration, test:e2e, test:cov)
     // Running (start, dev)
     // Git Hooks (prepare: husky install)
     // ... other scripts ...
@@ -327,15 +353,16 @@ Key `package.json` settings:
   "optionalDependencies": {
     // Native modules with platform fallbacks (keytar, onnxruntime-node-...)
   },
-  "files": [ // Files included in published package
-    "dist",
+  "files": [ // Files included when publishing to npm
+    "dist", // Compiled JavaScript output
     "README.md",
     "LICENSE"
+    // Add other necessary files (e.g., templates, schemas)
   ],
   "publishConfig": { // Optional: npm publish settings
     "access": "public"
-  }
-  // Lint-staged and Husky config might also be here
+  },
+  // Lint-staged and Husky config might also be here or in separate files
 }
 ```
 
@@ -354,40 +381,40 @@ Key `package.json` settings:
 
 ### 7.2 Test Configuration
 
-Jest configuration (`jest.config.js` or `jest.config.ts`):
+Jest configuration (`jest.config.cjs`):
 
-```typescript
-// jest.config.ts (Example)
-import type { Config } from 'jest';
-
-const config: Config = {
-  preset: 'ts-jest/presets/default-esm', // Use ESM preset for NodeNext modules
+```javascript
+// jest.config.cjs (Example for ESM project)
+/** @type {import('jest').Config} */
+const config = {
+  preset: 'ts-jest/presets/default-esm', // Use ESM preset
   testEnvironment: 'node',
+  extensionsToTreatAsEsm: ['.ts', '.tsx'], // Treat TS/TSX as ESM
   moduleNameMapper: {
     // Handle path aliases defined in tsconfig.json
     '^@/(.*)$': '<rootDir>/src/$1',
-    // Handle ESM module imports correctly if needed
+    // Handle potential issues with ESM module resolution if needed
     // Example: '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {
-    // Use ts-jest for TypeScript files
-    '^.+\\.tsx?$': [
+    // Use ts-jest for TypeScript files, ensuring ESM compatibility
+    '^.+\\.m?[tj]sx?$': [ // Match .ts, .tsx, .mts, .mjs, .js, .jsx
       'ts-jest',
       {
-        useESM: true, // Important for ESM
-        tsconfig: 'tsconfig.json', // Ensure it uses the correct tsconfig
+        useESM: true,
+        tsconfig: 'tsconfig.json',
       },
     ],
   },
-  extensionsToTreatAsEsm: ['.ts', '.tsx'], // Treat these as ESM
-  collectCoverage: true, // Enable coverage collection
-  coverageDirectory: 'coverage', // Output directory for reports
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
   coverageProvider: 'v8', // Use V8's built-in coverage
-  collectCoverageFrom: [ // Specify files to include in coverage
+  collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts', // Exclude declaration files
-    '!src/types/**', // Exclude type definitions
+    '!src/**/*.d.ts',
+    '!src/types/**',
     '!src/cli.ts', // Exclude main entry point if simple
+    '!src/entrypoints/**', // Exclude entry points
     '!**/node_modules/**',
     '!**/dist/**',
     '!**/test/**',
@@ -395,33 +422,39 @@ const config: Config = {
   testMatch: [ // Patterns for test files
     '**/test/unit/**/*.test.[jt]s?(x)',
     '**/test/integration/**/*.test.[jt]s?(x)',
-    // E2E tests might be run separately
+    // E2E tests might be run separately via a different config or script
   ],
   // setupFilesAfterEnv: ['./test/setup.ts'], // Optional setup file
   // testTimeout: 30000, // Increase timeout if needed
 };
 
-export default config;
+module.exports = config;
 ```
 
 ### 7.3 Test Organization
 
 ```
 test/
-├── unit/             # Unit tests
-│   ├── commands/     # Command tests
-│   ├── tools/        # Tool tests
-│   └── utils/        # Utility tests
-├── integration/      # Integration tests
-│   ├── api/          # API tests
-│   ├── cli/          # CLI tests
-│   └── storage/      # Storage tests
-├── e2e/              # End-to-end tests
-│   ├── scenarios/    # Test scenarios
-│   └── fixtures/     # Test fixtures
-└── mocks/            # Mock implementations
-    ├── services/     # Service mocks
-    └── data/         # Test data
+├── unit/             # Unit tests (mock all dependencies)
+│   ├── ai/
+│   ├── auth/
+│   ├── cli/
+│   ├── commands/
+│   ├── config/
+│   ├── storage/
+│   ├── tasks/
+│   └── utils/
+├── integration/      # Integration tests (mock external APIs only)
+│   ├── ai/
+│   ├── cli/
+│   ├── storage/
+│   └── tasks/
+├── e2e/              # End-to-end CLI tests (run compiled code)
+│   ├── commands/
+│   └── workflows/
+├── fixtures/         # Static test data (JSON, text files)
+├── mocks/            # Manual mock implementations (e.g., MockModelProvider)
+└── utils/            # Test helper functions (e.g., executeCli, generateTestData)
 ```
 
 ## 8. CI/CD Environment
@@ -433,9 +466,9 @@ test/
 | `ci.yml` | `pull_request` to `main`/`develop` | Core validation | Lint, Type Check, Build, Unit Tests, Integration Tests (Primary OS) |
 | `main.yml` | `push` to `main`/`develop` | Full validation & Coverage | Lint, Type Check, Build, Unit/Integration/E2E Tests (Matrix: Linux, macOS, Win), Coverage Upload |
 | `release.yml` | `push` tag `v*.*.*` | Create GitHub Release | Build Artifacts (Binaries/Installers), Generate Checksums, Upload Artifacts, Create Release Notes |
-| `publish.yml` | `release` published | Publish to npm | Download Artifacts (optional), `npm publish` |
+| `publish.yml` | `release` published | Publish to npm | Download Artifacts (optional), `pnpm publish` |
 
-Example CI workflow:
+Example CI workflow (`.github/workflows/ci.yml` snippet):
 
 ```yaml
 name: CI
@@ -448,43 +481,50 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Use matrix for cross-platform
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x] # Test primary LTS version
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2 # Setup pnpm
+        with:
+          version: 8 # Or 9
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - run: npm install -g pnpm
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-      - run: pnpm test
-      - name: Upload coverage
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      - run: pnpm test:integration
+      - run: pnpm build # Needed for E2E
+      - run: pnpm test:e2e
+      - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }} # Optional: for private repos
+          files: ./coverage/lcov.info # Specify coverage file
 ```
 
 ### 8.2 Continuous Integration Requirements
 
-- All tests must pass before merging
-- Code coverage must be at least 80%
-- ESLint must report no errors
-- TypeScript must compile without errors
-- Builds must succeed on all supported platforms
+- All tests (lint, typecheck, unit, integration, e2e) must pass before merging PRs.
+- Code coverage must meet or exceed the defined threshold (e.g., 80%).
+- Builds must succeed on all supported platforms defined in the matrix.
 
 ### 8.3 Release Process
 
-1. Create release branch `release/vX.Y.Z`
-2. Update version in `package.json`
-3. Update CHANGELOG.md
-4. Create PR and merge to main
-5. Tag with version `vX.Y.Z`
-6. CI automatically builds and publishes
+1. Create release branch `release/vX.Y.Z` from `develop`.
+2. Update version in `package.json` using `pnpm version patch|minor|major`.
+3. Update `CHANGELOG.md` with changes for the release.
+4. Create PR from `release/*` to `main` and `develop`.
+5. After merging to `main`, create a Git tag `vX.Y.Z`.
+6. Push the tag (`git push origin vX.Y.Z`).
+7. CI `release.yml` workflow triggers, builds artifacts, creates GitHub Release.
+8. CI `publish.yml` workflow triggers on release publication, publishes to npm.
 
 ## 9. Debugging Environment
 
@@ -500,26 +540,27 @@ VS Code debug configuration (`.vscode/launch.json`) for launching the CLI or run
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch CLI",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/node_modules/ts-node/dist/bin.js", // Use ts-node for direct TS execution
-      "args": ["${workspaceFolder}/src/cli.ts", /* Add CLI args here */ "agent", "chat"], // Example args
-      "runtimeArgs": ["--loader", "ts-node/esm"], // Needed for ESM with ts-node
+      "name": "Debug CLI (ts-node)",
+      "runtimeArgs": [
+        "--loader", "ts-node/esm" // Use ESM loader for ts-node
+      ],
+      "program": "${workspaceFolder}/src/cli.ts", // Point to TS entry point
+      "args": [ /* Add CLI args here, e.g., "agent", "chat" */ ],
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
       "sourceMaps": true,
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen" // Don't open separate debug console
+      "internalConsoleOptions": "neverOpen"
     },
     {
-      // Configuration to debug the currently open Jest test file
       "type": "node",
       "request": "launch",
-      "name": "Jest Current File",
+      "name": "Debug Current Jest File",
       "program": "${workspaceFolder}/node_modules/.bin/jest",
       "args": [
         "${fileBasenameNoExtension}", // Run only the current file
-        "--config", "jest.config.js",
-        "--runInBand" // Run tests serially in the same process for easier debugging
+        "--config", "jest.config.cjs", // Use cjs extension for Jest config
+        "--runInBand", // Run tests serially
+        "--no-cache" // Disable cache for debugging
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -553,7 +594,7 @@ const log = debug('swissknife:agent'); // Create namespaced logger
 
 // Usage
 log('Processing message with ID %s', messageId);
-if (config.verbose) { // Example conditional logging
+if (config.verbose) { // Example conditional logging based on app config
     log('Detailed context: %O', context);
 }
 ```
@@ -564,29 +605,14 @@ if (config.verbose) { // Example conditional logging
 
 | Tool | Version | Purpose | Notes |
 |------|---------|---------|-------|
-| TypeDoc | ^0.24+ | Generate API reference from TSDoc comments | Configured via `typedoc.json`. |
+| TypeDoc | ^0.25+ | Generate API reference from TSDoc comments | Configured via `typedoc.json`. |
 | `markdownlint-cli` | latest | Lint Markdown files for style consistency | Configured via `.markdownlint.jsonc`. |
+| Mermaid CLI (optional) | latest | Render Mermaid diagrams in CI/build | For validating diagrams. |
 | Static Site Generator | Optional | e.g., Docusaurus, MkDocs, Docsify | For hosting browsable documentation online. |
 
 ### 10.2 Documentation Structure
 
-```
-docs/
-├── api/              # API documentation (generated)
-├── guides/           # User guides
-│   ├── getting-started.md
-│   ├── commands.md
-│   └── advanced.md
-├── development/      # Developer documentation
-│   ├── contributing.md
-│   ├── architecture.md
-│   └── testing.md
-├── references/       # Reference documentation
-│   ├── cli.md
-│   ├── config.md
-│   └── api.md
-└── index.md          # Documentation home
-```
+*(See structure diagram in `cli_documentation_standards.md`)*
 
 ### 10.3 Documentation Generation
 
@@ -605,77 +631,84 @@ docs/
 
 ### 11.1 Dependency Policy
 
-- Direct dependencies must specify exact versions or compatible ranges
-- Development dependencies should use ^ for minor version flexibility
-- Major version upgrades require explicit approval
-- All dependencies must pass security audit
+- Use `pnpm` for package management.
+- Keep `pnpm-lock.yaml` checked into Git.
+- Specify compatible ranges (`^` or `~`) for most dependencies in `package.json`. Use exact versions only if necessary.
+- Regularly update dependencies (`pnpm update`) and audit for vulnerabilities (`pnpm audit`).
+- Major version upgrades require careful testing and coordination.
 
 ### 11.2 Recommended Libraries
 
-| Category | Recommended Libraries | Notes |
-|----------|-----------------------|-------|
-| CLI Framework | `commander` or `yargs` | For parsing, options, help |
-| Styling | `chalk` | Terminal colors/styles |
-| Interactive | `inquirer` | Prompts (list, confirm, input) |
-| Progress | `ora` (spinners), `cli-progress` (bars) | Visual feedback |
-| Filesystem | `fs-extra` (enhancements), `globby` (glob patterns) | Use `fs/promises` where possible |
-| HTTP Client | `axios` or built-in `fetch` | For API interactions |
-| Testing | `jest`, `ts-jest` | Core testing framework |
-| Async/Concurrency | `p-queue`, `p-limit` | Rate limiting, concurrency control |
-| Utilities | `lodash` (or specific methods), `date-fns` | General helpers |
-| Config | `conf`, `env-paths` | Config file management |
-| Logging | `pino` or `winston`, `debug` | Structured & debug logging |
-| Native Deps | `keytar` (keychain), `onnxruntime-node` (ML), `better-sqlite3` (DB) | Use cautiously, check compatibility |
+*(See `cli_documentation_standards.md` for a more detailed list)*
+
+| Category | Recommended Libraries |
+|----------|-----------------------|
+| CLI Framework | `commander` or `yargs` |
+| Styling | `chalk` |
+| Interactive | `inquirer` |
+| Progress | `ora`, `cli-progress` |
+| Filesystem | `fs-extra`, `globby` |
+| HTTP Client | `axios` or built-in `fetch` |
+| Testing | `jest`, `ts-jest` |
+| Async/Concurrency | `p-queue`, `p-limit` |
+| Utilities | `lodash` (specific methods), `date-fns` |
+| Config | `conf`, `env-paths` |
+| Logging | `pino` or `winston`, `debug` |
+| Native Deps | `keytar`, `onnxruntime-node`, `better-sqlite3` (Use cautiously) |
 
 ### 11.3 Dependency Auditing
 
 Regular security audit requirements:
-- Run `pnpm audit` before releases
-- Address all high and critical vulnerabilities
-- Document and plan for medium vulnerabilities
-- Use `.pnpmfile.cjs` for dependency resolution overrides
+- Run `pnpm audit` as part of CI pipeline.
+- Address all high and critical vulnerabilities promptly.
+- Document and plan for addressing medium vulnerabilities.
+- Use `.pnpmfile.cjs` for dependency resolution overrides only as a last resort and document thoroughly.
 
 ## 12. Development Workflow
 
 ### 12.1 Branching Strategy
 
-- `main`: Production-ready code
-- `develop`: Integration branch for features
-- `feature/*`: Feature development
-- `bugfix/*`: Bug fixes
-- `release/*`: Release preparation
+- `main`: Production-ready code (protected). Merges only from `develop` or `hotfix/*`.
+- `develop`: Main integration branch for ongoing development. Features merged here.
+- `feature/*`: Branches for developing new features (branched from `develop`).
+- `bugfix/*`: Branches for fixing non-critical bugs (branched from `develop`).
+- `hotfix/*`: Branches for fixing critical production bugs (branched from `main`, merged to `main` and `develop`).
+- `release/*`: Branches for preparing releases (branched from `develop`).
 
 ### 12.2 Pull Request Process
 
-1. Create branch from `develop`
-2. Develop and test locally
-3. Push branch and create PR
-4. Ensure CI passes
-5. Request code review
-6. Address feedback
-7. Merge to `develop`
+1. Create feature/bugfix branch from `develop`.
+2. Develop and test locally (including unit/integration tests).
+3. Push branch to remote repository.
+4. Create Pull Request (PR) targeting `develop`.
+5. Ensure CI checks (lint, types, tests, build) pass.
+6. Request code review from at least one other team member.
+7. Address feedback and ensure CI passes again.
+8. Merge PR to `develop` (typically squash merge).
 
 ### 12.3 Code Review Guidelines
 
-- All code must be reviewed before merging
+- All code merged to `develop` or `main` must be reviewed.
 - Reviews should focus on:
-  - Code correctness
-  - Test coverage
-  - Documentation
-  - Performance considerations
-  - Security implications
-- Use PR templates to ensure complete information
+  - **Correctness:** Does the code meet requirements and function correctly?
+  - **Architecture:** Does it align with the defined architecture and domain boundaries?
+  - **Maintainability:** Is the code clear, concise, and easy to understand/modify?
+  - **Testing:** Is there adequate test coverage (unit, integration)? Do tests pass?
+  - **Documentation:** Are TSDoc comments sufficient? Is related Markdown documentation updated?
+  - **Performance:** Are there obvious performance issues or inefficient patterns?
+  - **Security:** Are potential security implications considered (input validation, credential handling)?
+- Use PR templates to ensure reviewers have necessary context. Provide constructive feedback.
 
 ## 13. CLI-Specific Development Guidelines
 
 ### 13.1 Command Implementation
 
-Commands should be implemented as modules that export a registration function, typically using `commander` or `yargs`.
+Commands should be implemented as modules exporting registration functions, using a standard CLI framework like `commander` or `yargs`.
 
 ```typescript
-// Example using commander: src/cli/commands/sample.ts
-import { Command } from 'commander';
-import { ExecutionContext } from '../context'; // Assuming context definition
+// Example using commander: src/commands/sample.ts
+import { Command as CommanderCommand } from 'commander'; // Alias to avoid conflict
+import type { ExecutionContext } from '@/cli/context.js'; // Use correct path
 // Import necessary services
 
 interface SampleCommandOptions {
@@ -684,15 +717,15 @@ interface SampleCommandOptions {
 }
 
 // Function to register the command with the main program instance
-export function registerSampleCommand(program: Command): void {
+export function registerSampleCommand(program: CommanderCommand): void {
   program
     .command('sample <input>') // Define command name and required arg
     .description('A sample command description.')
     .option('-v, --verbose', 'Enable verbose output', false) // Boolean flag, default false
     .option('-c, --count <number>', 'Specify a count', (value) => parseInt(value, 10), 1) // Number option with default
-    .action(async (input: string, options: SampleCommandOptions /* Parsed options */) => {
+    .action(async (input: string, options: SampleCommandOptions /* Parsed options */, command: CommanderCommand) => {
       // Access services via a context factory or global mechanism
-      // const context = createExecutionContext(options);
+      // const context = createExecutionContext(options, command.optsWithGlobals()); // Pass global opts too
       // const logger = context.logger;
       // const myService = context.getService<MyService>('myService');
 
@@ -703,11 +736,11 @@ export function registerSampleCommand(program: Command): void {
       try {
         // await myService.doSomething(input, options.count);
         // context.formatter.success('Operation successful.');
-        process.exitCode = 0; // Explicitly set success code
+        // process.exitCode = 0; // Let framework handle exit code on success
       } catch (error) {
         // context.formatter.error(error); // Use centralized error formatting
         console.error("Command failed:", error);
-        process.exitCode = 1; // Set failure code
+        process.exitCode = 1; // Set failure code explicitly on error
       }
       // --- End Command Logic ---
     });
@@ -717,25 +750,25 @@ export function registerSampleCommand(program: Command): void {
 ### 13.2 Output Formatting
 
 CLI output should follow these guidelines:
-
-- Use colors for enhanced readability but ensure they can be disabled
-- Provide structured output option (JSON) for machine consumption
-- Clear error messages with actionable information
-- Progress indicators for long-running operations
+- Use the central `OutputFormatter` service accessed via `ExecutionContext`.
+- Provide clear success/info/warning/error messages.
+- Use colors appropriately via `chalk` (handled by formatter), respecting `NO_COLOR`.
+- Offer structured output options (`--output json`, `--output yaml`) for machine consumption.
+- Use progress indicators (`spinner`, `progressBar`) for long-running operations.
 
 ### 13.3 Error Handling
 
-CLI error handling should be centralized where possible, typically in the `CommandExecutor` or via the `OutputFormatter`. Command handlers should generally let errors propagate.
+CLI error handling should be centralized where possible, typically in the `CommandExecutor` or via the `OutputFormatter`. Command handlers should generally let specific, typed errors propagate up.
 
 ```typescript
 // Within CommandExecutor.execute() or similar central point:
 try {
   // ... find command, parse args, create context ...
   await command.handler(context);
-  process.exitCode = process.exitCode ?? 0; // Ensure success code if not set
+  // If handler completes without error, exit code is implicitly 0 unless set otherwise
 } catch (error) {
   context.formatter.error(error as Error); // Delegate formatting to the formatter
-  process.exitCode = process.exitCode ?? 1; // Ensure failure code if not set by formatter.error
+  // formatter.error should set process.exitCode = 1 (or other code) by default
 } finally {
   // Cleanup resources if necessary
 }
@@ -757,7 +790,7 @@ error(error: Error | string, exitCode: number = 1): void {
         message = `Error: ${error}`;
     }
 
-    console.error(chalk.red(message));
+    console.error(chalk.red(message)); // Use chalk via formatter's internal methods
     if (details) {
         console.error(chalk.gray(`  Details: ${details}`));
     }
@@ -767,97 +800,79 @@ error(error: Error | string, exitCode: number = 1): void {
         console.error(chalk.dim(stack));
     }
     // Set exit code if not already set to a different non-zero value
-    process.exitCode = process.exitCode && process.exitCode !== 0 ? process.exitCode : exitCode;
+    if (!process.exitCode || process.exitCode === 0) {
+        process.exitCode = exitCode;
+    }
 }
 ```
 
 ## 14. Environment Setup Instructions
 
-### 14.1 Linux Setup
+*(These are simplified examples; refer to official tool documentation for details)*
+
+### 14.1 Linux Setup (Debian/Ubuntu Example)
 
 ```bash
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+# Install Node.js (using NVM recommended)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" && nvm install 18 && nvm use 18 && nvm alias default 18
 
-# Install development tools
-sudo apt-get install -y build-essential git
+# Install build tools (for native modules)
+sudo apt-get update && sudo apt-get install -y build-essential python3 git
 
 # Install pnpm
 npm install -g pnpm
 
-# Clone repository
-git clone https://github.com/organization/swissknife.git
-cd swissknife
-
-# Install dependencies
+# Clone repository & Install Dependencies
+git clone <repo-url> swissknife && cd swissknife
 pnpm install
+pnpm husky install
 
-# Set up environment
-cp .env.example .env.local
-# Edit .env.local with your settings
+# Setup Environment File
+cp .env.example .env
+# nano .env # Edit with your API keys etc.
 
-# Build
+# Initial Build
 pnpm build
 ```
 
 ### 14.2 macOS Setup
 
 ```bash
-# Install Homebrew if needed
+# Install Homebrew (if not installed)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Node.js
-brew install node@18
+# Install NVM & Node.js
+brew install nvm
+export NVM_DIR="$HOME/.nvm" && . "$(brew --prefix nvm)/nvm.sh" && nvm install 18 && nvm use 18 && nvm alias default 18
 
 # Install pnpm
 npm install -g pnpm
 
-# Clone repository
-git clone https://github.com/organization/swissknife.git
-cd swissknife
+# Install Xcode Command Line Tools (for native modules)
+xcode-select --install
 
-# Install dependencies
+# Clone repository & Install Dependencies
+git clone <repo-url> swissknife && cd swissknife
 pnpm install
+pnpm husky install
 
-# Set up environment
-cp .env.example .env.local
-# Edit .env.local with your settings
+# Setup Environment File
+cp .env.example .env
+# nano .env # Edit with your API keys etc.
 
-# Build
+# Initial Build
 pnpm build
 ```
 
-### 14.3 Windows Setup (WSL2)
+### 14.3 Windows Setup (WSL2 Recommended)
 
-```bash
-# Install WSL2 (run in PowerShell as Administrator)
-wsl --install
+1.  **Install WSL2:** Follow Microsoft's official guide. Choose a Linux distribution like Ubuntu.
+2.  **Open WSL Terminal:** Launch your installed Linux distribution (e.g., Ubuntu).
+3.  **Follow Linux Setup:** Execute the Linux setup steps above within the WSL terminal.
+4.  **VS Code Integration:** Install the "WSL" extension in VS Code and open the project folder from within WSL (`code .` in the WSL terminal within the project directory).
 
-# After restart, install Node.js in WSL
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Install development tools
-sudo apt-get install -y build-essential git
-
-# Install pnpm
-npm install -g pnpm
-
-# Clone repository
-git clone https://github.com/organization/swissknife.git
-cd swissknife
-
-# Install dependencies
-pnpm install
-
-# Set up environment
-cp .env.example .env.local
-# Edit .env.local with your settings
-
-# Build
-pnpm build
-```
+*(Native Windows setup without WSL2 is possible but more complex due to build tool configuration and path differences; follow Node.js and node-gyp instructions for Windows carefully if attempting this.)*
 
 ## 15. Troubleshooting Common Issues
 
@@ -865,28 +880,31 @@ pnpm build
 
 | Issue | Resolution |
 |-------|------------|
-| TypeScript errors | Update types, fix type errors in code |
-| Missing dependencies | Run `pnpm install` to update dependencies |
-| Native module build failures | Install required system packages, check node-gyp setup |
+| TypeScript errors (`tsc`) | Check `tsconfig.json`. Ensure types are installed (`pnpm install`). Fix type errors in code. |
+| Missing dependencies | Run `pnpm install`. Check `pnpm-lock.yaml` consistency. |
+| Native module build failures (`node-gyp`) | Ensure Python, C++ compiler, `make` are installed correctly and in PATH. Check module's specific prerequisites. Clean install (`pnpm install --force` or remove `node_modules` and reinstall). Check `node-gyp` configuration (`pnpm config list`). |
 
 ### 15.2 Runtime Issues
 
 | Issue | Resolution |
 |-------|------------|
-| Permission errors | Check file/directory permissions |
-| Missing environment variables | Verify .env file is properly set up |
-| Network errors | Check connectivity, proxy settings |
+| Permission errors (`EACCES`, `EPERM`) | Check file/directory permissions for config files, cache dirs, or target files. Avoid running with `sudo` unless necessary. |
+| Missing environment variables / API Keys | Verify `.env` file is loaded correctly (or variables are set in shell). Check `ApiKeyManager` logic. Use `swissknife config get ...` or `swissknife apikey list ...` to verify stored keys. |
+| Network errors (`ECONNREFUSED`, `ETIMEDOUT`) | Check connectivity to external APIs (IPFS, AI Models). Verify URLs in configuration. Check proxy settings. |
+| Command not found | Ensure `pnpm build` was successful. If installed globally or linked, check system `PATH`. |
+| Module not found (`ERR_MODULE_NOT_FOUND`) | Check `tsconfig.json` (`paths`, `baseUrl`). Ensure `pnpm install` completed. Verify import paths use `.js` extension for relative imports if needed by NodeNext module resolution. |
 
 ### 15.3 Testing Issues
 
 | Issue | Resolution |
 |-------|------------|
-| Failing tests | Check test environment setup, mock dependencies |
-| Timeout errors | Increase timeout settings, optimize test performance |
-| Coverage issues | Ensure tests cover all code paths |
+| Failing tests | Check test logic, mock setup, and component code. Run with `jest --verbose` for more details. |
+| Timeout errors (`jest.setTimeout`) | Increase timeout in `jest.config.cjs` or for specific slow tests (`it('...', async () => {...}, 60000)`). Optimize slow tests. |
+| Coverage issues | Ensure tests cover all critical code paths, including error conditions and branches. Review HTML coverage report. |
+| Flaky tests | Identify source of non-determinism (e.g., timing issues, unmocked external state, race conditions). Refactor tests or code for reliability. |
 
 ## Conclusion
 
-This development environment specification provides a comprehensive guide for setting up and working with the SwissKnife CLI codebase. Following these guidelines ensures consistency across the development team and facilitates efficient collaboration.
+This development environment specification provides a comprehensive guide for setting up and working with the SwissKnife CLI codebase. Following these guidelines ensures consistency across the development team and facilitates efficient collaboration. The recommended approach involves using Node.js 18 LTS, pnpm, VS Code with specified extensions, and ideally the provided Dev Container configuration for maximum consistency.
 
 For questions or clarifications about this specification, please contact the development team lead.

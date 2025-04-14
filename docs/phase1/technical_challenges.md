@@ -16,8 +16,8 @@ Challenges arising from adapting code originally designed for browser environmen
 - Failure to adapt properly leads to a poor or non-functional user experience in the CLI.
 
 **Solution:**
-- **Reimplement UI:** Utilize Node.js TUI (Terminal User Interface) libraries like Ink (React for CLIs) or Blessed for interactive components if needed.
-- **Standard Output:** For non-interactive display, use standard console output, enhanced with libraries like `chalk` for color/styling and `cli-table3` for tabular data.
+- **Reimplement UI:** Utilize Node.js TUI (Terminal User Interface) libraries like Ink (React for CLIs) or Blessed for interactive components if needed (e.g., for complex configuration screens or dashboards).
+- **Standard Output:** For non-interactive display, use standard console output, enhanced with libraries like `chalk` for color/styling and `cli-table3` for tabular data, managed via the `OutputFormatter` service.
 - **Feedback Mechanisms:** Replace visual browser feedback (loading indicators, popups) with CLI equivalents like spinners (`ora`), progress bars (`cli-progress`), and clear status messages logged via the `OutputFormatter`.
 - **Visualization:** Replace graphical charts with text-based charts, ASCII art representations, or by outputting data in formats consumable by external plotting tools (e.g., JSON, CSV, DOT for Graphviz).
 
@@ -30,12 +30,12 @@ Challenges arising from adapting code originally designed for browser environmen
 - Handling asynchronous operations or background tasks requires different patterns.
 
 **Solution:**
-- **Command-Driven Flow:** Structure interactions around the request/response cycle of CLI commands (parse args -> execute handler -> display output).
-- **Node.js Event Emitters:** Use Node.js `EventEmitter` for internal pub/sub patterns within the application where needed (e.g., for service status updates).
-- **Process Signals:** Handle system-level events like `SIGINT` (Ctrl+C) using `process.on('SIGINT', ...)`.
-- **Streams:** Utilize Node.js Streams for handling I/O (stdin, stdout, stderr, file streams, network streams).
-- **Async/Await:** Manage asynchronous operations primarily through Promises and `async/await`.
-- **Observables (Optional):** Libraries like RxJS can be used for managing complex asynchronous event streams if the complexity warrants it, but standard Promises are often sufficient.
+- **Command-Driven Flow:** Structure interactions around the request/response cycle of CLI commands (parse args -> execute handler -> display output). Most logic resides within command handlers.
+- **Node.js Event Emitters:** Use Node.js `EventEmitter` for internal pub/sub patterns within the application where needed (e.g., for service status updates, task completion notifications).
+- **Process Signals:** Handle system-level events like `SIGINT` (Ctrl+C) using `process.on('SIGINT', ...)` for graceful shutdown.
+- **Streams:** Utilize Node.js Streams for handling I/O (stdin, stdout, stderr, file streams, network streams), especially for large data transfers.
+- **Async/Await:** Manage asynchronous operations primarily through Promises and `async/await` within handlers and services.
+- **Observables (Optional):** Libraries like RxJS can be used for managing complex asynchronous event streams if the complexity warrants it (e.g., real-time monitoring), but standard Promises are often sufficient.
 
 ## 2. Runtime Environment Challenges
 
@@ -49,9 +49,9 @@ Challenges arising from adapting code originally designed for browser environmen
 
 **Solution:**
 - **API Replacement:**
-    - `fetch`: Use Node.js built-in `fetch` (v18+) or libraries like `axios`, `node-fetch`.
-    - `WebWorker`: Use Node.js `worker_threads`.
-    - `localStorage`/`sessionStorage`/`IndexedDB`: Use filesystem storage (`fs/promises`), configuration files, or Node.js-compatible databases (e.g., SQLite via `better-sqlite3`, LevelDB via `level`). See Storage System analysis.
+    - `fetch`: Use Node.js built-in `fetch` (v18+) or libraries like `axios`, `node-fetch` within API clients (e.g., `IPFSClient`, `ModelProvider` implementations).
+    - `WebWorker`: Use Node.js `worker_threads` for the local `WorkerPool` in the Task System.
+    - `localStorage`/`sessionStorage`/`IndexedDB`: Use filesystem storage (`fs/promises`) via the `StorageOperations` service, configuration files managed by `ConfigManager`, or Node.js-compatible databases (e.g., SQLite via `better-sqlite3`, LevelDB via `level`) for caching or mapping stores.
     - `window`/`document`/`navigator`: Remove usage. For environment info, use Node.js `os` module or libraries like `systeminformation`.
 - **Dependency Audit:** Carefully review `package.json` dependencies. Replace browser-only libraries (e.g., React DOM, browser-specific crypto) with Node.js equivalents (e.g., Ink, Node.js `crypto` module).
 - **Polyfills (Use Sparingly):** Polyfills might bridge minor gaps (e.g., older Node versions lacking `fetch`), but avoid heavy polyfilling of complex browser environments. Prefer reimplementation with native Node.js APIs.
@@ -66,10 +66,10 @@ Challenges arising from adapting code originally designed for browser environmen
 - Requires choosing and implementing suitable Node.js storage solutions.
 
 **Solution:**
-- **Filesystem Storage:** Use Node.js `fs/promises` module for storing data in files (JSON, text, binary). Store user-specific data in appropriate OS locations (e.g., `~/.config/swissknife/`, `~/Library/Application Support/`, `%APPDATA%`). Use libraries like `conf` or `env-paths`.
+- **Filesystem Storage:** Use Node.js `fs/promises` module for storing data in files (JSON, text, binary). Store user-specific data in appropriate OS locations (e.g., `~/.config/swissknife/`, `~/Library/Application Support/`, `%APPDATA%`). Use libraries like `conf` or `env-paths` to determine these locations reliably.
 - **Database:** For structured data, caching, or complex querying (like the IPFS path->CID mapping), consider embedded databases like SQLite (`better-sqlite3`) or key-value stores (`level`).
-- **Storage Abstraction:** Utilize the designed Storage System (`src/storage/`) which abstracts different backends (filesystem, IPFS, memory) behind a common interface. Implement necessary Node.js backends.
-- **Permissions:** Filesystem operations respect OS-level permissions. Ensure the CLI handles permission errors gracefully. Avoid writing to system-wide locations without clear user intent or elevated privileges.
+- **Storage Abstraction:** Utilize the designed Storage System (`src/storage/`) which abstracts different backends (filesystem, IPFS, memory) behind a common interface (`StorageBackend`). Implement necessary Node.js backends (`FilesystemBackend`, `IPFSBackend` using `IPFSClient`). Access storage via the `StorageOperations` service.
+- **Permissions:** Filesystem operations respect OS-level permissions. Ensure the CLI handles permission errors (`EACCES`, `EPERM`) gracefully, providing informative messages to the user. Avoid writing to system-wide locations without clear user intent or elevated privileges.
 
 ## 3. Neural Network Inference Challenges
 
@@ -83,11 +83,11 @@ Challenges arising from adapting code originally designed for browser environmen
 - Complex setup involving native dependencies.
 
 **Solution:**
-- **Node.js Runtimes:** Integrate with established Node.js ML runtimes like `onnxruntime-node` (for ONNX models) or `tensorflow.js-node` (for TensorFlow models). These provide bindings to native libraries often supporting CPU and GPU acceleration (CUDA, DirectML, etc.).
-- **Hardware Acceleration:** Leverage execution providers within the chosen runtime (e.g., ONNX Runtime's CUDA EP). Implement logic to detect available hardware and select the appropriate provider.
-- **Model Loading/Management:** Load models from the filesystem (via Storage System). Implement lazy loading – only load models into memory when first needed by a command.
-- **Resource Management:** Monitor memory usage. Allow configuration of resource limits if possible (e.g., number of inference threads). Use `worker_threads` to run inference off the main event loop if it's CPU-intensive and blocking.
-- **Model Optimization/Quantization:** Explore model quantization techniques compatible with the chosen runtime to reduce model size and potentially speed up inference, especially on CPU.
+- **Node.js Runtimes:** Integrate with established Node.js ML runtimes like `onnxruntime-node` (for ONNX models) or `tensorflow.js-node` (for TensorFlow models) within the `MLEngine` (`src/ml/`).
+- **Hardware Acceleration:** Leverage execution providers within the chosen runtime (e.g., ONNX Runtime's CUDA EP). Implement logic in the `MLEngine` or a dedicated hardware service (`src/ml/hardware.ts`) to detect available hardware and select the appropriate provider based on configuration or availability.
+- **Model Loading/Management:** Load models from the filesystem (via `StorageOperations`). Implement lazy loading within the `MLEngine` – only load models into memory when first needed by a command. Manage model versions and metadata via the `ModelRegistry`.
+- **Resource Management:** Monitor memory usage (`process.memoryUsage()`). Allow configuration of resource limits if possible (e.g., number of inference threads). Use `worker_threads` (via `WorkerPool`) to run inference off the main event loop if it's CPU-intensive and blocking.
+- **Model Optimization/Quantization:** Explore model quantization techniques compatible with the chosen runtime (e.g., ONNX quantization tools) to reduce model size and potentially speed up inference, especially on CPU. Integrate this as part of the `MLEngine` or a separate utility.
 - **External Inference Server (Optional):** For very heavy models or shared access, consider deploying models on a separate inference server (like Triton) and having the CLI interact via API, though this moves away from pure CLI execution.
 
 ### 3.2 Cross-Platform Neural Network Compatibility
@@ -95,16 +95,16 @@ Challenges arising from adapting code originally designed for browser environmen
 **Challenge:** Native ML runtimes (`onnxruntime-node`, `tensorflow.js-node`) often have platform-specific builds and dependencies (CUDA drivers, cuDNN, DirectML). Ensuring a smooth installation and consistent acceleration experience across Linux, macOS (Intel/ARM), and Windows is difficult.
 
 **Impact:**
-- Installation failures for users.
+- Installation failures for users (`node-gyp` errors).
 - Inconsistent performance (e.g., falling back to slow CPU inference if GPU setup fails).
 - Increased build complexity for the project.
 
 **Solution:**
-- **Platform-Specific Dependencies:** Use `optionalDependencies` in `package.json` for platform-specific runtime packages.
-- **Graceful Fallback:** Implement robust detection of available acceleration (e.g., checking if CUDA provider loads successfully in ONNX Runtime). Automatically fall back to CPU execution if GPU acceleration is unavailable or fails, logging informative messages.
-- **Clear Documentation:** Provide detailed, platform-specific installation prerequisites (driver versions, libraries) for GPU acceleration.
-- **Build Matrix:** Use CI/CD (e.g., GitHub Actions) to build and test on all target platforms (Linux x64, macOS x64/ARM64, Windows x64) to catch compatibility issues early.
-- **Consider WASM Runtime:** Explore WASM-based runtimes as a more portable CPU fallback, potentially offering better performance than pure JS implementations.
+- **Platform-Specific Dependencies:** Use `optionalDependencies` in `package.json` for platform-specific runtime packages (e.g., `@tensorflow/tfjs-node-gpu` vs `@tensorflow/tfjs-node`).
+- **Graceful Fallback:** Implement robust detection within the `MLEngine` of available acceleration (e.g., checking if CUDA provider loads successfully in ONNX Runtime). Automatically fall back to CPU execution if GPU acceleration is unavailable or fails, logging informative messages.
+- **Clear Documentation:** Provide detailed, platform-specific installation prerequisites (driver versions, libraries, build tools like Python/C++ compiler) for GPU acceleration in `GETTING_STARTED.md` or `DEVELOPER_GUIDE.md`.
+- **Build Matrix:** Use CI/CD (e.g., GitHub Actions) to build and test on all target platforms (Linux x64, macOS x64/ARM64, Windows x64) to catch compatibility issues early. See `CICD.md`.
+- **Consider WASM Runtime:** Explore WASM-based runtimes (like ONNX Runtime Web running in Node via WASM) as a more portable CPU fallback, potentially offering better performance than pure JS implementations.
 
 ## 4. CLI-Specific Performance Challenges
 
@@ -116,12 +116,12 @@ Challenges arising from adapting code originally designed for browser environmen
 - Application crashes, loss of work, poor user experience.
 
 **Solution:**
-- **Streaming:** Aggressively use Node.js Streams for processing large files or network responses (e.g., `ipfs get`, `readFile`, processing large text inputs for models) instead of loading entire content into memory buffers.
-- **Memory Monitoring:** Use `process.memoryUsage()` to monitor heap usage during development and potentially implement warnings or limits for memory-intensive operations.
+- **Streaming:** Aggressively use Node.js Streams via the `StorageBackend` interface (`createReadStream`, `createWriteStream`) for processing large files or network responses (e.g., `ipfs get`, `readFile`, processing large text inputs for models) instead of loading entire content into memory buffers.
+- **Memory Monitoring:** Use `process.memoryUsage()` during development and potentially implement warnings or limits for memory-intensive operations within command handlers or services.
 - **Heap Snapshots:** Use tools like Chrome DevTools Inspector for Node.js or libraries like `heapdump` during development to analyze memory allocation and identify potential leaks.
-- **Garbage Collection Awareness:** Avoid patterns that generate excessive garbage quickly (e.g., creating large temporary objects in tight loops). Explicitly set large, unneeded objects to `null` to help GC.
-- **External Processes/Workers:** For extremely memory-intensive, isolated tasks, consider spawning a separate Node.js process or using `worker_threads` which have their own memory space.
-- **Configuration:** Allow users to configure memory limits or resource usage via settings if applicable (e.g., cache sizes).
+- **Garbage Collection Awareness:** Avoid patterns that generate excessive garbage quickly (e.g., creating large temporary objects in tight loops). Explicitly set large, unneeded objects/buffers to `null` when no longer needed to potentially aid GC.
+- **External Processes/Workers:** For extremely memory-intensive, isolated tasks (e.g., large model inference if not using native bindings efficiently), consider spawning a separate Node.js process or using `worker_threads` which have their own memory space.
+- **Configuration:** Allow users to configure memory limits or resource usage via settings if applicable (e.g., cache sizes in `ConfigManager`).
 
 ### 4.2 Startup Time Optimization
 
@@ -131,11 +131,11 @@ Challenges arising from adapting code originally designed for browser environmen
 - Poor user experience, tool feels sluggish.
 
 **Solution:**
-- **Lazy Loading Modules:** Use dynamic `import()` for modules/components only needed by specific commands. Structure code so that top-level imports are minimal.
-- **Lazy Service Initialization:** Initialize services (like `MLEngine`, `IPFSKitClient`) on demand within the `ExecutionContext.getService` method or when the relevant command is first run, rather than at application startup.
-- **Dependency Analysis:** Regularly analyze the dependency graph (e.g., using `npm ls` or tools like `dependency-cruiser`) to identify and potentially reduce heavy or unnecessary dependencies.
-- **Code Splitting/Bundling (Advanced):** While less common for CLIs than web apps, bundlers like `esbuild` or `ncc` can sometimes help optimize loading by creating smaller, more focused entry points, though they can also complicate native dependency handling.
-- **Snapshotting (Advanced):** Tools like V8 snapshots can capture a pre-initialized heap state, potentially speeding up startup, but add complexity to the build process.
+- **Lazy Loading Modules:** Use dynamic `import()` for modules/components only needed by specific commands (e.g., loading the full `MLEngine` only when an ML command is run). Structure code so that top-level imports in entry points (`src/cli.ts`) are minimal.
+- **Lazy Service Initialization:** Initialize services (like `MLEngine`, `IPFSClient`, `Agent`) on demand within the `ExecutionContext.getService` method or when the relevant command is first run, rather than at application startup. Use singleton patterns carefully.
+- **Dependency Analysis:** Regularly analyze the dependency graph (e.g., using `npm ls --prod` or tools like `dependency-cruiser`, `depcheck`) to identify and potentially reduce heavy or unnecessary production dependencies.
+- **Code Splitting/Bundling (Advanced):** While less common for CLIs than web apps, bundlers like `esbuild` or `ncc` can sometimes help optimize loading by creating smaller, more focused entry points, though they can also complicate native dependency handling and dynamic imports. Evaluate trade-offs carefully.
+- **Snapshotting (Advanced):** Tools like V8 snapshots can capture a pre-initialized heap state, potentially speeding up startup, but add significant complexity to the build process and may not work well with all types of initialization.
 
 ## 5. Integration Challenges
 
@@ -148,11 +148,11 @@ Challenges arising from adapting code originally designed for browser environmen
 - Inconsistent behavior and APIs.
 
 **Solution:**
-- **Define Target Architecture:** Clearly document the target architecture (as done in `cli_architecture.md`) with distinct layers/services (CLI, Agent, Task, Storage, ML, etc.).
-- **Modular Design:** Enforce strong module boundaries using TypeScript modules (`import`/`export`) and clear interfaces. Avoid tight coupling between unrelated modules.
-- **Consistent Structure:** Adopt and enforce a consistent project structure (folder organization, file naming conventions).
-- **Refactor, Don't Just Copy:** When integrating logic from sources, refactor it to fit the target architecture and TypeScript best practices, rather than just copying/transpiling directly. Use the source code primarily as a reference for functionality.
-- **Code Reviews:** Enforce code reviews focused on architectural consistency and adherence to defined patterns.
+- **Adhere to Target Architecture:** Strictly follow the documented unified architecture (`UNIFIED_ARCHITECTURE.md`) with distinct domains/services (CLI, Agent, Task, Storage, ML, etc.).
+- **Modular Design:** Enforce strong module boundaries using TypeScript modules (`import`/`export`) and clear interfaces defined in `src/types/` or within domain boundaries. Avoid tight coupling between unrelated modules.
+- **Consistent Structure:** Adhere to the established project structure (`PROJECT_STRUCTURE.md`).
+- **Refactor, Don't Just Copy:** When integrating logic from sources, refactor it to fit the target architecture and TypeScript best practices (async/await, strong typing, ES modules), rather than just copying/transpiling directly. Use the source code primarily as a reference for *functionality*.
+- **Code Reviews:** Enforce code reviews focused on architectural consistency and adherence to defined patterns and interfaces (`CONTRIBUTING.md`).
 
 ### 5.2 API Consistency
 
@@ -163,11 +163,11 @@ Challenges arising from adapting code originally designed for browser environmen
 - Increased integration effort and potential for errors.
 
 **Solution:**
-- **Standardized Interfaces:** Define clear, consistent TypeScript interfaces for core services and data structures (as done in `api_specifications.md`).
-- **Consistent Async:** Use `async/await` with Promises consistently for all asynchronous operations.
-- **Unified Error Handling:** Implement the standardized `SwissKnifeError` hierarchy and ensure all components throw or propagate these errors.
-- **Naming Conventions:** Establish and enforce consistent naming conventions (e.g., camelCase for variables/functions, PascalCase for classes/types). Use a linter (ESLint) and code formatter (Prettier) to help enforce standards.
-- **Adapter Pattern:** Where direct refactoring is too complex initially, use the Adapter pattern to wrap source logic behind a standardized interface.
+- **Standardized Interfaces:** Define and use the clear, consistent TypeScript interfaces specified in `api_specifications.md` for core services and data structures.
+- **Consistent Async:** Use `async/await` with Promises consistently for all asynchronous operations. Avoid mixing callbacks and Promises where possible.
+- **Unified Error Handling:** Implement the standardized `SwissKnifeError` hierarchy (`src/errors.ts` or similar) and ensure all components throw or propagate these errors consistently.
+- **Naming Conventions:** Establish and enforce consistent naming conventions (e.g., camelCase for variables/functions, PascalCase for classes/types). Use a linter (ESLint) and code formatter (Prettier) configured in the project (`.eslintrc.js`, `.prettierrc`) to help enforce standards.
+- **Adapter Pattern:** Where direct refactoring is too complex initially, use the Adapter pattern to wrap source logic behind a standardized interface, but plan to refactor eventually.
 
 ## 6. Dependency Management Challenges
 
@@ -180,10 +180,10 @@ Challenges arising from adapting code originally designed for browser environmen
 - Difficulty maintaining dependencies.
 
 **Solution:**
-- **Dependency Audit:** Regularly review direct and transitive dependencies. Identify potential conflicts or redundant packages.
-- **Version Management:** Use `npm` or `yarn`'s dependency resolution features. Aim for compatible versions across the project. Use `overrides` (npm) or `resolutions` (yarn) carefully to force specific versions if absolutely necessary, but prefer updating components to use compatible versions.
-- **Minimize Dependencies:** Be critical about adding new dependencies. Prefer Node.js built-in modules where sufficient.
-- **Modular Imports:** Use specific imports (`import { specificFunction } from 'library';`) rather than importing entire libraries (`import * as lib from 'library';`) if tree-shaking is not guaranteed.
+- **Dependency Audit:** Regularly review direct and transitive dependencies using `pnpm ls` or tools like `dependency-cruiser`, `depcheck`. Identify potential conflicts or redundant packages.
+- **Version Management:** Use `pnpm`'s lockfile (`pnpm-lock.yaml`) to ensure deterministic installs. Aim for compatible versions across the project. Use `pnpm overrides` carefully to force specific versions if absolutely necessary, but prefer updating components to use compatible versions.
+- **Minimize Dependencies:** Be critical about adding new dependencies. Prefer Node.js built-in modules where sufficient. Evaluate bundle size impact using tools like `bundlephobia`.
+- **Modular Imports:** Use specific imports (`import { specificFunction } from 'library';`) rather than importing entire libraries (`import * as lib from 'library';`) to enable better tree-shaking by bundlers if used.
 - **Peer Dependencies:** Use `peerDependencies` correctly for plugins or shared libraries to avoid multiple versions being installed by consumers.
 
 ### 6.2 Native Module Dependencies
@@ -191,26 +191,28 @@ Challenges arising from adapting code originally designed for browser environmen
 **Challenge:** Native Node.js modules (e.g., `onnxruntime-node`, `better-sqlite3`, potentially `keytar`) require C++ compilation during installation (`node-gyp`) and often provide platform-specific pre-built binaries. Installation can fail due to missing build tools (Python, C++ compiler) or incompatible system libraries.
 
 **Impact:**
-- Installation failures for users.
+- Installation failures for users (`node-gyp` errors).
 - Increased complexity for developers and CI/CD.
 - Platform-specific runtime errors if binaries are incorrect.
 
 **Solution:**
 - **Minimize Native Dependencies:** Prefer pure JavaScript/TypeScript libraries where performance is acceptable.
-- **Use `optionalDependencies`:** List native modules in `optionalDependencies` in `package.json`. This allows `npm install` to succeed even if the native build fails.
-- **Graceful Degradation:** Implement runtime checks to see if an optional native module loaded successfully. If not, fall back to a pure JS alternative or disable the feature requiring the module, informing the user.
+- **Use `optionalDependencies`:** List native modules in `optionalDependencies` in `package.json`. This allows `pnpm install` to succeed even if the native build fails.
+- **Graceful Degradation:** Implement runtime checks within services (e.g., `MLEngine`, `StorageBackend`) to see if an optional native module loaded successfully. If not, fall back to a pure JS alternative or disable the feature requiring the module, informing the user via logs or errors.
     ```typescript
     let onnxruntime;
     try {
+      // Use dynamic import for optional dependencies
       onnxruntime = await import('onnxruntime-node');
+      console.log("ONNX Runtime loaded successfully.");
     } catch (e) {
-      console.warn("onnxruntime-node failed to load. Local ONNX model execution disabled.", e);
+      console.warn("onnxruntime-node failed to load. Local ONNX model execution disabled.", e.message);
     }
     // ... later check if onnxruntime is defined before using it ...
     ```
-- **Pre-built Binaries:** Rely on libraries that provide pre-built binaries for common platforms (e.g., via `node-pre-gyp`).
-- **Clear Prerequisites:** Document required build tools and system libraries for users who need to compile native modules (especially if pre-built binaries aren't available for their platform).
-- **Docker for Builds:** Use Docker containers in CI/CD to create consistent build environments for native modules across platforms.
+- **Pre-built Binaries:** Rely on libraries that provide pre-built binaries for common platforms (e.g., via `node-pre-gyp`). Check library documentation for supported platforms.
+- **Clear Prerequisites:** Document required build tools and system libraries (Python, C++, Make, etc.) for users who need to compile native modules in `GETTING_STARTED.md` or `DEVELOPER_GUIDE.md`.
+- **Docker for Builds:** Use Docker containers in CI/CD (`Dockerfile`, `docker-compose.yml`) to create consistent build environments for native modules across platforms.
 
 ## 7. Security Considerations
 
@@ -222,11 +224,11 @@ Challenges arising from adapting code originally designed for browser environmen
 - Security vulnerabilities, potential data exposure or system damage.
 
 **Solution:**
-- **Least Privilege for Tools:** Design tools to request only the minimum necessary access. Avoid tools that allow arbitrary code execution or unrestricted filesystem access unless absolutely essential and clearly documented.
-- **User Confirmation Prompts:** For potentially destructive or sensitive operations (deleting files, accessing credentials, making expensive API calls), use `inquirer` or similar to explicitly prompt the user for confirmation before proceeding. Make confirmation requirements configurable or bypassable with flags (e.g., `--force`, `--yes`).
-- **Path Validation/Sanitization:** Rigorously validate and sanitize all file paths provided by users or generated internally to prevent path traversal attacks (`../../..`). Confine filesystem operations to intended directories where possible.
-- **Scope Limiting:** If implementing features like plugins or user-defined tools, consider sandboxing mechanisms (though complex in Node.js) or a strict capability-based permission system (like UCANs) to limit their access.
-- **Secure Credential Storage:** As mentioned previously, use OS keychain or encrypted storage for API keys/tokens, not plaintext files.
+- **Least Privilege for Tools:** Design tools (`src/ai/tools/`) to request only the minimum necessary access. Avoid tools that allow arbitrary shell command execution (`shellTool`) or unrestricted filesystem access unless absolutely essential and clearly documented with warnings. Consider adding confirmation prompts for such tools.
+- **User Confirmation Prompts:** For potentially destructive or sensitive operations (deleting files via `StorageOperations`, accessing credentials, making expensive API calls), use `inquirer` or similar within command handlers to explicitly prompt the user for confirmation before proceeding. Make confirmation requirements configurable or bypassable with flags (e.g., `--force`, `--yes`).
+- **Path Validation/Sanitization:** Rigorously validate and sanitize all file paths provided by users or generated internally within `StorageOperations` and `FilesystemBackend` to prevent path traversal attacks (`../../..`). Confine filesystem operations to intended directories (e.g., user config dir, CWD, specified output dirs).
+- **Scope Limiting:** If implementing features like plugins or user-defined tools, consider sandboxing mechanisms (though complex in Node.js) or a strict capability-based permission system (like UCANs, see `src/auth/`) to limit their access.
+- **Secure Credential Storage:** As detailed below, never handle secrets insecurely.
 
 ### 7.2 Credential Management
 
@@ -236,10 +238,10 @@ Challenges arising from adapting code originally designed for browser environmen
 - High (Credential Theft). Storing secrets in plaintext configuration files is a major security risk.
 
 **Solution:**
-- **OS Keychain:** Use libraries like `keytar` to store secrets securely in the operating system's keychain (macOS Keychain Access, Windows Credential Manager, Linux Secret Service API/libsecret). This is generally the preferred method.
-- **Environment Variables:** Allow users to provide secrets via environment variables (e.g., `OPENAI_API_KEY`). This is common but less secure if the environment is exposed. Document clearly which variables are supported.
-- **Encrypted Files (Fallback):** If keychain access fails or isn't desired, store secrets in a configuration file encrypted with a user-derived key (e.g., derived from a master password using `scrypt` or `pbkdf2`, though managing this password securely is also challenging). Requires careful implementation.
-- **Credential Manager Abstraction:** Create a service (`CredentialManager`) that abstracts the underlying storage mechanism (keychain, env vars, encrypted file), providing simple `getCredential(serviceName)` and `setCredential(serviceName, secret)` methods. The `ConfigurationManager` or `ExecutionContext` would use this service.
+- **OS Keychain:** Use libraries like `keytar` within the `ApiKeyManager` (`src/auth/api-key-manager.ts`) to store secrets securely in the operating system's keychain (macOS Keychain Access, Windows Credential Manager, Linux Secret Service API/libsecret). This should be the preferred method for stored keys.
+- **Environment Variables:** Allow users to provide secrets via environment variables (e.g., `OPENAI_API_KEY`). The `ApiKeyManager` should prioritize these. Document clearly which variables are supported.
+- **Encrypted Files (Fallback/Alternative):** If keychain access fails or isn't desired, store secrets in the configuration file *encrypted* using Node.js `crypto` module (e.g., AES-256-GCM) with a key derived from a user-specific machine identifier or a master password (managing the master password securely is also challenging). Implement this within `ApiKeyManager` and `CryptoUtils`.
+- **Credential Manager Abstraction:** The `ApiKeyManager` acts as this abstraction layer, providing simple `getBestApiKey`, `addApiKey`, `removeApiKey` methods that handle the underlying storage mechanism (env vars, keychain, encrypted config).
 - **Avoid Plaintext:** Never store unencrypted secrets in standard configuration files (`config.json`, `.env` files checked into git).
 
 ## Conclusion

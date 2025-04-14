@@ -27,9 +27,9 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 | 1   | Project Kickoff & Scope Review | All | - | Done |
 | 1   | Setup Project Repo, CI Basics, Issue Tracking | PM, Arch | - | Done |
 | 1-2 | Analyze Source Repos & Create Component Inventory (`component_inventory.md`) | Arch, Dev | - | Done |
-| 2-3 | Analyze Command System (`command_system_analysis.md`) | Dev | Inventory | Done |
-| 3-4 | Analyze Model System (`model_system_analysis.md`) | Dev | Inventory | Done |
-| 4-5 | Analyze Storage System (`storage_system_analysis.md`) | Dev | Inventory | Done |
+| 2-3 | Analyze Command System (`analysis/command_system_analysis.md`) | Dev | Inventory | Done |
+| 3-4 | Analyze Model System (`analysis/model_system_analysis.md`) | Dev | Inventory | Done |
+| 4-5 | Analyze Storage System (`analysis/storage_system_analysis.md`) | Dev | Inventory | Done |
 | 5   | Initial Risk Assessment (`risk_assessment.md`) | PM, Arch | Analysis | Done |
 
 **Milestone: Initial Analysis Complete (End of Week 1)**
@@ -38,7 +38,7 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 
 | Day | Tasks | Resources | Dependencies | Status |
 |-----|-------|-----------|--------------|--------|
-| 1   | Define Core TypeScript Architecture (`cli_architecture.md`) | Arch | Analysis Docs | Done |
+| 1   | Define Core TypeScript Architecture (`../UNIFIED_ARCHITECTURE.md`) | Arch | Analysis Docs | Done |
 | 1-2 | Define Core API Specifications (`api_specifications.md`) | Arch, Dev | Architecture | Done |
 | 2-3 | Develop Integration Strategy (`cli_integration_strategy.md`) | Arch | Architecture | Done |
 | 3   | Create Component Mapping (`component_mapping.md`) | Arch, Dev | Inventory, Architecture | Done |
@@ -51,13 +51,13 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 
 ### Phase 2: Core Implementation (Weeks 3-6)
 
-**Goal:** Implement foundational TypeScript services.
+**Goal:** Building the foundational TypeScript implementations for core services based on Phase 1 designs.
 
 #### Week 3: Agent & Tooling Basics
 
 | Day | Tasks | Resources | Dependencies | Status |
 |-----|-------|-----------|--------------|--------|
-| 1-3 | Implement Core Agent Service (`TypeScriptAgent`, Memory) | Dev | API Specs | To Do |
+| 1-3 | Implement Core Agent Service (`Agent`, Memory) | Dev | API Specs | To Do |
 | 1-3 | Implement Tool Registry & Executor | Dev | API Specs | To Do |
 | 4-5 | Implement Basic Tools (File, Shell) | Dev | Agent, Tooling | To Do |
 | 1-5 | Setup Unit Test Framework (Jest) & Initial Tests | QA, Dev | - | To Do |
@@ -68,17 +68,17 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 |-----|-------|-----------|--------------|--------|
 | 1-3 | Implement Storage Backend Interface, Registry, Path Resolver | Dev | API Specs | To Do |
 | 1-3 | Implement Filesystem Backend | Dev | Storage Interface | To Do |
-| 3-5 | Implement IPFSKitClient (HTTP focus) | Dev | API Specs | To Do |
-| 4-5 | Implement Basic IPFS Backend (using Client, simple MappingStore) | Dev | Storage Interface, IPFS Client | To Do |
+| 3-5 | Implement `IPFSClient` (HTTP focus) | Dev | API Specs | To Do |
+| 4-5 | Implement Basic `IPFSBackend` (using Client, simple `MappingStore`) | Dev | Storage Interface, IPFS Client | To Do |
 | 1-5 | Write Unit/Integration Tests for Storage | QA, Dev | Storage Impl | To Do |
 
 #### Week 5: Model Registry & Basic ML
 
 | Day | Tasks | Resources | Dependencies | Status |
 |-----|-------|-----------|--------------|--------|
-| 1-2 | Implement Model Registry & Selector | Dev | API Specs | To Do |
-| 2-4 | Implement OpenAI Provider Adapter | Dev | Model Registry, Config | To Do |
-| 3-5 | Implement Basic MLEngine Structure (ONNX/TFJS Node setup) | Dev | API Specs | To Do |
+| 1-2 | Implement `ModelRegistry` & `ModelSelector` | Dev | API Specs | To Do |
+| 2-4 | Implement `OpenAIProvider` Adapter | Dev | Model Registry, Config | To Do |
+| 3-5 | Implement Basic `MLEngine` Structure (ONNX/TFJS Node setup) | Dev | API Specs | To Do |
 | 1-5 | Write Unit/Integration Tests for Models/ML | QA, Dev | Model Impl | To Do |
 
 #### Week 6: Integration & Refinement
@@ -86,7 +86,7 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 | Day | Tasks | Resources | Dependencies | Status |
 |-----|-------|-----------|--------------|--------|
 | 1-3 | Integrate Agent with Tool Executor & Model Registry/Selector | Dev | Agent, Tools, Models | To Do |
-| 2-4 | Integrate Storage Service into ExecutionContext/Tools | Dev | Storage, Context | To Do |
+| 2-4 | Integrate Storage Service into `ExecutionContext`/Tools | Dev | Storage, Context | To Do |
 | 3-5 | Refine Core Interfaces based on Implementation Experience | Arch, Dev | All Phase 2 Impl | To Do |
 | 1-5 | Enhance Test Coverage for Phase 2 Components | QA, Dev | All Phase 2 Impl | To Do |
 
@@ -94,7 +94,7 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 
 ### Phase 3: TaskNet Enhancement Integration (Weeks 7-9)
 
-**Goal:** Implement advanced task processing features.
+**Goal:** Implementing the advanced TaskNet features for complex workflow management.
 
 #### Week 7: GoT & Scheduling Foundation
 
@@ -127,7 +127,7 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 
 ### Phase 4: CLI Integration and Command System (Weeks 10-12)
 
-**Goal:** Expose all functionality via a polished CLI.
+**Goal:** Exposing all implemented backend functionality through a polished and consistent CLI interface.
 
 #### Week 10: Command System & Core Commands
 
@@ -192,7 +192,7 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 |------|-------|------------------|
 | Architect (Arch) | 1 | System design, technical guidance, reviews |
 | Developer (Dev) | 3-4 | Component implementation, integration, unit/integration testing |
-| Quality Assurance (QA) | 1 | Test strategy, E2E/system/performance testing, test automation |
+| Quality Assurance (QA) | 1 | Test strategy, test implementation, verification |
 | Technical Writer (TW) | 1 | User guides, API documentation, tutorials, release notes |
 | Project Manager (PM) | 1 | Planning, tracking, risk management, coordination |
 
@@ -212,7 +212,7 @@ This document provides a detailed projected timeline for the SwissKnife CLI inte
 Based on the dependencies outlined in the roadmap and this timeline, the critical path likely involves:
 
 1.  **Phase 1:** Foundational Documentation (Architecture, APIs).
-2.  **Phase 2:** Core `TypeScriptAgent`, `IPFSKitClient`, `StorageService`, `ModelRegistry`.
+2.  **Phase 2:** Core `Agent`, `IPFSClient`, `StorageOperations`, `ModelRegistry`.
 3.  **Phase 3:** Core `TaskScheduler`, `GoT Engine`.
 4.  **Phase 4:** `Command System` implementation, Integration of core services into CLI commands.
 5.  **Phase 5:** Final Testing and Release Prep.
@@ -273,99 +273,3 @@ Progress will be tracked using:
 This implementation timeline provides a detailed week-by-week projection for the SwissKnife CLI integration project, aligned with the 5-phase structure from the roadmap. It outlines specific tasks, dependencies, and milestones necessary to achieve the project's objectives.
 
 Adherence to this timeline, combined with proactive risk management and regular progress tracking, will be crucial for successfully delivering a high-quality, integrated SwissKnife CLI application within the projected 14-week timeframe. Flexibility will be required to adapt to challenges encountered during development.
-
-## Resource Requirements
-
-### Development Team
-
-| Role | Count | Responsibilities |
-|------|-------|------------------|
-| Architect | 1 | System design, architecture definition, integration strategy |
-| Developer | 2-3 | Component implementation, integration, testing |
-| QA | 1 | Test strategy, test implementation, verification |
-| Technical Writer | 1 | Documentation, user guides, command reference |
-| Project Manager | 1 | Planning, tracking, risk management |
-
-### Environment
-
-| Resource | Purpose |
-|----------|---------|
-| Development Servers | Development and testing |
-| CI/CD Pipeline | Automated testing and integration |
-| Test Matrix | Cross-platform testing |
-| Documentation Platform | Command reference and user guides |
-
-## Critical Path Analysis
-
-The following components represent the critical path for the integration:
-
-1. **Command System Enhancement** (Week 3)
-   - Required for all subsequent CLI components
-
-2. **Worker Implementation** (Week 6)
-   - Required for task system and inference
-
-3. **Task System** (Week 7)
-   - Required for efficient background processing
-
-4. **Virtual Filesystem** (Week 8)
-   - Required for IPFS integration
-
-5. **Performance Optimization** (Week 12)
-   - Required for final release
-
-Delays in these components will directly impact the project timeline.
-
-## Dependencies
-
-### External Dependencies
-
-| Dependency | Purpose | Risk Level |
-|------------|---------|------------|
-| Node.js | Runtime environment | Low |
-| IPFS Libraries | IPFS integration | Medium |
-| Cryptographic Libraries | Authentication | Medium |
-| Test Frameworks | Testing | Low |
-
-### Internal Dependencies
-
-| From | To | Criticality |
-|------|---|-------------|
-| Command System | All CLI Commands | High |
-| Configuration System | Most Components | High |
-| Worker Pool | Task System | High |
-| Authentication | MCP | Medium |
-| Virtual Filesystem | IPFS Integration | High |
-
-## Timeline Assumptions
-
-This timeline is based on the following assumptions:
-
-1. Development resources are available as specified
-2. No major changes to the integration scope
-3. No significant issues with source repository components
-4. CLI-compatible alternatives exist for browser-specific functionality
-
-## Timeline Contingency
-
-A 20% contingency buffer is built into each phase to account for:
-
-1. Unexpected technical challenges
-2. Dependency resolution issues
-3. Additional testing requirements
-4. Integration complexities
-
-## Timeline Tracking
-
-Progress will be tracked using:
-
-1. Weekly status updates
-2. Milestone completion tracking
-3. Burn-down charts for each phase
-4. Risk assessment updates
-
-## Conclusion
-
-This implementation timeline provides a detailed roadmap for integrating components from source repositories into the SwissKnife CLI architecture. By following this timeline, we can ensure an orderly integration process with clear milestones and deliverables.
-
-The phased approach allows for incremental development and testing, with each phase building on the capabilities of the previous ones. Regular milestone assessments will help identify any issues early and allow for appropriate adjustments to the timeline.

@@ -8,74 +8,74 @@ The SwissKnife CI/CD system automates building, testing, and deploying the Swiss
 
 ```mermaid
 graph TD
-    A[Developer Push/PR] --> B[CI: Validate & Lint]
-    B --> C[CI: Run Tests]
-    C --> D[CI: Security Scan]
-    D --> E[CI: Build]
-    E --> F{Deploy?}
-    F -->|Yes, to Staging| G[CD: Deploy to Staging]
-    F -->|Yes, to Production| H[CD: Deploy to Production]
-    H --> I[CD: Publish to npm]
+    A[Developer Push / PR] --> B{CI Workflow};
+    B --> B1[Validate: Lint, Format, Types];
+    B1 --> B2[Test: Unit, Integration, E2E];
+    B2 --> B3[Security Scan: npm audit, Snyk];
+    B3 --> B4[Build: bun run build];
+    B4 --> B5[Verify Build];
+    B5 --> B6[Upload Artifacts];
+    B6 --> C{Merge to main?};
+
+    C -- Yes --> D{CD Workflow - Staging};
+    D --> D1[Deploy to Staging Env];
+    D1 --> D2[Run Staging Tests];
+    D2 --> E{Manual Trigger / Tag?};
+
+    E -- Yes --> F{CD Workflow - Production};
+    F --> F1[Deploy to Production Env];
+    F1 --> F2[Publish to npm];
+
+    style B fill:#dae8fc,stroke:#333
+    style D fill:#d5e8d4,stroke:#333
+    style F fill:#ffe6cc,stroke:#333
 ```
 
 ## CI Workflow
 
 The CI workflow (`ci.yml`) runs on every push to main/develop branches and on pull requests. It ensures code quality and produces verified builds.
 
-### CI Jobs
+### CI Jobs (`ci.yml`)
 
-1. **Validate & Lint**
-   - Checks code formatting
-   - Performs linting
-   - Type checking
-   - Generates documentation
-
-2. **Test**
-   - Runs unit tests
-   - Runs integration tests
-   - Runs end-to-end tests
-   - Runs specialized tests for critical components (Graph-of-Thought, Fibonacci Heap)
-   - Generates coverage reports
-
-3. **Security Scan**
-   - Runs npm audit
-   - Performs Snyk security scanning
-
-4. **Build**
-   - Creates production build
-   - Verifies build functionality
-   - Uploads build artifacts
-
-5. **Benchmark** (on push to main/develop only)
-   - Runs performance benchmarks
-   - Compares with previous results
+1. **Validate & Lint**:
+   - `pnpm run format:check`: Checks code formatting using Prettier.
+   - `pnpm run lint`: Runs ESLint to check for code style and potential errors.
+   - `pnpm run typecheck`: Runs TypeScript compiler (`tsc --noEmit`) to verify type safety.
+   *(Documentation generation might be manual or part of release process)*
+2. **Test**:
+   - `pnpm test`: Executes the full test suite (unit, integration, e2e) using Jest.
+   - Generates code coverage reports.
+   *(Specialized tests are typically included within the main test suites)*
+3. **Security Scan**:
+   - `pnpm audit`: Checks for known vulnerabilities in dependencies.
+   - Snyk Scan (if integrated): Performs deeper security analysis.
+4. **Build**:
+   - `bun run build`: Creates the production-ready executable using Bun (as defined in `package.json`). Requires Bun installation.
+   - `pnpm run test:verify-build`: Runs basic smoke tests against the built artifact (`dist/cli.mjs`).
+   - Uploads `dist/` directory as a build artifact.
+5. **Benchmark** (Optional, e.g., on `main` branch push):
+   - `pnpm run benchmark`: Runs performance benchmarks defined in `benchmark/`.
+   - May compare results against a baseline.
 
 ## CD Workflow
 
 The CD workflow (`cd.yml`) handles deployment to different environments.
 
-### CD Jobs
+### CD Jobs (`cd.yml`)
 
-1. **Prepare Deployment**
-   - Determines environment and version
-
-2. **Deploy to Staging**
-   - Runs when targeting staging environment
-   - Configures for staging
-   - Deploys to staging server
-   - Runs post-deployment tests
-   - Sends notifications
-
-3. **Deploy to Production**
-   - Runs when targeting production environment
-   - Configures for production
-   - Deploys to production server
-   - Creates deployment record
-   - Sends notifications
-
-4. **Publish to npm**
-   - Runs after successful production deployment
-   - Publishes package to npm registry
+1. **Deploy to Staging** (Triggered on merge to `main`):
+   - Downloads build artifact from CI run.
+   - Configures environment variables/secrets for Staging.
+   - Executes deployment script (`node scripts/deploy.js staging`) targeting the staging environment (e.g., specific server, cloud service).
+   - Runs post-deployment verification tests (potentially using `jest.staging.config.js`).
+   - Sends deployment status notification (e.g., Slack).
+2. **Deploy to Production & Publish** (Triggered manually, e.g., on creating a GitHub Release/Tag):
+   - Downloads build artifact.
+   - Configures environment variables/secrets for Production.
+   - Executes deployment script (`node scripts/deploy.js production`) targeting the production environment.
+   - Publishes the package to npm using `npm publish` (requires `NPM_TOKEN` secret).
+   - Creates GitHub Release notes (potentially automated).
+   - Sends deployment status notification.
 
 ## Environment Configuration
 
@@ -138,44 +138,43 @@ The CI/CD system uses several custom scripts:
 
 The project uses Jest for testing with separate configurations:
 
-1. **jest.config.js**
-   - Main Jest configuration for all tests
-
-2. **jest.staging.config.js**
-   - Configuration for staging environment tests
-   - Used during post-deployment testing
+1. **`jest.config.cjs`**: Main Jest configuration used for local development and standard CI test runs (`pnpm test`). Covers unit, integration, and potentially E2E tests depending on setup.
+2. **`jest.staging.config.js`** (if used): A separate Jest configuration potentially used specifically for running tests against a deployed *staging* environment during the CD workflow. This might involve different setup, timeouts, or test suites focused on verifying the deployed application.
 
 ## Using the CI/CD System
 
 ### Running Locally
 
-To run CI/CD jobs locally for testing:
+Simulate CI/CD steps locally:
 
 ```bash
-# Run CI checks
-npm run format:check
-npm run lint
-npm run typecheck
-npm run test:unit
-npm run test:integration
-npm run test:e2e
-npm run build
-npm run test:verify-build
+# Run CI checks (use pnpm or npm)
+pnpm run format:check
+pnpm run lint
+pnpm run typecheck
+pnpm test # Runs all tests
 
-# Configure and deploy to staging
-npm run config:staging
-npm run deploy:staging
+# Build the application (requires Bun)
+bun run build
 
-# Configure and deploy to production
-npm run config:production
-npm run deploy:production
+# Verify the build
+pnpm run test:verify-build
+
+# Simulate Staging Deployment (Dry Run)
+# Ensure staging config/env vars are set appropriately if needed by deploy script
+NODE_ENV=staging STAGING_DEPLOY_TOKEN=test-token node scripts/deploy.js staging --dry-run
+
+# Simulate Production Deployment (Dry Run)
+# Ensure production config/env vars are set appropriately if needed by deploy script
+NODE_ENV=production PRODUCTION_DEPLOY_TOKEN=test-token node scripts/deploy.js production --dry-run
 ```
+*(Note: Actual deployment simulation might require specific environment setup or secrets not available locally)*.
 
 ### Triggering Deployments
 
 #### Automatic Deployments
-- Merges to `main` branch automatically deploy to staging
-- Release publications automatically deploy to production
+- Merges to the `main` branch typically trigger an automatic deployment to the **Staging** environment.
+- Creating a GitHub Release (tagging a commit, e.g., `v1.2.3`) typically triggers the **Production** deployment and subsequent **npm publish**.
 
 #### Manual Deployments
 1. Go to the Actions tab in GitHub
@@ -198,20 +197,22 @@ To set up the required secrets:
 
 ### Common Issues
 
-1. **Build Failures**
-   - Check the build logs for specific errors
-   - Verify that all dependencies are installed
-   - Ensure code passes linting and type checking
-
-2. **Test Failures**
-   - Review test logs for failed tests
-   - Run tests locally to reproduce issues
-   - Check if tests are environment-specific
-
-3. **Deployment Failures**
-   - Verify environment secrets are correctly set
-   - Check network access to deployment servers
-   - Validate authentication tokens
+1. **Build Failures**:
+   - Check CI logs for specific errors from `bun run build`.
+   - Ensure all dependencies are installed (`pnpm install`).
+   - Verify TypeScript checks pass (`pnpm run typecheck`).
+   - Look for bundling issues mentioned in `BUILD_PROCESS.md`.
+2. **Test Failures**:
+   - Examine CI logs for failed Jest tests.
+   - Run the specific failing test file locally (`npx jest <path/to/test.ts>`).
+   - Debug the test logic or the source code. Check mock setups.
+   - For E2E tests, check if the built application (`dist/cli.mjs`) runs correctly.
+3. **Deployment Failures**:
+   - Verify required GitHub Actions secrets (`STAGING_DEPLOY_TOKEN`, `PRODUCTION_DEPLOY_TOKEN`, `NPM_TOKEN`, etc.) are correctly configured in repository settings.
+   - Check deployment script logs (`scripts/deploy.js`) for errors related to target environment access, authentication, or configuration.
+   - Ensure the target deployment environment (server, service) is available and accessible.
+4. **Module Resolution Errors in CI/Tests**:
+    - As noted in the Developer Guide, ensure `tsconfig.json` and `jest.config.cjs` are correctly configured for ES Modules and path aliases used in the project. This is a common source of CI failures if local setup differs slightly.
 
 ### Getting Help
 

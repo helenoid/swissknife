@@ -38,31 +38,60 @@ Lilypad offers a variety of models for different purposes:
 4. Generate a new API key
 5. Copy the API key for use in swissknife
 
-### Step 2: Configure swissknife for Lilypad
+### Step 2: Configure SwissKnife for Lilypad
 
-1. Launch swissknife
-2. From the provider selection screen, select "Lilypad"
-3. When prompted, enter your API key
-4. Click "Continue" to proceed
+You can configure your Lilypad API key in one of two ways:
+
+1.  **Environment Variable (Recommended)**: Set either `LILYPAD_API_KEY` or `ANURA_API_KEY` in your terminal environment before launching SwissKnife. The application will automatically detect and use it.
+    ```bash
+    # Example for Linux/macOS
+    export LILYPAD_API_KEY="your-key-here"
+    # OR
+    export ANURA_API_KEY="your-key-here"
+
+    swissknife agent chat # SwissKnife will use the key from the environment
+    ```
+    *(For Windows, use `set LILYPAD_API_KEY=your-key-here`)*
+
+2.  **Configuration Command**: Store the key securely (encrypted) in the SwissKnife configuration file using the `apikey` command:
+    ```bash
+    swissknife apikey add lilypad "your-key-here"
+    ```
+    You only need to do this once. SwissKnife will use the stored key in subsequent sessions. You can verify stored keys using `swissknife apikey list lilypad`.
 
 ### Step 3: Select a Model
 
-1. From the models list, select the Lilypad model you wish to use
-2. Text generation models are labeled with "chat" mode
-3. Image generation models are labeled with "image" mode
-4. You can filter models by type using the mode selector
+You can select a Lilypad model when running commands using the `--model` flag. Use the provider prefix `lilypad/`.
+
+```bash
+# List available Lilypad models
+swissknife model list --provider lilypad
+
+# Example: Select llama3.1:8b for chat
+swissknife agent chat --model lilypad/llama-3.1-8b-instruct
+```
+*(Note: Model IDs might differ slightly from the table above, use `model list` for exact IDs)*.
 
 ### Step 4: Start Using the Model
 
-- For text generation models:
-  - Enter your prompt in the chat interface
-  - Adjust parameters as needed (temperature, max tokens, etc.)
-  - Send your message to receive a response
+Use the standard SwissKnife commands, specifying a Lilypad model ID with the `--model` flag.
 
-- For image generation models:
-  - Enter a detailed description of the image you want to generate
-  - Adjust parameters like image size or number of images
-  - Click "Generate" to create your image
+- **Text Generation (Chat):**
+  ```bash
+  swissknife agent chat --model lilypad/llama-3.1-8b-instruct
+  ```
+  Then enter your prompts interactively.
+
+- **Text Generation (Single Prompt):**
+  ```bash
+  swissknife agent execute "Write a poem about IPFS" --model lilypad/mistral-7b-instruct-v0.3
+  ```
+
+- **Image Generation (Conceptual):**
+  *(Assuming an `image generate` command exists)*
+  ```bash
+  swissknife image generate "A robot coding in a neon-lit room" --model lilypad/stable-diffusion-xl-1024-v1-0
+  ```
 
 ## Advanced Usage
 
@@ -95,20 +124,12 @@ Example function definition:
 
 ### Environment Variables
 
-Instead of entering your API key each time, you can set environment variables:
+As mentioned in Step 2, you can configure the API key using environment variables instead of the `apikey add` command. SwissKnife checks these in order:
 
-- `LILYPAD_API_KEY`: Primary environment variable
-- `ANURA_API_KEY`: Alternative environment variable (Lilypad's official name)
+1.  `LILYPAD_API_KEY`
+2.  `ANURA_API_KEY` (Lilypad's official variable name)
 
-Example (Linux/macOS):
-```bash
-export LILYPAD_API_KEY=your_api_key_here
-```
-
-Example (Windows):
-```cmd
-set LILYPAD_API_KEY=your_api_key_here
-```
+If either is set, it will be used (and potentially saved to the config file if not already present).
 
 ## Tips for Best Results
 
@@ -152,15 +173,16 @@ set LILYPAD_API_KEY=your_api_key_here
 
 ## Privacy and Data Usage
 
-- Your prompts and generated content are processed through Lilypad's Anura API
-- API keys are stored locally and never sent to the swissknife servers
-- Refer to Lilypad's privacy policy for information about data retention and usage
+- Your prompts and generated content are processed by Lilypad's Anura API according to their terms and privacy policy.
+- API keys configured via `apikey add` are stored locally (and encrypted). Keys set via environment variables are read from the environment at runtime. SwissKnife itself does not send your keys to any central server other than the intended provider API endpoint (Lilypad).
+- Refer to Lilypad's privacy policy for details on their data handling.
 
 ## Resources
 
 - [Lilypad Documentation](https://docs.lilypad.tech/)
 - [Anura API Dashboard](https://anura.lilypad.tech/)
-- [swissknife Documentation](docs/GETTING_STARTED.md)
+- [SwissKnife Getting Started Guide](./GETTING_STARTED.md)
+- [SwissKnife CLI Guide](./CLI_GUIDE.md)
 
 ## Feedback and Support
 

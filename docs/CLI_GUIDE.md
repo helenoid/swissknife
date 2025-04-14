@@ -20,7 +20,7 @@ This document provides comprehensive documentation for using the SwissKnife CLI,
 
 ## Overview
 
-SwissKnife is a unified CLI tool that provides AI agent capabilities, machine learning acceleration, task processing, and content storage through a consistent command-line interface. The CLI is built on a domain-driven architecture that combines all functionality in a single TypeScript codebase.
+SwissKnife is a powerful, terminal-based AI coding tool built entirely in TypeScript. It provides a unified interface to interact with various AI models, manage complex tasks using Graph-of-Thought and advanced scheduling, utilize local ML acceleration, and interact with storage backends like the local filesystem and IPFS (via an IPFS client like the IPFS Kit MCP Server).
 
 ## Installation
 
@@ -75,13 +75,109 @@ swissknife [command] [subcommand] [options]
 
 ## Domain-Specific Commands
 
-### AI Commands
+### AI Commands (`agent`)
 
-Interact with the AI agent system for assisted coding, problem-solving, and more.
+Interact with the AI agent for coding assistance, problem-solving, and executing tasks using tools.
 
 #### `agent chat`
 
-Start an interactive chat session with the AI agent.
+Starts an interactive chat session with the AI agent.
+
+```bash
+swissknife agent chat [options]
+```
+
+**Options:**
+- `--model <model_id>`: Specify a model ID for this session.
+- `--system-prompt <prompt>`: Provide a custom system prompt.
+- `--temperature <value>`: Set the generation temperature (0.0-1.0).
+- `--max-tokens <value>`: Set the maximum tokens for responses.
+- `--no-history`: Start the session without loading previous history.
+
+**In-Chat Commands:**
+- `/help`: Show available chat commands.
+- `/model`: View or change the current model.
+- `/tools`: List available tools.
+- `/clear`: Clear the current session history.
+- `/exit`: Exit the chat session.
+
+#### `agent execute`
+
+Executes a single prompt non-interactively and prints the result.
+
+```bash
+swissknife agent execute "<prompt>" [options]
+swissknife agent execute - [options] < file_with_prompt.txt
+```
+
+**Arguments:**
+- `<prompt>`: The prompt string to send to the agent. Use `-` to read from stdin.
+
+**Options:**
+- `--model <model_id>`: Specify the model ID to use.
+- `--system-prompt <prompt>`: Provide a custom system prompt.
+- `--temperature <value>`: Set the generation temperature.
+- `--max-tokens <value>`: Set the maximum tokens for the response.
+- `--output <format>`: Output format (`text`, `json`, `yaml`). Default: `text`.
+
+#### `agent tool`
+
+Manage and interact with tools available to the agent.
+
+```bash
+# List available tools
+swissknife agent tool list
+
+# Show details for a specific tool
+swissknife agent tool info <tool_name>
+
+# Run a tool directly (for testing/debugging)
+swissknife agent tool run <tool_name> [tool_args...] [options]
+swissknife agent tool run <tool_name> --json-args '{"arg1": "value1", ...}'
+```
+
+#### `agent config`
+
+Manage agent-specific configuration (shortcuts for `swissknife config get/set agent.*`).
+
+```bash
+# Get default agent model
+swissknife agent config get defaultModel
+
+# Set default agent model
+swissknife agent config set defaultModel gpt-4-turbo
+
+# List all agent configurations
+swissknife agent config list
+```
+
+#### `model` (Alias/Related)
+
+Manage AI models (often used by the agent).
+
+```bash
+# List available models (including local and provider-based)
+swissknife model list [--provider <id>] [--capability <name>]
+
+# Show details for a specific model
+swissknife model info <model_id>
+
+# Set the default model used by the agent
+swissknife model set-default <model_id>
+
+# Download a local model (if supported)
+swissknife model download <model_id_or_url>
+
+# Manage model cache
+swissknife model cache clear
+swissknife model cache stats
+```
+
+### ML Acceleration Commands (`ml`)
+
+*(Note: These commands might be under development or subject to change based on Phase 2/5 implementation)*
+
+Commands for machine learning operations, potentially with hardware acceleration.
 
 ```bash
 swissknife agent chat [options]
@@ -93,197 +189,214 @@ Options:
 - `--temperature`, `-t`: Set temperature (0.0-1.0, default: 0.7)
 - `--max-tokens`, `-mt`: Maximum tokens to generate (default: 1000)
 
-#### `agent run`
 
-Execute a single prompt through the agent.
+#### `ml run` (Conceptual)
 
-```bash
-swissknife agent run "Your prompt here" [options]
-```
-
-Options:
-- `--model`, `-m`: Specify the model to use
-- `--temperature`, `-t`: Set temperature
-- `--output`, `-o`: Output format (text, json, markdown)
-
-#### `agent tools`
-
-Manage available tools for the agent.
+Run inference using a locally loaded model via the ML Engine.
 
 ```bash
-# List all available tools
-swissknife agent tools list
-
-# Get details about a specific tool
-swissknife agent tools info <tool-name>
-
-# Enable or disable a tool
-swissknife agent tools enable <tool-name>
-swissknife agent tools disable <tool-name>
+# Example conceptual command
+swissknife ml run <model_id_or_path> --input <input_data_path> [options]
 ```
 
-#### `model`
+**Options:**
+- `--output <path>`: Save output tensor/data to a file.
+- `--input-type <type>`: Specify input data type (e.g., `json`, `text`, `image_path`).
+- `--accelerator <type>`: Hint for preferred accelerator (e.g., `cpu`, `gpu`, `auto`).
 
-Manage AI models.
+*(Further ML commands like `ml load`, `ml optimize`, `ml benchmark` depend on the specific implementation in `src/ml/`)*
 
-```bash
-# List available models
-swissknife model list
+### Task Management Commands (`task`)
 
-# Set default model
-swissknife model set-default <model-id>
-
-# Add a new model
-swissknife model add <name> --provider=<provider> --url=<url> [options]
-```
-
-### ML Acceleration Commands
-
-Commands for machine learning operations with hardware acceleration.
-
-#### `ml execute`
-
-Run inference on a machine learning model.
-
-```bash
-swissknife ml execute <model-path> --input=<input-data> [options]
-```
-
-Options:
-- `--accelerator`, `-a`: Specify the accelerator to use (webgpu, webnn, wasm, cpu)
-- `--output`, `-o`: Output file path
-- `--format`, `-f`: Input/output format (json, tensor, image)
-
-#### `ml optimize`
-
-Optimize a model for better performance.
-
-```bash
-swissknife ml optimize <model-path> [options]
-```
-
-Options:
-- `--technique`, `-t`: Optimization technique (quantization, pruning, distillation)
-- `--level`, `-l`: Optimization level (1-10)
-- `--target`, `-tg`: Target device (mobile, desktop, server)
-
-#### `ml benchmark`
-
-Benchmark ML model performance.
-
-```bash
-swissknife ml benchmark <model-path> [options]
-```
-
-Options:
-- `--iterations`, `-i`: Number of iterations (default: 100)
-- `--warmup`, `-w`: Warmup iterations (default: 10)
-- `--compare`, `-c`: Compare multiple accelerators
-
-### Task Management Commands
-
-Commands for managing complex task processing.
+Commands for creating, managing, and inspecting complex tasks processed by the TaskNet system (including GoT).
 
 #### `task create`
 
-Create a new task.
+Creates and schedules a new task.
 
 ```bash
-swissknife task create <description> [options]
+# Create from description
+swissknife task create "Analyze data in /ipfs/data.csv" [options]
+
+# Create from definition file
+swissknife task create --file ./task_definition.json [options]
 ```
 
-Options:
-- `--priority`, `-p`: Set priority (1-10, default: 5)
-- `--data`, `-d`: Task data in JSON format
-- `--dependencies`: Comma-separated list of task IDs this task depends on
+**Options:**
+- `--priority <1-10>`: Set initial task priority.
+- `--input-cid <cid>`: Specify input data CID (if applicable).
+- `--param <key=value>`: Set task-specific parameters (repeatable).
+- `--parent-task <id>`: Link to a parent task.
 
 #### `task list`
 
-List all tasks.
+Lists tasks managed by the Task Manager.
 
 ```bash
 swissknife task list [options]
 ```
 
-Options:
-- `--status`, `-s`: Filter by status (pending, running, completed, failed)
-- `--format`, `-f`: Output format (table, json, yaml)
+**Options:**
+- `--status <status>`: Filter by status (`Pending`, `Scheduled`, `InProgress`, `CompletedSuccess`, `CompletedFailure`, `Cancelled`).
+- `--limit <n>`: Limit the number of tasks shown.
+- `--all`: Show all historical tasks (may be performance intensive).
+- `--format <format>`: Output format (`table`, `json`, `yaml`).
 
-#### `task decompose`
+#### `task status`
 
-Decompose a complex task into subtasks.
-
-```bash
-swissknife task decompose <task-id> [options]
-```
-
-Options:
-- `--strategy`, `-s`: Decomposition strategy (recursive, parallel, sequential)
-- `--depth`, `-d`: Maximum recursion depth
-
-### Storage Commands
-
-Commands for content storage and retrieval.
-
-#### `storage add`
-
-Add content to storage.
+Shows the current status and details of a specific task.
 
 ```bash
-swissknife storage add <file-path> [options]
+swissknife task status <task_id> [options]
 ```
 
-Options:
-- `--provider`, `-p`: Storage provider (local, ipfs)
-- `--pin`, `-P`: Pin content in IPFS
-- `--metadata`, `-m`: Add metadata in JSON format
+**Options:**
+- `--details`: Show more detailed information, including subtask status if applicable.
+- `--watch`, `-w`: Poll and update the status periodically until completion or interruption.
 
-#### `storage get`
+#### `task cancel`
 
-Retrieve content from storage.
+Requests cancellation of a pending or running task.
 
 ```bash
-swissknife storage get <content-id> [options]
+swissknife task cancel <task_id> [--force]
 ```
 
-Options:
-- `--output`, `-o`: Output file path
-- `--provider`, `-p`: Storage provider (local, ipfs)
+#### `task graph` (GoT Interaction)
 
-#### `storage list`
-
-List stored content.
+Commands for interacting with the Graph-of-Thought associated with tasks.
 
 ```bash
-swissknife storage list [options]
+# Initiate a GoT process for a prompt (returns graph/task ID)
+swissknife task graph create "<prompt>" [--strategy <name>]
+
+# Visualize the structure of a GoT graph
+swissknife task graph visualize <graph_id_or_task_id> [--format <dot|mermaid|json>] [--output <file>]
+
+# Export the graph data
+swissknife task graph export <graph_id_or_task_id> [--format <json|ipld>] [--output <file>]
 ```
 
-Options:
-- `--provider`, `-p`: Storage provider
-- `--format`, `-f`: Output format (table, json)
-- `--filter`, `-F`: Filter by metadata
+#### `task dependencies`
 
-### Configuration Commands
+Inspect the dependency relationships for a task.
 
-Commands for managing configuration.
+```bash
+swissknife task dependencies <task_id> [--visualize] [--recursive]
+```
+
+### Storage Commands (`ipfs`, `storage`, `file`)
+
+Commands for interacting with the Virtual Filesystem (VFS), including IPFS operations via the configured client (e.g., IPFS Kit MCP Server).
+
+#### `ipfs` (IPFS-Specific Operations)
+
+```bash
+# Add a local file/directory to IPFS (returns CID)
+swissknife ipfs add <local_path> [--pin] [--progress]
+
+# Get content from IPFS by CID
+swissknife ipfs get <cid> [output_local_path] [--progress]
+
+# List contents of an IPFS directory CID
+swissknife ipfs ls <cid> [--long]
+
+# Pin a CID via the configured pinning service or IPFS node
+swissknife ipfs pin add <cid> [--name <alias>]
+
+# Unpin a CID
+swissknife ipfs pin rm <cid>
+
+# List pinned CIDs
+swissknife ipfs pin ls [--status <status>]
+
+# Get raw IPLD block data
+swissknife ipfs dag get <cid> [--output <json|cbor-hex>]
+
+# Resolve an IPFS path (e.g., /ipfs/cid/path)
+swissknife ipfs dag resolve <ipfs_path>
+
+# Check connection status to the configured IPFS API endpoint
+swissknife ipfs server status
+```
+
+#### `storage` (VFS Management)
+
+```bash
+# List configured storage backends and mount points
+swissknife storage mounts list
+
+# Mount a backend (e.g., local filesystem) at a virtual path
+swissknife storage mount <virtual_path> filesystem --path <local_base_dir_path>
+
+# Mount the IPFS backend at a virtual path
+swissknife storage mount <virtual_path> ipfs
+
+# Unmount a virtual path
+swissknife storage unmount <virtual_path>
+
+# Show storage info (e.g., space usage if available)
+swissknife storage info [virtual_path]
+```
+
+#### `file` (VFS Operations)
+
+Operates on the virtual filesystem using paths like `/local/file.txt` or `/ipfs/data.csv`.
+
+```bash
+# List files/directories at a virtual path
+swissknife file list <virtual_path> [--recursive] [--long]
+
+# Read file content from a virtual path to stdout
+swissknife file read <virtual_path>
+
+# Write stdin or string content to a virtual path
+swissknife file write <virtual_path> ["content"]
+
+# Copy files/directories between virtual paths (can cross backends)
+swissknife file copy <source_virtual_path> <dest_virtual_path> [--recursive]
+
+# Move/Rename files/directories within the same backend
+swissknife file move <source_virtual_path> <dest_virtual_path>
+
+# Create a directory
+swissknife file mkdir <virtual_path> [--parents]
+
+# Delete a file or directory
+swissknife file delete <virtual_path> [--recursive]
+
+# Show file/directory status (metadata)
+swissknife file stat <virtual_path>
+```
+
+### Configuration Commands (`config`)
+
+Commands for managing application configuration.
+
 
 #### `config set`
 
-Set a configuration value.
+Sets a configuration value using dot notation for keys.
 
 ```bash
 swissknife config set <key> <value>
 ```
 
-Examples:
+**Examples:**
 ```bash
-swissknife config set agent.defaultModel gpt-4
-swissknife config set ipfs.mcpUrl http://localhost:5001
+# Set the default AI model
+swissknife config set ai.defaultModel gpt-4-turbo
+
+# Set the IPFS API URL
+swissknife config set storage.ipfs.apiUrl http://127.0.0.1:5001
+
+# Set a nested property
+swissknife config set ai.providers.openai.apiKey sk-...
 ```
 
 #### `config get`
 
-Get a configuration value.
+Gets a configuration value using dot notation.
 
 ```bash
 swissknife config get <key>
@@ -291,20 +404,53 @@ swissknife config get <key>
 
 #### `config list`
 
-List all configuration values.
+Lists all current configuration settings (merged from different sources).
 
 ```bash
-swissknife config list [options]
+swissknife config list [--format <table|json|yaml>]
 ```
 
-Options:
-- `--format`, `-f`: Output format (table, json, yaml)
+#### `config path`
+
+Shows the location of the user configuration file.
+
+```bash
+swissknife config path
+```
+
+### MCP Commands (`mcp`)
+
+Manage local MCP servers and connections.
+
+```bash
+# View status of configured MCP servers
+swissknife mcp status
+
+# Start a local MCP server (typically used by extensions like VS Code)
+swissknife mcp serve --cwd <project_directory>
+
+# Add a server definition to the configuration
+swissknife add-mcp-server <name> --command <cmd> [--args <arg1> <arg2>...] [--type <stdio|http>] [--url <url>]
+
+# Remove a server definition
+swissknife remove-mcp-server <name>
+```
+
 
 ## Advanced Features
 
-### Interactive Mode
+### Interactive Shell (`shell`)
 
-Start an interactive shell with SwissKnife:
+Starts an interactive REPL environment for running multiple SwissKnife commands.
+
+```bash
+swissknife shell
+```
+Features include command history and potential autocompletion.
+
+### Scripting & Piping
+
+SwissKnife commands are designed to be scriptable and work with standard Unix pipes where applicable. Commands that output structured data often support `--output json` or `--output yaml`. Commands that accept input can often read from stdin using `-` as the input argument.
 
 ```bash
 swissknife shell
@@ -312,98 +458,61 @@ swissknife shell
 
 This provides a persistent environment for executing multiple commands without restarting the CLI.
 
-### Pipeline Commands
-
-Pipe commands together for complex workflows:
+**Examples:**
 
 ```bash
-swissknife pipeline create agent:run "Generate test cases" | task:decompose | task:execute
-```
+# Generate code and add it directly to IPFS
+swissknife agent execute "Generate a python function for fibonacci" --output json | jq -r .content | swissknife ipfs add -
 
-### Scripting
-
-Use SwissKnife in scripts for automation:
-
-```bash
-#!/usr/bin/env bash
-
-# Generate documentation
-swissknife agent run "Document the following code:" --input=src/main.ts --output=docs/main.md
-
-# Optimize and benchmark the model
-swissknife ml optimize models/text-gen.onnx --output=models/optimized.onnx
-swissknife ml benchmark models/optimized.onnx --output=benchmark-results.json
+# List files in IPFS and show details for the first one
+CID=$(swissknife ipfs add ./my_dir --wrap-directory | tail -n 1) # Get dir CID
+swissknife ipfs ls $CID --output json | jq -r '.[0].cid' | xargs swissknife file stat /ipfs/
 ```
 
 ## Environment Variables
 
-SwissKnife respects the following environment variables:
+SwissKnife respects the following environment variables (which often override configuration file settings):
 
-- `SWISSKNIFE_CONFIG_PATH`: Path to the configuration file
-- `SWISSKNIFE_MODELS_DIR`: Directory for storing ML models
-- `SWISSKNIFE_CACHE_DIR`: Directory for cache data
-- `SWISSKNIFE_LOG_LEVEL`: Logging level (debug, info, warn, error)
-- `SWISSKNIFE_IPFS_MCP_URL`: URL for the IPFS Kit MCP Server
-- `SWISSKNIFE_API_KEYS`: Path to API keys file
-
-Model-specific API keys:
-- `OPENAI_API_KEY`: API key for OpenAI models
-- `ANTHROPIC_API_KEY`: API key for Anthropic models
-- `MISTRAL_API_KEY`: API key for Mistral models
+- `OPENAI_API_KEY`: API key for OpenAI services.
+- `ANTHROPIC_API_KEY`: API key for Anthropic services.
+- `ANYSCALE_API_KEY`: API key for Anyscale services.
+- `TOGETHER_API_KEY`: API key for Together AI services.
+- `VOYAGE_API_KEY`: API key for Voyage AI services.
+- `REPLICATE_API_KEY`: API key for Replicate services.
+- `DEEPINFRA_API_KEY`: API key for DeepInfra services.
+- `LOG_LEVEL`: Controls logging verbosity (e.g., `debug`, `info`, `warn`, `error`).
+- `SWISSKNIFE_CONFIG_PATH`: Overrides the default path for user configuration file.
+- `SWISSKNIFE_STORAGE_PATH`: Base path for local storage backend data (if configured).
+- `SWISSKNIFE_CACHE_PATH`: Base path for disk cache.
+- `NODE_OPTIONS=--max-old-space-size=<MB>`: May be needed to increase heap memory for large local models.
 
 ## Troubleshooting
 
 ### Common Issues
 
 #### Command Not Found
+Ensure the global npm/pnpm bin directory is in your system's `PATH`. You can find it using `npm bin -g` or `pnpm bin -g`. Add it to your shell profile (`.bashrc`, `.zshrc`, etc.).
 
-If the `swissknife` command is not found after installation:
+#### API Key Errors
+- Verify keys are set correctly either via `swissknife config set ai.providers.<provider>.apiKey ...` or the corresponding environment variable (e.g., `OPENAI_API_KEY`).
+- Check for typos in keys or provider names.
+- Ensure the key is valid and has necessary permissions/credits with the provider.
 
-```bash
-# Add to PATH manually
-export PATH="$PATH:$(npm bin -g)"
+#### IPFS Connection Errors
+- Ensure your IPFS node (e.g., IPFS Desktop, Kubo daemon, or IPFS Kit MCP Server) is running.
+- Verify the API URL is correctly configured: `swissknife config get storage.ipfs.apiUrl` (or the relevant key). Default is often `http://127.0.0.1:5001`.
+- Check for network issues or firewalls blocking access to the IPFS API port.
 
-# Or reinstall with correct permissions
-sudo npm install -g swissknife
-```
+#### Local Model Errors
+- Ensure the model was downloaded correctly (`swissknife model list --local`).
+- Check if you have sufficient RAM and disk space.
+- Verify necessary native dependencies for the ML runtime (e.g., ONNX Runtime) are installed correctly for your OS/architecture.
 
-#### API Key Issues
+### Getting More Information
 
-If experiencing authentication errors:
-
-```bash
-# Set API key directly
-swissknife config set apiKeys.openai "your-api-key-here"
-
-# Or use environment variable
-export OPENAI_API_KEY="your-api-key-here"
-swissknife agent chat
-```
-
-#### Performance Issues
-
-If ML acceleration is slow:
-
-```bash
-# Check available accelerators
-swissknife ml accelerators list
-
-# Force a specific accelerator
-swissknife ml execute model.onnx --accelerator=webgpu
-```
-
-### Diagnostic Commands
-
-```bash
-# Check system information
-swissknife system info
-
-# Run diagnostics
-swissknife diagnostics
-
-# Check for updates
-swissknife update check
-```
+- Use the `--verbose` flag for more detailed command output.
+- Use the `--debug` flag for extensive debug logging (sets `LOG_LEVEL=debug`).
+- Check log files (location might be configurable or in a standard OS location).
 
 ### Getting Help
 

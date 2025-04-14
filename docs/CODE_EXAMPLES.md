@@ -10,25 +10,28 @@ This document provides concrete code examples for key domains in the SwissKnife 
 - [CLI Domain Examples](#cli-domain-examples)
 - [Cross-Domain Integration Examples](#cross-domain-integration-examples)
 
-## AI Domain Examples
+## AI Domain Examples (`src/ai/`)
 
-### Agent Implementation
+### Agent Implementation (`src/ai/agent/agent.ts` - Conceptual)
+
+Illustrates the core agent class managing models, tools, memory, and thinking processes.
 
 ```typescript
 // src/ai/agent/agent.ts
-import { Tool } from '../tools/tool';
-import { Model } from '../models/model';
-import { ToolExecutor } from '../tools/executor';
-import { ThinkingManager } from '../thinking/manager';
-import { AgentMessage, AgentContext, AgentOptions } from '../../types/ai';
+import type { Tool } from '@/ai/tools/tool.js'; // Use correct path/alias
+import type { Model } from '@/ai/models/model.js'; // Use correct path/alias
+import { ToolExecutor } from '@/ai/tools/executor.js'; // Use correct path/alias
+import { ThinkingManager } from '@/ai/thinking/manager.js'; // Use correct path/alias
+import type { AgentMessage, AgentContext, AgentOptions } from '@/types/ai.js'; // Use correct path/alias
+import { MessageMemory } from './memory.js'; // Assuming memory management class
 
 export class Agent {
   private model: Model;
   private tools: Map<string, Tool> = new Map();
   private toolExecutor: ToolExecutor;
   private thinkingManager: ThinkingManager;
-  private memory: AgentMessage[] = [];
-  private options: AgentOptions;
+  private memory: MessageMemory; // Use dedicated memory class
+  private options: Required<AgentOptions>; // Use Required for defaults
   
   constructor(options: AgentOptions) {
     this.model = options.model;

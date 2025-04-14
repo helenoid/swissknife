@@ -1,351 +1,184 @@
 # CLAUDE.md
-This file provides guidance to Claude Code (claude.ai/code) and developers when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) and developers when working with code in this repository. It serves as a quick reference to the project's structure, standards, and key architectural concepts.
+
+**For detailed information, always refer to the primary documentation in the `/docs` directory.**
 
 ## Table of Contents
-- [SwissKnife Overview](#swissknife---cli-interface-for-ai-models)
-- [Quick Start for New Developers](#quick-start-for-new-developers)
-- [Build Commands](#build-commands)
+- [SwissKnife Overview](#swissknife-overview)
+- [Quick Start for Developers](#quick-start-for-developers)
+- [Key Commands](#key-commands)
 - [Development Environment](#development-environment)
 - [Project Structure](#project-structure)
-- [Key Components for Junior Developers](#key-components-for-junior-developers)
-- [Code Style Guidelines](#code-style-guidelines)
-- [Documentation Standards](#documentation-standards)
-- [Integration Architecture](#integration-architecture)
-- [Common Issues and Solutions](#common-issues-and-solutions)
+- [Core Architecture & Key Components](#core-architecture--key-components)
+- [Code Style & Standards](#code-style--standards)
 - [Testing Guidelines](#testing-guidelines)
-- [Environment Variables](#environment-variables)
-- [Debugging Tips](#debugging-tips)
+- [Documentation Guidelines](#documentation-guidelines)
+- [Common Issues & Debugging](#common-issues--debugging)
 - [Contributing](#contributing)
 
-## SwissKnife - CLI Interface for AI Models
+## SwissKnife Overview
 
-SwissKnife is a command-line interface tool that provides access to various AI models including Lilypad, OpenAI, Mistral, and others. It allows users to interact with these models through a unified interface for tasks like code assistance, content generation, and more.
+SwissKnife is a powerful, terminal-based AI toolkit built entirely in TypeScript for the Node.js environment. It provides a unified interface to interact with various AI models, manage complex tasks, interact with decentralized storage (IPFS), and extend capabilities via the Model Context Protocol (MCP).
 
-The project is undergoing a major integration of several components:
-- **Core SwissKnife**: TypeScript/React CLI interface
-- **TypeScript Implementations**: Clean room TypeScript implementations of AI interaction capabilities (see [docs/CLEAN_ROOM_IMPLEMENTATION.md](docs/CLEAN_ROOM_IMPLEMENTATION.md))
-- **IPFS Accelerate**: ML acceleration framework for running neural networks within the CLI tool
-- **SwissKnife Legacy**: Previous implementation with TaskNet functionality
+**Core Features:**
+- **AI Agent**: Manages conversations, uses tools, and orchestrates complex reasoning (including Graph-of-Thought).
+- **TaskNet**: Advanced task processing system with priority scheduling, decomposition, synthesis, local parallelism (worker threads), and distributed coordination (Merkle Clock/Hamming Distance).
+- **Storage (VFS)**: Unified interface over local filesystem and IPFS backends.
+- **IPFS Integration**: Client for interacting with IPFS Kit MCP Server or other IPFS HTTP APIs.
+- **Local ML**: Supports local model inference via `MLEngine` using Node.js runtimes (ONNX, TFJS).
+- **MCP Integration**: Can host and connect to MCP servers.
+- **Rich CLI**: Consistent command structure, interactive prompts, formatted output.
 
-## Quick Start for New Developers
+**Key Principles:**
+- **Clean Room TypeScript**: No direct Rust code usage; functionality reimplemented based on requirements. See [docs/CLEAN_ROOM_IMPLEMENTATION.md](docs/CLEAN_ROOM_IMPLEMENTATION.md).
+- **Node.js Native**: Optimized for CLI execution, avoiding browser APIs.
+- **Modular & Service-Oriented**: Functionality organized into distinct services accessed via `ExecutionContext`.
 
-1. **Setup Environment**:
-   - Clone the repository
-   - Install dependencies: `npm install` or `pnpm install`
-   - Run development mode: `npm run dev` or `pnpm run dev`
+## Quick Start for Developers
 
-2. **Configure Models**:
-   - Set API keys via environment variables (e.g., `ANURA_API_KEY` for Lilypad)
-   - Or use the `/model` command in the app to configure models and save API keys
+1.  **Setup Environment**:
+    *   Ensure prerequisites are met (Node.js 18 LTS, pnpm, Git, Build Tools). See [docs/phase1/cli_dev_environment.md](docs/phase1/cli_dev_environment.md).
+    *   **Recommended:** Use the provided Dev Container (`.devcontainer/devcontainer.json`) with VS Code for a consistent, pre-configured environment.
+    *   **Manual Setup:**
+        ```bash
+        git clone <repo-url> swissknife
+        cd swissknife
+        # Ensure Node 18 & pnpm are active (use nvm if needed)
+        pnpm install # Install dependencies
+        pnpm husky install # Setup git hooks
+        cp .env.example .env # Create local environment file
+        # Edit .env with API keys (OPENAI_API_KEY, etc.)
+        pnpm build # Perform initial build
+        ```
+2.  **Run in Dev Mode:**
+    ```bash
+    pnpm dev -- --help # Runs CLI using ts-node
+    pnpm dev -- agent chat # Example: Start agent chat
+    ```
+3.  **Run Tests:**
+    ```bash
+    pnpm test # Run all tests
+    pnpm test:watch # Run tests in watch mode
+    ```
+4.  **Explore Docs:**
+    *   Start with `README.md`, `docs/GETTING_STARTED.md`, `docs/DEVELOPER_GUIDE.md`.
+    *   Refer to `docs/UNIFIED_ARCHITECTURE.md` and specific phase/component documents in `/docs`.
 
-3. **Documentation**:
-   - See `docs/` directory for detailed developer guides
-   - Run tests with: `npm test` or `pnpm test`
+## Key Commands (`package.json` scripts)
 
-## Build Commands
-- Development: `npm run dev` or `pnpm run dev`
-- Production build: `npm run build` or `pnpm run build` 
-- Formatting: `npm run format` or `pnpm run format`
-- Format check: `npm run format:check` or `pnpm run format:check`
-- Testing: `npm test` (runs tests in the `test/` directory)
-- TypeScript lint: `npm run lint` or `pnpm run lint`
-- Clean build: `npm run clean && npm run build` or `pnpm run clean && pnpm run build`
+-   `pnpm dev -- [args...]`: Run CLI in development mode using `ts-node`.
+-   `pnpm build`: Compile TypeScript to JavaScript (`dist/`).
+-   `pnpm watch`: Watch for changes and recompile TypeScript.
+-   `pnpm start -- [args...]`: Run the compiled CLI from `dist/`.
+-   `pnpm lint`: Check code style using ESLint.
+-   `pnpm format`: Format code using Prettier.
+-   `pnpm typecheck`: Check for TypeScript errors without building.
+-   `pnpm test`: Run all unit and integration tests.
+-   `pnpm test:unit`: Run only unit tests.
+-   `pnpm test:integration`: Run only integration tests.
+-   `pnpm test:e2e`: Run end-to-end CLI tests (requires build).
+-   `pnpm test:cov`: Run tests and generate coverage report.
+-   `pnpm clean`: Remove build artifacts (`dist/`, `coverage/`).
+-   `pnpm docs:generate:api`: Generate API documentation using TypeDoc.
 
 ## Development Environment
 
-### Development Guidelines
-- **Test-First Development**: All new features must first be developed in the test/ folder
-- **Feature Isolation**: Do not modify code outside of test/ until fully debugged
-- **API Exposure**: All functionality should be exposed via FastAPI endpoints
-- **Performance Focus**: Use memory-mapped structures and Arrow C Data Interface for low-latency IPC
-- **Code Analysis**: Maintain an abstract syntax tree (AST) of the project to identify and prevent code duplication
-- **DRY Principle**: Use the AST to enforce Don't Repeat Yourself by detecting similar code structures
-- **Cross-Component Integration**: When working with functionality from different source components (Goose, IPFS Accelerate, etc.), use the integration bridges in `src/integration/`
-
-### Testing Strategy
-
-The project follows a comprehensive testing approach to ensure reliability and maintainability:
-
-#### Test Organization
-- **Unit Tests**: Located in the `test/` directory with file naming pattern `test_*.js` or `*.test.js`
-- **Integration Tests**: Also in `test/` but focused on component interactions in `integration/` subdirectory
-- **Performance Tests**: Specialized tests for measuring throughput and latency in `performance/` subdirectory
-
-#### Test Improvements
-- **Mock Integration**: Arrow C Data Interface mocking for cluster state helpers
-- **Role-Based Architecture**: Improved fixtures for master/worker/leecher node testing
-- **Gateway Compatibility**: Enhanced testing with proper filesystem interface mocking
-- **LibP2P Integration**: Fixed tests to work without external dependencies
-- **Parameter Validation**: Corrected constructor argument handling in tests
-- **Interface Focus**: Made tests more resilient to implementation changes by focusing on behaviors rather than implementation details
-
-#### Test Patterns
-1. **Fixture-Based Testing**: Use jest fixtures for test setup and teardown
-2. **Mocking IPFS Daemon**: Use subprocess mocking to avoid actual daemon dependency
-3. **Property-Based Testing**: Use testing-library for edge case discovery
-4. **Snapshot Testing**: For configuration and schema verification
-5. **Parallelized Test Execution**: For faster feedback cycles
-6. **Native Module Patching**: Special handling for Rust/native modules
-7. **Logging Suppression**: Context managers to control test output noise
-
-#### Cross-Component Testing Strategy
-For testing cross-component functionality:
-
-1. **Bridge Testing**: Test the TypeScript-to-Rust bridges thoroughly
-2. **Environment Detection**: Test environment detection and capability detection
-3. **Mock Component Interfaces**: Create mocks for each component interface
-4. **Isolated Component Tests**: Test each component in isolation before integration testing
-5. **Full Integration Tests**: Test the fully integrated components with real data
-
-### Code Style Guidelines
-- **TypeScript**: Use TypeScript throughout the codebase
-- **Modules**: ES modules with import/export statements
-- **Indentation**: 2 spaces
-- **Strings**: Single quotes
-- **Semicolons**: Required
-- **File names**: PascalCase for components, camelCase for utilities
-- **Component naming**: React components use PascalCase
-- **Functions/variables**: camelCase for functions, variables, and methods
-- **Types/interfaces**: PascalCase for type definitions
-- **Hooks**: Custom hooks prefixed with `use`
-- **Error handling**: Use try/catch with specific error messages
-- **React components**: Functional components with hooks
+-   **Node.js:** v18 LTS (Required)
+-   **Package Manager:** pnpm v8+ (Required)
+-   **OS:** Linux, macOS, Windows (WSL2 Recommended)
+-   **Editor:** VS Code (Recommended) with ESLint, Prettier extensions.
+-   **Build Tools:** C++ Compiler, Python 3.8+ (Required for native Node modules).
+-   **Dev Container:** Recommended for consistency (`.devcontainer/devcontainer.json`).
+-   See [docs/phase1/cli_dev_environment.md](docs/phase1/cli_dev_environment.md) for full details.
 
 ## Project Structure
-- `src/` - Main source code
-  - `components/` - React components used in the CLI interface
-    - `CustomSelect/` - Custom select component for model selection
-    - `ModelSelector.tsx` - Component for model selection and configuration
-    - `messages/` - Message display components
-    - `permissions/` - Permission request components
-  - `constants/` - Configuration constants and model definitions
-    - `models.ts` - Model definitions for all providers 
-    - `product.ts` - Product configuration and constants
-  - `services/` - API service integrations (Claude, OpenAI, etc.)
-    - `claude.ts` - Anthropic Claude API client
-    - `openai.ts` - OpenAI API client
-    - `mcpClient.ts` - MCP client for server communication
-    - `acceleration/` - Neural network acceleration services (from ipfs_accelerate_js) for CLI tool
-    - `storage/` - Storage services including IPFS integration
-    - `task/` - Task execution services (from swissknife_old)
-  - `utils/` - Utility functions and helpers
-    - `config.ts` - Configuration management and API key handling
-    - `sessionState.ts` - Session state management
-    - `environment.ts` - Environment detection utilities
-    - `native-loader.ts` - Native module loading utilities
-  - `tools/` - Tool implementations for different functionality
-  - `commands/` - Command implementations
-    - `model.tsx` - Model selection command
-    - `config.tsx` - Configuration management command
-    - `acceleration.tsx` - Hardware acceleration commands
-    - `task.tsx` - Task management commands
-  - `integration/` - Cross-component integration
-    - `typescript-implementations/` - Clean room TypeScript implementations
-    - `ipfs-accelerate/` - Neural network acceleration integration for CLI
-    - `tasknet/` - TaskNet functionality integration
-  - `clean-implementations/` - Clean room TypeScript implementations (see docs/CLEAN_ROOM_IMPLEMENTATION.md)
-- `docs/` - Developer documentation
-  - `GETTING_STARTED.md` - Guide for new developers
-  - `CONTRIBUTING.md` - Contribution guidelines
-  - `API_KEY_MANAGEMENT.md` - API key management guide
-  - `CODE_ARCHITECTURE.md` - Code architecture guide
-  - `INTEGRATION.md` - Detailed integration architecture
-- `test/` - Test files and utilities
-  - `api_key_persistence.test.js` - Tests for API key persistence
-  - `model_selector.test.js` - Tests for model selection
-  - `integration/` - Integration tests
-  - `performance/` - Performance tests
-- `lilypad-docs/` - Documentation for Lilypad integration
-- `rust/` - Rust code for native modules
-  - `goose-bridge/` - Bridge between TypeScript and Goose
-- `native-modules/` - Compiled native modules
 
-## Key Components for Junior Developers
+(See `docs/PROJECT_STRUCTURE.md` for full details)
 
-### API Key Management Flow
-1. Keys are stored in both global config and session state
-2. `getActiveApiKey()` is the central function for key retrieval with this logic:
-   - First checks config file for stored keys
-   - Rotates through keys when round-robin is enabled
-   - Falls back to environment variables if no keys in config
-   - Automatically adds environment variable keys to config
-   - Handles failed keys tracked in session state
-3. When implementing features that use API keys:
-   - Always use `getActiveApiKey()` rather than direct access
-   - Use `addApiKey()` to add new keys to configuration
-   - Reset session indices when changing providers with `setSessionState()`
+-   `src/`: Main source code.
+    -   `ai/`: Agent, Models, Tools, Thinking (GoT).
+    -   `auth/`: Authentication, API Keys (`api-key-manager.ts`), UCANs.
+    -   `cli/`: Core CLI framework (parsing, execution, context, formatting).
+    -   `commands/`: Specific CLI command implementations.
+    -   `components/`: Reusable Ink/React UI components.
+    -   `config/`: Configuration management (`manager.ts`).
+    -   `mcp/`: MCP client/server logic (using SDK).
+    -   `ml/`: Local ML Engine (`engine.ts`).
+    -   `network/`: Network services (e.g., LibP2P wrapper).
+    -   `storage/`: VFS Abstraction (`operations.ts`) & Backends (`filesystem.ts`, `ipfs.ts`).
+    -   `tasks/`: TaskNet system (Scheduler, Executor, Workers, Coordination, GoT, Decomp/Synth).
+    -   `types/`: Shared TypeScript interfaces/types.
+    -   `utils/`: Common utility functions.
+    -   `cli.ts`: Main CLI entry point.
+-   `docs/`: Project documentation.
+-   `test/`: Automated tests (unit, integration, e2e).
+-   `scripts/`: Utility scripts.
+-   `.github/`: CI/CD workflows, issue/PR templates.
+-   Configuration files (`.eslintrc.js`, `.prettierrc`, `tsconfig.json`, `jest.config.cjs`, `pnpm-lock.yaml`, etc.).
 
-### Model Configuration System
-1. Models are defined in `src/constants/models.ts` with these key properties:
-   - `id`: Unique identifier for the model
-   - `name`: Display name for the model
-   - `maxTokens`: Maximum tokens the model can handle
-   - `pricePerToken`: Cost in USD per token
-   - `capabilities`: Features the model supports (e.g., `images`, `streaming`)
-2. Providers are defined in the same file with:
-   - Base URLs and API endpoints
-   - Available models list
-   - Authentication methods
-3. When adding a new model provider:
-   - Add models to the appropriate provider's array
-   - Update the provider object with required details
-   - Implement API client in `src/services/` directory
-   - Add environment variable for API key
+## Core Architecture & Key Components
 
-### Model Selection Workflow
-1. `ModelSelector.tsx` manages the entire selection process:
-   - Provider selection → API key input → Model selection → Parameters → Confirmation
-2. Each step is managed by a screen navigation stack
-3. API key verification happens during the fetch models step
-4. The final configuration is saved to global config via `saveGlobalConfig()`
+-   **Architecture:** Service-oriented, modular TypeScript codebase. See `docs/UNIFIED_ARCHITECTURE.md`.
+-   **Entry Point:** `src/cli.ts` initializes the command framework (e.g., `commander`).
+-   **Command Handling:**
+    -   Commands defined in `src/commands/`.
+    -   `src/cli/parser.ts` (or framework) parses `argv`.
+    -   `src/cli/executor.ts` finds the command handler.
+    -   `src/cli/context.ts` defines `ExecutionContext` providing access to services.
+    -   Handlers receive `ExecutionContext` and perform actions by calling services.
+    -   `src/cli/formatter.ts` handles output presentation.
+-   **Key Services (Examples - access via `ExecutionContext.getService('<ServiceName>')`):**
+    -   `AgentService` (`src/ai/agent/`): Orchestrates AI interactions.
+    -   `ModelService` (`src/ai/models/`): Manages model registry, selection, execution via providers.
+    -   `ToolService` (`src/ai/tools/`): Manages tool registry and execution.
+    -   `StorageOperations` (`src/storage/operations.ts`): Provides unified VFS API.
+    -   `TaskManager` (`src/tasks/manager.ts`): Interface for creating/monitoring tasks.
+    -   `ConfigManager` (`src/config/manager.ts`): Accesses configuration.
+    -   `ApiKeyManager` (`src/auth/api-key-manager.ts`): Handles secure API key retrieval.
+    -   `Logger` (`src/utils/logger.ts`): For logging.
+    -   `OutputFormatter` (`src/cli/formatter.ts`): For user output.
 
-### Integration Architecture
-1. **Component Source**: Each component is tagged with its source (`current`, `goose`, `ipfs_accelerate`, `swissknife_old`)
-2. **Cross-Component Bridges**: Components in `src/integration/` provide bridges between different source components
-3. **Environment Detection**: `src/utils/environment.ts` detects the current environment and capabilities
-4. **Native Module Loading**: `src/utils/native-loader.ts` handles loading native modules
-5. **Storage Abstraction**: `src/services/storage/virtual-fs.ts` provides a unified storage interface
-6. **Task Management**: `src/services/task/task-manager.ts` provides task execution capabilities
+## Code Style & Standards
 
-## Integration Architecture
-
-The SwissKnife project integrates several components into a unified architecture:
-
-### 1. Core Components
-- **Node.js Application**: Main CLI interface built with TypeScript/React
-- **Clean Room Implementations**: Performance-critical components implemented in TypeScript using clean room methodology
-- **Node.js ML Acceleration**: Neural network acceleration for CLI
-- **TaskNet Functionality**: Task execution from swissknife_old
-
-### 2. Integration Strategy
-- **Clean TypeScript Implementations**: Direct implementation of all functionality in TypeScript
-- **Environment Detection**: Runtime detection of capabilities
-- **Unified API**: Common API for all functionality
-- **Layered Architecture**: CLI UI → Commands → Services → Integrations → TypeScript Implementations
-
-### 3. Cross-Component Communication
-- **MCP Protocol**: Model Context Protocol for AI interaction
-- **Event System**: Event-driven communication between components
-- **Worker Architecture**: Task execution via worker pools
-- **Storage Abstraction**: Virtual filesystem for unified storage
-
-### 4. Development Workflow for Integrated Components
-1. Write tests in the `test/` directory
-2. Implement the component in the appropriate subdirectory of `src/`
-3. Create integration bridge if needed
-4. Register with the appropriate registry system
-5. Add documentation
-
-## Common Issues and Solutions
-
-### API Key Persistence
-When switching models or restarting the application, API keys (particularly for Lilypad) might not be properly retained. This is due to the interaction between persistent configuration and session state.
-
-**Solution:**
-1. API keys are stored in:
-   - Config file via `getGlobalConfig` and `saveGlobalConfig` functions
-   - Session state for temporary values like current key index
-   - Environment variables as fallback (e.g., `ANURA_API_KEY` for Lilypad)
-   
-2. When adding functionality that uses API keys:
-   - Check both the config and environment variables
-   - Add environment variable values to the config when found
-   - Use `addApiKey` to add keys to the appropriate array in config
-   - Reset session state indices when changing providers or models
-
-### Round-Robin API Key Selection
-SwissKnife uses a round-robin approach to rotate through available API keys to prevent rate limiting.
-
-**Implementation:**
-1. Each model size has a current index tracked in session state
-2. When `getActiveApiKey()` is called with `roundRobin=true`:
-   - It increments the current index
-   - Returns the key at the new index
-   - Wraps around to the beginning if it exceeds the array length
-3. Failed keys are tracked in session state and skipped during selection
-
-### URL Consistency
-For Lilypad API endpoints, always use `https://anura-testnet.lilypad.tech/` in both code and user instructions.
-
-### Model Configuration
-Model definitions are in `src/constants/models.ts`. When adding new models:
-1. Add model details to the appropriate provider's array
-2. Include all standard fields (tokens, pricing, capabilities)
-3. Update the provider object if adding a new provider
-
-### Cross-Component Issues
-
-#### Clean Implementation Loading
-Issues may occur when loading clean room implementations in different environments.
-
-**Solution:**
-- Use the module loader utilities that handle proper imports
-- Implement fallbacks for different environments
-- Add comprehensive error handling for module loading
-
-#### Environment Detection
-Browser-specific features may fail in Node.js environments.
-
-**Solution:**
-- Always use the `environment.ts` utilities to detect capabilities
-- Implement fallbacks for browser-specific features
-- Use feature detection rather than environment detection when possible
-
-#### Configuration Migration
-Migrating from TOML to JSON configuration may cause issues.
-
-**Solution:**
-- Use the configuration migration utilities in `src/utils/config-migration.ts`
-- Validate configuration after migration
-- Provide fallbacks for missing configuration values
+-   **Language:** TypeScript (Strict Mode).
+-   **Formatting:** Prettier (config: `.prettierrc`). Run `pnpm format`.
+-   **Linting:** ESLint (config: `.eslintrc.js`). Run `pnpm lint`.
+-   **Naming:** camelCase (functions/vars), PascalCase (classes/types/interfaces/enums), kebab-case (filenames).
+-   **Modules:** ES Modules (`import`/`export`). Use path aliases (`@/`) defined in `tsconfig.json`.
+-   **Commits:** Conventional Commits standard.
+-   **Git Hooks:** Husky + lint-staged enforce formatting/linting on commit.
+-   See `docs/CONTRIBUTING.md` and `docs/phase1/cli_documentation_standards.md`.
 
 ## Testing Guidelines
-1. Use Jest for testing all components and utilities
-2. Mock external dependencies like API calls and config functions
-3. Test edge cases, especially for API key handling
-4. Structure tests with descriptive names in describe/test blocks
-5. Include integration tests that verify complete workflows
-6. Follow existing patterns in `test/` directory for consistency
-7. Test cross-component functionality with specialized tests in `test/integration/`
 
-## Environment Variables
-- `ANURA_API_KEY` - API key for Lilypad
-- `OPENAI_API_KEY` - API key for OpenAI
-- `MISTRAL_API_KEY` - API key for Mistral
-- `SMALL_MODEL_API_KEY` - Anthropic API key for small model
-- `LARGE_MODEL_API_KEY` - Anthropic API key for large model
-- `LOG_LEVEL` - Logging level for all components
-- `ENABLE_HARDWARE_ACCELERATION` - Enable hardware acceleration in browsers
-- `USE_OPTIMIZED_IMPLEMENTATIONS` - Prefer optimized TypeScript implementations
+-   **Framework:** Jest (`jest.config.cjs`).
+-   **Types:** Unit (`test/unit/`), Integration (`test/integration/`), E2E (`test/e2e/`).
+-   **Coverage:** Aim for >80% (unit/integration). Check via `pnpm test:cov`.
+-   **Mocks:** Use Jest mocks (`jest.mock`, `jest.fn`) for isolation. Mock external APIs in integration tests (`nock`/`msw`).
+-   **E2E:** Use `child_process` helpers (`test/utils/cli-executor.ts`) to run the compiled CLI.
+-   See `docs/phase1/cli_test_strategy.md` for full details.
 
-## Debugging Tips
-1. Use `console.log()` for basic debugging (removed in production)
-2. For API key issues, check both config and session state:
-   ```javascript
-   console.log('Config:', getGlobalConfig());
-   console.log('Session state:', getSessionState());
-   ```
-3. For model selection issues, trace the navigation stack:
-   ```javascript
-   console.log('Current screen:', this.state.currentScreen);
-   console.log('Stack:', this.state.screenStack);
-   ```
-4. For API errors, log the complete error response:
-   ```javascript
-   try {
-     // API call
-   } catch (error) {
-     console.error('Full error:', error);
-   }
-   ```
-5. For implementation module issues, check loading status:
-   ```javascript
-   console.log('Clean implementation loaded:', isImplementationModuleLoaded('ai_agent'));
-   ```
-6. For environment detection issues, log capabilities:
-   ```javascript
-   console.log('Environment:', getEnvironmentCapabilities());
-   ```
+## Documentation Guidelines
+
+-   **Primary Source:** `/docs` directory using Markdown.
+-   **API Docs:** Use TSDoc comments (`/** ... */`) in source code. Generate via `pnpm docs:generate:api`.
+-   **Standards:** Follow `docs/phase1/cli_documentation_standards.md` (structure, style, templates, glossary).
+-   **Updates:** Update relevant docs in the same PR as code changes.
+
+## Common Issues & Debugging
+
+-   **Module Resolution Errors:** Often due to Jest/TS config mismatch for path aliases or missing `.js` extensions in relative imports (required by NodeNext). Check `jest.config.cjs` (`moduleNameMapper`) and `tsconfig.json`. Ensure `pnpm build` is run before tests needing `dist/` files.
+-   **Native Module Errors:** Ensure build tools (Python, C++) are installed correctly. Try `pnpm install --force` or remove `node_modules` and reinstall. Check `node-gyp` logs.
+-   **API Key Errors:** Verify keys are set correctly (environment variables `OPENAI_API_KEY`, etc. take precedence) or stored securely via `apikey add`. Use `apikey list` or `config get ...` to check. Check for typos or expired keys.
+-   **Debugging:**
+    -   Use VS Code debugger with configurations in `.vscode/launch.json` (Debug CLI, Debug Current Jest File).
+    -   Use `console.log` for simple tracing.
+    -   Use the `debug` library with namespaces (e.g., `DEBUG=swissknife:agent pnpm dev ...`).
+    -   Check detailed logs (level controlled by `LOG_LEVEL` env var).
 
 ## Contributing
-See the `docs/CONTRIBUTING.md` file for detailed contribution guidelines.
+
+-   Follow the workflow outlined in `docs/CONTRIBUTING.md`.
+-   Use the PR template. Ensure CI checks pass and code is reviewed.
+-   Adhere to code style and commit message conventions.
+-   Update tests and documentation along with code changes.
