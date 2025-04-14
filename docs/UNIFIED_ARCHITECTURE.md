@@ -19,23 +19,23 @@ The SwissKnife architecture combines all features into a cohesive, modular syste
 
 ```mermaid
 graph TD
-    subgraph SwissKnife CLI Application (TypeScript / Node.js)
-        A[CLI Interface (Ink/React)] --> B(Command System);
-        B --> C(Execution Context);
-        C --> D[AI Service (Agent, GoT)];
-        C --> E[Task Service (TaskNet)];
-        C --> F[Storage Service (VFS)];
-        C --> G[ML Service (Engine)];
-        C --> H[Config Service];
-        C --> I[Auth Service];
-        C --> J[MCP Client Service];
-        C --> K[Other Services...];
+    subgraph SwissKnife_CLI_Application
+        A["CLI Interface - Ink/React"] --> B["Command System"];
+        B --> C["Execution Context"];
+        C --> D["AI Service - Agent, GoT"];
+        C --> E["Task Service - TaskNet"];
+        C --> F["Storage Service - VFS"];
+        C --> G["ML Service - Engine"];
+        C --> H["Config Service"];
+        C --> I["Auth Service"];
+        C --> J["MCP Client Service"];
+        C --> K["Other Services..."];
 
-        F --> L[IPFS Client];
+        F --> L["IPFS Client"];
     end
 
-    L -- HTTP API Calls --> M((IPFS Kit MCP Server - External));
-    D -- API Calls --> N((AI Model APIs - External));
+    L -- HTTP API Calls --> M(("IPFS Kit MCP Server - External"));
+    D -- API Calls --> N(("AI Model APIs - External"));
 
     style M fill:#ddd, stroke:#333
     style N fill:#ddd, stroke:#333
@@ -52,36 +52,36 @@ The codebase is organized into focused domains that contain related functionalit
 
 ```mermaid
 graph TD
-    subgraph Root
-        A(src/) --> B(ai/);
-        A --> C(auth/);
-        A --> D(cli/);
-        A --> E(commands/);
-        A --> F(components/);
-        A --> G(config/);
-        A --> H(constants/);
-        A --> I(entrypoints/);
-        A --> J(ml/);
-        A --> K(services/);
-        A --> L(storage/);
-        A --> M(tasks/);
-        A --> N(types/);
-        A --> O(utils/);
-        P(test/) --> Q(unit/);
-        P --> R(integration/);
-        P --> S(e2e/);
-        P --> T(helpers/);
-        P --> U(mocks/);
-        P --> V(fixtures/);
-        P --> W(plans/);
-        X(docs/) --> Y(phase1/);
-        X --> Z(phase2/);
-        X --> AA(phase3/);
-        X --> AB(phase4/);
-        X --> AC(phase5/);
-        X --> AD(architecture/);
-        X --> AE(guides/);
-        AF(scripts/);
+    subgraph Project_Structure
+        A("src/") --> B("ai/");
+        A --> C("auth/");
+        A --> D("cli/");
+        A --> E("commands/");
+        A --> F("components/");
+        A --> G("config/");
+        A --> H("constants/");
+        A --> I("entrypoints/");
+        A --> J("ml/");
+        A --> K("services/");
+        A --> L("storage/");
+        A --> M("tasks/");
+        A --> N("types/");
+        A --> O("utils/");
+        P("test/") --> Q("unit/");
+        P --> R("integration/");
+        P --> S("e2e/");
+        P --> T("helpers/");
+        P --> U("mocks/");
+        P --> V("fixtures/");
+        P --> W("plans/");
+        X("docs/") --> Y("phase1/");
+        X --> Z("phase2/");
+        X --> AA("phase3/");
+        X --> AB("phase4/");
+        X --> AC("phase5/");
+        X --> AD("architecture/");
+        X --> AE("guides/");
+        AF("scripts/");
         AG(package.json);
         AH(tsconfig.json);
         AI(jest.config.cjs);
