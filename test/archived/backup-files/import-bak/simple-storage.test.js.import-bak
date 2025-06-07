@@ -1,0 +1,84 @@
+/**
+ * Simple Storage Test
+ * This tests the basic functionality of the storage system
+ * with minimal dependencies and complexity.
+ */
+
+// Import the FileStorage class directly
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import * as os from 'os';
+
+// Helper function to create a temp directory for testing
+async function createTempTestDir() {
+  const tempDir = path.join(os.tmpdir(), `swissknife-test-${Date.now()}`);
+  await fs.mkdir(tempDir, { recursive: true });
+  return tempDir;
+}
+
+// Helper function to remove temp directory after tests
+async function removeTempTestDir(dirPath) {
+  try {
+    await fs.rm(dirPath, { recursive: true, force: true });
+  } catch (e) {
+    console.warn(`Failed to remove test directory: ${e.message}`);
+  }
+}
+
+describe('FileStorage - Basic Tests', () => {
+  let tempDir;
+  let storagePath;
+  let storage;
+
+  beforeAll(async () => {
+    // Create main temp directory
+    tempDir = await createTempTestDir();
+  });
+
+  beforeEach(async () => {
+    // Create unique subdirectory for each test
+    storagePath = path.join(tempDir, `file-storage-${Date.now()}`);
+    
+    // Create storage instance
+    storage = new FileStorage({
+      basePath: storagePath,
+      createDir: true
+    });
+  });
+
+  afterAll(async () => {
+    // Clean up main temp directory
+    await removeTempTestDir(tempDir);
+  });
+
+  test('should add and retrieve content', async () => {
+    // Add content
+    const content = 'Test content';
+    const id = await storage.add(content);
+    
+    // Verify ID is returned
+    expect(id).toBeTruthy();
+    expect(typeof id).toBe('string');
+    
+    // Retrieve content
+    const retrieved = await storage.get(id);
+    expect(retrieved).toBeDefined();
+    
+    // Verify content matches
+    const retrievedText = retrieved.toString();
+    expect(retrievedText).toBe(content);
+  });
+
+  test('should list stored content', async () => {
+    // Add multiple content items
+    const id1 = await storage.add('Content 1');
+    const id2 = await storage.add('Content 2');
+    
+    // List all content
+    const items = await storage.list();
+    
+    // Verify list contains our items
+    expect(items).toContain(id1);
+    expect(items).toContain(id2);
+  });
+});

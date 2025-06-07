@@ -14,6 +14,6 @@ const costCommand: LocalCommand = {
   userFacingName() {
     return 'cost'
   },
-} satisfies Command
+};
 
 export default costCommand;

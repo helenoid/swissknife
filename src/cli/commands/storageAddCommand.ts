@@ -1,9 +1,9 @@
 import { Command, CommandExecutionContext } from '../../command-registry.js';
 import { StorageProvider } from '../../types/storage.js'; // Need StorageProvider
 import { logger } from '../../utils/logger.js';
-import fs from 'fs/promises';
-import path from 'path';
-import parse from 'yargs-parser'; 
+import fs from 'fs/promises.js';
+import path from 'path.js';
+import parse from 'yargs-parser.js'; 
 
 export class StorageAddCommand implements Command {
   readonly name = 'storage:add';

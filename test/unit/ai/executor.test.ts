@@ -11,16 +11,16 @@
 
 // --- Mock Setup ---
 // Add .js extension
-jest.mock('@/utils/logger.js', () => ({
+jest.mock('@/utils/logger', () => ({
   logger: { debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 
 // Mock ConfigManager if needed by context
 const mockConfigManagerInstance = {
-    get: jest.fn((key, defaultValue) => defaultValue),
+    get: jest.fn((_key, defaultValue) => defaultValue),
     // Add other methods if needed
 };
-jest.mock('@/config/manager.js', () => ({
+jest.mock('@/config/manager', () => ({
   ConfigurationManager: {
     getInstance: jest.fn(() => mockConfigManagerInstance),
   },
@@ -32,7 +32,7 @@ const mockStorageOpsInstance = {
     writeFile: jest.fn(),
     // Add other methods if needed
 };
-jest.mock('@/storage/operations.js', () => ({
+jest.mock('@/storage/operations', () => ({
   StorageOperations: jest.fn(() => mockStorageOpsInstance),
 }));
 
@@ -42,7 +42,7 @@ const mockTaskManagerInstance = {
     getTask: jest.fn(),
     // Add other methods if needed
 };
-jest.mock('@/tasks/manager.js', () => ({
+jest.mock('@/tasks/manager', () => ({
   TaskManager: jest.fn(() => mockTaskManagerInstance),
 }));
 
@@ -52,7 +52,6 @@ jest.mock('@/tasks/manager.js', () => ({
 import { ToolExecutor } from '@/ai/tools/executor.js';
 // Use relative path for types - Add .js extension
 // Define placeholder types if not properly exported/resolved
-import type { Tool as RealTool, ToolExecutionContext as RealToolExecutionContext } from '../../../src/types/ai.js'; // Adjust path if needed
 import { z } from 'zod';
 import { ConfigManager } from '@/config/manager.js'; // Import for type usage
 // Remove problematic import for StorageOperations
@@ -71,13 +70,15 @@ type Tool<T extends z.ZodType<any, any, any> = any> = {
 };
 
 // Define placeholder ToolExecutionContext including required properties
-type ToolExecutionContext = Partial<RealToolExecutionContext> & {
-    abortController: AbortController;
-    config: ConfigManager; // Added based on error
-    // storage: StorageOperations; // Removed due to import issue
-    storage: any; // Use 'any' as a fallback
-    taskManager: TaskManager; // Added based on error
-    // Add other potential properties if needed
+type ToolExecutionContext = {
+    abortController?: AbortController;
+    config: any; // ConfigManager type
+    storage: any; // StorageProvider type
+    taskManager: any; // TaskManager type
+    taskId?: string;
+    userId?: string;
+    callTool?: (toolName: string, input: Record<string, any>) => Promise<any>;
+    inferenceExecutor?: any;
 };
 
 
@@ -146,8 +147,8 @@ describe('ToolExecutor', () => {
     const expectedResult = 'Success!';
 
     // Act
-    // Execute using tool object, rawInput, and context
-    const result = await executor.execute(tool, rawInput, mockContext);
+    // Execute using tool name, rawInput, and context
+    const result = await executor.execute(tool.name, rawInput, mockContext);
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -163,7 +164,7 @@ describe('ToolExecutor', () => {
 
     // Act & Assert
     // Executor's internal Zod parsing should throw
-    await expect(executor.execute(tool, invalidInput, mockContext))
+    await expect(executor.execute(tool.name, invalidInput, mockContext))
       .rejects
       .toThrow(/Invalid input for tool success_tool:.*Required/i); // Check for Zod 'Required' error
 
@@ -177,7 +178,7 @@ describe('ToolExecutor', () => {
     const invalidInput = { message: 123 }; // Incorrect type
 
     // Act & Assert
-    await expect(executor.execute(tool, invalidInput, mockContext))
+    await expect(executor.execute(tool.name, invalidInput, mockContext))
       .rejects
       .toThrow(/Invalid input for tool success_tool:.*Expected string, received number/i); // Check for Zod type error
 
@@ -194,7 +195,7 @@ describe('ToolExecutor', () => {
 
     // Act & Assert
     // The error comes from the tool's execute method, wrapped by the executor
-    await expect(executor.execute(tool, rawInput, mockContext))
+    await expect(executor.execute(tool.name, rawInput, mockContext))
       .rejects
       .toThrow(`Tool ${tool.name} failed: ${expectedError.message}`); // Check wrapped error message
 
@@ -216,7 +217,7 @@ describe('ToolExecutor', () => {
 
      // Act
      // Executor validates via Zod, which applies default
-     const result = await executor.execute(tool, rawInput, mockContext);
+     const result = await executor.execute(tool.name, rawInput, mockContext);
 
      // Assert
      // Check the result returned by the mock tool's implementation
@@ -232,7 +233,7 @@ describe('ToolExecutor', () => {
      const rawInput = { name: 'Test Name', count: 'not-a-number' }; // Incorrect type for count
 
      // Act & Assert
-     await expect(executor.execute(tool, rawInput, mockContext))
+     await expect(executor.execute(tool.name, rawInput, mockContext))
       .rejects
       .toThrow(/Invalid input for tool complex_tool:.*Expected number, received string/i); // Check for Zod type error
 

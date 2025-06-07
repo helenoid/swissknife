@@ -1,4 +1,4 @@
-import { getGlobalConfig } from '../utils/config'
+import { getGlobalConfig } from '../utils/config.js'
 
 export type NotificationOptions = {
   message: string

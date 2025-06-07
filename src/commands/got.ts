@@ -5,13 +5,13 @@
  * for complex reasoning and task decomposition.
  */
 
-import { Command } from 'commander';
-import { GoTManager } from '../tasks/graph/manager';
-import { GoTNode } from '../tasks/graph/node';
-import { MCPClient } from '../storage/ipfs/mcp-client';
-import { ConfigurationManager } from '../config/manager';
-import { LogManager } from '../utils/logging/manager';
-import chalk from 'chalk';
+import { Command } from 'commander.js';
+import { GoTManager } from '../tasks/graph/manager.js';
+import { GoTNode } from '../tasks/graph/node.js';
+import { MCPClient } from '../storage/ipfs/mcp-client.js';
+import { ConfigurationManager } from '../config/manager.js';
+import { LogManager } from '../utils/logging/manager.js';
+import chalk from 'chalk.js';
 
 export const got = new Command('got')
   .description('Interact with the Graph-of-Thought system')

@@ -10,17 +10,17 @@ import {
   getUnresolvedToolUseIDs,
   createUserMessage,
   isNotEmptyMessage,
-  NO_CONTENT_MESSAGE,
-  // Assuming getMessagesForSlashCommand is also exported for mocking purposes if needed
-  // getMessagesForSlashCommand
-} from '../../src/utils/messages.js'; // Add .js back
+} from '../src/utils/messages.tsx';
+
+// Import NO_CONTENT_MESSAGE from the correct location
+import { NO_CONTENT_MESSAGE } from '../src/services/claude.js';
 
 // Import mocked dependencies (using relative path)
-import { getCommand, hasCommand } from '../../src/commands.js'; // Add .js back
+import { getCommand, hasCommand } from '../src/commands.js';
 
 // Mock the commands module
 // Use jest.mock with the actual path to the module being mocked
-jest.mock('../../src/commands.js', () => ({ // Add .js back
+jest.mock('../src/commands.js', () => ({
   getCommand: jest.fn(),
   hasCommand: jest.fn(),
 }));

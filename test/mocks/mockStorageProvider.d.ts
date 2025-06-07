@@ -1,0 +1,47 @@
+/// <reference types="node" resolution-mode="require"/>
+/// <reference types="node" resolution-mode="require"/>
+/// <reference types="node" resolution-mode="require"/>
+import { StorageProvider, ListOptions, StorageItemMetadata, AddOptions, IPLDLink } from '../../src/types/storage.js';
+import { CID, TaskID, JSONValue } from '../../src/types/common.js';
+import { Task } from '../../src/types/task.js';
+/**
+ * In-memory mock implementation of the StorageProvider interface for testing.
+ */
+export declare class MockStorageProvider implements StorageProvider {
+    private storage;
+    private taskStorage;
+    private metadataStorage;
+    private nodeStorage;
+    add(content: string | Buffer, options?: AddOptions): Promise<CID>;
+    get(cid: CID): Promise<Buffer>;
+    exists(cid: CID): Promise<boolean>;
+    delete(cid: CID): Promise<boolean>;
+    getMetadata(cid: CID): Promise<StorageItemMetadata>;
+    updateMetadata(cid: CID, metadataUpdate: Partial<StorageItemMetadata>): Promise<boolean>;
+    list(options?: ListOptions): Promise<{
+        cids: CID[];
+        metadata?: StorageItemMetadata[];
+    }>;
+    addNode(data: JSONValue, links?: IPLDLink[]): Promise<CID>;
+    getNode(cid: CID): Promise<{
+        data: JSONValue;
+        links: IPLDLink[];
+    }>;
+    createCar(roots: CID[], blocks?: Record<CID, Buffer>): Promise<{
+        carCid: CID;
+        size: number;
+    }>;
+    loadCar(carCid: CID): Promise<{
+        roots: CID[];
+        blocks: Record<CID, Buffer>;
+    }>;
+    getStream(cid: CID): Promise<NodeJS.ReadableStream>;
+    addStream(stream: NodeJS.ReadableStream, options?: AddOptions): Promise<CID>;
+    storeTask(task: Task): Promise<void>;
+    getTask(taskId: TaskID): Promise<Task | null>;
+    updateTask(task: Task): Promise<void>;
+    listTasks(filter?: any): Promise<Task[]>;
+    clear(): void;
+    getSize(): number;
+    getTaskSize(): number;
+}

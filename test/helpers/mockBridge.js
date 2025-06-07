@@ -1,0 +1,180 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+/**
+ * Mock bridge implementations for integration testing
+ */
+import { EventEmitter } from 'events.js';
+/**
+ * Creates a mock bridge implementation for testing
+ */
+export function createMockBridge(id = 'mock-bridge', options = {}) {
+    const { source = 'current', target = 'goose', methods = {}, autoInitialize = true } = options;
+    const events = new EventEmitter();
+    let initialized = false;
+    const callHistory = [];
+    return {
+        id,
+        name: `Mock Bridge (${id})`,
+        source,
+        target,
+        events,
+        callHistory,
+        async initialize() {
+            initialized = true;
+            events.emit('initialized', { bridgeId: id });
+            return true;
+        },
+        isInitialized() {
+            return initialized;
+        },
+        async call(method, args) {
+            if (!initialized && !autoInitialize) {
+                throw new Error(`Bridge ${id} not initialized`);
+            }
+            callHistory.push({ method, args });
+            events.emit('call', { bridgeId: id, method, args });
+            if (methods[method]) {
+                return methods[method](args);
+            }
+            // Default mock response
+            return {
+                success: true,
+                data: {
+                    message: `Mock response from ${id} for method ${method}`,
+                    args
+                }
+            };
+        }
+    };
+}
+/**
+ * Creates a mock IPFS MCP bridge for testing
+ */
+export function createMockIPFSBridge() {
+    const storage = new Map();
+    return createMockBridge('ipfs-mcp', {
+        source: 'current',
+        target: 'ipfs_accelerate',
+        methods: {
+            addContent: async (args) => {
+                const content = typeof args.content === 'string'
+                    ? Buffer.from(args.content)
+                    : args.content;
+                const cid = `mock-cid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                storage.set(cid, content);
+                return { cid };
+            },
+            getContent: async (args) => {
+                const content = storage.get(args.cid);
+                if (!content) {
+                    throw new Error(`Content not found for CID: ${args.cid}`);
+                }
+                return content;
+            },
+            listContent: async () => {
+                return Array.from(storage.keys());
+            },
+            deleteContent: async (args) => {
+                const exists = storage.has(args.cid);
+                storage.delete(args.cid);
+                return { success: exists };
+            }
+        }
+    });
+}
+/**
+ * Creates a mock Goose bridge for testing
+ */
+export function createMockGooseBridge() {
+    return createMockBridge('goose-mcp', {
+        source: 'current',
+        target: 'goose',
+        methods: {
+            generate_completion: async (args) => {
+                return {
+                    completion: `Mock completion for prompt: ${args.prompt.substring(0, 20)}...`,
+                    usage: {
+                        promptTokens: args.prompt.length / 4,
+                        completionTokens: 100,
+                        totalTokens: args.prompt.length / 4 + 100
+                    },
+                    timing_ms: 500
+                };
+            },
+            process_message: async (args) => {
+                return {
+                    response: `Mock response to message: ${args.message.substring(0, 20)}...`,
+                    thinking: `Mock thinking about: ${args.message}`,
+                    usage: {
+                        promptTokens: 50,
+                        completionTokens: 100,
+                        totalTokens: 150
+                    }
+                };
+            }
+        }
+    });
+}
+/**
+ * Creates a mock TaskNet bridge for testing
+ */
+export function createMockTaskNetBridge() {
+    const tasks = new Map();
+    return createMockBridge('tasknet', {
+        source: 'current',
+        target: 'swissknife_old',
+        methods: {
+            createTask: async (args) => {
+                const taskId = `task-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                tasks.set(taskId, {
+                    id: taskId,
+                    description: args.description,
+                    priority: args.priority || 5,
+                    status: 'pending',
+                    data: args.data,
+                    createdAt: Date.now()
+                });
+                return { taskId };
+            },
+            executeTask: async (args) => {
+                const task = tasks.get(args.taskId);
+                if (!task) {
+                    throw new Error(`Task not found: ${args.taskId}`);
+                }
+                task.status = 'completed';
+                task.completedAt = Date.now();
+                task.result = {
+                    success: true,
+                    message: `Task ${args.taskId} executed successfully`,
+                    data: task.data
+                };
+                return task.result;
+            },
+            getTaskStatus: async (args) => {
+                const task = tasks.get(args.taskId);
+                if (!task) {
+                    throw new Error(`Task not found: ${args.taskId}`);
+                }
+                return {
+                    taskId: task.id,
+                    status: task.status,
+                    result: task.result
+                };
+            },
+            executeModelTask: async (args) => {
+                return {
+                    completion: `TaskNet model response to: ${args.prompt.substring(0, 20)}...`,
+                    usage: {
+                        promptTokens: args.prompt.length / 4,
+                        completionTokens: 120,
+                        totalTokens: args.prompt.length / 4 + 120
+                    },
+                    timing_ms: 800
+                };
+            }
+        }
+    });
+}
+//# sourceMappingURL=mockBridge.js.map

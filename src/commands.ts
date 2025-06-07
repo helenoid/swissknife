@@ -1,23 +1,23 @@
 // Import the new Command type and the registry
 import type { Command } from './types/command.js';
-import { commandRegistry } from './command-registry.js';
+import { CommandRegistry } from './command-registry.js';
 
 // Import refactored command objects
 import approvedToolsCommand from './commands/approved-tools.js';
 import bugCommand from './commands/bug.js';
 import clearCommand from './commands/clear.js';
 import compactCommand from './commands/compact.js';
-import configCommand from './commands/config.js';
+import { configCommand } from './commands/config.js'; // Changed to named import
 import costCommand from './commands/cost.js';
 import ctxVizCommand from './commands/ctx_viz.js';
 import doctorCommand from './commands/doctor.js';
-import helpCommand from './commands/help.js';
+import { helpCommand } from './commands/help.js'; // Changed to named import
 import initCommand from './commands/init.js';
 import listenCommand from './commands/listen.js';
 import loginCommand from './commands/login.js';
 import logoutCommand from './commands/logout.js';
 import mcpCommand from './commands/mcp.js';
-import modelCommand from './commands/model.js';
+import { modelCommand } from './commands/model.js'; // Changed to named import
 import onboardingCommand from './commands/onboarding.js';
 import prCommentsCommand from './commands/pr_comments.js';
 import releaseNotesCommand from './commands/release-notes.js';
@@ -71,7 +71,7 @@ const builtInCommands = [
   gooseCommand,
 ];
 
-commandRegistry.register(builtInCommands);
+CommandRegistry.getInstance().register(builtInCommands);
 
 
 // --- Updated Functions ---
@@ -80,27 +80,27 @@ commandRegistry.register(builtInCommands);
 export const getCommands = memoize(async (): Promise<Command[]> => {
   // Fetch MCP commands and combine with registered built-in commands
   const mcpCommands = await getMCPCommands();
-  commandRegistry.register(mcpCommands); // Register MCP commands too
+  CommandRegistry.getInstance().register(mcpCommands); // Register MCP commands too
 
   // Return all enabled commands from the registry
-  return commandRegistry.getAllCommands().filter(cmd => cmd.isEnabled !== false); // Check explicitly for false
+  return CommandRegistry.getInstance().listCommands().filter((cmd: Command) => cmd.isEnabled !== false); // Check explicitly for false
 });
 
 export async function hasCommand(commandName: string): Promise<boolean> {
   // Check against the registry after ensuring commands are loaded
   await getCommands(); // Ensure registry is populated
-  return !!commandRegistry.getCommand(commandName);
+  return !!CommandRegistry.getInstance().getCommand(commandName);
 }
 
 export async function getCommand(commandName: string): Promise<Command> {
   // Get from the registry after ensuring commands are loaded
   await getCommands(); // Ensure registry is populated
-  const command = commandRegistry.getCommand(commandName);
+  const command = CommandRegistry.getInstance().getCommand(commandName);
   if (!command) {
     // Generate error message based on currently available commands in registry
-    const availableCommands = commandRegistry.getAllCommands()
-      .filter(cmd => cmd.isEnabled !== false && cmd.isHidden !== true) // Filter enabled and not hidden
-      .map(cmd => {
+    const availableCommands = CommandRegistry.getInstance().listCommands()
+      .filter((cmd: Command) => cmd.isEnabled !== false && cmd.isHidden !== true) // Filter enabled and not hidden
+      .map((cmd: Command) => {
         const name = cmd.userFacingName();
         return cmd.aliases ? `${name} (aliases: ${cmd.aliases.join(', ')})` : name;
       })

@@ -10,17 +10,17 @@
  * - version-history: Get version history
  */
 
-import { DeploymentManager } from '../services/mcp-deployment-manager';
+import { DeploymentManager } from '../services/mcp-deployment-manager.js';
 import { 
   parseEnvVars, 
   ensureConfigScope, 
   listMCPServers,
   McpServerConfig
-} from '../services/mcpClient';
+} from '../services/mcpClient.js';
 import { Command, LocalCommand } from '../types/command.js';
-import { logEvent } from '../utils/log';
-import chalk from 'chalk';
-import { getTheme } from '../utils/theme';
+import { logEvent } from '../utils/log.js';
+import chalk from 'chalk.js';
+import { getTheme } from '../utils/theme.js';
 
 /**
  * CLI command to deploy a new version of an MCP server

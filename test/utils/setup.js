@@ -4,8 +4,8 @@
  * Provides standardized test environment setup functions
  */
 
-import { jest } from '@jest/globals';
-import { createMockStorage } from './mockStorage';
+// Use CommonJS imports for better compatibility with Jest
+const mockStorage = require('./mockStorage');
 
 /**
  * Create a test environment with mock objects for testing
@@ -13,11 +13,11 @@ import { createMockStorage } from './mockStorage';
  * @param {Object} options Custom options for test environment
  * @returns {Object} Test environment with mocked dependencies
  */
-export function createTestEnvironment(options = {}) {
+function createTestEnvironment(options = {}) {
   // Create mock services and dependencies
   const environment = {
     // Mock storage system
-    storage: createMockStorage(options.storage),
+    storage: mockStorage.createMockStorage(options.storage),
     
     // Mock configuration manager
     configManager: {
@@ -110,41 +110,57 @@ export function createTestEnvironment(options = {}) {
  * @param {Object} environment Test environment context
  * @returns {Function} Function to reset mocks when done
  */
-export function setupGlobalMocks(environment) {
-  // Mock configuration manager
+function setupGlobalMocks(environment) {
+  const configManager = environment.configManager;
+  const logger = environment.logger;
+  const modelService = environment.modelService;
+  const storage = environment.storage;
+
+  // Create mock references that Jest allows
+  const mockConfigManager = configManager;
+  const mockLogger = logger;
+  const mockModelService = modelService;
+  const mockStorage = storage;
+
+  // Define module mocks
   jest.mock('../../src/config/manager', () => ({
     ConfigurationManager: {
-      getInstance: jest.fn().mockReturnValue(environment.configManager)
+      getInstance: jest.fn().mockReturnValue(mockConfigManager)
     }
-  }));
-  
-  // Mock logging system
+  }), { virtual: true });
+
   jest.mock('../../src/utils/logging/manager', () => ({
     LogManager: {
-      getInstance: jest.fn().mockReturnValue(environment.logger)
+      getInstance: jest.fn().mockReturnValue(mockLogger)
     }
-  }));
-  
-  // Mock model execution service
+  }), { virtual: true });
+
   jest.mock('../../src/models/execution', () => ({
     ModelExecutionService: {
-      getInstance: jest.fn().mockReturnValue(environment.modelService)
+      getInstance: jest.fn().mockReturnValue(mockModelService)
     }
-  }));
-  
-  // Mock storage factory
+  }), { virtual: true });
+
   jest.mock('../../src/storage/factory', () => ({
     StorageFactory: {
-      createStorage: jest.fn().mockReturnValue(environment.storage)
+      createStorage: jest.fn().mockReturnValue(mockStorage)
     }
-  }));
-  
+  }), { virtual: true });
+
   // Return function to reset mocks
   return function resetMocks() {
     jest.resetAllMocks();
-    environment.storage._reset();
+    if (storage && typeof storage._reset === 'function') {
+      storage._reset();
+    }
   };
 }
 
-// Export mock factories for individual usage
-export { createMockStorage };
+export { setupGlobalMocks };
+
+// Export functions as CommonJS
+module.exports = {
+  createTestEnvironment,
+  setupGlobalMocks,
+  createMockStorage: mockStorage.createMockStorage
+};

@@ -15,7 +15,7 @@
 const mockMcpClientInstance = {
   isConnectedToServer: jest.fn().mockReturnValue(true),
   connect: jest.fn().mockResolvedValue(true),
-  addNode: jest.fn().mockImplementation(async (data: any, links: any[] = []) => {
+  addNode: jest.fn().mockImplementation(async (_data: any, _links: any[] = []) => {
     // Simulate CID generation based on content hash for determinism if needed
     // const hash = crypto.createHash('sha256').update(JSON.stringify({ data, links })).digest('hex');
     // return { cid: `mock-cid-${hash.substring(0, 8)}` };
@@ -27,12 +27,12 @@ const mockMcpClientInstance = {
   }),
   // Add other methods if GoTManager uses them (e.g., updateNode, query)
 };
-jest.mock('../../../src/storage/ipfs/mcp-client.js', () => ({ // Adjust path if needed
+jest.mock('../../../src/storage/ipfs/mcp-client', () => ({ // Adjust path if needed
   MCPClient: jest.fn().mockImplementation(() => mockMcpClientInstance),
 }));
 
 // Mock LogManager
-jest.mock('../../../src/utils/logging/manager.js', () => ({
+jest.mock('../../../src/utils/logging/manager', () => ({
   LogManager: {
     getInstance: jest.fn().mockReturnValue({
       info: jest.fn(), error: jest.fn(), debug: jest.fn(), warn: jest.fn(),
@@ -41,19 +41,18 @@ jest.mock('../../../src/utils/logging/manager.js', () => ({
 }));
 
 // Mock ConfigurationManager (if GoTManager uses it)
-jest.mock('../../../src/config/manager.js', () => ({
+jest.mock('../../../src/config/manager', () => ({
   ConfigurationManager: {
     getInstance: jest.fn().mockReturnValue({
-      get: jest.fn((key, defaultValue) => defaultValue),
+      get: jest.fn((_key, defaultValue) => defaultValue),
     }),
   },
 }));
 
 // --- Imports ---
-// Add .js extension
-import { GoTManager } from '../../../src/tasks/graph/manager.js'; // Adjust path if needed
-import { GoTNode, GoTNodeType, GoTNodeStatus } from '../../../src/tasks/graph/node.js'; // Adjust path if needed
-import { MCPClient } from '../../../src/storage/ipfs/mcp-client.js'; // Adjust path if needed
+import { GoTManager } from '../../../src/tasks/graph/manager.js';
+import { GoTNode, GoTNodeType, GoTNodeStatus } from '../../../src/tasks/graph/node.js';
+import { MCPClient } from '../../../src/storage/ipfs/mcp-client.js';
 
 // --- Test Suite ---
 
@@ -69,6 +68,9 @@ describe('GoTManager', () => {
 
     // Get/Create instances
     manager = GoTManager.getInstance(); // Assuming singleton pattern
+    // Clear any existing state
+    manager.clear();
+    
     // Get the mocked MCPClient instance used by the manager
     // This assumes GoTManager gets/creates its client internally.
     // If MCPClient is injected, provide the mock directly.
@@ -88,8 +90,7 @@ describe('GoTManager', () => {
     expect(typeof graphId1).toBe('string');
     expect(graphId2).toBeDefined();
     expect(typeof graphId2).toBe('string');
-    expect(graphId1).not.toEqual(graphId2);
-    expect(manager.getGraphNodes(graphId1)).toEqual([]); // New graph should be empty
+    expect(graphId1).not.toEqual(graphId2);      expect(manager.getGraphNodes(graphId1)).toEqual([]); // New graph should be empty
   });
 
   // --- Node Creation and Relationships ---

@@ -1,0 +1,99 @@
+/**
+ * Mock worker thread implementation for testing
+ */
+/// <reference types="node" resolution-mode="require"/>
+import { EventEmitter } from 'events.js.js.js.js.js';
+import { WorkerPool } from "../../src/workers/worker-pool";
+export interface MockWorkerOptions {
+    workerId?: string;
+    autoRespond?: boolean;
+    errorProbability?: number;
+    responseDelay?: number;
+    taskHandlers?: Record<string, (data: any) => Promise<any>>;
+}
+export interface MockWorkerMessage {
+    type: string;
+    [key: string]: any;
+}
+/**
+ * Creates a mock worker implementation for testing
+ */
+export declare function createMockWorker(options?: MockWorkerOptions): {
+    workerId: string;
+    status: "idle";
+    messageHistory: MockWorkerMessage[];
+    events: EventEmitter<[never]>;
+    postMessage(message: MockWorkerMessage): void;
+    on(event: string, listener: (...args: any[]) => void): any;
+    once(event: string, listener: (...args: any[]) => void): any;
+    off(event: string, listener: (...args: any[]) => void): any;
+    terminate(): Promise<void>;
+    setStatus(newStatus: 'idle' | 'busy' | 'error'): void;
+    sendManualResponse(taskId: string, result: any): void;
+    sendManualError(taskId: string, error: string): void;
+};
+/**
+ * Creates a mock worker pool for testing
+ */
+export declare function createMockWorkerPool(size?: number, options?: Omit<MockWorkerOptions, 'workerId'>): {
+    workers: Map<string, {
+        workerId: string;
+        status: "idle";
+        messageHistory: MockWorkerMessage[];
+        events: EventEmitter<[never]>;
+        postMessage(message: MockWorkerMessage): void;
+        on(event: string, listener: (...args: any[]) => void): any;
+        once(event: string, listener: (...args: any[]) => void): any;
+        off(event: string, listener: (...args: any[]) => void): any;
+        terminate(): Promise<void>;
+        setStatus(newStatus: "error" | "idle" | "busy"): void;
+        sendManualResponse(taskId: string, result: any): void;
+        sendManualError(taskId: string, error: string): void;
+    }>;
+    events: EventEmitter<[never]>;
+    getWorker(workerId: string): {
+        workerId: string;
+        status: "idle";
+        messageHistory: MockWorkerMessage[];
+        events: EventEmitter<[never]>;
+        postMessage(message: MockWorkerMessage): void;
+        on(event: string, listener: (...args: any[]) => void): any;
+        once(event: string, listener: (...args: any[]) => void): any;
+        off(event: string, listener: (...args: any[]) => void): any;
+        terminate(): Promise<void>;
+        setStatus(newStatus: "error" | "idle" | "busy"): void;
+        sendManualResponse(taskId: string, result: any): void;
+        sendManualError(taskId: string, error: string): void;
+    } | undefined;
+    getIdleWorker(): {
+        workerId: string;
+        status: "idle";
+        messageHistory: MockWorkerMessage[];
+        events: EventEmitter<[never]>;
+        postMessage(message: MockWorkerMessage): void;
+        on(event: string, listener: (...args: any[]) => void): any;
+        once(event: string, listener: (...args: any[]) => void): any;
+        off(event: string, listener: (...args: any[]) => void): any;
+        terminate(): Promise<void>;
+        setStatus(newStatus: "error" | "idle" | "busy"): void;
+        sendManualResponse(taskId: string, result: any): void;
+        sendManualError(taskId: string, error: string): void;
+    } | null;
+    getAllWorkers(): {
+        workerId: string;
+        status: "idle";
+        messageHistory: MockWorkerMessage[];
+        events: EventEmitter<[never]>;
+        postMessage(message: MockWorkerMessage): void;
+        on(event: string, listener: (...args: any[]) => void): any;
+        once(event: string, listener: (...args: any[]) => void): any;
+        off(event: string, listener: (...args: any[]) => void): any;
+        terminate(): Promise<void>;
+        setStatus(newStatus: "error" | "idle" | "busy"): void;
+        sendManualResponse(taskId: string, result: any): void;
+        sendManualError(taskId: string, error: string): void;
+    }[];
+    on(event: string, listener: (...args: any[]) => void): any;
+    off(event: string, listener: (...args: any[]) => void): any;
+    terminateAll(): Promise<void[]>;
+};

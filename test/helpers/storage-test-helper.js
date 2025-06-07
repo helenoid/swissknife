@@ -1,0 +1,125 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+/**
+ * Storage test enhancer
+ * 
+ * This file provides enhanced testing capabilities for storage components
+ * by creating a robust test environment with mocks and utilities.
+ */
+
+import * as fs from 'fs/promises.js';
+import * as path from 'path.js';
+import * as crypto from 'crypto.js';
+
+/**
+ * Creates a temporary test directory
+ * @param {string} prefix Directory name prefix
+ * @returns {Promise<string>} Path to created directory
+ */
+export async function createTempStorageDir(prefix = 'storage-test') {
+  const os = await import('os');
+  const tempDir = path.join(
+    os.tmpdir(),
+    `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
+  );
+  
+  await fs.mkdir(tempDir, { recursive: true });
+  return tempDir;
+}
+
+/**
+ * Removes a temporary test directory
+ * @param {string} dirPath Path to directory
+ * @returns {Promise<void>}
+ */
+export async function removeTempStorageDir(dirPath) {
+  try {
+    await fs.rm(dirPath, { recursive: true, force: true });
+  } catch (error) {
+    console.error(`Error removing directory ${dirPath}:`, error.message);
+  }
+}
+
+/**
+ * Creates a file with random content
+ * @param {string} dir Directory to create file in
+ * @param {string} name File name
+ * @param {number} size File size in bytes
+ * @returns {Promise<{path: string, content: Buffer, hash: string}>} File info
+ */
+export async function createTestFile(dir, name, size = 1024) {
+  const filePath = path.join(dir, name);
+  const content = crypto.randomBytes(size);
+  const hash = crypto.createHash('sha256').update(content).digest('hex');
+  
+  await fs.writeFile(filePath, content);
+  
+  return {
+    path: filePath,
+    content,
+    hash
+  };
+}
+
+/**
+ * Creates multiple test files
+ * @param {string} dir Directory to create files in
+ * @param {number} count Number of files to create
+ * @param {number} size File size in bytes
+ * @returns {Promise<Array<{path: string, content: Buffer, hash: string}>>} File info
+ */
+export async function createTestFiles(dir, count = 5, size = 1024) {
+  const files = [];
+  
+  for (let i = 0; i < count; i++) {
+    const file = await createTestFile(dir, `test-file-${i}.bin`, size);
+    files.push(file);
+  }
+  
+  return files;
+}
+
+/**
+ * Sleep for a specified time
+ * @param {number} ms Milliseconds to sleep
+ * @returns {Promise<void>}
+ */
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Set up storage fixtures for tests
+ * Provides directories and sample files
+ */
+export async function setupStorageFixtures() {
+  const baseDir = await createTempStorageDir();
+  const inputDir = path.join(baseDir, 'input');
+  const outputDir = path.join(baseDir, 'output');
+  
+  await fs.mkdir(inputDir, { recursive: true });
+  await fs.mkdir(outputDir, { recursive: true });
+  
+  const files = await createTestFiles(inputDir, 3);
+  
+  return {
+    baseDir,
+    inputDir,
+    outputDir,
+    files,
+    cleanup: async () => await removeTempStorageDir(baseDir)
+  };
+}
+
+/**
+ * Create a metadatafile for FileStorage
+ * @param {string} dir Directory to create metadata file in
+ * @param {Object} initialData Initial metadata
+ */
+export async function createMetadataFile(dir, initialData = {}) {
+  const metadataPath = path.join(dir, '.metadata.json');
+  await fs.writeFile(metadataPath, JSON.stringify(initialData, null, 2));
+  return metadataPath;
+}

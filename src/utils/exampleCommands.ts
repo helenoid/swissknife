@@ -4,14 +4,14 @@ import {
   getCurrentProjectConfig,
   saveCurrentProjectConfig,
 } from './config.js'
-import { env } from './env'
-import { getCwd } from './state'
-import { queryHaiku } from '../services/claude'
+import { env } from './env.js'
+import { getCwd } from './state.js'
+import { queryHaiku } from '../services/claude.js'
 import { exec } from 'child_process'
-import { logError } from './log'
+import { logError } from './log.js'
 import { memoize, sample } from 'lodash-es'
 import { promisify } from 'util'
-import { getIsGit } from './git'
+import { getIsGit } from './git.js'
 
 const execPromise = promisify(exec)
 

@@ -47,6 +47,6 @@ const removeMcpServerCommand: LocalCommand = {
   userFacingName() {
     return 'remove-mcp-server';
   },
-} satisfies Command;
+};
 
 export default removeMcpServerCommand;

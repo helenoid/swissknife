@@ -66,6 +66,6 @@ Run 'swissknife approved-tools <subcommand> --help' for more details.`;
   userFacingName() {
     return 'approved-tools';
   },
-} satisfies Command;
+};
 
 export default approvedToolsCommand;

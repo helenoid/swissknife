@@ -1,4 +1,4 @@
-import type { Message } from './query'
+import type { Message } from './query.js'
 
 let getMessages: () => Message[] = () => []
 let setMessages: React.Dispatch<React.SetStateAction<Message[]>> = () => {}

@@ -1,13 +1,13 @@
 import { existsSync, mkdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { writeFileSync, readFileSync } from 'fs'
-import { captureException } from '../services/sentry'
+import { captureException } from '../services/sentry.js'
 import { randomUUID } from 'crypto'
 import envPaths from 'env-paths'
 import { promises as fsPromises } from 'fs'
-import type { LogOption, SerializedMessage } from '../types/logs'
-import { MACRO } from '../constants/macros'
-import { PRODUCT_COMMAND } from '../constants/product'
+import type { LogOption, SerializedMessage } from '../types/logs.js'
+import { MACRO } from '../constants/macros.js'
+import { PRODUCT_COMMAND } from '../constants/product.js'
 const IN_MEMORY_ERROR_LOG: Array<{
   error: string
   timestamp: string

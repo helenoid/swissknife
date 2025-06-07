@@ -1,0 +1,50 @@
+jest-haste-map: Haste module naming collision: agwp2pdb
+  The following files share their name; please adjust your hasteImpl:
+    * <rootDir>/swissknife_old.bak/swissknife/worker/skillset/ipfs_datasets/orbitdb_kit_lib/package.json
+    * <rootDir>/swissknife_old.bak/swissknife/registry/orbitdb_kit/package.json
+
+  console.log
+    Jest setup completed
+
+      at Object.log (test/setup-jest.js:7:9)
+
+  console.log
+    Jest setup completed with Chai
+
+      at Object.log (test/setup-jest.js:9:9)
+
+ts-jest[config] (WARN) 
+    The "ts-jest" config option "isolatedModules" is deprecated and will be removed in v30.0.0. Please use "isolatedModules: true" in /home/barberb/swissknife/tsconfig.test.json instead, see https://www.typescriptlang.org/tsconfig/#isolatedModules
+  
+FAIL test/unit/ai/service.test.ts
+  ● Test suite failed to run
+
+    Configuration error:
+
+    Could not locate module @/ai/service.js mapped as:
+    /home/barberb/swissknife/src/$1.
+
+    Please check your configuration for these entries:
+    {
+      "moduleNameMapper": {
+        "/^@\/(.*)$/": "/home/barberb/swissknife/src/$1"
+      },
+      "resolver": undefined
+    }
+
+      22 |     warn: jest.fn(),
+      23 |     error: jest.fn(),
+    > 24 |   },
+         |     ^
+      25 | }));
+      26 |
+      27 | jest.mock('@/ai/tools/tool', () => ({
+
+      at createNoMappedModuleFoundError (node_modules/jest-resolve/build/index.js:1182:17)
+      at Object.<anonymous> (test/unit/ai/service.test.ts:24:22)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        2.639 s
+Ran all test suites matching test/unit/ai/service.test.ts.

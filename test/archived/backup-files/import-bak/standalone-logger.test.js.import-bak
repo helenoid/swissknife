@@ -1,0 +1,218 @@
+/**
+ * Standalone Logger Test
+ * 
+ * This test provides a complete standalone logger implementation
+ * that can be tested without any external dependencies.
+ */
+
+// Define log levels
+const LOG_LEVELS = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+  NONE: 4
+};
+
+// Simple Logger implementation
+class Logger {
+  constructor(options = {}) {
+    this.level = options.level !== undefined ? options.level : LOG_LEVELS.INFO;
+    this.prefix = options.prefix || '';
+    this.outputs = options.outputs || [console];
+    this.timestamps = options.timestamps !== false;
+    this.logHistory = [];
+    this.maxHistorySize = options.maxHistorySize || 100;
+  }
+  
+  setLevel(level) {
+    if (typeof level === 'string') {
+      level = LOG_LEVELS[level.toUpperCase()] || LOG_LEVELS.INFO;
+    }
+    this.level = level;
+    return this;
+  }
+  
+  getLevel() {
+    return this.level;
+  }
+  
+  addOutput(output) {
+    if (output && typeof output.log === 'function') {
+      this.outputs.push(output);
+    }
+    return this;
+  }
+  
+  removeOutput(output) {
+    const index = this.outputs.indexOf(output);
+    if (index !== -1) {
+      this.outputs.splice(index, 1);
+    }
+    return this;
+  }
+  
+  _log(level, message, ...args) {
+    if (level < this.level) return;
+    
+    const timestamp = this.timestamps ? `[${new Date().toISOString()}] ` : '';
+    const prefix = this.prefix ? `${this.prefix} ` : '';
+    const levelName = Object.keys(LOG_LEVELS).find(key => LOG_LEVELS[key] === level) || 'INFO';
+    const formattedMessage = `${timestamp}${prefix}[${levelName}] ${message}`;
+    
+    // Store in history
+    this.logHistory.push({ level, message, timestamp: new Date(), args });
+    if (this.logHistory.length > this.maxHistorySize) {
+      this.logHistory.shift();
+    }
+    
+    // Output to all outputs
+    this.outputs.forEach(output => {
+      if (typeof output.log === 'function') {
+        output.log(formattedMessage, ...args);
+      }
+    });
+    
+    return formattedMessage;
+  }
+  
+  debug(message, ...args) {
+    return this._log(LOG_LEVELS.DEBUG, message, ...args);
+  }
+  
+  info(message, ...args) {
+    return this._log(LOG_LEVELS.INFO, message, ...args);
+  }
+  
+  warn(message, ...args) {
+    return this._log(LOG_LEVELS.WARN, message, ...args);
+  }
+  
+  error(message, ...args) {
+    return this._log(LOG_LEVELS.ERROR, message, ...args);
+  }
+  
+  getHistory() {
+    return [...this.logHistory];
+  }
+  
+  clearHistory() {
+    this.logHistory = [];
+    return this;
+  }
+}
+
+// Mock output for testing
+class MockOutput {
+  constructor() {
+    this.messages = [];
+  }
+  
+  log(message, ...args) {
+    this.messages.push({ message, args });
+  }
+  
+  clear() {
+    this.messages = [];
+  }
+}
+
+// Tests
+describe('Standalone Logger', () => {
+  let logger;
+  let mockOutput;
+  
+  beforeEach(() => {
+    mockOutput = new MockOutput();
+    logger = new Logger({ 
+      outputs: [mockOutput],
+      prefix: 'TEST',
+      timestamps: false
+    });
+  });
+  
+  afterEach(() => {
+    mockOutput.clear();
+    logger.clearHistory();
+  });
+  
+  test('logger can be instantiated', () => {
+    expect(logger).toBeDefined();
+    expect(logger).toBeInstanceOf(Logger);
+  });
+  
+  test('logger default level is INFO', () => {
+    const defaultLogger = new Logger();
+    expect(defaultLogger.getLevel()).toBe(LOG_LEVELS.INFO);
+  });
+  
+  test('logger can set and get level', () => {
+    logger.setLevel(LOG_LEVELS.DEBUG);
+    expect(logger.getLevel()).toBe(LOG_LEVELS.DEBUG);
+    
+    logger.setLevel('ERROR');
+    expect(logger.getLevel()).toBe(LOG_LEVELS.ERROR);
+  });
+  
+  test('logger formats messages correctly', () => {
+    logger.info('Test message');
+    expect(mockOutput.messages[0].message).toBe('TEST [INFO] Test message');
+  });
+  
+  test('logger respects level threshold', () => {
+    logger.setLevel(LOG_LEVELS.WARN);
+    
+    logger.debug('Debug message');
+    logger.info('Info message');
+    logger.warn('Warning message');
+    logger.error('Error message');
+    
+    expect(mockOutput.messages.length).toBe(2);
+    expect(mockOutput.messages[0].message).toContain('Warning message');
+    expect(mockOutput.messages[1].message).toContain('Error message');
+  });
+  
+  test('logger stores history', () => {
+    logger.info('First message');
+    logger.warn('Second message');
+    
+    const history = logger.getHistory();
+    expect(history.length).toBe(2);
+    expect(history[0].message).toBe('First message');
+    expect(history[1].message).toBe('Second message');
+  });
+  
+  test('logger limits history size', () => {
+    logger.maxHistorySize = 2;
+    
+    logger.info('First message');
+    logger.info('Second message');
+    logger.info('Third message');
+    
+    const history = logger.getHistory();
+    expect(history.length).toBe(2);
+    expect(history[0].message).toBe('Second message');
+    expect(history[1].message).toBe('Third message');
+  });
+  
+  test('logger can add and remove outputs', () => {
+    const secondOutput = new MockOutput();
+    logger.addOutput(secondOutput);
+    
+    logger.info('Broadcasted message');
+    expect(mockOutput.messages.length).toBe(1);
+    expect(secondOutput.messages.length).toBe(1);
+    
+    logger.removeOutput(mockOutput);
+    logger.info('Single output message');
+    expect(mockOutput.messages.length).toBe(1); // Still only one message
+    expect(secondOutput.messages.length).toBe(2); // Two messages
+  });
+  
+  test('logger passes arguments correctly', () => {
+    const obj = { key: 'value' };
+    logger.info('Object: %j', obj);
+    
+    expect(mockOutput.messages[0].args[0]).toBe(obj);
+  });
+});

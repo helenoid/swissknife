@@ -1,5 +1,57 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
+# SwissKnife Cleanup - Prevent file accumulation
+# Temporary and diagnostic files
+*-diagnostic*.js
+*-diagnostic*.py
+*-diagnostic*.json
+diagnostic-*.js
+diagnostic-*.py
+validate-*.mjs
+verify-*.js
+quick-verify-*.js
+systematic-*.js
+*-analysis-*.txt
+*.analysis.txt
+duplicate-analysis-*.txt
+
+# Backup and temporary files
+*.bak
+*.backup
+*.tmp
+temp-*.js
+*-temp.js
+isolate-*.log
+
+# Jest configuration variants (keep only main jest.config.cjs)
+jest-*.config.js
+jest.*.config.js
+minimal*.jest.config.js
+working.jest.config.js
+
+# MCP diagnostic files
+mcp-diagnostic-*.json
+mcp-test-debug-*/
+mcp_*.diagnostic.js
+
+# Test result and log files
+junit.xml
+test-results-*.json
+test-run-logs/
+test-diagnostics/
+jest-diagnostics*/
+
+# Build and analysis artifacts
+build-wrapper.js
+command-registry-check.js
+standalone-*.js
+fib-heap-*.js
+fib-heap-*.mjs
+
+# Archive directories (except organized cleanup-archive)
+archived/*
+!cleanup-archive/
+
 # Logs
 
 logs

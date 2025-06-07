@@ -1,11 +1,11 @@
-import * as React from 'react';
-import type { Command, LocalJSXCommand } from '../types/command.js'; // Updated import path
-import { ConsoleOAuthFlow } from '../components/ConsoleOAuthFlow.js'; // Assuming .js extension
-import { clearTerminal } from '../utils/terminal.js'; // Assuming .js extension
-import { isLoggedInToAnthropic } from '../utils/auth.js'; // Assuming .js extension
-import { useExitOnCtrlCD } from '../hooks/useExitOnCtrlCD.js'; // Assuming .js extension
-import { Box, Text } from 'ink';
-import { clearConversation } from './clear.js'; // Assuming .js extension
+import * as React from 'react.js.js.js.js.js';
+import type { Command, LocalJSXCommand } from '../types/command.js.js.js.js.js.js.js.js.js.js.js'; // Updated import path
+import { ConsoleOAuthFlow } from '../components/ConsoleOAuthFlow.js.js.js.js.js.js.js.js.js.js.js'; // Assuming .js extension
+import { clearTerminal } from '../utils/terminal.js.js.js.js.js.js.js.js.js.js.js'; // Assuming .js extension
+import { isLoggedInToAnthropic } from '../utils/auth.js.js.js.js.js.js.js.js.js.js.js'; // Assuming .js extension
+import { useExitOnCtrlCD } from '../hooks/useExitOnCtrlCD.js.js.js.js.js.js.js.js.js.js.js'; // Assuming .js extension
+import { Box, Text } from 'ink.js.js.js.js.js';
+import { clearConversation } from './clear.js.js.js.js.js.js.js.js.js.js.js'; // Assuming .js extension
 
 const loginCommand: LocalJSXCommand = {
   type: 'local-jsx',
@@ -32,7 +32,7 @@ const loginCommand: LocalJSXCommand = {
   userFacingName() {
     return 'login';
   },
-} satisfies Command;
+};
 
 
 // Login component remains the same

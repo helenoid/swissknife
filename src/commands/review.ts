@@ -59,6 +59,6 @@ const reviewCommand: PromptCommand = {
       },
     ]
   },
-} satisfies Command;
+};
 
 export default reviewCommand;

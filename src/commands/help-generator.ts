@@ -2,7 +2,7 @@
  * Help Generator - Generates help text and documentation for commands
  */
 
-import { CommandRegistry, Command } from '../command-registry';
+import { CommandRegistry, Command } from './registry.js';
 
 /**
  * Help formatting options
@@ -48,7 +48,7 @@ export class HelpGenerator {
   /**
    * Generate help for a specific command or general help
    */
-  generateHelp(commandId?: string, options: HelpFormatOptions = {}): string {
+  async generateHelp(commandId?: string, options: HelpFormatOptions = {}): Promise<string> {
     // Merge with default options
     const opts = { ...DEFAULT_FORMAT_OPTIONS, ...options };
     
@@ -56,7 +56,7 @@ export class HelpGenerator {
       return this.generateGeneralHelp(opts);
     }
     
-    const command = this.registry.getCommand(commandId);
+    const command = await this.registry.getCommand(commandId);
     if (!command) {
       return `Command not found: ${commandId}\n\nRun 'swissknife help' to see available commands.`;
     }
@@ -67,7 +67,7 @@ export class HelpGenerator {
   /**
    * Generate general help
    */
-  private generateGeneralHelp(options: HelpFormatOptions): string {
+  private async generateGeneralHelp(_options: HelpFormatOptions): Promise<string> {
     let helpText = '\nSwissKnife CLI\n\n';
     
     // Add usage section
@@ -75,12 +75,12 @@ export class HelpGenerator {
     helpText += '  swissknife [command] [subcommand] [options]\n\n';
     
     // Group commands by category
-    const categories = this.registry.getCategories();
-    const commands = this.registry.getAllCommands();
+    const categories = await this.registry.getCategories();
+    const commands = await this.registry.getAllCommands();
     
     // Add commands with categories
     for (const category of categories) {
-      const categoryCommands = this.registry.getCommandsByCategory(category);
+      const categoryCommands = await this.registry.getCommandsByCategory(category);
       if (categoryCommands.length === 0) continue;
       
       helpText += `${category.toUpperCase()}:\n`;
@@ -94,7 +94,7 @@ export class HelpGenerator {
     }
     
     // Add commands without categories
-    const uncategorizedCommands = commands.filter(cmd => !cmd.category);
+    const uncategorizedCommands = commands.filter((cmd: Command) => !cmd.category);
     if (uncategorizedCommands.length > 0) {
       helpText += 'COMMANDS:\n';
       
@@ -183,6 +183,7 @@ export class HelpGenerator {
       for (const subcommand of command.subcommands) {
         helpText += `  ${subcommand.name.padEnd(15)} ${subcommand.description}\n`;
       }
+      
       helpText += '\n';
     }
     
@@ -192,7 +193,7 @@ export class HelpGenerator {
   /**
    * Generate markdown documentation for all commands
    */
-  generateMarkdownDocs(): string {
+  async generateMarkdownDocs(): Promise<string> {
     let markdownDoc = '# SwissKnife CLI Documentation\n\n';
     
     // Add overview section
@@ -201,15 +202,17 @@ export class HelpGenerator {
     
     // Add usage section
     markdownDoc += '## Usage\n\n';
-    markdownDoc += '```\nswissknife [command] [subcommand] [options]\n```\n\n';
+    markdownDoc += '```\n';
+    markdownDoc += 'swissknife [command] [subcommand] [options]\n';
+    markdownDoc += '```\n\n';
     
     // Group commands by category
-    const categories = this.registry.getCategories();
-    const commands = this.registry.getAllCommands();
+    const categories = await this.registry.getCategories();
+    const commands = await this.registry.getAllCommands();
     
     // Add commands with categories
     for (const category of categories) {
-      const categoryCommands = this.registry.getCommandsByCategory(category);
+      const categoryCommands = await this.registry.getCommandsByCategory(category);
       if (categoryCommands.length === 0) continue;
       
       markdownDoc += `## ${category}\n\n`;
@@ -222,7 +225,7 @@ export class HelpGenerator {
     }
     
     // Add commands without categories
-    const uncategorizedCommands = commands.filter(cmd => !cmd.category);
+    const uncategorizedCommands = commands.filter((cmd: Command) => !cmd.category);
     if (uncategorizedCommands.length > 0) {
       markdownDoc += '## General Commands\n\n';
       
@@ -336,7 +339,12 @@ export class HelpGenerator {
         // If a command is specified, show help for that command
         if (args._.length > 0) {
           const commandId = args._[0];
-          const helpText = this.generateHelp(commandId, {
+          const command = await this.registry.getCommand(commandId); // Await getCommand
+          if (!command) {
+            console.log(`Command not found: ${commandId}\n\nRun 'swissknife help' to see available commands.`);
+            return 1; // Indicate error
+          }
+          const helpText = this.generateCommandHelp(command, {
             color: context.interactive,
             includeExamples: true,
             includeOptions: true,
@@ -349,13 +357,13 @@ export class HelpGenerator {
         
         // If --markdown flag is set, generate markdown docs
         if (args.markdown) {
-          const markdown = this.generateMarkdownDocs();
+          const markdown = await this.generateMarkdownDocs();
           console.log(markdown);
           return 0;
         }
         
         // Otherwise show general help
-        const helpText = this.generateHelp(undefined, {
+        const helpText = await this.generateGeneralHelp({
           color: context.interactive
         });
         

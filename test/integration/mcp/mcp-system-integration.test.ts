@@ -1,3 +1,7 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 /**
  * System Integration Test for MCP Server Functionality.
  *
@@ -15,10 +19,10 @@ import { join, resolve } from 'path';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 // Import SDK components - Add .js extension
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { Client } from '@modelcontextprotocol/sdk/client/index';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio';
 // Import specific types for clarity - Try ToolInfo again
-import type { ServerCapabilities, ToolInfo } from '@modelcontextprotocol/sdk/types.js'; // Use ToolInfo
+import type { ServerCapabilities, ToolInfo } from '@modelcontextprotocol/sdk/types'; // Use ToolInfo
 
 // --- Test Configuration ---
 

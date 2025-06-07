@@ -1,0 +1,19 @@
+import { render } from 'ink-testing-library.js';
+import React from 'react.js';
+
+describe('BashTool', () => {
+  it('should have the correct name', () => {
+    expect(BashTool.name).toBe('bash');
+  });
+
+  it('should be enabled', async () => {
+    const enabled = await BashTool.isEnabled();
+    expect(enabled).toBe(true);
+  });
+
+  it("should not be read-only", () => {
+    expect(BashTool.isReadOnly()).to.equal(false);
+  });
+
+  // Add more tests as needed
+});

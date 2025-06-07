@@ -1,9 +1,9 @@
 import { findActualExecutable } from 'spawn-rx'
 import { memoize } from 'lodash-es'
-import { fileURLToPath, resolve } from 'node:url'
+import { fileURLToPath, resolve } from 'node:url.js'
 import * as path from 'path'
-import { logError } from './log'
-import { execFileNoThrow } from './execFileNoThrow'
+import { logError } from './log.js'
+import { execFileNoThrow } from './execFileNoThrow.js'
 import { execFile } from 'child_process'
 import debug from 'debug'
 

@@ -2,28 +2,41 @@
  * Core Commands - Basic commands for the SwissKnife CLI
  */
 
-import { CommandRegistry, Command } from '../command-registry';
-import { version } from '../../package.json';
-import { TaskManager } from '../tasks/manager';
-import { WorkerPool } from '../workers/pool';
+import { CommandRegistry, Command, LazyCommand } from '../command-registry.js';
+import pkg from '../../package.json.js' assert { type: 'json' };
+const { version } = pkg;
+import { TaskManager } from '../tasks/manager.js';
+import { WorkerPool } from '../workers/pool.js';
 
 /**
- * Load core commands
+ * Load core commands lazily
  */
 export async function loadCoreCommands(): Promise<void> {
   const registry = CommandRegistry.getInstance();
   
   // Version command
-  registry.registerCommand(versionCommand);
+  registry.registerCommand({
+    id: 'version',
+    loader: () => import('./version.js').then(m => m.versionCommand)
+  } as LazyCommand);
   
   // Status command
-  registry.registerCommand(statusCommand);
+  registry.registerCommand({
+    id: 'status',
+    loader: () => import('./status.js').then(m => m.statusCommand)
+  } as LazyCommand);
   
   // Exit command
-  registry.registerCommand(exitCommand);
+  registry.registerCommand({
+    id: 'exit',
+    loader: () => import('./exit.js').then(m => m.exitCommand)
+  } as LazyCommand);
   
   // Clear command
-  registry.registerCommand(clearCommand);
+  registry.registerCommand({
+    id: 'clear',
+    loader: () => import('./clear.js').then(m => m.clearCommand)
+  } as LazyCommand);
 }
 
 /**
@@ -47,8 +60,8 @@ export const versionCommand: Command = {
     'swissknife version',
     'swissknife version --json'
   ],
-  category: 'system',
-  handler: async (args, context) => {
+  category: 'system' as const,
+  handler: async (args: any, context: any) => {
     const { json } = args;
     
     if (json) {
@@ -99,20 +112,20 @@ export const statusCommand: Command = {
     'swissknife status --json'
   ],
   category: 'system',
-  handler: async (args, context) => {
+  handler: async (args: any, context: any) => {
     const { json, detailed } = args;
     const { services } = context;
     
     // Get task manager stats
     const taskManager = services.taskManager as TaskManager;
-    const pendingTasks = taskManager.getTasksByStatus('pending').length;
-    const runningTasks = taskManager.getTasksByStatus('running').length;
-    const completedTasks = taskManager.getTasksByStatus('completed').length;
-    const failedTasks = taskManager.getTasksByStatus('failed').length;
+    const pendingTasks = (taskManager as any).getTasksByStatus('pending').length;
+    const runningTasks = (taskManager as any).getTasksByStatus('running').length;
+    const completedTasks = (taskManager as any).getTasksByStatus('completed').length;
+    const failedTasks = (taskManager as any).getTasksByStatus('failed').length;
     
     // Get worker pool stats
     const workerPool = services.workerPool as WorkerPool;
-    const workerStats = workerPool.getStats();
+    const workerStats = (workerPool as any).getStats();
     
     if (json) {
       const statusInfo = {
@@ -190,8 +203,8 @@ export const exitCommand: Command = {
     'swissknife exit',
     'swissknife exit --code 1'
   ],
-  category: 'system',
-  handler: async (args, context) => {
+  category: 'system' as const,
+  handler: async (args: any, context: any) => {
     const { code } = args;
     
     // Perform cleanup
@@ -203,14 +216,14 @@ export const exitCommand: Command = {
     
     // Shutdown task manager
     try {
-      await taskManager.shutdown();
+      await (taskManager as any).shutdown();
     } catch (error) {
       console.error('Error shutting down task manager:', error);
     }
     
     // Shutdown worker pool
     try {
-      await workerPool.shutdown();
+      await (workerPool as any).shutdown();
     } catch (error) {
       console.error('Error shutting down worker pool:', error);
     }
@@ -235,8 +248,8 @@ export const clearCommand: Command = {
   examples: [
     'swissknife clear'
   ],
-  category: 'system',
-  handler: async (args, context) => {
+  category: 'system' as const,
+  handler: async (args: any, context: any) => {
     // Check if in interactive mode
     if (context.interactive) {
       // Clear screen based on platform

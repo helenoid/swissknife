@@ -1,0 +1,384 @@
+/**
+ * Chai-to-Jest Assertion Adapter for TypeScript Tests
+ * 
+ * This module provides a compatibility layer that allows tests written
+ * with Chai syntax to work with Jest. It's particularly useful for
+ * migrating existing Chai-based tests to Jest without rewriting them.
+ * 
+ * Enhanced version with complete TypeScript support and improved Jest compatibility
+ */
+
+// Type definitions for better TypeScript support
+type ChaiExpectation<T = any> = {
+  to: ChaiAssertions<T>;
+  not: ChaiAssertions<T>;
+  be: ChaiAssertionBe<T>;
+  deep: { 
+    equal: (expected: any) => void;
+    include: (subset: any) => void;
+  };
+};
+
+interface SinonStub {
+  callCount: number;
+  called: boolean;
+  calledOnce: boolean;
+  calledTwice: boolean;
+  calledWith: (...args: any[]) => boolean;
+  calledWithExactly: (...args: any[]) => boolean;
+  calledWithMatch: (...args: any[]) => boolean;
+  restore: () => void;
+}
+
+interface ChaiAssertionHave<T = any> {
+  property: (name: string, value?: any) => void;
+  length: (length: number) => void;
+  lengthOf: (length: number) => void;
+  members: (members: any[]) => void;
+  keys: (keys: string[] | string) => void;
+  been: ChaiAssertionBeen<T>;
+  ownProperty: (property: string) => void;
+  nested: {
+    property: (path: string, value?: any) => void;
+  };
+}
+
+interface ChaiAssertionBe<T = any> {
+  true: () => void;
+  false: () => void;
+  undefined: () => void;
+  null: () => void;
+  NaN: () => void;
+  empty: () => void;
+  a: (type: string) => void;
+  an: (type: string) => void;
+  instanceof: (constructor: any) => void;
+  greaterThan: (n: number) => void;
+  lessThan: (n: number) => void;
+  at: {
+    least: (n: number) => void;
+    most: (n: number) => void;
+  };
+  not: { 
+    undefined: () => void;
+    null: () => void;
+    empty: () => void;
+  };
+}
+
+interface ChaiAssertionBeen<T = any> {
+  called: () => void;
+  calledOnce: () => void;
+  calledTwice: () => void;
+  calledWith: (...args: any[]) => void;
+  calledWithExactly: (...args: any[]) => void;
+  calledWithMatch: (...args: any[]) => void;
+  calledImmediatelyBefore: (spy: SinonStub) => void;
+  calledImmediatelyAfter: (spy: SinonStub) => void;
+}
+
+interface ChaiAssertions<T = any> {
+  equal: (expected: any) => void;
+  equals: (expected: any) => void;
+  eq: (expected: any) => void;
+  eql: (expected: any) => void;
+  be: ChaiAssertionBe<T>;
+  include: (expected: any) => void;
+  includes: (expected: any) => void;
+  contains: (expected: any) => void;
+  contain: (expected: any) => void;
+  have: ChaiAssertionHave<T>;
+  match: (regex: RegExp) => void;
+  string: (substring: string) => void;
+  throw: (errorLike?: any, errMsgMatcher?: any) => void;
+  rejectedWith: (errorLike?: any, errMsgMatcher?: any) => Promise<void>;
+  fulfilled: () => Promise<void>;
+  rejected: () => Promise<void>;
+  eventually: ChaiAssertions<T>;
+  above: (n: number) => void;
+  below: (n: number) => void;
+  lengthOf: (length: number) => void;
+  keys: (keys: string[] | string) => void;
+  deep: { 
+    equal: (expected: any) => void;
+    include: (subset: any) => void;
+    nested: { property: (path: string, value?: any) => void; };
+  };
+}
+
+/**
+ * Creates a Chai-like expect function that delegates to Jest
+ * @param actual - The value to test
+ */
+export function chaiExpect<T>(actual: T): ChaiExpectation<T> {
+  // Pre-define the assertions object to avoid circular reference issues
+  const toAssertions: Partial<ChaiAssertions<T>> = {};
+    equal: (expected: any) => expect(actual).toBe(expected),
+    equals: (expected: any) => expect(actual).toBe(expected),
+    eq: (expected: any) => expect(actual).toBe(expected),
+    eql: (expected: any) => expect(actual).toEqual(expected),
+    
+    be: {
+      true: () => expect(actual).toBe(true),
+      false: () => expect(actual).toBe(false),
+      undefined: () => expect(actual).toBeUndefined(),
+      null: () => expect(actual).toBeNull(),
+      NaN: () => expect(actual).toBeNaN(),
+      empty: () => {
+        if (Array.isArray(actual) || typeof actual === 'string') {
+          expect(actual).toHaveLength(0);
+        } else if (typeof actual === 'object' && actual !== null) {
+          expect(Object.keys(actual)).toHaveLength(0);
+        }
+      },
+      a: (type: string) => expect(typeof actual).toBe(type),
+      an: (type: string) => expect(typeof actual).toBe(type),
+      instanceof: (constructor: any) => expect(actual).toBeInstanceOf(constructor),
+      greaterThan: (n: number) => expect(actual as unknown as number).toBeGreaterThan(n),
+      lessThan: (n: number) => expect(actual as unknown as number).toBeLessThan(n),
+      at: {
+        least: (n: number) => expect(actual as unknown as number).toBeGreaterThanOrEqual(n),
+        most: (n: number) => expect(actual as unknown as number).toBeLessThanOrEqual(n),
+      },
+      not: { 
+        undefined: () => expect(actual).not.toBeUndefined(),
+        null: () => expect(actual).not.toBeNull(),
+        empty: () => {
+          if (Array.isArray(actual) || typeof actual === 'string') {
+            expect(actual).not.toHaveLength(0);
+          } else if (typeof actual === 'object' && actual !== null) {
+            expect(Object.keys(actual)).not.toHaveLength(0);
+          }
+        }
+      },
+    },
+    
+    include: (expected: any) => {
+      if (typeof actual === 'string') {
+        expect(actual).toContain(expected);
+      } else if (Array.isArray(actual)) {
+        expect(actual).toContain(expected);
+      } else {
+        expect(actual).toEqual(expect.objectContaining(expected));
+      }
+    },
+    
+    includes: (expected: any) => {
+      if (typeof actual === 'string') {
+        expect(actual).toContain(expected);
+      } else if (Array.isArray(actual)) {
+        expect(actual).toContain(expected);
+      } else {
+        expect(actual).toEqual(expect.objectContaining(expected));
+      }
+    },
+    
+    contain: (expected: any) => {
+      if (typeof actual === 'string') {
+        expect(actual).toContain(expected);
+      } else if (Array.isArray(actual)) {
+        expect(actual).toContain(expected);
+      } else {
+        expect(actual).toEqual(expect.objectContaining(expected));
+      }
+    },
+    
+    contains: (expected: any) => {
+      if (typeof actual === 'string') {
+        expect(actual).toContain(expected);
+      } else if (Array.isArray(actual)) {
+        expect(actual).toContain(expected);
+      } else {
+        expect(actual).toEqual(expect.objectContaining(expected));
+      }
+    },
+    
+    have: {
+      property: (name: string, value?: any) => {
+        expect(actual).toHaveProperty(name);
+        if (value !== undefined) {
+          expect((actual as any)[name]).toBe(value);
+        }
+      },
+      
+      length: (length: number) => expect((actual as any).length).toBe(length),
+      lengthOf: (length: number) => expect((actual as any).length).toBe(length),
+      
+      members: (members: any[]) => {
+        if (Array.isArray(actual)) {
+          expect(actual).toEqual(expect.arrayContaining(members));
+          expect(actual.length).toBe(members.length);
+        }
+      },
+      
+      keys: (keys: string[] | string) => {
+        const keyArray = typeof keys === 'string' ? [keys] : keys;
+        const objKeys = Object.keys(actual as object);
+        keyArray.forEach(key => {
+          expect(objKeys).toContain(key);
+        });
+      },
+      
+      been: {
+        called: () => expect((actual as unknown as SinonStub).called).toBeTruthy(),
+        calledOnce: () => expect((actual as unknown as SinonStub).callCount).toBe(1),
+        calledTwice: () => expect((actual as unknown as SinonStub).callCount).toBe(2),
+        calledWith: (...args: any[]) => expect((actual as unknown as SinonStub).calledWith(...args)).toBeTruthy(),
+        calledWithExactly: (...args: any[]) => expect((actual as unknown as SinonStub).calledWithExactly(...args)).toBeTruthy(),
+        calledWithMatch: (...args: any[]) => expect((actual as unknown as SinonStub).calledWithMatch(...args)).toBeTruthy(),
+        calledImmediatelyBefore: (spy: SinonStub) => expect((actual as unknown as SinonStub).calledImmediatelyBefore(spy)).toBeTruthy(),
+        calledImmediatelyAfter: (spy: SinonStub) => expect((actual as unknown as SinonStub).calledImmediatelyAfter(spy)).toBeTruthy(),
+      },
+      
+      ownProperty: (property: string) => {
+        expect(Object.prototype.hasOwnProperty.call(actual, property)).toBeTruthy();
+      },
+      
+      nested: {
+        property: (path: string, value?: any) => {
+          expect(actual).toHaveProperty(path);
+          if (value !== undefined) {
+            expect(actual).toHaveProperty(path, value);
+          }
+        }
+      }
+    },
+    
+    match: (regex: RegExp) => expect(String(actual)).toMatch(regex),
+    string: (substring: string) => expect(String(actual)).toContain(substring),
+    
+    throw: (errorLike?: any, errMsgMatcher?: any) => {
+      if (typeof actual !== 'function') {
+        throw new Error('Expected function to throw');
+      }
+      
+      if (!errorLike) {
+        expect(actual).toThrow();
+      } else if (typeof errorLike === 'string' || errorLike instanceof RegExp) {
+        expect(actual).toThrow(errorLike);
+      } else {
+        expect(actual).toThrow(errorLike);
+      }
+    },
+    
+    rejectedWith: async (errorLike?: any, errMsgMatcher?: any) => {
+      if (!(actual instanceof Promise)) {
+        throw new Error('Expected a promise');
+      }
+      
+      await expect(actual).rejects.toMatch(errorLike || {});
+    },
+    
+    fulfilled: async () => {
+      if (!(actual instanceof Promise)) {
+        throw new Error('Expected a promise');
+      }
+      await expect(actual).resolves.toBeDefined();
+    },
+    
+    rejected: async () => {
+      if (!(actual instanceof Promise)) {
+        throw new Error('Expected a promise');
+      }
+      await expect(actual).rejects.toBeDefined();
+    },
+    
+    eventually: toAssertions, // For promise chaining, just returns the same assertions
+    
+    above: (n: number) => expect(actual as unknown as number).toBeGreaterThan(n),
+    below: (n: number) => expect(actual as unknown as number).toBeLessThan(n),
+    lengthOf: (length: number) => expect((actual as any).length).toBe(length),
+    
+    keys: (keys: string[] | string) => {
+      const keyArray = typeof keys === 'string' ? [keys] : keys;
+      const objKeys = Object.keys(actual as object);
+      keyArray.forEach(key => {
+        expect(objKeys).toContain(key);
+      });
+    },
+    
+    deep: {
+      equal: (expected: any) => expect(actual).toEqual(expected),
+      include: (subset: any) => {
+        if (Array.isArray(actual)) {
+          expect(actual).toEqual(expect.arrayContaining(subset));
+        } else {
+          expect(actual).toEqual(expect.objectContaining(subset));
+        }
+      },
+      nested: { 
+        property: (path: string, value?: any) => {
+          expect(actual).toHaveProperty(path);
+          if (value !== undefined) {
+            expect(actual).toHaveProperty(path, value);
+          }
+        }
+      }
+    },
+          keys.forEach(key => {
+            expect(actual).toHaveProperty(key);
+          });
+        }
+      },
+      contain: (expected: any) => {
+        if (typeof actual === 'string') {
+          expect(actual).toContain(expected);
+        } else if (Array.isArray(actual)) {
+          expect(actual).toContain(expected);
+        } else {
+          expect(actual).toEqual(expect.objectContaining(expected));
+        }
+      },
+      throw: () => expect(actual).toThrow(),
+      deep: { equal: (expected: any) => expect(actual).toEqual(expected) },
+    },
+    not: {
+      equal: (expected: any) => expect(actual).not.toBe(expected),
+      be: {
+        true: () => expect(actual).not.toBe(true),
+        false: () => expect(actual).not.toBe(false),
+        undefined: () => expect(actual).not.toBeUndefined(),
+        null: () => expect(actual).not.toBeNull(),
+        a: (type: string) => expect(typeof actual).not.toBe(type),
+        an: (type: string) => expect(typeof actual).not.toBe(type),
+        not: { undefined: () => expect(actual).toBeUndefined() },
+      },
+      include: (expected: any) => {
+        if (typeof actual === 'string') {
+          expect(actual).not.toContain(expected);
+        } else if (Array.isArray(actual)) {
+          expect(actual).not.toContain(expected);
+        } else {
+          expect(actual).not.toEqual(expect.objectContaining(expected));
+        }
+      },
+      have: {
+        property: (name: string) => expect(actual).not.toHaveProperty(name),
+        length: (length: number) => expect(actual.length).not.toBe(length),
+        lengthOf: (length: number) => expect(actual.length).not.toBe(length),
+        keys: (keys: string[]) => {
+          expect(Object.keys(actual)).not.toEqual(
+            expect.arrayContaining(keys)
+          );
+        }
+      },
+      contain: (expected: any) => {
+        if (typeof actual === 'string') {
+          expect(actual).not.toContain(expected);
+        } else if (Array.isArray(actual)) {
+          expect(actual).not.toContain(expected);
+        } else {
+          expect(actual).not.toEqual(expect.objectContaining(expected));
+        }
+      },
+      throw: () => expect(actual).not.toThrow(),
+      deep: { equal: (expected: any) => expect(actual).not.toEqual(expected) },
+    },
+    deep: { equal: (expected: any) => expect(actual).toEqual(expected) },
+  };
+}
+
+// Create a chai object that can be used as a global
+export const chai = {
+  expect: chaiExpect,
+};

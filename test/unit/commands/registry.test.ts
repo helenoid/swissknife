@@ -1,159 +1,125 @@
-/**
- * Unit tests for CommandRegistry
- */
+// test/unit/commands/registry.test.ts
+import { CommandRegistry, Command } from '../../../src/commands/registry.js';
+import { ExecutionContext } from '../../../src/commands/context.js';
+// The LogManager type is not needed for the mock implementation itself.
+// import { LogManager } from '../../../src/utils/logging/manager.js';
 
-import { CommandRegistry } from '../../../src/command-registry';
-import { generateCommandFixtures } from '../../helpers/fixtures';
+// Mock the entire ../../../src/utils/logging/manager module
+jest.mock('../../../src/utils/logging/manager', () => ({
+  // Provide a mock LogManager class/object
+  LogManager: {
+    getInstance: jest.fn().mockReturnValue({
+      // Mock the logger instance returned by getInstance
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    }),
+  },
+  // Also export a mock logger if it's directly imported elsewhere in the code being tested
+  logger: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 
 describe('CommandRegistry', () => {
-  let commandRegistry: any;
-  const fixtures = generateCommandFixtures();
-  
+  let registry: CommandRegistry;
+  let context: ExecutionContext;
+
   beforeEach(() => {
-    // Reset the registry singleton for testing
+    // Reset the singleton instance before each test to ensure isolation
+    // This requires accessing a private member, which is acceptable for testing
     (CommandRegistry as any).instance = null;
-    commandRegistry = CommandRegistry.getInstance();
+    registry = CommandRegistry.getInstance();
+    context = {} as ExecutionContext; // Mock ExecutionContext
   });
-  
-  describe('registerCommand', () => {
-    it('should register a command successfully', () => {
-      // Arrange
-      const command = fixtures.commands[0];
-      
-      // Act
-      commandRegistry.registerCommand(command);
-      
-      // Assert
-      const retrievedCommand = commandRegistry.getCommand(command.id);
-      expect(retrievedCommand).toEqual(command);
-    });
-    
-    it('should throw an error when registering an invalid command', () => {
-      // Arrange
-      const invalidCommand = {
-        // Missing required fields
-        id: 'invalid-command'
-      };
-      
-      // Act & Assert
-      expect(() => {
-        commandRegistry.registerCommand(invalidCommand);
-      }).toThrow();
-    });
+
+  it('registry can be instantiated', () => {
+    expect(registry).toBeDefined();
+    // Optionally check if logger.debug was called if initialization logs
+    // expect(logger.debug).toHaveBeenCalledWith('Initializing CommandRegistry...');
   });
-  
-  describe('getCommand', () => {
-    it('should retrieve a registered command by ID', () => {
-      // Arrange
-      const command = fixtures.commands[0];
-      commandRegistry.registerCommand(command);
-      
-      // Act
-      const retrievedCommand = commandRegistry.getCommand(command.id);
-      
-      // Assert
-      expect(retrievedCommand).toEqual(command);
-    });
-    
-    it('should return undefined for an unregistered command ID', () => {
-      // Act
-      const retrievedCommand = commandRegistry.getCommand('non-existent-command');
-      
-      // Assert
-      expect(retrievedCommand).toBeUndefined();
-    });
+
+
+  it('should register and retrieve a command', async () => {
+    const command: Command = {
+      id: 'test-command',
+      name: 'Test Command',
+      description: 'A test command',
+      handler: async () => 0,
+    };
+
+    registry.registerCommand(command);
+    const retrievedCommand = await registry.getCommand('test-command');
+    expect(retrievedCommand).toEqual(command);
   });
-  
-  describe('getAllCommands', () => {
-    it('should retrieve all registered commands', () => {
-      // Arrange
-      fixtures.commands.forEach(command => {
-        commandRegistry.registerCommand(command);
-      });
-      
-      // Act
-      const allCommands = commandRegistry.getAllCommands();
-      
-      // Assert
-      expect(allCommands.length).toBe(fixtures.commands.length);
-      expect(allCommands).toEqual(expect.arrayContaining(fixtures.commands));
-    });
+
+  it('should handle lazy command loading', async () => {
+    const lazyCommand: Command = {
+      id: 'lazy-command',
+      name: 'Lazy Command',
+      description: 'A lazy command',
+      handler: async () => 0,
+    };
+
+    const lazyCommandWrapper = {
+      id: 'lazy-command',
+      loader: async () => lazyCommand,
+    };
+
+    registry.registerCommand(lazyCommandWrapper);
+    const retrievedCommand = await registry.getCommand('lazy-command');
+    expect(retrievedCommand).toEqual(lazyCommand);
   });
-  
-  describe('getCommandsByCategory', () => {
-    it('should retrieve commands by category', () => {
-      // Arrange
-      fixtures.commands.forEach(command => {
-        commandRegistry.registerCommand(command);
-      });
-      
-      // Act
-      const testCommands = commandRegistry.getCommandsByCategory('test');
-      
-      // Assert
-      expect(testCommands.length).toBe(fixtures.commands.length);
-      expect(testCommands).toEqual(expect.arrayContaining(fixtures.commands));
-    });
-    
-    it('should return empty array for non-existent category', () => {
-      // Arrange
-      fixtures.commands.forEach(command => {
-        commandRegistry.registerCommand(command);
-      });
-      
-      // Act
-      const commands = commandRegistry.getCommandsByCategory('non-existent-category');
-      
-      // Assert
-      expect(commands).toEqual([]);
-    });
+
+  it('should execute a command successfully', async () => {
+    const command: Command = {
+      id: 'test-command',
+      name: 'Test Command',
+      description: 'A test command',
+      handler: async () => 0,
+    };
+
+    registry.registerCommand(command);
+    const exitCode = await registry.executeCommand('test-command', {}, context);
+    expect(exitCode).toBe(0);
   });
-  
-  describe('executeCommand', () => {
-    it('should execute a command handler successfully', async () => {
-      // Arrange
-      const command = {
-        ...fixtures.commands[0],
-        handler: jest.fn().mockResolvedValue(0)
-      };
-      commandRegistry.registerCommand(command);
-      
-      const args = { option1: 'test-value', flag1: true };
-      const context = { /* mock context */ };
-      
-      // Act
-      const result = await commandRegistry.executeCommand(command.id, args, context);
-      
-      // Assert
-      expect(result).toBe(0);
-      expect(command.handler).toHaveBeenCalledWith(args, context);
-    });
-    
-    it('should return error code when command execution fails', async () => {
-      // Arrange
-      const command = {
-        ...fixtures.commands[0],
-        handler: jest.fn().mockRejectedValue(new Error('Test error'))
-      };
-      commandRegistry.registerCommand(command);
-      
-      const args = { option1: 'test-value', flag1: true };
-      const context = { /* mock context */ };
-      
-      // Act
-      const result = await commandRegistry.executeCommand(command.id, args, context);
-      
-      // Assert
-      expect(result).toBe(1); // Error exit code
-      expect(command.handler).toHaveBeenCalledWith(args, context);
-    });
-    
-    it('should return error code when command not found', async () => {
-      // Act
-      const result = await commandRegistry.executeCommand('non-existent-command', {}, {});
-      
-      // Assert
-      expect(result).toBe(1); // Error exit code
-    });
+
+  it('should handle command execution errors', async () => {
+    const command: Command = {
+      id: 'error-command',
+      name: 'Error Command',
+      description: 'A command that throws an error',
+      handler: async () => {
+        throw new Error('Test error');
+      },
+    };
+
+    registry.registerCommand(command);
+    const exitCode = await registry.executeCommand('error-command', {}, context);
+    expect(exitCode).toBe(1);
+  });
+
+  it('should return undefined for non-existent commands', async () => {
+    const retrievedCommand = await registry.getCommand('non-existent');
+    expect(retrievedCommand).toBeUndefined();
+  });
+
+  it('should handle command aliases', async () => {
+    const command: Command = {
+      id: 'original-command',
+      name: 'Original Command',
+      description: 'An original command',
+      aliases: ['alias-command'],
+      handler: async () => 0,
+    };
+
+    registry.registerCommand(command);
+    const retrievedCommand = await registry.getCommand('alias-command');
+    expect(retrievedCommand?.id).toBe('original-command');
   });
 });

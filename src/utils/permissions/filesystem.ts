@@ -1,5 +1,5 @@
 import { isAbsolute, resolve } from 'path'
-import { getCwd, getOriginalCwd } from '../state'
+import { getCwd, getOriginalCwd } from '../state.js'
 
 // In-memory storage for file permissions that resets each session
 // Sets of allowed directories for read and write operations

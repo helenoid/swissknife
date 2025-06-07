@@ -38,6 +38,6 @@ const releaseNotesCommand: LocalCommand = {
 
     return `${header}\n\n${formattedNotes}`;
   },
-} satisfies Command;
+};
 
 export default releaseNotesCommand;

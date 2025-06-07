@@ -1,0 +1,61 @@
+FAIL test/comprehensive.test.js
+  Basic functionality
+    ✓ should perform basic operations (7 ms)
+    ✓ should handle promises (2 ms)
+  ModelExecutionService
+    ✕ should execute a model (9 ms)
+    ✕ should stream model execution (3 ms)
+  ModelRegistry
+    ✓ should get model by ID (2 ms)
+    ✓ should get provider by ID (2 ms)
+    ✓ should get all models (1 ms)
+  ConfigurationManager
+    ✓ should get configuration value (1 ms)
+    ✓ should set configuration value (1 ms)
+  IntegrationRegistry
+    ✓ should get bridge by ID (2 ms)
+    ✓ should call bridge method (1 ms)
+
+  ● ModelExecutionService › should execute a model
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "test-model", "test prompt", Any<Object>
+    Received: "test-model", "test prompt"
+
+    Number of calls: 1
+
+      41 |     expect(result.response).toBe('Mock response');
+      42 |     expect(result.usage.totalTokens).toBe(30);
+    > 43 |     expect(executionService.executeModel).toHaveBeenCalledWith(
+         |                                           ^
+      44 |       'test-model', 
+      45 |       'test prompt', 
+      46 |       expect.any(Object)
+
+      at Object.toHaveBeenCalledWith (test/comprehensive.test.js:43:43)
+
+  ● ModelExecutionService › should stream model execution
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "test-model", "test prompt", Any<Object>
+    Received: "test-model", "test prompt"
+
+    Number of calls: 1
+
+      54 |     // Assert
+      55 |     expect(stream).toBeDefined();
+    > 56 |     expect(executionService.executeModelStream).toHaveBeenCalledWith(
+         |                                                 ^
+      57 |       'test-model',
+      58 |       'test prompt',
+      59 |       expect.any(Object)
+
+      at Object.toHaveBeenCalledWith (test/comprehensive.test.js:56:49)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 9 passed, 11 total
+Snapshots:   0 total
+Time:        1.976 s
+Ran all test suites matching ./test/comprehensive.test.js.

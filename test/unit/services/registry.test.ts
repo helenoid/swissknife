@@ -2,7 +2,7 @@
  * Unit tests for ServiceRegistry
  */
 
-import { ServiceRegistry } from '../../../src/services/registry';
+import { ServiceRegistry } from '@src/services/registry.js';
 
 // Define a test service interface
 interface TestService {
@@ -277,7 +277,7 @@ describe('ServiceRegistry', () => {
       // Register dependent service with dependency
       registry.registerService('dependent', dependentService, {
         dependencies: ['dependency'],
-        inject: (service, dependencies) => {
+        inject: (service: any, dependencies: any) => {
           service.dependencyService = dependencies.dependency;
         }
       });
@@ -456,7 +456,7 @@ describe('ServiceRegistry', () => {
       };
       
       // Register with metadata
-      registry.registerService('test', testService, metadata);
+      registry.registerService('test', testService, { metadata });
       
       // Act
       const retrievedMetadata = registry.getServiceMetadata('test');

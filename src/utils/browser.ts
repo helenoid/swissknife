@@ -1,4 +1,4 @@
-import { execFileNoThrow } from './execFileNoThrow'
+import { execFileNoThrow } from './execFileNoThrow.js'
 
 export async function openBrowser(url: string): Promise<boolean> {
   const platform = process.platform

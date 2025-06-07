@@ -5,11 +5,11 @@
  * for priority-based task scheduling.
  */
 
-import { Command } from 'commander';
-import { FibHeapScheduler } from '../tasks/scheduler/fibonacci-heap';
-import { LogManager } from '../utils/logging/manager';
-import chalk from 'chalk';
-import { v4 as uuidv4 } from 'uuid';
+import { Command } from 'commander.js';
+import { FibHeapScheduler } from '../tasks/scheduler/fibonacci-heap.js';
+import { LogManager } from '../utils/logging/manager.js';
+import chalk from 'chalk.js';
+import { v4 as uuidv4 } from 'uuid.js';
 
 // Create a singleton scheduler instance
 const scheduler = new FibHeapScheduler<any>();

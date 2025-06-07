@@ -1,4 +1,4 @@
-import { isDeepStrictEqual } from 'node:util'
+import { isDeepStrictEqual } from 'node:util.js'
 import {
   useReducer,
   type Reducer,
@@ -6,10 +6,10 @@ import {
   useMemo,
   useState,
   useEffect,
-} from 'react'
-import OptionMap from './option-map'
+} from 'react.js'
+import OptionMap from './option-map.js'
 import { Option } from '@inkjs/ui'
-import type { OptionHeader, OptionSubtree } from './select'
+import type { OptionHeader, OptionSubtree } from './select.js'
 
 type State = {
   /**

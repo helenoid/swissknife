@@ -1,0 +1,65 @@
+// Mock global config functions
+const getGlobalConfig = jest.fn().mockReturnValue({});
+const saveGlobalConfig = jest.fn().mockImplementation(() => Promise.resolve());
+const addApiKey = jest.fn().mockImplementation(() => Promise.resolve());
+/**
+ * SwissKnife Test Helper for logging tests
+ * 
+ * Provides utilities for testing
+ */
+
+const path = require('path');
+// No need to import jest, it's available globally
+
+/**
+ * Create a mock implementation for a module
+ */
+function createMockModule(modulePath, impl) {
+  // Using a wrapper to avoid the "implementation" variable
+  const mockCreator = () => impl;
+  jest.mock(modulePath, mockCreator, { virtual: true });
+  return jest.requireMock(modulePath);
+}
+
+/**
+ * Setup path fixing for tests
+ */
+function setupPathFixes() {
+  // Add common module paths to NODE_PATH
+  process.env.NODE_PATH = [
+    path.join(process.cwd(), 'src'),
+    path.join(process.cwd(), 'test'),
+    process.env.NODE_PATH
+  ].filter(Boolean).join(path.delimiter);
+  
+  // Force module path refresh
+  require('module').Module._initPaths();
+}
+
+/**
+ * Setup common mocks for SwissKnife tests
+ */
+function setupCommonMocks() {
+  // Mock config utilities
+  createMockModule('../../../../src/utils/config.js', {
+    getCurrentProjectConfig: jest.fn().mockResolvedValue({}),
+    saveCurrentProjectConfig: jest.fn().mockResolvedValue(undefined),
+    getGlobalConfig: jest.fn().mockResolvedValue({}),
+    saveGlobalConfig: jest.fn().mockResolvedValue(undefined),
+    getMcprcConfig: jest.fn().mockResolvedValue({})
+  });
+  
+  // Mock logging utilities
+  createMockModule('../../../../src/utils/log.js', {
+    logError: jest.fn(),
+    logInfo: jest.fn(),
+    logDebug: jest.fn(),
+    logWarn: jest.fn()
+  });
+}
+
+module.exports = {
+  createMockModule,
+  setupPathFixes,
+  setupCommonMocks
+};

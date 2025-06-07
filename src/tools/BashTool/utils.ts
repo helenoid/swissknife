@@ -1,6 +1,6 @@
-import { queryHaiku } from '../../services/claude'
-import { extractTag } from '../../utils/messages'
-import { MAX_OUTPUT_LENGTH } from './prompt'
+import { queryHaiku } from '../../services/claude.js'
+import { extractTag } from '../../utils/messages.js'
+import { MAX_OUTPUT_LENGTH } from './prompt.js'
 
 export function formatOutput(content: string): {
   totalLines: number

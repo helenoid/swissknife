@@ -1,0 +1,108 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+/**
+ * End-to-End Tests for Phase 1 CLI Commands
+ *
+ * These tests verify the behavior of Phase 1 commands related to:
+ * - Configuration management
+ * - Command registry functionality
+ * - Basic CLI interface components
+ */
+
+const path = require('path');
+const { execFile } = require('child_process');
+const fs = require('fs').promises;
+const os = require('os');
+
+const CLI_PATH = path.resolve(__dirname, '../../../cli.mjs');
+const TEST_CONFIG_PATH = path.join(os.tmpdir(), 'sk-test-config-phase1.json');
+
+// Helper function to run CLI commands
+const runCLI = (args = [], env = {}) => {
+  return new Promise((resolve, reject) => {
+    execFile('node', [CLI_PATH, ...args], { 
+      env: { ...process.env, ...env, SK_CONFIG_PATH: TEST_CONFIG_PATH },
+      timeout: 10000 // 10 second timeout
+    }, (error, stdout, stderr) => {
+      resolve({
+        code: error ? error.code : 0,
+        error,
+        stdout,
+        stderr
+      });
+    });
+  });
+};
+
+describe('SwissKnife CLI - Phase 1 E2E Tests', () => {
+  // Setup/teardown for test config
+  beforeEach(async () => {
+    // Create a blank config for testing
+    await fs.writeFile(TEST_CONFIG_PATH, JSON.stringify({
+      version: '1.0.0',
+      configSchema: 'phase1'
+    }));
+  });
+
+  afterEach(async () => {
+    try {
+      await fs.unlink(TEST_CONFIG_PATH);
+    } catch (err) {
+      // Ignore errors if file doesn't exist
+    }
+  });
+
+  test('should display help information', async () => {
+    const { stdout, code } = await runCLI(['--help']);
+    
+    expect(code).toBe(0);
+    expect(stdout).toContain('Usage:');
+    expect(stdout).toContain('Commands:');
+    expect(stdout).toContain('Options:');
+  });
+
+  test('should show version information', async () => {
+    const { stdout, code } = await runCLI(['--version']);
+    
+    expect(code).toBe(0);
+    expect(stdout).toMatch(/\d+\.\d+\.\d+/); // Semver format
+  });
+
+  test('should handle config commands', async () => {
+    // Set a config value
+    const setResult = await runCLI(['config', 'set', 'test.value', 'phase1-test'], { SK_MOCK_MODE: 'true' });
+    expect(setResult.code).toBe(0);
+    
+    // Get the config value
+    const getResult = await runCLI(['config', 'get', 'test.value'], { SK_MOCK_MODE: 'true' });
+    expect(getResult.code).toBe(0);
+    expect(getResult.stdout.trim()).toBe('phase1-test');
+    
+    // Check config list
+    const listResult = await runCLI(['config', 'list'], { SK_MOCK_MODE: 'true' });
+    expect(listResult.code).toBe(0);
+    expect(listResult.stdout).toContain('test.value');
+  });
+
+  test('should validate config schema', async () => {
+    // Set an invalid config (based on schema validation)
+    const invalidResult = await runCLI(['config', 'set', 'version', 'invalid']);
+    
+    // Either command fails or outputs a warning about schema validation
+    const isValidHandling = 
+      invalidResult.code !== 0 || 
+      invalidResult.stderr.includes('validation') ||
+      invalidResult.stdout.includes('validation');
+      
+    expect(isValidHandling).toBeTruthy();
+  });
+  
+  test('should handle unknown commands gracefully', async () => {
+    const { code, stderr } = await runCLI(['nonexistent-command']);
+    
+    expect(code).not.toBe(0);
+    expect(stderr).toContain('Unknown command');
+  });
+});

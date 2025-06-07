@@ -1,0 +1,52 @@
+// Mock temp directory helpers
+const createTempTestDir = jest.fn().mockImplementation((name) => `/tmp/test-${name}-${Date.now()}`);
+const removeTempTestDir = jest.fn().mockImplementation(async (dir) => Promise.resolve());
+/**
+ * Common test utilities for SwissKnife testing
+ */
+/**
+ * Creates a temporary directory for test files
+ */
+export declare function createTempTestDir(prefix?: string): Promise<string>;
+/**
+ * Removes a temporary test directory
+ */
+export declare function removeTempTestDir(tempDir: string): Promise<void>;
+/**
+ * Creates a temporary configuration file for testing
+ */
+export declare function createTempConfigFile(config: Record<string, any>): Promise<string>;
+/**
+ * Mocks environment variables for testing and returns a function to restore them
+ */
+export declare function mockEnv(envVars: Record<string, string | undefined>): () => void;
+/**
+ * Waits for a specified condition to be true
+ */
+export declare function waitFor(condition: () => boolean | Promise<boolean>, options?: {
+    timeout?: number;
+    interval?: number;
+}): Promise<void>;
+/**
+ * Creates a deferred promise that can be resolved/rejected externally
+ */
+export declare function createDeferred<T>(): {
+    promise: Promise<T>;
+    resolve: (value: T) => void;
+    reject: (reason?: any) => void;
+};
+/**
+ * Captures console output for testing
+ */
+export declare function captureConsoleOutput(): {
+    getOutput: () => {
+        log: string[];
+        error: string[];
+        warn: string[];
+    };
+    restore: () => void;
+};
+/**
+ * Mocks the current working directory for testing
+ */
+export declare function mockCwd(dir: string): () => void;

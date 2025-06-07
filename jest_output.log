@@ -1,0 +1,14 @@
+PASS test/unit/utils/array.test.ts
+  Array Utilities
+    intersperse
+      ✓ should intersperse separator between array elements (5 ms)
+      ✓ should handle empty array (1 ms)
+      ✓ should handle single element array (9 ms)
+      ✓ should work with numbers (4 ms)
+      ✓ should pass correct index to separator function (3 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       5 passed, 5 total
+Snapshots:   0 total
+Time:        1.317 s, estimated 6 s
+Ran all test suites.

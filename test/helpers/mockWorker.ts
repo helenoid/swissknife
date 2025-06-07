@@ -3,6 +3,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { WorkerPool } from "../../src/workers/worker-pool";
 
 export interface MockWorkerOptions {
   workerId?: string;

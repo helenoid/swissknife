@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react.js'
 
 export function useTerminalSize() {
   const [size, setSize] = useState({

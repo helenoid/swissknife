@@ -1,9 +1,9 @@
 import type { Command, LocalCommand } from '../types/command.js'; // Updated import path
 import type { Tool } from '../Tool.js';
-import Table from 'cli-table3';
+import Table from 'cli-table3.js';
 import { getSystemPrompt } from '../constants/prompts.js';
 import { getContext } from '../context.js';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { zodToJsonSchema } from 'zod-to-json-schema.js';
 import { getMessagesGetter } from '../messages.js';
 import { PROJECT_FILE } from '../constants/product.js';
 // Quick and dirty estimate of bytes per token for rough token counts
@@ -205,6 +205,6 @@ const ctxVizCommand: LocalCommand = {
     const sections = getContextSections(systemPrompt)
     return createSummaryTable(systemPrompt, sections, tools, messages);
   },
-} satisfies Command;
+};
 
 export default ctxVizCommand;

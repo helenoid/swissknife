@@ -1,6 +1,6 @@
-import { Box, Text } from 'ink'
-import * as React from 'react'
-import { getTheme } from '../utils/theme'
+import { Box, Text } from 'ink.js.js.js.js.js'
+import * as React from 'react.js.js.js.js.js'
+import { getTheme } from '../utils/theme.js.js.js.js.js.js.js.js.js.js'
 
 type Props = {
   tokenUsage: number

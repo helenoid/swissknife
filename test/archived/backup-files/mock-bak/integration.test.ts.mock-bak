@@ -1,0 +1,77 @@
+/**
+ * Integration tests for Phase 1 components
+ */
+
+
+// Mock file system operations
+jest.mock('fs/promises', () => ({
+  readFile: jest.fn().mockResolvedValue('{"api":{"provider":"test"},"settings":{}}'),
+  writeFile: jest.fn().mockResolvedValue(undefined),
+  mkdir: jest.fn().mockResolvedValue(undefined),
+  access: jest.fn().mockResolvedValue(undefined)
+}));
+
+describe('Phase 1: Integration Tests', () => {
+  describe('Configuration and Command Registry Integration', () => {
+    let configManager: ConfigurationManager;
+    let commandRegistry: CommandRegistry;
+    
+    beforeEach(() => {
+      jest.clearAllMocks();
+      configManager = ConfigurationManager.getInstance();
+      commandRegistry = new CommandRegistry();
+    });
+    
+    it('should execute commands with configuration context', async () => {
+      // Arrange
+      const mockCommand = {
+        name: 'config-test',
+        description: 'Test command for config integration',
+        parseArguments: jest.fn().mockReturnValue({}),
+        execute: jest.fn().mockImplementation(async (_args: any, context: any) => {
+          return { success: true, config: context.config };
+        })
+      };
+      
+      commandRegistry.register(mockCommand);
+      
+      // Act
+      const context = { config: configManager } as CommandExecutionContext;
+      const command = commandRegistry.getCommand('config-test');
+      if (!command) throw new Error('Command not found');
+      const result = await command.execute({}, context);
+      
+      // Assert
+      expect(mockCommand.execute).toHaveBeenCalled();
+      expect(result).toEqual({ success: true, config: configManager });
+    });
+    
+    it('should update configuration through command execution', async () => {
+      // Arrange
+      const mockCommand = {
+        name: 'update-config',
+        description: 'Test command for updating config',
+        parseArguments: jest.fn().mockReturnValue({}),
+        execute: jest.fn().mockImplementation(async (_args: any, context: any) => {
+          context.config.set('newSetting', 'new-value');
+          return { success: true };
+        })
+      };
+      
+      commandRegistry.register(mockCommand);
+      
+      // Mock config saving
+      const setSpy = jest.spyOn(configManager, 'set').mockReturnValue(undefined);
+      
+      // Act
+      const context = { config: configManager } as CommandExecutionContext;
+      const command = commandRegistry.getCommand('update-config');
+      if (!command) throw new Error('Command not found');
+      await command.execute({}, context);
+      
+      // Assert
+      expect(mockCommand.execute).toHaveBeenCalled();
+      expect(setSpy).toHaveBeenCalledWith('newSetting', 'new-value');
+    });
+  });
+});

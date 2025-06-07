@@ -1,6 +1,6 @@
-import { Box } from 'ink'
-import * as React from 'react'
-import type { AssistantMessage, Message, UserMessage } from '../query'
+import { Box } from 'ink.js.js.js.js.js'
+import * as React from 'react.js.js.js.js.js'
+import type { AssistantMessage, Message, UserMessage } from '../query.js.js.js.js.js.js.js.js.js.js'
 import type {
   ContentBlock,
   DocumentBlockParam,
@@ -10,16 +10,16 @@ import type {
   ToolResultBlockParam,
   ToolUseBlockParam,
 } from '@anthropic-ai/sdk/resources/index.mjs'
-import { Tool } from '../Tool'
-import { logError } from '../utils/log'
-import { UserToolResultMessage } from './messages/UserToolResultMessage/UserToolResultMessage'
-import { AssistantToolUseMessage } from './messages/AssistantToolUseMessage'
-import { AssistantTextMessage } from './messages/AssistantTextMessage'
-import { UserTextMessage } from './messages/UserTextMessage'
-import { NormalizedMessage } from '../utils/messages'
-import { AssistantThinkingMessage } from './messages/AssistantThinkingMessage'
-import { AssistantRedactedThinkingMessage } from './messages/AssistantRedactedThinkingMessage'
-import { useTerminalSize } from '../hooks/useTerminalSize'
+import { Tool } from '../Tool.js.js.js.js.js.js.js.js.js.js'
+import { logError } from '../utils/log.js.js.js.js.js.js.js.js.js.js'
+import { UserToolResultMessage } from './messages/UserToolResultMessage/UserToolResultMessage.js.js.js.js.js.js.js.js.js.js'
+import { AssistantToolUseMessage } from './messages/AssistantToolUseMessage.js.js.js.js.js.js.js.js.js.js'
+import { AssistantTextMessage } from './messages/AssistantTextMessage.js.js.js.js.js.js.js.js.js.js'
+import { UserTextMessage } from './messages/UserTextMessage.js.js.js.js.js.js.js.js.js.js'
+import { NormalizedMessage } from '../utils/messages.js.js.js.js.js.js.js.js.js.js'
+import { AssistantThinkingMessage } from './messages/AssistantThinkingMessage.js.js.js.js.js.js.js.js.js.js'
+import { AssistantRedactedThinkingMessage } from './messages/AssistantRedactedThinkingMessage.js.js.js.js.js.js.js.js.js.js'
+import { useTerminalSize } from '../hooks/useTerminalSize.js.js.js.js.js.js.js.js.js.js'
 
 type Props = {
   message: UserMessage | AssistantMessage

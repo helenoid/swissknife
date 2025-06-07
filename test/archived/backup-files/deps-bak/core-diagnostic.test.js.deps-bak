@@ -1,0 +1,38 @@
+/**
+ * Core diagnostic test for SwissKnife
+ * This test checks if the basic test environment is working correctly
+ */
+
+describe('Core Diagnostics', () => {
+  test('Basic test functionality', () => {
+    expect(1 + 1).toBe(2);
+  });
+  
+  test('Async test functionality', async () => {
+    const result = await Promise.resolve(42);
+    expect(result).toBe(42);
+  });
+  
+  test('Environment variables are accessible', () => {
+    expect(process.env.NODE_ENV).toBe('test');
+    expect(process.env.TEST_PROVIDER_API_KEY).toBe('test-api-key');
+  });
+  
+  test('Jest mock functions work', () => {
+    const mockFn = jest.fn().mockReturnValue(42);
+    const result = mockFn();
+    expect(result).toBe(42);
+    expect(mockFn).toHaveBeenCalled();
+  });
+  
+  test('Fetch API is mocked', async () => {
+    const response = await fetch('https://test.com');
+    expect(response.ok).toBe(true);
+    expect(typeof response.json).toBe('function');
+  });
+  
+  test('Timeout is increased', () => {
+    // This test verifies that the timeout has been increased
+    expect(jasmine.DEFAULT_TIMEOUT_INTERVAL).toBeGreaterThan(5000);
+  });
+});

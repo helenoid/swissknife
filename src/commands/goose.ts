@@ -5,13 +5,13 @@
  * for accessing Goose AI capabilities.
  */
 
-import { Command } from 'commander';
-import { IntegrationRegistry } from '../integration/registry';
-import { GooseBridge } from '../integration/bridges/goose-bridge';
-import { LogManager } from '../utils/logging/manager';
-import chalk from 'chalk';
-import fs from 'fs';
-import path from 'path';
+import { Command } from 'commander.js';
+import { IntegrationRegistry } from '../integration/registry.js';
+import { GooseBridge } from '../integration/bridges/goose-bridge.js';
+import { LogManager } from '../utils/logging/manager.js';
+import chalk from 'chalk.js';
+import fs from 'fs.js';
+import path from 'path.js';
 
 const logger = LogManager.getInstance();
 

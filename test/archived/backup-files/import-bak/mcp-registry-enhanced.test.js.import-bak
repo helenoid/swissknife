@@ -1,0 +1,109 @@
+/**
+ * Enhanced test for MCP registry
+ * This test is designed to identify issues with the MCP registry implementation
+ */
+
+// Import test utilities
+const { describe, it, expect, beforeEach, afterEach, jest } = require('@jest/globals');
+
+// Mock the required dependencies
+jest.mock('../../../src/utils/config.js', () => ({
+  getCurrentProjectConfig: jest.fn().mockResolvedValue({}),
+  saveCurrentProjectConfig: jest.fn().mockResolvedValue(undefined),
+  getGlobalConfig: jest.fn().mockResolvedValue({}),
+  saveGlobalConfig: jest.fn().mockResolvedValue(undefined),
+  getMcprcConfig: jest.fn().mockResolvedValue({})
+}));
+
+jest.mock('../../../src/utils/log.js', () => ({
+  logError: jest.fn(),
+  logInfo: jest.fn(),
+  logDebug: jest.fn(),
+  logWarn: jest.fn()
+}));
+
+// Create a simplified mock implementation
+class MockRegistry {
+  constructor() {
+    this.servers = new Map();
+    this.events = new require('events').EventEmitter();
+  }
+  
+  registerServer(config) {
+    const id = config.id || Math.random().toString(36).substring(2);
+    this.servers.set(id, { ...config, id });
+    this.events.emit('server:registered', { id });
+    return id;
+  }
+  
+  getRegisteredServers() {
+    return Array.from(this.servers.values());
+  }
+  
+  updateServerStatus(id, status) {
+    const server = this.servers.get(id);
+    if (server) {
+      server.status = status;
+      this.events.emit('server:updated', { id, status });
+      return true;
+    }
+    return false;
+  }
+  
+  getServerById(id) {
+    return this.servers.get(id);
+  }
+  
+  on(event, handler) {
+    this.events.on(event, handler);
+    return this;
+  }
+}
+
+// Tests
+describe('MCP Registry', () => {
+  let registry;
+  
+  beforeEach(() => {
+    registry = new MockRegistry();
+  });
+  
+  it('should register a server', () => {
+    const serverId = registry.registerServer({
+      name: 'test-server',
+      url: 'http://localhost:8000',
+      enabled: true
+    });
+    
+    expect(serverId).toBeTruthy();
+    expect(registry.getRegisteredServers()).toHaveLength(1);
+    expect(registry.getRegisteredServers()[0].name).toBe('test-server');
+  });
+  
+  it('should update server status', () => {
+    const serverId = registry.registerServer({
+      name: 'test-server',
+      url: 'http://localhost:8000',
+      enabled: true,
+      status: 'active'
+    });
+    
+    const result = registry.updateServerStatus(serverId, 'disabled');
+    
+    expect(result).toBe(true);
+    expect(registry.getServerById(serverId).status).toBe('disabled');
+  });
+  
+  it('should handle server events', (done) => {
+    registry.on('server:registered', (data) => {
+      expect(data.id).toBeTruthy();
+      done();
+    });
+    
+    registry.registerServer({
+      name: 'event-test',
+      url: 'http://localhost:9000',
+      enabled: true
+    });
+  });
+});

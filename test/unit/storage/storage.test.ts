@@ -1,65 +1,57 @@
+// Mock temp directory helpers
+const createTempTestDir = jest.fn().mockImplementation((name) => `/tmp/test-${name}-${Date.now()}`);
+const removeTempTestDir = jest.fn().mockImplementation(async (dir) => Promise.resolve());
 /**
  * Unit tests for Storage System
  */
 
 import * as path from 'path';
-// Use jest's expect, remove chai/sinon
-// import { expect } from 'chai';
-// import * as sinon from 'sinon';
-// Use relative paths with .js extension
-import { createTempTestDir, removeTempTestDir } from '../../helpers/testUtils.js';
+import * as fs from 'fs/promises';
 // Remove createMockStorage if not used
-// import { createMockStorage } from '../../helpers/mockStorage.js';
 
 // Mock the MCP client based on Phase 2 plan
-jest.mock('../../../src/storage/ipfs/mcp-client.js', () => {
-  const mockIpfsStorage = new Map<string, Buffer>();
+const mockIpfsStorage = new Map<string, Buffer>();
+jest.mock('../../../src/storage/ipfs/mcp-client.ts', () => ({
+  MCPClient: jest.fn().mockImplementation(() => ({
+    // Mock methods used by IPFSStorage in Phase 2
+    addContent: jest.fn().mockImplementation(async (content) => {
+      const data = typeof content === 'string' ? Buffer.from(content) : content;
+      // Simulate CID generation (e.g., hash)
+      const cid = `mock-cid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      mockIpfsStorage.set(cid, data);
+      return { cid }; // Return structure expected by IPFSStorage
+    }),
+    getContent: jest.fn().mockImplementation(async (cid) => {
+      const content = mockIpfsStorage.get(cid);
+      if (!content) {
+        throw new Error(`Content not found for CID: ${cid}`);
+      }
+      return content;
+    }),
+    pinContent: jest.fn().mockImplementation(async (cid) => {
+      // Simulate pinning success
+      return mockIpfsStorage.has(cid);
+    }),
+    listPins: jest.fn().mockImplementation(async () => {
+      // Return all keys as pinned CIDs for testing list()
+      return Array.from(mockIpfsStorage.keys());
+    }),
+    // Mock unpinContent for delete() - assuming it exists on MCPClient
+    unpinContent: jest.fn().mockImplementation(async (cid) => {
+       return mockIpfsStorage.delete(cid);
+    }),
+  }))
+}));
 
-  return {
-    MCPClient: jest.fn().mockImplementation(() => ({
-      // Mock methods used by IPFSStorage in Phase 2
-      addContent: jest.fn().mockImplementation(async (content) => {
-        const data = typeof content === 'string' ? Buffer.from(content) : content;
-        // Simulate CID generation (e.g., hash)
-        const cid = `mock-cid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        mockIpfsStorage.set(cid, data);
-        return { cid }; // Return structure expected by IPFSStorage
-      }),
-      getContent: jest.fn().mockImplementation(async (cid) => {
-        const content = mockIpfsStorage.get(cid);
-        if (!content) {
-          throw new Error(`Content not found for CID: ${cid}`);
-        }
-        return content;
-      }),
-      pinContent: jest.fn().mockImplementation(async (cid) => {
-        // Simulate pinning success
-        return mockIpfsStorage.has(cid);
-      }),
-      listPins: jest.fn().mockImplementation(async () => {
-        // Return all keys as pinned CIDs for testing list()
-        return Array.from(mockIpfsStorage.keys());
-      }),
-      // Mock unpinContent for delete() - assuming it exists on MCPClient
-      unpinContent: jest.fn().mockImplementation(async (cid) => {
-         return mockIpfsStorage.delete(cid);
-      }),
-      // Remove graph/task specific methods from mock
-      // storeGraph: jest.fn()...,
-      // loadGraph: jest.fn()...,
-    }))
-  };
-});
-
-// Import after mocks - use .js extensions
+// Import after mocks 
 // Remove StorageFactory import
-// import { StorageFactory } from '../../../src/storage/factory.js';
-import { IPFSStorage } from '../../../src/storage/ipfs/ipfs-storage.js';
-// Rename LocalStorage to FileStorage and update path - Revert to relative path
-import { FileStorage } from '../../../src/storage/local/file-storage.js';
-import { MCPClient } from '../../../src/storage/ipfs/mcp-client.js';
+// Rename LocalStorage to FileStorage and update path
 // Import StorageProvider interface
-import { StorageProvider } from '../../../src/storage/provider.js';
+
+import { IPFSStorage } from '../../../src/storage/ipfs/ipfs-storage.ts';
+import { FileStorage } from '../../../src/storage/file-storage.ts';
+import { MCPClient } from '../../../src/storage/ipfs/mcp-client.ts';
+
 
 describe('Storage System (Phase 2 Plan)', () => {
   let tempDir: string;
@@ -76,18 +68,28 @@ describe('Storage System (Phase 2 Plan)', () => {
 
   describe('IPFSStorage', () => {
     let storage: IPFSStorage; // Use specific type
-    let mcpClient: jest.Mocked<MCPClient>; // Use mocked type
+    let mcpClient: jest.Mocked<MCPClient> & {
+      addContent: jest.Mock;
+      getContent: jest.Mock;
+      pinContent: jest.Mock;
+      listPins: jest.Mock;
+      unpinContent: jest.Mock;
+    }; // Use mocked type with additional methods
 
     beforeEach(() => {
       // Clear mocks before each test
       jest.clearAllMocks();
       // Create new MCP client mock instance and storage for each test
       // MCPClient constructor is mocked, so this gives us the mocked instance
-      mcpClient = new MCPClient({ baseUrl: 'http://mock-ipfs:5001' }) as jest.Mocked<MCPClient>;
+      mcpClient = new MCPClient({ baseUrl: 'http://mock-ipfs:5001' }) as jest.Mocked<MCPClient> & {
+        addContent: jest.Mock;
+        getContent: jest.Mock;
+        pinContent: jest.Mock;
+        listPins: jest.Mock;
+        unpinContent: jest.Mock;
+      };
       // Pass the MCPClient INSTANCE to IPFSStorage constructor based on error
       storage = new IPFSStorage(mcpClient);
-      // No need to inject client manually if constructor takes it
-      // (storage as any).client = mcpClient;
     });
 
     // No need for afterEach clearAllMocks if beforeEach does it
@@ -244,11 +246,11 @@ describe('Storage System (Phase 2 Plan)', () => {
 
         // Verify file exists and content matches
         const filePath = path.join(storagePath, expectedHash);
-        const fileContent = await require('fs/promises').readFile(filePath);
+        const fileContent = await fs.readFile(filePath);
         expect(fileContent).toEqual(contentBuffer);
 
         // Verify metadata was saved (optional check)
-        const metadataContent = await require('fs/promises').readFile(path.join(storagePath, '.metadata.json'), 'utf-8');
+        const metadataContent = await fs.readFile(path.join(storagePath, '.metadata.json'), 'utf-8');
         const metadata = JSON.parse(metadataContent);
         expect(metadata[expectedHash]).toBeDefined();
         expect(metadata[expectedHash].size).toBe(contentBuffer.length);
@@ -290,13 +292,13 @@ describe('Storage System (Phase 2 Plan)', () => {
 
         // Verify file exists before delete
         const filePath = path.join(storagePath, id);
-        await expect(require('fs/promises').access(filePath)).resolves.toBeUndefined();
+        await expect(fs.access(filePath)).resolves.toBeUndefined();
 
         const deleteResult = await storage.delete(id);
         expect(deleteResult).toBe(true);
 
         // Verify file is deleted
-        await expect(require('fs/promises').access(filePath)).rejects.toThrow();
+        await expect(fs.access(filePath)).rejects.toThrow();
         // Verify retrieval fails
         await expect(storage.get(id)).rejects.toThrow('Content not found');
         // Verify not in list

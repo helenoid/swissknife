@@ -1,22 +1,22 @@
-import * as React from 'react'
-import { OrderedList } from '@inkjs/ui'
-import { Box, Text } from 'ink'
+import * as React from 'react';
+import { OrderedList } from '@inkjs/ui';
+import { Box, Text } from 'ink';
 import {
   getCurrentProjectConfig,
   getGlobalConfig,
   saveCurrentProjectConfig,
   saveGlobalConfig,
-} from './utils/config.js'
-import { existsSync } from 'fs'
-import { join } from 'path'
-import { homedir } from 'os'
-import terminalSetup from './commands/terminalSetup'
-import { getTheme } from './utils/theme'
-import { RELEASE_NOTES } from './constants/releaseNotes'
-import { gt } from 'semver'
-import { isDirEmpty } from './utils/file'
-import { MACRO } from './constants/macros'
-import { PROJECT_FILE, PRODUCT_NAME } from './constants/product'
+} from './utils/config';
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
+import terminalSetup from './commands/terminalSetup';
+import { getTheme } from './utils/theme';
+import { RELEASE_NOTES } from './constants/releaseNotes';
+import { gt } from 'semver';
+import { isDirEmpty } from './utils/file';
+import { MACRO } from './constants/macros';
+import { PROJECT_FILE, PRODUCT_NAME } from './constants/product';
 
 // Function to mark onboarding as complete
 export function markProjectOnboardingComplete(): void {

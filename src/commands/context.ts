@@ -1,20 +1,16 @@
+// src/commands/context.ts
+
+import { ConfigurationManager, IConfigManager } from '../config/manager.js';
+import { LogManager } from '../utils/logging.js';
+
 /**
- * Command Execution Context
- * 
- * Provides a context for command execution, including access to shared resources
- * and services needed during command execution.
+ * Execution context provides shared resources and state during command execution
  */
-
-import { ConfigurationManager } from './config/manager';
-import { LogManager } from './utils/logging/manager';
-import { ModelRegistry } from './models/registry';
-import { ServiceRegistry } from './services/registry';
-
 export interface ExecutionContext {
-  config: ConfigurationManager;
-  logger: LogManager;
-  models: ModelRegistry;
-  services: ServiceRegistry;
+  config: IConfigManager; // Use the implemented ConfigurationManager
+  logger: LogManager; // Use the implemented LogManager
+  models: any; // Will be replaced with ModelRegistry once implemented
+  services: any; // Will be replaced with ServiceRegistry once implemented
   interactive: boolean;
   cwd: string;
   env: Record<string, string>;
@@ -22,17 +18,21 @@ export interface ExecutionContext {
 }
 
 /**
- * Create a new execution context with the given arguments and interactivity flag
+ * Creates a new execution context with default values
+ * 
+ * @param args - Command arguments
+ * @param interactive - Whether the command is running in interactive mode
+ * @returns A new execution context
  */
 export function createExecutionContext(
   args: Record<string, any> = {},
   interactive = true
 ): ExecutionContext {
   return {
-    config: ConfigurationManager.getInstance(),
-    logger: LogManager.getInstance(),
-    models: ModelRegistry.getInstance(),
-    services: ServiceRegistry.getInstance(),
+    config: ConfigurationManager.getInstance(), // Use singleton instance
+    logger: LogManager.getInstance(), // Use singleton instance
+    models: {}, // Placeholder until ModelRegistry is implemented
+    services: {}, // Placeholder until ServiceRegistry is implemented
     interactive,
     cwd: process.cwd(),
     env: process.env as Record<string, string>,

@@ -6,9 +6,9 @@
  */
 
 import { EventEmitter } from 'events';
-import { GoTNode, GoTNodeType, GoTNodeStatus } from './node';
-import { LogManager } from '../../utils/logging/manager';
-import { MCPClient } from '../../storage/ipfs/mcp-client';
+import { GoTNode, GoTNodeType, GoTNodeStatus } from './node.js';
+import { LogManager } from '../../utils/logging/manager.js';
+import { MCPClient } from '../../storage/ipfs/mcp-client.js';
 
 export class GoTManager extends EventEmitter {
   private static instance: GoTManager;
@@ -30,6 +30,21 @@ export class GoTManager extends EventEmitter {
       GoTManager.instance = new GoTManager();
     }
     return GoTManager.instance;
+  }
+  
+  /**
+   * Reset the singleton instance (for testing)
+   */
+  static resetInstance(): void {
+    GoTManager.instance = undefined as any;
+  }
+  
+  /**
+   * Clear all graphs and nodes (for testing)
+   */
+  clear(): void {
+    this.nodes.clear();
+    this.graphs.clear();
   }
   
   /**
@@ -76,7 +91,8 @@ export class GoTManager extends EventEmitter {
       content: options.content || '',
       data: options.data || {},
       priority: options.priority || 1,
-      parentIds: options.parentIds || []
+      parentIds: options.parentIds || [],
+      graphId: graphId
     });
     
     // Add the node to the graph
@@ -102,8 +118,8 @@ export class GoTManager extends EventEmitter {
   /**
    * Get a node by ID
    */
-  getNode(nodeId: string): GoTNode | null {
-    return this.nodes.get(nodeId) || null;
+  getNode(nodeId: string): GoTNode | undefined {
+    return this.nodes.get(nodeId);
   }
   
   /**
@@ -141,11 +157,13 @@ export class GoTManager extends EventEmitter {
   
   /**
    * Update a node's status
+   * @returns True if update was successful, false if node not found
    */
-  updateNodeStatus(nodeId: string, status: GoTNodeStatus): void {
+  updateNodeStatus(nodeId: string, status: GoTNodeStatus): boolean {
     const node = this.getNode(nodeId);
     if (!node) {
-      throw new Error(`Node not found: ${nodeId}`);
+      this.logger.warn(`Node not found: ${nodeId}`);
+      return false;
     }
     
     node.updateStatus(status);
@@ -155,6 +173,8 @@ export class GoTManager extends EventEmitter {
       status,
       type: node.type
     });
+    
+    return true;
   }
   
   /**
@@ -196,7 +216,7 @@ export class GoTManager extends EventEmitter {
     
     return node.parentIds.every(id => {
       const parent = this.getNode(id);
-      return parent && parent.status === 'completed';
+      return parent && (parent.status === GoTNodeStatus.COMPLETED || parent.status === GoTNodeStatus.COMPLETED_SUCCESS);
     });
   }
   
@@ -211,53 +231,61 @@ export class GoTManager extends EventEmitter {
   
   /**
    * Add an edge between two nodes
+   * @returns True if edge was added, false if either node not found
    */
-  addEdge(parentId: string, childId: string): void {
+  addEdge(parentId: string, childId: string): boolean {
     const parent = this.getNode(parentId);
     const child = this.getNode(childId);
     
     if (!parent) {
-      throw new Error(`Parent node not found: ${parentId}`);
+      this.logger.warn(`Parent node not found: ${parentId}`);
+      return false;
     }
     
     if (!child) {
-      throw new Error(`Child node not found: ${childId}`);
+      this.logger.warn(`Child node not found: ${childId}`);
+      return false;
     }
     
     parent.addChild(childId);
     child.addParent(parentId);
     
     this.emit('edgeAdded', { parentId, childId });
+    return true;
   }
   
   /**
    * Remove an edge between two nodes
+   * @returns True if edge was removed, false if either node not found
    */
-  removeEdge(parentId: string, childId: string): void {
+  removeEdge(parentId: string, childId: string): boolean {
     const parent = this.getNode(parentId);
     const child = this.getNode(childId);
     
     if (!parent) {
-      throw new Error(`Parent node not found: ${parentId}`);
+      this.logger.warn(`Parent node not found: ${parentId}`);
+      return false;
     }
     
     if (!child) {
-      throw new Error(`Child node not found: ${childId}`);
+      this.logger.warn(`Child node not found: ${childId}`);
+      return false;
     }
     
     parent.removeChild(childId);
     child.removeParent(parentId);
     
     this.emit('edgeRemoved', { parentId, childId });
+    return true;
   }
   
   /**
    * Persist a graph to IPFS (via MCP client)
    */
-  async persistGraph(graphId: string): Promise<string | null> {
+  async persistGraph(graphId: string): Promise<string> {
     if (!this.mcpClient) {
-      this.logger.warn('MCP client not set, cannot persist graph');
-      return null;
+      this.logger.error('MCP client not set, cannot persist graph');
+      throw new Error('MCPClient not set or not connected.');
     }
     
     try {
@@ -268,6 +296,7 @@ export class GoTManager extends EventEmitter {
       
       // Get all nodes for the graph
       const nodes = this.getGraphNodes(graphId);
+      const rootNodes = this.getRootNodes(graphId);
       
       // Create IPLD nodes for each GoT node
       const cidMap = new Map<string, string>(); // nodeId -> CID
@@ -320,7 +349,9 @@ export class GoTManager extends EventEmitter {
       const graphMetadata = {
         id: graphId,
         nodeCount: nodes.length,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        rootNodeId: rootNodes.length > 0 ? rootNodes[0].id : null,
+        nodeCids: Array.from(cidMap.keys()),
       };
       
       const nodeLinks = Array.from(cidMap.entries()).map(([nodeId, cid]) => ({
@@ -335,7 +366,7 @@ export class GoTManager extends EventEmitter {
       return graphCid;
     } catch (error) {
       this.logger.error(`Failed to persist graph ${graphId}`, error);
-      return null;
+      throw error;
     }
   }
   

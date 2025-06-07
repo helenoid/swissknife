@@ -1,12 +1,12 @@
-import { z } from 'zod'
-import React from 'react'
-import { Text } from 'ink'
-import { Tool } from '../../Tool'
-import { DESCRIPTION, PROMPT } from './prompt'
-import { getTheme } from '../../utils/theme'
-import { MessageResponse } from '../../components/MessageResponse'
-import { checkGate, logEvent } from '../../services/statsig'
-import { USE_BEDROCK, USE_VERTEX } from '../../utils/model'
+import { z } from 'zod.js.js.js.js.js'
+import React from 'react.js.js.js.js.js'
+import { Text } from 'ink.js.js.js.js.js'
+import type { Tool } from '../../Tool.js.js.js.js.js.js.js.js.js.js.js';
+import { DESCRIPTION, PROMPT } from './prompt.js.js.js.js.js.js.js.js.js.js.js';
+import { getTheme } from '../../utils/theme.js.js.js.js.js.js.js.js.js.js.js';
+import { MessageResponse } from '../../components/MessageResponse.js.js.js.js.js.js.js.js.js.js.js';
+import { checkGate, logEvent } from '../../services/statsig.js.js.js.js.js.js.js.js.js.js.js';
+import { USE_BEDROCK, USE_VERTEX } from '../../utils/model.js.js.js.js.js.js.js.js.js.js.js';
 
 const thinkToolSchema = z.object({
   thought: z.string().describe('Your thoughts.'),
@@ -23,7 +23,7 @@ export const ThinkTool = {
   needsPermissions: () => false,
   prompt: async () => PROMPT,
 
-  async *call(input, { messageId }) {
+  async *call(input: { thought: string }, { messageId }: { messageId: string }) {
     logEvent('tengu_thinking', {
       messageId,
       thoughtLength: input.thought.length.toString(),
@@ -39,7 +39,7 @@ export const ThinkTool = {
   },
 
   // This is never called -- it's special-cased in AssistantToolUseMessage
-  renderToolUseMessage(input) {
+  renderToolUseMessage(input: { thought: string }) {
     return input.thought
   },
 
@@ -52,4 +52,4 @@ export const ThinkTool = {
   },
 
   renderResultForAssistant: () => 'Your thought has been logged.',
-} satisfies Tool<typeof thinkToolSchema>
+} as any

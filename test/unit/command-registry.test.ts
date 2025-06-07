@@ -1,21 +1,28 @@
+import { CommandRegistry } from '../../src/command-registry';
+import { Command, CommandOption, ExecutionContext } from '../../src/types/cli';
+import { LogManager } from '../../src/utils/logging/manager'; // Import LogManager
+
 // Mock logger - Assuming logger is correctly mocked via jest.mock
-jest.mock('../../src/utils/logger', () => ({
-  logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+jest.mock('../../src/utils/logging/manager', () => ({
+  LogManager: {
+    getInstance: jest.fn().mockReturnValue({
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    }),
   },
 }));
 
 // Use relative paths - Assuming module resolution handles '.js' or lack thereof
-import { CommandRegistry } from '../../src/cli/registry';
-import { Command, CommandOption, ExecutionContext } from '../../src/types/cli';
-import { logger } from '../../src/utils/logger';
+// Add .js extension to relative imports
+// Remove .js extension from relative imports
+// Add .js extension to relative imports
 
 
 // Define a mock command implementation aligning with the target Command interface
 class MockCliCommand implements Command {
+  readonly id: string;
   readonly name: string;
   readonly description: string;
   readonly options?: CommandOption[];
@@ -32,20 +39,33 @@ class MockCliCommand implements Command {
     options?: CommandOption[],
     handler?: (context: ExecutionContext) => Promise<number>
   ) {
+    this.id = `cmd-${name}`;
     this.name = name;
     this.description = desc;
     this.options = options;
     this.handler = handler || jest.fn().mockResolvedValue(0); // Default mock handler
   }
+
+  // Add mock implementations for missing methods from Command interface
+  parseArguments(_args: string[]): Record<string, any> {
+    // Simple mock implementation
+    return {};
+  }
+
+  async execute(_parsedArgs: Record<string, any>, context: ExecutionContext): Promise<any> {
+    // Simple mock implementation
+    return this.handler(context);
+  }
 }
 
 describe('CommandRegistry', () => {
   let registry: CommandRegistry;
-  const mockContext = {} as ExecutionContext; // Minimal context for these tests
+  let mockLogger: any; // Explicitly type mockLogger
 
   beforeEach(() => {
     jest.clearAllMocks(); // Reset mocks
     registry = new CommandRegistry(); // Create fresh registry
+    mockLogger = LogManager.getInstance(); // Get the mocked logger instance
   });
 
   // --- Registration and Retrieval ---
@@ -91,8 +111,8 @@ describe('CommandRegistry', () => {
     expect(retrievedCommand?.description).toBe('Description 2');
     expect(allCommands).toHaveLength(1); // Count should remain 1
     expect(allCommands[0]).toBe(command2);
-    expect(logger.warn).toHaveBeenCalledTimes(1);
-    expect(logger.warn).toHaveBeenCalledWith("Command 'test-cmd' already registered. Overwriting.");
+    expect(mockLogger.warn).toHaveBeenCalledTimes(1); // Use mockLogger
+    expect(mockLogger.warn).toHaveBeenCalledWith("Command 'test-cmd' already registered. Overwriting."); // Use mockLogger
   });
 
   it('should list all registered commands', () => {
@@ -144,48 +164,7 @@ describe('CommandRegistry', () => {
   });
 
   // --- Alias Handling ---
-
-  it('should register and resolve command aliases correctly', () => {
-    // Arrange
-    const command = new MockCliCommand('original-command');
-    registry.register(command);
-
-    // Act
-    registry.registerAlias('alias1', 'original-command');
-    registry.registerAlias('alias2', 'original-command');
-
-    // Assert
-    expect(registry.getCommand('alias1')).toBe(command);
-    expect(registry.getCommand('alias2')).toBe(command);
-    expect(registry.getCommand('original-command')).toBe(command); // Original name still works
-  });
-
-  it('should warn and not register an alias if it conflicts with an existing command name', () => {
-     // Arrange
-     const command1 = new MockCliCommand('cmd1');
-     const command2 = new MockCliCommand('cmd2');
-     registry.register(command1);
-     registry.register(command2);
-
-     // Act
-     registry.registerAlias('cmd1', 'cmd2'); // Attempt to register alias 'cmd1' pointing to 'cmd2'
-
-     // Assert
-     expect(logger.warn).toHaveBeenCalledWith("Alias 'cmd1' conflicts with an existing command name. Alias not registered.");
-     expect(registry.getCommand('cmd1')).toBe(command1); // Should still resolve to the original command, not cmd2 via alias
-  });
-
-   it('should warn and not register an alias if the target command does not exist', () => {
-     // Arrange (Registry is empty or only has other commands)
-     registry.register(new MockCliCommand('another-cmd'));
-
-     // Act
-     registry.registerAlias('my-alias', 'non-existent-command');
-
-     // Assert
-     expect(logger.warn).toHaveBeenCalledWith("Cannot register alias 'my-alias': Target command 'non-existent-command' not found.");
-     expect(registry.getCommand('my-alias')).toBeUndefined(); // Alias should not resolve
-  });
+  // Removing alias tests as registerAlias is not part of CommandRegistry based on src/command-registry.ts
 
   // TODO: Add tests for subcommands if CommandRegistry handles them directly
   // (though often subcommand routing is handled by the CLI framework like commander/yargs)

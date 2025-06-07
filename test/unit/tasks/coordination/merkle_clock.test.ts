@@ -1,7 +1,9 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 // Ensure dependencies are installed: pnpm add merkletreejs && pnpm add -D @types/merkletreejs
-// NOTE: Using relative path with .js extension for NodeNext module resolution compatibility.
-// If 'Cannot find module' errors persist, check Jest's moduleNameMapper config in jest.config.cjs.
-import { MerkleClock } from '../../../../src/tasks/coordination/merkle_clock.js'; // Using relative path + .js
+// NOTE: Using relative path for NodeNext module resolution compatibility.
 import { MerkleTree } from 'merkletreejs';
 import crypto from 'crypto'; // Use Node.js built-in crypto
 
@@ -85,7 +87,7 @@ describe('MerkleClock', () => {
 
     const clockBData = clockB.getTimestamps();
     const headBeforeMerge = clockA.getHead();
-    clockA.merge(clockBData); // A merges B
+    clockA.merge(clockB.getTimestamps()); // A merges B
     const headAfterMerge1 = clockA.getHead();
 
     expect(clockA.getTimestamps()).toEqual({ [peerA]: 1, [peerB]: 2 });
@@ -128,8 +130,8 @@ describe('MerkleClock', () => {
     clockA.tick(); clockA.merge({}); // Force recalc if needed
     clockB.tick(); clockB.merge({}); // Force recalc if needed
 
-    expect(clockA.compare(clockB.getHead(), clockB.getTimestamps())).toBe('equal');
-    expect(clockB.compare(clockA.getHead(), clockA.getTimestamps())).toBe('equal');
+    expect(clockA.compare(clockB)).toBe('equal');
+    expect(clockB.compare(clockA)).toBe('equal');
   });
 
   it('should compare clocks correctly (before/after)', () => {
@@ -138,31 +140,26 @@ describe('MerkleClock', () => {
     clockB.tick(); // B: {A:1, B:1}
 
     // Ensure heads are calculated
-    clockA.tick(); clockA.merge({});
-    clockB.tick(); clockB.merge({});
+    clockA.tick(); 
+    clockB.tick(); 
 
-    expect(clockA.compare(clockB.getHead(), clockB.getTimestamps())).toBe('before');
-    expect(clockB.compare(clockA.getHead(), clockA.getTimestamps())).toBe('after');
+    expect(clockA.compare(clockB)).toBe('before');
+    expect(clockB.compare(clockA)).toBe('after');
   });
 
   it('should compare clocks correctly (concurrent)', () => {
     clockA.tick(); // A: {A:1}
     clockB.tick(); // B: {B:1}
 
-    // Ensure heads are calculated
-    clockA.tick(); clockA.merge({});
-    clockB.tick(); clockB.merge({});
-
-    expect(clockA.compare(clockB.getHead(), clockB.getTimestamps())).toBe('concurrent');
-    expect(clockB.compare(clockA.getHead(), clockA.getTimestamps())).toBe('concurrent');
+    expect(clockA.compare(clockB)).toBe('concurrent');
+    expect(clockB.compare(clockA)).toBe('concurrent');
 
     // Make A know about B, but B not know about A's latest tick
-    clockA.merge(clockB.getTimestamps()); // A: {A:1, B:1} -> Recalc head
-    clockA.tick(); // A: {A:2, B:1} -> Recalc head
-    // B is still {B:1}
+    clockA.merge(clockB); // A: {A:1, B:1}
+    clockA.tick(); // A: {A:2, B:1}
 
-    expect(clockA.compare(clockB.getHead(), clockB.getTimestamps())).toBe('concurrent');
-    expect(clockB.compare(clockA.getHead(), clockA.getTimestamps())).toBe('concurrent');
+    expect(clockA.compare(clockB)).toBe('concurrent');
+    expect(clockB.compare(clockA)).toBe('concurrent');
   });
 
   it('should serialize and deserialize correctly', () => {

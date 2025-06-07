@@ -1,29 +1,43 @@
-// Use relative path for types, assuming it resolves correctly now
-import { Model } from '../../../src/types/ai.js';
-// Import ModelRegistry from the planned location
-import { ModelRegistry } from '../../../src/ai/models/registry.js';
+// Mock common dependencies
+export {}; // Make this a module
 
-// Define a mock Model class - Add generate() method based on errors
-class MockModel implements Model {
-    id: string;
-    name: string;
-    provider: string;
-    parameters: Record<string, any>;
-    metadata: Record<string, any>;
-    // Add generate mock based on TS errors
-    generate = jest.fn();
+jest.mock("chalk", () => ({ 
+  default: (str: any) => str, 
+  red: (str: any) => str, 
+  green: (str: any) => str, 
+  blue: (str: any) => str 
+}));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 
-    constructor(options: { id: string; name: string; provider: string; parameters?: Record<string, any>; metadata?: Record<string, any> }) {
-        this.id = options.id;
-        this.name = options.name;
-        this.provider = options.provider;
-        this.parameters = options.parameters || {};
-        this.metadata = options.metadata || {};
+// Mock ConfigManager to avoid initialization errors
+jest.mock('../../../src/config/manager', () => ({
+  ConfigManager: {
+    getInstance: jest.fn(() => ({
+      get: jest.fn(() => undefined),
+      set: jest.fn(),
+      initialized: true
+    }))
+  }
+}));
+
+// Import required classes AFTER mocking
+import { ModelRegistry } from '../../../src/models/registry.ts';
+import { BaseModel } from '../../../src/ai/models/model.ts';
+
+// Define a mock Model class extending BaseModel
+class MockModel extends BaseModel {
+    constructor(options: any) {
+        super(options);
     }
-
-    // Keep direct property access based on previous errors for id/name
+    
+    async generate(input: any): Promise<any> {
+        return {
+            output: `Mock response for ${input.prompt || 'test'}`,
+            usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 }
+        };
+    }
 }
-
 
 describe('ModelRegistry', () => {
   let registry: ModelRegistry;
@@ -34,72 +48,60 @@ describe('ModelRegistry', () => {
     registry = ModelRegistry.getInstance();
   });
 
-  it('should be a singleton', () => {
+  test('should be a singleton', async () => {
     const instance1 = ModelRegistry.getInstance();
     const instance2 = ModelRegistry.getInstance();
     expect(instance1).toBe(instance2);
   });
 
-  it('should register and retrieve a model', () => {
+  test('should register and retrieve a model', () => {
     const model1 = new MockModel({ id: 'model-1', name: 'Model One', provider: 'provider-a' });
     registry.registerModel(model1);
 
-    const retrievedModel = registry.getModel('model-1');
+    const retrievedModel = registry.getModelSync('model-1');
     expect(retrievedModel).toBeDefined();
-    expect(retrievedModel?.id).toBe('model-1'); // Use direct property access
-    expect(retrievedModel).toBe(model1); // Should return the same instance
+    expect(retrievedModel?.id).toBe('model-1'); 
+    expect(retrievedModel).toBe(model1); 
   });
 
-  it('should return undefined for a non-existent model ID', () => {
-    const retrievedModel = registry.getModel('non-existent-model');
+  test('should return undefined for a non-existent model ID', () => {
+    const retrievedModel = registry.getModelSync('non-existent-model');
     expect(retrievedModel).toBeUndefined();
   });
 
-  // Adapt test for getAllModels as it seems missing
-  it('should register multiple models and allow retrieving them individually', () => {
+  test('should register multiple models and allow retrieving them individually', () => {
     const model1 = new MockModel({ id: 'model-1', name: 'Model One', provider: 'provider-a' });
     const model2 = new MockModel({ id: 'model-2', name: 'Model Two', provider: 'provider-b' });
     registry.registerModel(model1);
     registry.registerModel(model2);
 
-    // Check retrieval of each model
-    expect(registry.getModel('model-1')).toBe(model1);
-    expect(registry.getModel('model-2')).toBe(model2);
-    // Cannot directly check count without getAllModels
+    expect(registry.getModelSync('model-1')).toBe(model1);
+    expect(registry.getModelSync('model-2')).toBe(model2);
   });
 
-  it('should set the first registered model as default', () => {
+  test('should set the first registered model as default', () => {
     const model1 = new MockModel({ id: 'model-1', name: 'Model One', provider: 'provider-a' });
     const model2 = new MockModel({ id: 'model-2', name: 'Model Two', provider: 'provider-b' });
 
     registry.registerModel(model1);
-    expect(registry.getModel('default')).toBe(model1);
+    expect(registry.getModelSync('default')).toBe(model1);
 
     registry.registerModel(model2);
-    // Default should remain the first one unless explicitly changed
-    expect(registry.getModel('default')).toBe(model1);
+    expect(registry.getModelSync('default')).toBe(model1);
   });
 
-  // Remove tests for setDefaultModel as it seems missing
-  // it('should allow setting an existing model as default', () => { ... });
-  // it('should fail to set a non-existent model as default', () => { ... });
-
-  it('should overwrite a model if registered with the same ID', () => {
+  test('should overwrite a model if registered with the same ID', () => {
     const model1 = new MockModel({ id: 'model-1', name: 'Model One', provider: 'provider-a' });
     const model1Overwrite = new MockModel({ id: 'model-1', name: 'Model One Overwritten', provider: 'provider-c' });
     registry.registerModel(model1);
     registry.registerModel(model1Overwrite);
 
-    const retrievedModel = registry.getModel('model-1');
+    const retrievedModel = registry.getModelSync('model-1');
     expect(retrievedModel).toBe(model1Overwrite);
-    // expect(retrievedModel?.name).toBe('Model One Overwritten'); // Comment out based on TS error
-    // Cannot directly check count without getAllModels
-    // Check that original model is gone
-    expect(registry.getModel('model-1')).not.toBe(model1);
+    expect(registry.getModelSync('model-1')).not.toBe(model1);
   });
 
-  it('should handle retrieving default when no models are registered', () => {
-      expect(registry.getModel('default')).toBeUndefined();
+  test('should handle retrieving default when no models are registered', () => {
+    expect(registry.getModelSync('default')).toBeUndefined();
   });
-
 });

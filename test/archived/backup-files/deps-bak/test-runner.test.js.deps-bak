@@ -1,0 +1,87 @@
+/**
+ * Unit tests for TestRunner
+ */
+import * as childProcess from 'child_process';
+// Mock child_process.exec
+jest.mock('child_process', () => ({
+    exec: jest.fn((cmd, callback) => {
+        callback(null, { stdout: 'Test output', stderr: '' });
+    })
+}));
+describe('TestRunner', () => {
+    let testRunner;
+    let consoleLogSpy;
+    let consoleErrorSpy;
+    beforeEach(() => {
+        // Reset mocks
+        jest.clearAllMocks();
+        // Create instance
+        testRunner = new TestRunner();
+        // Spy on console methods to prevent output during tests
+        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    });
+    afterEach(() => {
+        consoleLogSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+    });
+    describe('runUnitTests', () => {
+        it('should execute pnpm test:unit command', async () => {
+            // Act
+            await testRunner.runUnitTests();
+            // Assert
+            expect(childProcess.exec).toHaveBeenCalledWith('pnpm test:unit', expect.any(Function));
+        });
+        it('should log stderr if present', async () => {
+            // Arrange
+            childProcess.exec.mockImplementationOnce((cmd, callback) => {
+                callback(null, { stdout: 'Test output', stderr: 'Error output' });
+            });
+            // Act
+            await testRunner.runUnitTests();
+            // Assert
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Error output');
+        });
+    });
+    describe('runIntegrationTests', () => {
+        it('should execute pnpm test:integration command', async () => {
+            // Act
+            await testRunner.runIntegrationTests();
+            // Assert
+            expect(childProcess.exec).toHaveBeenCalledWith('pnpm test:integration', expect.any(Function));
+        });
+    });
+    describe('runE2ETests', () => {
+        it('should execute pnpm test:e2e command', async () => {
+            // Act
+            await testRunner.runE2ETests();
+            // Assert
+            expect(childProcess.exec).toHaveBeenCalledWith('pnpm test:e2e', expect.any(Function));
+        });
+    });
+    describe('runAllTests', () => {
+        it('should call all test runner methods in sequence', async () => {
+            // Arrange
+            const unitSpy = jest.spyOn(testRunner, 'runUnitTests').mockResolvedValue();
+            const integrationSpy = jest.spyOn(testRunner, 'runIntegrationTests').mockResolvedValue();
+            const e2eSpy = jest.spyOn(testRunner, 'runE2ETests').mockResolvedValue();
+            // Act
+            await testRunner.runAllTests();
+            // Assert
+            expect(unitSpy).toHaveBeenCalled();
+            expect(integrationSpy).toHaveBeenCalled();
+            expect(e2eSpy).toHaveBeenCalled();
+        });
+        it('should handle test failure gracefully', async () => {
+            // Arrange
+            childProcess.exec.mockImplementationOnce((cmd, callback) => {
+                callback(new Error('Test command failed'), { stdout: '', stderr: 'Test failed' });
+            });
+            // Act
+            await testRunner.runAllTests();
+            // Assert
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Test failed');
+        });
+    });
+});
+//# sourceMappingURL=test-runner.test.js.map

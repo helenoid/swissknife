@@ -1,6 +1,6 @@
-import { queryHaiku } from '../services/claude'
-import { safeParseJSON } from './json'
-import { logError } from './log'
+import { queryHaiku } from '../services/claude.js'
+import { safeParseJSON } from './json.js'
+import { logError } from './log.js'
 
 export function setTerminalTitle(title: string): void {
   if (process.platform === 'win32') {

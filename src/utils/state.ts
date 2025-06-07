@@ -1,5 +1,5 @@
 import { cwd } from 'process'
-import { PersistentShell } from './PersistentShell'
+import { PersistentShell } from './PersistentShell.js'
 
 // DO NOT ADD MORE STATE HERE OR BORIS WILL CURSE YOU
 const STATE: {

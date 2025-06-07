@@ -1,0 +1,116 @@
+FAIL test/e2e/all-phases.test.js
+  SwissKnife CLI - Complete E2E Tests (All Phases)
+    ✕ [Phase 1] Configuration and command registry (83 ms)
+    ✕ [Phase 2] AI agent and task system (62 ms)
+    ✕ [Phase 3] TaskNet enhancements (70 ms)
+    ✕ [Phase 4] Cross-component integration (69 ms)
+    ✕ [Phase 5] Performance optimization and tools (65 ms)
+    ✕ Complete end-to-end workflow across all phases (205 ms)
+
+  ● SwissKnife CLI - Complete E2E Tests (All Phases) › [Phase 1] Configuration and command registry
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      122 |     // Test configuration command
+      123 |     const configResult = await runCLI(['config', 'set', 'test.value', 'integration-test']);
+    > 124 |     expect(configResult.code).toBe(0);
+          |                               ^
+      125 |     
+      126 |     // Verify configuration was set
+      127 |     const getResult = await runCLI(['config', 'get', 'test.value']);
+
+      at Object.toBe (test/e2e/all-phases.test.js:124:31)
+
+  ● SwissKnife CLI - Complete E2E Tests (All Phases) › [Phase 2] AI agent and task system
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      140 |     );
+      141 |     
+    > 142 |     expect(taskResult.code).toBe(0);
+          |                             ^
+      143 |     expect(taskResult.stdout).toMatch(/Task ID: [a-zA-Z0-9-]+/);
+      144 |     
+      145 |     // Test AI agent
+
+      at Object.toBe (test/e2e/all-phases.test.js:142:29)
+
+  ● SwissKnife CLI - Complete E2E Tests (All Phases) › [Phase 3] TaskNet enhancements
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      163 |     );
+      164 |     
+    > 165 |     expect(tasknetResult.code).toBe(0);
+          |                                ^
+      166 |     expect(tasknetResult.stdout).toContain('TaskNet');
+      167 |     
+      168 |     // Test reasoning feature
+
+      at Object.toBe (test/e2e/all-phases.test.js:165:32)
+
+  ● SwissKnife CLI - Complete E2E Tests (All Phases) › [Phase 4] Cross-component integration
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      188 |     );
+      189 |     
+    > 190 |     expect(workflowResult.code).toBe(0);
+          |                                 ^
+      191 |     expect(workflowResult.stdout).toMatch(/workflow|completed|started/i);
+      192 |   });
+      193 |   
+
+      at Object.toBe (test/e2e/all-phases.test.js:190:33)
+
+  ● SwissKnife CLI - Complete E2E Tests (All Phases) › [Phase 5] Performance optimization and tools
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      202 |     );
+      203 |     
+    > 204 |     expect(perfResult.code).toBe(0);
+          |                             ^
+      205 |     expect(perfResult.stdout).toMatch(/performance|analyze|metrics|result/i);
+      206 |     
+      207 |     // Test documentation generation
+
+      at Object.toBe (test/e2e/all-phases.test.js:204:29)
+
+  ● SwissKnife CLI - Complete E2E Tests (All Phases) › Complete end-to-end workflow across all phases
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      237 |     );
+      238 |     
+    > 239 |     expect(taskResult.code).toBe(0);
+          |                             ^
+      240 |     const taskIdMatch = taskResult.stdout.match(/Task ID: ([a-zA-Z0-9-]+)/);
+      241 |     expect(taskIdMatch).toBeTruthy();
+      242 |     
+
+      at Object.toBe (test/e2e/all-phases.test.js:239:29)
+
+Test Suites: 1 failed, 1 total
+Tests:       6 failed, 6 total
+Snapshots:   0 total
+Time:        2.33 s
+Ran all test suites matching ./test/e2e/all-phases.test.js.

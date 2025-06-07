@@ -1,0 +1,203 @@
+
+> swissknife@0.0.53 test:hybrid
+> jest --config=jest.hybrid.config.cjs
+
+PASS test/unit/utils/basic-simple.test.ts
+PASS test/unit/utils/events/event-bus.test.js
+  ● Console
+
+    console.log
+      Skipping hierarchical events test - feature not implemented
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:158:14)
+
+    console.log
+      Skipping wildcard listener test - feature not implemented
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:183:16)
+
+    console.log
+      Skipping priority test - feature not implemented
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:307:8)
+
+    console.log
+      Skipping metadata test - feature not implemented
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:350:7)
+
+    console.log
+      Skipping history test - feature not implemented
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:381:16)
+
+    console.log
+      Skipping history limit test - feature not implemented
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:402:13)
+
+    console.log
+      Skipping namespace test - feature not implemented
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:430:12)
+
+    console.log
+      Skipping error event test - feature not implemented
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:490:17)
+
+    console.log
+      Skipping performance test - enable with RUN_PERFORMANCE_TESTS=true
+
+      at Object.log (test/unit/utils/events/event-bus.test.ts:519:17)
+
+    console.log
+      Skipping multi-subscriber test - enable with RUN_PERFORMANCE_TESTS=true
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.js:438:17)
+
+PASS test/unit/utils/events/event-bus.test.ts
+  ● Console
+
+    console.log
+      Skipping hierarchical events test - feature not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:137:17)
+
+    console.log
+      Skipping wildcard listener test - feature not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:164:17)
+
+    console.log
+      Skipping emitAsync test - method not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:194:17)
+
+    console.log
+      Skipping async error test - method not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:224:17)
+
+    console.log
+      Skipping priority test - feature not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:256:17)
+
+    console.log
+      Skipping metadata test - feature not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:299:17)
+
+    console.log
+      Skipping history test - feature not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:329:17)
+
+    console.log
+      Skipping history limit test - feature not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:350:17)
+
+    console.log
+      Skipping namespace test - feature not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:374:17)
+
+    console.log
+      Skipping error event test - feature not implemented
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:444:17)
+
+    console.log
+      Skipping performance test - enable with RUN_PERFORMANCE_TESTS=true
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:476:17)
+
+    console.log
+      Skipping multi-subscriber test - enable with RUN_PERFORMANCE_TESTS=true
+
+      at Object.<anonymous> (test/unit/utils/events/event-bus.test.ts:499:17)
+
+PASS test/unit/models/model.test.ts
+  ● Console
+
+    console.log
+      Model [Test Model] generating for prompt: "Hello, world!..."
+
+      at BaseModel.generate (src/ai/models/model.ts:58:13)
+
+PASS test/unit/utils/data-structures.test.ts
+PASS test/unit/models/provider.test.ts
+PASS test/unit/config-simple.test.ts
+PASS test/unit/utils/array-debug.test.ts
+  ● Console
+
+    console.log
+      About to call intersperse...
+
+      at Object.<anonymous> (test/unit/utils/array-debug.test.ts:15:13)
+
+    console.log
+      Separator called with index: 1
+
+      at separator (test/unit/utils/array-debug.test.ts:11:15)
+
+    console.log
+      intersperse finished
+
+      at Object.<anonymous> (test/unit/utils/array-debug.test.ts:17:13)
+
+    console.log
+      Result: [ 'a', 'sep1', 'b' ]
+
+      at Object.<anonymous> (test/unit/utils/array-debug.test.ts:19:13)
+
+    console.log
+      flatMap called with a=a, i=0
+
+      at test/unit/utils/array-debug.test.ts:23:15
+          at Array.flatMap (<anonymous>)
+
+    console.log
+      flatMap called with a=b, i=1
+
+      at test/unit/utils/array-debug.test.ts:23:15
+          at Array.flatMap (<anonymous>)
+
+    console.log
+      Separator called with index: 1
+
+      at separator (test/unit/utils/array-debug.test.ts:11:15)
+          at Array.flatMap (<anonymous>)
+
+    console.log
+      Separator returned: sep1
+
+      at test/unit/utils/array-debug.test.ts:26:17
+          at Array.flatMap (<anonymous>)
+
+    console.log
+      Direct flatMap result: [ 'a', 'sep1', 'b' ]
+
+      at Object.<anonymous> (test/unit/utils/array-debug.test.ts:33:13)
+
+PASS test/unit/utils/validation.test.ts
+PASS test/unit/commands/help-generator-fixed.test.ts
+PASS test/unit/utils/json-simple.test.js
+PASS test/unit/tasks/task-simple.test.ts
+PASS test/unit/utils/array.test.ts
+PASS test/unit/models/execution-service-fixed.test.ts
+PASS test/unit/utils/object.test.ts
+PASS test/unit/utils/array-simple.test.js
+PASS test/unit/ai/agent-simple.test.ts
+PASS test/unit/utils/math-utilities.test.ts
+PASS test/unit/utils/json.test.js
+PASS test/unit/utils/json.test.ts
+PASS test/unit/utils/string.test.ts
+
+Test Suites: 21 passed, 21 total
+Tests:       174 passed, 174 total
+Snapshots:   0 total
+Time:        4.299 s, estimated 8 s
+Ran all test suites.

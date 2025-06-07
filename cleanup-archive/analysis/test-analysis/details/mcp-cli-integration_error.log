@@ -1,0 +1,21 @@
+FAIL test/e2e/cli/mcp/mcp-cli-integration.test.js
+  ● Test suite failed to run
+
+    Cannot find module 'child_process.js.js.js.js.js' from 'test/e2e/cli/mcp/mcp-cli-integration.test.js'
+
+      3 | // Chai assertions are provided by unified-setup.js
+      4 | // Chai assertions are provided by unified-setup.js
+    > 5 | /**
+        | ^
+      6 |  * E2E tests for MCP CLI commands
+      7 |  */
+      8 |
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/index.js:937:11)
+      at Object.require (test/e2e/cli/mcp/mcp-cli-integration.test.ts:5:1)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        2.179 s
+Ran all test suites matching ./test/e2e/cli/mcp/mcp-cli-integration.test.js.

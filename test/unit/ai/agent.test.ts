@@ -20,15 +20,15 @@ const mockThinkingManagerInstance = {
   identifyTools: jest.fn(),
   generateResponse: jest.fn(), // Will be configured in tests
 };
-jest.mock('@/ai/tools/executor.js', () => ({ // Adjust path if needed
+jest.mock('@/ai/tools/executor', () => ({ // Adjust path if needed
   ToolExecutor: jest.fn().mockImplementation(() => mockToolExecutorInstance),
 }));
-jest.mock('@/ai/thinking/manager.js', () => ({ // Adjust path if needed
+jest.mock('@/ai/thinking/manager', () => ({ // Adjust path if needed
   ThinkingManager: jest.fn().mockImplementation(() => mockThinkingManagerInstance),
 }));
 
 // Mock other dependencies - Add .js extension
-jest.mock('@/utils/logger.js', () => ({
+jest.mock('@/utils/logger', () => ({
   logger: { debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 
@@ -40,7 +40,7 @@ const mockConfigManagerInstance = {
     initialize: jest.fn().mockResolvedValue(undefined),
     // Add other methods if Agent constructor/methods call them
 };
-jest.mock('@/config/manager.js', () => ({ // Adjust path if needed
+jest.mock('@/config/manager', () => ({ // Adjust path if needed
   ConfigurationManager: {
     getInstance: jest.fn(() => mockConfigManagerInstance),
   },
@@ -49,8 +49,10 @@ jest.mock('@/config/manager.js', () => ({ // Adjust path if needed
 // --- Imports ---
 // Add .js extension
 import { Agent } from '@/ai/agent/agent.js'; // Adjust path if needed
-import { MockStorageProvider } from '../../mocks/mockStorageProvider.js'; // Corrected relative path for mock
 import { ConfigManager } from '@/config/manager.js'; // Adjust path if needed
+import { Tool } from '@/types/ai.js'; // Import Tool interface
+import { IModel } from '@/ai/models/model.js'; // Import IModel interface
+import { MockStorageProvider } from '../mocks/mockStorageProvider.js'; // Import MockStorageProvider - Added .js extension back
 // Import types directly - use RELATIVE path with .js extension
 // Define placeholders for missing types
 type ToolParameter = { name: string; type: string; description: string; required?: boolean };
@@ -62,11 +64,10 @@ type AgentMessage = {
     toolResults?: Array<{ tool: string; result?: any; error?: string }>;
     // Add other potential properties like id, timestamp if needed
 };
-import type { Model, Tool, ToolExecutionContext as RealToolExecutionContext } from '../../../src/types/ai.js'; // Adjust path if needed
-import { z } from 'zod'; // Assuming zod is a direct dependency
+import * as z from 'zod'; // Using namespace import for zod
 
 // Define placeholder type for ToolExecutionContext including configManager
-type ToolExecutionContext = Partial<RealToolExecutionContext> & {
+type ToolExecutionContext = {
     abortController: AbortController;
     configManager?: ConfigManager; // Add optional configManager
     storageProvider?: any; // Add optional storageProvider
@@ -93,7 +94,7 @@ class MockTool implements Tool {
 }
 
 // Mock Model implementation adhering to Model interface
-class MockModel implements Model {
+class MockModel implements IModel { // Use IModel here
     id: string = 'test-model-123';
     name: string = 'Test Model';
     provider: string = 'mock';
@@ -109,6 +110,7 @@ class MockModel implements Model {
     getParameters = () => ({ ...this.parameters });
     getMetadata = () => ({ ...this.metadata });
     setParameter = (key: string, value: any) => { this.parameters[key] = value; };
+    getLastUsageMetrics = jest.fn().mockResolvedValue({}); // Add missing method
 }
 
 
@@ -132,9 +134,9 @@ describe('Agent', () => {
 
     // Create Agent instance - Ensure constructor options match AgentOptions
     agent = new Agent({
-      model: mockModel as unknown as Model, // Cast to satisfy Model type if needed
-      storage: mockStorage, // Pass storage mock
-      config: mockConfigManagerInstance as unknown as ConfigManager, // Cast mock
+      model: mockModel as unknown as IModel, // Cast to satisfy IModel type
+      // Removed storage: mockStorage,
+      // Removed config: mockConfigManagerInstance as unknown as ConfigManager,
     });
 
     // Reset internal mocks (created by Agent constructor) before each test
@@ -147,10 +149,10 @@ describe('Agent', () => {
 
     // Prepare mock ExecutionContext for tool calls (used by ToolExecutor mock)
     mockExecutionContext = {
+        abortController: new AbortController(), // Add required property
         configManager: mockConfigManagerInstance as unknown as ConfigManager, // Cast mock
         storageProvider: mockStorage,
         agent: agent,
-        abortController: new AbortController(), // Add required property
     };
   });
 
@@ -158,8 +160,8 @@ describe('Agent', () => {
     // Assert
     expect(agent).toBeInstanceOf(Agent);
     // Verify internal dependencies were likely instantiated (via constructor mocks)
-    expect(require('@/ai/tools/executor.js').ToolExecutor).toHaveBeenCalled();
-    expect(require('@/ai/thinking/manager.js').ThinkingManager).toHaveBeenCalled();
+    expect(require('@/ai/tools/executor').ToolExecutor).toHaveBeenCalled();
+    expect(require('@/ai/thinking/manager').ThinkingManager).toHaveBeenCalled();
   });
 
   it('should register tools via constructor and registerTool method', () => {
@@ -170,9 +172,9 @@ describe('Agent', () => {
 
     // Act: Test registration via constructor
     const agentWithTools = new Agent({
-        model: mockModel as unknown as Model,
-        storage: mockStorage,
-        config: mockConfigManagerInstance as unknown as ConfigManager, // Cast mock
+        model: mockModel as unknown as IModel, // Cast to satisfy IModel type
+        // Removed storage: mockStorage,
+        // Removed config: mockConfigManagerInstance as unknown as ConfigManager,
         tools: [tool1]
     });
 
@@ -221,7 +223,7 @@ describe('Agent', () => {
   it('should handle ThinkingManager failure during response generation', async () => {
     // Arrange
     const userMessage = 'Test failure';
-    const mockGraph = { id: 'graph-fail' };
+    const mockGraph = { id: 'graph-fail-tool' };
     const error = new Error('Failed to generate response');
 
     (mockThinkingManagerInstance.createThinkingGraph as jest.Mock).mockResolvedValue(mockGraph);
@@ -287,7 +289,7 @@ describe('Agent', () => {
      expect(mockThinkingManagerInstance.generateResponse).toHaveBeenCalledWith(
          mockGraph,
          mockModel,
-         [{ tool: toolRequest.name, result: toolResult }]
+         [{ tool: toolRequest.name, error: toolError.message }]
      );
   });
 

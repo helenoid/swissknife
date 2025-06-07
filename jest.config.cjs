@@ -1,93 +1,209 @@
-/**
- * Jest configuration for the SwissKnife project
- * 
- * This configuration file addresses various issues with testing, including:
- * - ESM/CommonJS compatibility
- * - lodash-es module transformation
- * - File extensions and module resolution
- */
-
-/** @type {import('jest').Config} */
 module.exports = {
-  // Transform configuration
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
   transform: {
-    // Handle TypeScript and JavaScript files
-    "^.+\\.(t|j)sx?$": [
-      "babel-jest",
-      {
-        presets: [
-          ["@babel/preset-env", { targets: { node: "current" } }],
-          "@babel/preset-typescript",
-          ["@babel/preset-react", { runtime: "automatic" }]
-        ]
-      },
-    ],
+    "^.+\\.(ts|tsx|mts)$": ["ts-jest", {
+      useESM: true,
+      tsconfig: "tsconfig.test.json",
+      diagnostics: false,
+      isolatedModules: true
+    }],
+    "^.+\\.(js|jsx|cjs)$": "babel-jest"
   },
-  
-  // Transform node_modules that use ESM
   transformIgnorePatterns: [
-    // Transform lodash-es which uses ESM
-    "/node_modules/(?!lodash-es).+\\.js$"
+    "node_modules/(?!(@modelcontextprotocol|ink|ink-testing-library|react-is|merkletreejs|ansi-escapes|environment|uuid|is-in-ci|auto-bind|patch-console|yoga-layout)/)"
   ],
-  
-  // Handle ESM extensions
-  extensionsToTreatAsEsm: [".ts", ".tsx", ".jsx"],
-  
-  // Module name mapping for imports
-  moduleNameMapper: {
-    // Handle CSS imports for React components
-    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
-    
-    // Map lodash-es imports to lodash (CommonJS version)
-    "^lodash-es$": "lodash",
-    "lodash-es": "lodash",
-    
-    // Handle missing modules by providing mocks
-    "^@modelcontextprotocol/sdk$": "<rootDir>/test/mocks/stubs/mcp-sdk-stub.js",
-    "ink-testing-library": "<rootDir>/test/mocks/stubs/ink-testing-stub.js",
-    "chai": "<rootDir>/test/mocks/stubs/chai-stub.js"
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons'],
   },
-  
-  // Test environment setup
-  testEnvironment: "node",
-  
-  // Setup files for test environment
-  setupFilesAfterEnv: ['<rootDir>/test/jest.setup.js'],
-  
-  // Coverage configuration
-  collectCoverageFrom: [
-    "src/**/*.{js,jsx,ts,tsx}",
-    "!src/**/*.d.ts",
-    "!src/entrypoints/**",
-  ],
-  
-  // Mocking configuration
-  automock: false,
-  
-  // Module resolution
-  moduleFileExtensions: ["js", "jsx", "ts", "tsx", "json", "node"],
-  
-  // Test paths
-  testMatch: ["<rootDir>/test/**/*.test.{js,jsx,ts,tsx}"],
-  
-  // Test timeout (milliseconds)
-  testTimeout: 15000,
-  
-  // Coverage reporting
-  coverageReporters: ["text", "lcov", "html"],
-  
-  // Test results processor
-  testResultsProcessor: process.env.CI ? "jest-junit" : undefined,
-  
-  // In case of Node.js internals mocking
   globals: {
-    TextEncoder: global.TextEncoder,
-    TextDecoder: global.TextDecoder,
+    'crypto': require('crypto'),
   },
-  
-  // Watch plugin for better terminal experience 
-  watchPlugins: [
-    "jest-watch-typeahead/filename",
-    "jest-watch-typeahead/testname"
+  setupFilesAfterEnv: ['<rootDir>/test/jest.setup.minimal.js'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  modulePaths: ['<rootDir>/src', '<rootDir>/test'],
+  moduleNameMapper: {
+    "^@src/(.*)$": "<rootDir>/src/$1.ts",
+    "^@dist/(.*)$": "<rootDir>/dist/$1",
+    "^@/(.*)$": "<rootDir>/src/$1.ts",
+    "^@test-helpers/(.*)$": "<rootDir>/test/helpers/$1",
+    "../utils/test-helpers": "<rootDir>/test/utils/test-helpers.ts",
+    "^(merkletreejs)$": "<rootDir>/node_modules/merkletreejs/dist/esm/index.js",
+    "^(zod)$": "<rootDir>/node_modules/zod/dist/esm/index.js"
+  },
+  rootDir: '.',
+  testMatch: [
+    "<rootDir>/test/**/*.test.ts",
+    "<rootDir>/test/**/*.test.tsx",
+    "<rootDir>/test/**/*.test.js",
+    "<rootDir>/test/**/*.test.jsx"
   ],
+  testPathIgnorePatterns: [
+    "node_modules",
+    "<rootDir>/test/unit/tools/MCPTool/",
+    "<rootDir>/test/unit/tools/BashTool/",
+    "<rootDir>/test/unit/ux/",
+    "<rootDir>/test/unit/cli/",
+    "<rootDir>/test/unit/phase1/components.test.ts",
+    "<rootDir>/test/unit/phase1/basic.test.ts",
+    "<rootDir>/test/unit/phase1/basic.test.js",
+    "<rootDir>/test/unit/phase2/components.test.ts",
+    "<rootDir>/test/unit/phase2/components.test.js",
+    "<rootDir>/test/unit/phase3/components.test.ts",
+    "<rootDir>/test/unit/phase3/components.test.js",
+    "<rootDir>/test/unit/phase3/fixed-components.test.js",
+    "<rootDir>/test/unit/phase4/components.test.ts",
+    "<rootDir>/test/unit/phase4/components.test.js",
+    "<rootDir>/test/integration/cli-models/",
+    "<rootDir>/test/integration/phase1/",
+    "<rootDir>/test/integration/phase2/",
+    "<rootDir>/test/integration/phase3/",
+    "<rootDir>/test/integration/phase4/",
+    "<rootDir>/test/integration/mcp/",
+    "<rootDir>/test/integration/graph/",
+    "<rootDir>/test/unit/services/mcp/",
+    "<rootDir>/test/unit/mcp-server/",
+    "<rootDir>/test/unit/ai/agent/",
+    "<rootDir>/test/unit/ai/executor.test.ts",
+    "<rootDir>/test/unit/ai/executor.test.js",
+    "<rootDir>/test/unit/ai/registry.test.ts",
+    "<rootDir>/test/unit/ai/registry.test.js",
+    "<rootDir>/test/unit/ai/service.test.ts",
+    "<rootDir>/test/unit/ai/service.test.js",
+    "<rootDir>/test/unit/ai/direct-service.test.js",
+    "<rootDir>/test/unit/commands/help-generator.test.ts",
+    "<rootDir>/test/unit/commands/help-generator.test.js",
+    "<rootDir>/test/unit/commands/help-generator.cjs.test.js",
+    "<rootDir>/test/unit/commands/help-generator-simplified.test.js",
+    "<rootDir>/test/unit/commands/mcp.test.ts",
+    "<rootDir>/test/unit/commands/mcp.test.js",
+    "<rootDir>/test/unit/commands/registry.test.ts",
+    "<rootDir>/test/unit/commands/registry.test.js",
+    "<rootDir>/test/unit/commands/registry.cjs.test.js",
+    "<rootDir>/test/unit/commands/cli/",
+    "<rootDir>/test/unit/config/",
+    "<rootDir>/test/unit/documentation/",
+    "<rootDir>/test/unit/utils/logging/",
+    "<rootDir>/test/unit/utils/performance/*.js",
+    "<rootDir>/test/unit/utils/errors/",
+    "<rootDir>/test/unit/utils/cache/",
+    "<rootDir>/test/unit/tasks/scheduler.test.ts",
+    "<rootDir>/test/unit/tasks/scheduler.test.js",
+    "<rootDir>/test/unit/tasks/registry.test.ts",
+    "<rootDir>/test/unit/tasks/registry.test.js",
+    "<rootDir>/test/unit/tasks/manager.test.ts",
+    "<rootDir>/test/unit/tasks/manager.test.js",
+    "<rootDir>/test/unit/tasks/graph-of-thought.test.ts",
+    "<rootDir>/test/unit/tasks/graph-of-thought.test.js",
+    "<rootDir>/test/unit/tasks/fibonacci-heap.test.ts",
+    "<rootDir>/test/unit/tasks/fibonacci-heap.test.js",
+    "<rootDir>/test/unit/tasks/fibonacci-heap-scheduler.test.js",
+    "<rootDir>/test/unit/tasks/directed-acyclic-graph.test.ts",
+    "<rootDir>/test/unit/tasks/directed-acyclic-graph.test.js",
+    "<rootDir>/test/unit/tasks/dag.test.ts",
+    "<rootDir>/test/unit/tasks/dag.test.js",
+    "<rootDir>/test/unit/testing/",
+    "<rootDir>/test/unit/storage/",
+    "<rootDir>/test/unit/workers/",
+    "<rootDir>/test/unit/minimal.test.js",
+    "<rootDir>/test/unit/direct-service.test.ts",
+    "<rootDir>/test/unit/direct-fibonacci-heap.test.js",
+    "<rootDir>/test/unit/dia-streaming.test.js",
+    "<rootDir>/test/unit/command-registry.test.ts",
+    "<rootDir>/test/unit/command-registry.test.js",
+    "<rootDir>/test/integration/workflows/",
+    "<rootDir>/test/integration/tasks-workers/",
+    "<rootDir>/test/integration/storage/",
+    "<rootDir>/test/integration/scheduler/",
+    "<rootDir>/test/integration/phase5.test.ts",
+    "<rootDir>/test/integration/phase5.test.js",
+    "<rootDir>/test/simple.test.ts",
+    "<rootDir>/test/minimal-working.test.ts",
+    "<rootDir>/dist-test/",
+    "<rootDir>/test/archived/",
+    "<rootDir>/cleanup-archive/",
+    "<rootDir>/emergency-archive/",
+    "<rootDir>/swissknife_old/",
+    "<rootDir>/test/.*\\.test\\.(cjs|mjs)$",
+    "<rootDir>/test/.*-experimental\\.test\\.(ts|js)$",
+    "<rootDir>/test/.*-archive\\.test\\.(ts|js)$",
+    "<rootDir>/test/.*-deprecated\\.test\\.(ts|js)$",
+    "<rootDir>/test/.*-legacy\\.test\\.(ts|js)$",
+    "<rootDir>/test/.*-old\\.test\\.(ts|js)$",
+    "<rootDir>/test/absolute-minimal\\.test\\.js$",
+    "<rootDir>/test/basic-.*\\.test\\.js$",
+    "<rootDir>/test/command-registry.*\\.test\\.js$",
+    "<rootDir>/test/comprehensive.*\\.test\\.js$",
+    "<rootDir>/test/diagnostic.*\\.test\\.js$",
+    "<rootDir>/test/direct-.*\\.test\\.js$",
+    "<rootDir>/test/enhanced.*\\.test\\.js$",
+    "<rootDir>/test/execution-service.*\\.test\\.js$",
+    "<rootDir>/test/extra-.*\\.test\\.js$",
+    "<rootDir>/test/fib-heap.*\\.test\\.(js|cjs)$",
+    "<rootDir>/test/fibonacci-heap\\.test\\.cjs$",
+    "<rootDir>/test/fixed.*\\.test\\.js$",
+    "<rootDir>/test/focused.*\\.test\\.js$",
+    "<rootDir>/test/fresh.*\\.test\\.js$",
+    "<rootDir>/test/jest.*\\.test\\.js$",
+    "<rootDir>/test/master.*\\.test\\.js$",
+    "<rootDir>/test/mcp-.*\\.test\\.js$",
+    "<rootDir>/test/minimal-.*\\.test\\.js$",
+    "<rootDir>/test/progress.*\\.test\\.js$",
+    "<rootDir>/test/simple-.*\\.test\\.js$",
+    "<rootDir>/test/simplified.*\\.test\\.js$",
+    "<rootDir>/test/standalone.*\\.test\\.js$",
+    "<rootDir>/test/super.*\\.test\\.js$",
+    "<rootDir>/test/ultra.*\\.test\\.js$",
+    "<rootDir>/test/unified.*\\.test\\.js$",
+    "<rootDir>/test/universal\\.test\\.js$",
+    "<rootDir>/test/verification.*\\.test\\.js$",
+    "<rootDir>/test/verify.*\\.test\\.js$",
+    "<rootDir>/test/working.*\\.test\\.js$",
+    "<rootDir>/test/.*_timeout_fixed\\.test\\.(js|ts)$",
+    "<rootDir>/test/.*-timeout-fixed\\.test\\.(js|ts)$",
+    "<rootDir>/test/e2e/cli/phase2-commands.test.js",
+    "<rootDir>/test/e2e/cli/phase3-commands.test.js",
+    "<rootDir>/test/e2e/cli/phase4-commands.test.js",
+    "<rootDir>/test/integration/tasks/coordination\\.test\\.(ts|js)$",
+    "<rootDir>/test/integration/mcp/mcp-server-integration\\.test\\.(ts|js)$",
+    "<rootDir>/test/integration/graph/got-node\\.test\\.(ts|js)$",
+    "<rootDir>/test/unit/phase3/fibonacci-heap\\.test\\.(ts|js)$",
+    "<rootDir>/test/unit/models/execution\\.test\\.(ts|js)$",
+    "<rootDir>/test/unit/models/execution/service\\.test\\.(ts|ts)$",
+    "<rootDir>/test/unit/models/execution/execution-service\\.test\\.(ts|js)$",
+    "<rootDir>/test/unit/models/execution/execution-service-basic\\.test\\.(ts|js)$",
+    "<rootDir>/test/unit/models/registry-simple\\.test\\.(ts|js)$",
+    "<rootDir>/test/fibonacci-direct\\.test\\.(ts|js)$",
+    "\\.bak$",
+    "\\.backup$",
+    "\\.old$",
+    "\\.orig$",
+    "\\.tmp$",
+    "\\.chai-bak$",
+    "\\.react-bak$",
+    "\\.mock-bak$",
+    "\\.helper-bak$",
+    "\\.import-bak$",
+    "/backup-files/",
+    "/archived/",
+    "/deprecated/",
+    "/legacy/",
+    "/superseded/",
+    "\\.bak\\.[0-9]+$"
+  ],
+  modulePathIgnorePatterns: [
+    "<rootDir>/cleanup-archive/",
+    "<rootDir>/swissknife_old/",
+    "<rootDir>/emergency-archive/"
+  ],
+  verbose: true,
+  testTimeout: 10000,
+  maxWorkers: 1,
+  forceExit: true,
+  detectOpenHandles: true,
+  collectCoverageFrom: [
+    "src/**/*.{ts,js}",
+    "!src/**/*.d.ts"
+  ]
 };

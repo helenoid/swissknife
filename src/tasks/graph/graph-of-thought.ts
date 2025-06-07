@@ -4,7 +4,7 @@ import { logger } from '../../utils/logger.js';
 import { FibonacciHeapScheduler } from '../scheduler/fibonacci-heap-scheduler.js'; 
 import { DirectedAcyclicGraph } from './dag.js'; 
 import { Agent } from '../../ai/agent/agent.js'; // Import Agent
-import { Model, ModelGenerateInput } from '../../types/ai.js'; // Import Model and ModelGenerateInput
+import { ModelGenerateInput } from '../../types/ai.js'; // Import ModelGenerateInput
 
 interface GoTEngineOptions {
   storage: StorageProvider;

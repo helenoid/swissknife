@@ -14,31 +14,29 @@ import {
   ListToolsResultSchema,
   ToolSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
-import { AgentTool } from '../../tools/AgentTool/AgentTool';
-import { BashTool } from '../../tools/BashTool/BashTool';
-import { FileEditTool } from '../../tools/FileEditTool/FileEditTool';
-import { FileReadTool } from '../../tools/FileReadTool/FileReadTool';
-import { GlobTool } from '../../tools/GlobTool/GlobTool';
-import { GrepTool } from '../../tools/GrepTool/GrepTool';
-import { FileWriteTool } from '../../tools/FileWriteTool/FileWriteTool';
-import { LSTool } from '../../tools/lsTool/lsTool';
-import { Tool } from '../../Tool';
-import { Command } from '../../commands';
-import review from '../../commands/review';
-import { lastX } from '../../utils/generators';
-import { MACRO } from '../../constants/macros';
-import { hasPermissionsToUseTool } from '../../permissions';
-import { getSlowAndCapableModel } from '../../utils/model';
-import { logError } from '../../utils/log';
-import { setCwd } from '../../utils/state';
-import { ServerTransport } from '@modelcontextprotocol/sdk/server/transport.js';
+import { z } from 'zod.js';
+import { zodToJsonSchema } from 'zod-to-json-schema.js';
+import { AgentTool } from '../../tools/AgentTool/AgentTool.js';
+import { BashTool } from '../../tools/BashTool/BashTool.js';
+import { FileEditTool } from '../../tools/FileEditTool/FileEditTool.js';
+import { FileReadTool } from '../../tools/FileReadTool/FileReadTool.js';
+import { GlobTool } from '../../tools/GlobTool/GlobTool.js';
+import { GrepTool } from '../../tools/GrepTool/GrepTool.js';
+import { FileWriteTool } from '../../tools/FileWriteTool/FileWriteTool.js';
+import { LSTool } from '../../tools/lsTool/lsTool.js';
+import { Tool } from '../../Tool.js';
+import { Command } from '../../commands.js';
+import review from '../../commands/review.js';
+import { lastX } from '../../utils/generators.js';
+import { MACRO } from '../../constants/macros.js';
+import { hasPermissionsToUseTool } from '../../permissions.js';
+import { getSlowAndCapableModel } from '../../utils/model.js';
+import { logError } from '../../utils/log.js';
+import { setCwd } from '../../utils/state.js';
+import { ServerTransport } from '@modelcontextprotocol/sdk/server/transport';
 
-// Load patches
 import '../../patches';
-
-type ToolInput = z.infer<typeof ToolSchema.shape.inputSchema>;
+import { ToolExecutionContext, ToolInput } from '../../types/ai.js';
 
 /**
  * Controller for managing the MCP server
@@ -49,6 +47,9 @@ export class MCPServerController {
   private connected: boolean = false;
   private tools: Tool[];
   private commands: Command[];
+  private configManager: any;
+  private storageProvider: any;
+  private taskManager: any;
   private state: {
     readFileTimestamps: Record<string, number>;
   };
@@ -56,7 +57,11 @@ export class MCPServerController {
   /**
    * Create a new MCP Server Controller
    */
-  constructor() {
+  constructor(configManager: any, storageProvider: any, taskManager: any) {
+    this.configManager = configManager;
+    this.storageProvider = storageProvider;
+    this.taskManager = taskManager;
+    
     // Initialize server
     this.server = new Server(
       {
@@ -127,73 +132,23 @@ export class MCPServerController {
         }
         
         try {
-          if (!(await tool.isEnabled())) {
-            throw new Error(`Tool ${name} is not enabled`);
-          }
-          
-          const model = await getSlowAndCapableModel();
-          const validationResult = await tool.validateInput?.(
-            (args as never) ?? {},
-            {
-              abortController: new AbortController(),
-              options: {
-                commands: this.commands,
-                tools: this.tools,
-                slowAndCapableModel: model,
-                forkNumber: 0,
-                messageLogName: 'unused',
-                maxThinkingTokens: 0,
-              },
-              messageId: undefined,
-              readFileTimestamps: this.state.readFileTimestamps,
-            }
-          );
-          
-          if (validationResult && !validationResult.result) {
-            throw new Error(
-              `Tool ${name} input is invalid: ${validationResult.message}`
-            );
-          }
-          
-          const result = tool.call(
-            (args ?? {}) as never,
-            {
-              abortController: new AbortController(),
-              messageId: undefined,
-              options: {
-                commands: this.commands,
-                tools: this.tools,
-                slowAndCapableModel: await getSlowAndCapableModel(),
-                forkNumber: 0,
-                messageLogName: 'unused',
-                maxThinkingTokens: 0,
-              },
-              readFileTimestamps: this.state.readFileTimestamps,
-            },
-            hasPermissionsToUseTool
-          );
-          
-          const finalResult = await lastX(result);
-          
-          if (finalResult.type !== 'result') {
-            throw new Error(`Tool ${name} did not return a result`);
-          }
-          
+          const context: ToolExecutionContext = {
+            config: this.configManager,
+            storage: this.storageProvider,
+            taskManager: this.taskManager,
+            taskId: undefined,
+            userId: undefined,
+            callTool: undefined,
+            inferenceExecutor: undefined,
+          };
+          const result = await (tool as any).execute((args ?? {}) as ToolInput, context);
           return {
-            content: Array.isArray(finalResult)
-              ? finalResult.map(item => ({
-                  type: 'text' as const,
-                  text: 'text' in item ? item.text : JSON.stringify(item),
-                }))
-              : [
-                  {
-                    type: 'text' as const,
-                    text:
-                      typeof finalResult === 'string'
-                        ? finalResult
-                        : JSON.stringify(finalResult.data),
-                  },
-                ],
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(result),
+              },
+            ],
           };
         } catch (error) {
           logError(`Error executing tool ${name}: ${error}`);
@@ -243,7 +198,7 @@ export class MCPServerController {
       return;
     }
     
-    await this.server.disconnect();
+    await this.server.close();
     this.connected = false;
     
     console.log('MCP server stopped');

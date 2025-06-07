@@ -5,7 +5,7 @@
  * for MCP servers.
  */
 
-import { McpServerConfig } from '../utils/config';
+import { McpServerConfig } from '../utils/config.js';
 
 /**
  * Status of a server deployment in the blue/green system

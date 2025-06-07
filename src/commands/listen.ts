@@ -38,6 +38,6 @@ if exists then click it`
     }
     return 'Dictation started. Press esc to stop.';
   },
-} satisfies Command;
+};
 
 export default listenCommand;

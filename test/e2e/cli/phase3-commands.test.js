@@ -1,0 +1,189 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+/**
+ * End-to-End Tests for Phase 3 CLI Commands
+ *
+ * These tests verify the behavior of Phase 3 commands related to:
+ * - TaskNet enhancements
+ * - FibonacciHeapScheduler functionality
+ * - GraphOfThought reasoning pattern
+ * - MerkleClock for temporal consistency
+ * - Task Decomposition and Synthesis
+ */
+
+const path = require('path');
+const { execFile } = require('child_process');
+const fs = require('fs').promises;
+const os = require('os');
+
+const CLI_PATH = path.resolve(__dirname, '../../../cli.mjs');
+const TEST_CONFIG_PATH = path.join(os.tmpdir(), 'sk-test-config-phase3.json');
+const TEST_WORKSPACE = path.join(os.tmpdir(), 'sk-phase3-workspace');
+
+// Helper function to run CLI commands
+const runCLI = (args = [], env = {}) => {
+  return new Promise((resolve, reject) => {
+    execFile('node', [CLI_PATH, ...args], { 
+      env: { ...process.env, ...env, SK_CONFIG_PATH: TEST_CONFIG_PATH },
+      timeout: 10000 // 10 second timeout
+    }, (error, stdout, stderr) => {
+      resolve({
+        code: error ? error.code : 0,
+        error,
+        stdout,
+        stderr
+      });
+    });
+  });
+};
+
+describe('SwissKnife CLI - Phase 3 E2E Tests', () => {
+  // Setup/teardown for test config and workspace
+  beforeAll(async () => {
+    // Create test workspace directory
+    await fs.mkdir(TEST_WORKSPACE, { recursive: true });
+    
+    // Create a test task file for decomposition
+    await fs.writeFile(
+      path.join(TEST_WORKSPACE, 'complex-task.json'),
+      JSON.stringify({
+        name: "Complex Analysis Task",
+        description: "Analyze system performance and generate optimization recommendations",
+        type: "analysis",
+        priority: 3,
+        inputs: {
+          systemMetrics: "cpu:80%,memory:65%,disk:45%,network:30%",
+          timeframe: "last-7-days"
+        }
+      })
+    );
+  });
+
+  beforeEach(async () => {
+    // Create a config for testing Phase 3 features
+    await fs.writeFile(TEST_CONFIG_PATH, JSON.stringify({
+      version: '1.0.0',
+      configSchema: 'phase3',
+      tasknet: {
+        scheduler: {
+          type: 'fibonacci-heap',
+          options: {
+            priorityLevels: 5,
+            maxConcurrent: 3
+          }
+        },
+        decomposition: {
+          enabled: true,
+          maxDepth: 3
+        },
+        synthesis: {
+          strategies: ['sequential', 'parallel'],
+          defaultStrategy: 'sequential'
+        },
+        merkle: {
+          clockInterval: 1000,
+          persistPath: path.join(TEST_WORKSPACE, 'merkle-clock.json')
+        }
+      }
+    }));
+  });
+
+  afterEach(async () => {
+    try {
+      await fs.unlink(TEST_CONFIG_PATH);
+    } catch (err) {
+      // Ignore errors if file doesn't exist
+    }
+  });
+
+  afterAll(async () => {
+    try {
+      // Clean up test workspace - use rmdir for Node.js compatibility
+      const { execSync } = require('child_process');
+      execSync(`rm -rf "${TEST_WORKSPACE}"`, { stdio: 'ignore' });
+    } catch (err) {
+      console.error('Error cleaning up test workspace:', err);
+    }
+  });
+
+  test('should display TaskNet status and structure', async () => {
+    const { stdout, code } = await runCLI(['tasknet', 'status'], { SK_MOCK_MODE: 'true' });
+    
+    expect(code).toBe(0);
+    expect(stdout).toContain('TaskNet Status');
+    // Should include scheduler information
+    expect(stdout).toContain('Scheduler');
+    expect(stdout).toContain('fibonacci-heap');
+  });
+
+  test('should handle task decomposition', async () => {
+    // Path to test task definition
+    const taskFilePath = path.join(TEST_WORKSPACE, 'complex-task.json');
+    
+    // Run task decomposition in mock mode
+    const decomposeResult = await runCLI(
+      ['tasknet', 'decompose', '--file', taskFilePath, '--dry-run'], 
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(decomposeResult.code).toBe(0);
+    expect(decomposeResult.stdout).toContain('Task decomposition preview');
+    // Should show subtasks
+    expect(decomposeResult.stdout).toMatch(/subtask|child task|component/i);
+  });
+
+  test('should modify task priorities using the scheduler', async () => {
+    // Create a task first (mock mode)
+    const createResult = await runCLI(
+      ['task', 'create', '--type', 'test', '--priority', '2', 
+       '--input', 'Test task for priority adjustment'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(createResult.code).toBe(0);
+    
+    // Extract task ID from output
+    const taskIdMatch = createResult.stdout.match(/Task ID: ([a-zA-Z0-9-]+)/);
+    expect(taskIdMatch).toBeTruthy();
+    
+    if (taskIdMatch && taskIdMatch[1]) {
+      const taskId = taskIdMatch[1];
+      
+      // Adjust priority
+      const priorityResult = await runCLI(
+        ['tasknet', 'priority', 'set', taskId, '4'],
+        { SK_MOCK_MODE: 'true' }
+      );
+      
+      expect(priorityResult.code).toBe(0);
+      expect(priorityResult.stdout).toContain('updated');
+      expect(priorityResult.stdout).toContain('4');
+    }
+  });
+  
+  test('should handle graph of thought execution', async () => {
+    // Test graph of thought execution with a simple reasoning task
+    const gotResult = await runCLI(
+      ['tasknet', 'reason', '--prompt', 'What are the key benefits of TaskNet?', 
+       '--method', 'graph-of-thought', '--max-depth', '2'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(gotResult.code).toBe(0);
+    expect(gotResult.stdout).toContain('Reasoning');
+    // Should mention graph or nodes
+    expect(gotResult.stdout).toMatch(/graph|node|edge|connection|path/i);
+  });
+  
+  test('should show MerkleClock status', async () => {
+    const clockResult = await runCLI(
+      ['tasknet', 'clock', 'status'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(clockResult.code).toBe(0);
+    expect(clockResult.stdout).toMatch(/merkle|clock|timestamp|hash/i);
+  });
+});

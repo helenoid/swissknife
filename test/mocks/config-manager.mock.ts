@@ -1,0 +1,106 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+/**
+ * ConfigManager Mock for Testing
+ * 
+ * This provides a testing-friendly version of the ConfigManager
+ */
+
+import { ZodType } from 'zod';
+
+interface ConfigItem<T = any> {
+  value: T;
+  description?: string;
+  isSensitive?: boolean;
+}
+
+// Create a mock implementation of ConfigManager
+export class ConfigManager {
+  private static instance: ConfigManager | null = null;
+  private config: Map<string, ConfigItem>;
+  private schemas: Map<string, ZodType>;
+
+  private constructor() {
+    this.config = new Map<string, ConfigItem>();
+    this.schemas = new Map<string, ZodType>();
+  }
+
+  public static getInstance(): ConfigManager {
+    if (!ConfigManager.instance) {
+      ConfigManager.instance = new ConfigManager();
+    }
+    return ConfigManager.instance;
+  }
+
+  public async initialize(configPath?: string): Promise<void> {
+    // In mock, simulate loading config from file
+    this.config.clear();
+    
+    // If a config path is provided or one exists, try to load from it
+    // For testing, we'll check if there's a global test file path
+    const testConfigPath = (global as any).__TEST_CONFIG_PATH__ || configPath;
+    
+    if (testConfigPath) {
+      try {
+        const fs = await import('fs/promises');
+        const content = await fs.readFile(testConfigPath, 'utf-8');
+        const configData = JSON.parse(content);
+        
+        // Load the configuration data into our config map
+        Object.entries(configData).forEach(([key, value]) => {
+          this.config.set(key, { value, description: '', isSensitive: false });
+        });
+      } catch (error) {
+        // File doesn't exist or invalid JSON - initialize with empty config
+        // This is expected behavior for new configurations
+      }
+    }
+    
+    return Promise.resolve();
+  }
+
+  public get<T = any>(key: string, defaultValue?: T): T | undefined {
+    const item = this.config.get(key);
+    if (item !== undefined) {
+      return item.value as T;
+    }
+    return defaultValue;
+  }
+
+  public set<T = any>(
+    key: string, 
+    value: T, 
+    description?: string, 
+    isSensitive: boolean = false
+  ): void {
+    const schema = this.schemas.get(key);
+    if (schema) {
+      try {
+        schema.parse(value);
+      } catch (error) {
+        throw new Error(`Invalid configuration for ${key}: ${error}`);
+      }
+    }
+    this.config.set(key, { value, description, isSensitive });
+  }
+
+  public registerSchema(key: string, schema: ZodType): void {
+    this.schemas.set(key, schema);
+  }
+
+  public has(key: string): boolean {
+    return this.config.has(key);
+  }
+  
+  // For testing - reset the instance
+  public static resetInstance(): void {
+    ConfigManager.instance = null;
+  }
+}
+
+// Export a helper function
+export function getTestConfigManager(): ConfigManager {
+  return ConfigManager.getInstance();
+}

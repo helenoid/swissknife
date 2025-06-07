@@ -1,160 +1,134 @@
-/**
- * Common test utilities for SwissKnife testing
- */
-
+// Mock common dependencies
+import { jest } from '@jest/globals';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
 
+jest.mock("chalk", () => ({ default: (str: any) => str, red: (str: any) => str, green: (str: any) => str, blue: (str: any) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({
+  ...(jest.requireActual("fs") as any), // Import and retain default behavior, cast to any for spread
+  promises: {
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    mkdir: jest.fn(),
+    rm: jest.fn(), // Add rm for recursive directory removal
+    unlink: jest.fn(), // Add unlink for file deletion
+  },
+  existsSync: jest.fn(), // Mock synchronous existsSync
+  mkdirSync: jest.fn(), // Mock synchronous mkdirSync
+  rmSync: jest.fn(), // Mock synchronous rmSync
+  unlinkSync: jest.fn(), // Mock synchronous unlinkSync
+  writeFileSync: jest.fn(), // Mock synchronous writeFileSync
+}));
+
 /**
- * Creates a temporary directory for test files
+ * Universal test utilities (TypeScript ESM version)
  */
-export async function createTempTestDir(prefix = 'swissknife-test-'): Promise<string> {
-  const tempDir = path.join(os.tmpdir(), `${prefix}${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
-  await fs.mkdir(tempDir, { recursive: true });
+
+// Test helper functions
+export function createMockModel(id: string, name: string, provider: string) {
+  return {
+    id,
+    name,
+    provider,
+    parameters: { temperature: 0.7 },
+    metadata: { version: '1.0' }
+  };
+}
+
+export async function createTempTestDir(): Promise<string> {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'swissknife-test-'));
   return tempDir;
 }
 
-/**
- * Removes a temporary test directory
- */
-export async function removeTempTestDir(tempDir: string): Promise<void> {
+export async function removeTempTestDir(dirPath: string) {
   try {
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.rm(dirPath, { recursive: true, force: true });
   } catch (error) {
-    // Ignore errors (e.g., if directory doesn't exist)
-    console.warn(`Warning: Could not remove temp directory ${tempDir}:`, error);
+    console.warn('Failed to remove temp directory:', error);
   }
 }
 
-/**
- * Creates a temporary configuration file for testing
- */
-export async function createTempConfigFile(config: Record<string, any>): Promise<string> {
-  const tempDir = await createTempTestDir();
-  const configPath = path.join(tempDir, 'config.json');
-  await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8');
-  return configPath;
+export function createMockStorage() {
+  return {
+    store: jest.fn(),
+    retrieve: jest.fn(),
+    delete: jest.fn(),
+    list: jest.fn()
+  };
 }
 
-/**
- * Mocks environment variables for testing and returns a function to restore them
- */
-export function mockEnv(envVars: Record<string, string | undefined>): () => void {
-  const originalEnv = { ...process.env };
+export function createMockLogger() {
+  return {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+  };
+}
+
+// Mock implementations for common classes
+export class MockModel {
+  config: any;
+  constructor(config: any) {
+    this.config = config;
+  }
   
-  // Set mock environment variables
-  Object.entries(envVars).forEach(([key, value]) => {
-    if (value === undefined) {
-      delete process.env[key];
-    } else {
-      process.env[key] = value;
-    }
-  });
+  async execute(input: any) {
+    return { output: `Mock output for ${input}` };
+  }
+}
+
+export class MockStorage {
+  data: Map<string, any>;
+  constructor() {
+    this.data = new Map();
+  }
   
-  // Return a function to restore original environment
+  async store(key: string, value: any) {
+    this.data.set(key, value);
+  }
+  
+  async retrieve(key: string) {
+    return this.data.get(key);
+  }
+  
+  async delete(key: string) {
+    this.data.delete(key);
+  }
+  
+  async list() {
+    return Array.from(this.data.keys());
+  }
+}
+
+export const testConfig = {
+  tempDir: os.tmpdir(),
+  timeout: 10000,
+  retries: 3
+};
+
+// Function to mock environment variables
+export function mockEnv(envVars: Record<string, string>): () => void {
+  const originalEnv: Record<string, string | undefined> = {};
+  for (const key in envVars) {
+    originalEnv[key] = process.env[key];
+    process.env[key] = envVars[key];
+  }
   return () => {
-    // Restore original environment
-    Object.keys(envVars).forEach(key => {
+    for (const key in originalEnv) {
       if (originalEnv[key] === undefined) {
         delete process.env[key];
       } else {
         process.env[key] = originalEnv[key];
       }
-    });
-  };
-}
-
-/**
- * Waits for a specified condition to be true
- */
-export async function waitFor(
-  condition: () => boolean | Promise<boolean>,
-  options: { timeout?: number; interval?: number } = {}
-): Promise<void> {
-  const { timeout = 5000, interval = 100 } = options;
-  const startTime = Date.now();
-  
-  while (true) {
-    if (await condition()) {
-      return;
-    }
-    
-    if (Date.now() - startTime >= timeout) {
-      throw new Error(`Condition not met within timeout of ${timeout}ms`);
-    }
-    
-    await new Promise(resolve => setTimeout(resolve, interval));
-  }
-}
-
-/**
- * Creates a deferred promise that can be resolved/rejected externally
- */
-export function createDeferred<T>(): {
-  promise: Promise<T>;
-  resolve: (value: T) => void;
-  reject: (reason?: any) => void;
-} {
-  let resolve!: (value: T) => void;
-  let reject!: (reason?: any) => void;
-  
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  
-  return { promise, resolve, reject };
-}
-
-/**
- * Captures console output for testing
- */
-export function captureConsoleOutput(): {
-  getOutput: () => { log: string[]; error: string[]; warn: string[] };
-  restore: () => void;
-} {
-  const originalConsole = {
-    log: console.log,
-    error: console.error,
-    warn: console.warn
-  };
-  
-  const output = {
-    log: [] as string[],
-    error: [] as string[],
-    warn: [] as string[]
-  };
-  
-  console.log = (...args: any[]) => {
-    output.log.push(args.map(arg => String(arg)).join(' '));
-  };
-  
-  console.error = (...args: any[]) => {
-    output.error.push(args.map(arg => String(arg)).join(' '));
-  };
-  
-  console.warn = (...args: any[]) => {
-    output.warn.push(args.map(arg => String(arg)).join(' '));
-  };
-  
-  return {
-    getOutput: () => output,
-    restore: () => {
-      console.log = originalConsole.log;
-      console.error = originalConsole.error;
-      console.warn = originalConsole.warn;
     }
   };
 }
 
-/**
- * Mocks the current working directory for testing
- */
-export function mockCwd(dir: string): () => void {
-  const originalCwd = process.cwd;
-  process.cwd = () => dir;
-  return () => {
-    process.cwd = originalCwd;
-  };
+// Function to restore environment variables (this will be returned by mockEnv)
+export function restoreEnv() {
+  // This function is returned by mockEnv, so it will have access to the originalEnv closure
+  // No need to define it here, it's just a placeholder for clarity in the export.
 }

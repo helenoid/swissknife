@@ -1,11 +1,11 @@
-import chalk from 'chalk'
-import { useEffect } from 'react'
-import { formatDuration } from './utils/format'
+import chalk from 'chalk.js'
+import { useEffect } from 'react.js'
+import { formatDuration } from './utils/format.js'
 import {
   getCurrentProjectConfig,
   saveCurrentProjectConfig,
 } from './utils/config.js'
-import { SESSION_ID } from './utils/log'
+import { SESSION_ID } from './utils/log.js'
 
 // DO NOT ADD MORE STATE HERE OR BORIS WILL CURSE YOU
 const STATE: {

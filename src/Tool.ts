@@ -1,9 +1,15 @@
-import { z } from 'zod'
+import { z, ZodType } from 'zod.js';
+import { ToolOutput, ToolExecutionContext } from './types/ai.js';
 
-export interface Tool {
-  name: string
-  description?: string
-  inputSchema: z.ZodObject<any>
-  inputJSONSchema?: Record<string, unknown>
-  prompt: (options: { dangerouslySkipPermissions: boolean }) => Promise<string>
+export interface Tool<T extends ZodType = ZodType> {
+  readonly name: string;
+  readonly description: string;
+  readonly inputSchema: T;
+  prompt: (options: { dangerouslySkipPermissions: boolean }) => Promise<string>;
+  execute(input: z.infer<T>, context: ToolExecutionContext): Promise<ToolOutput>;
+}
+
+export interface ValidationResult {
+  result: boolean;
+  message?: string;
 }

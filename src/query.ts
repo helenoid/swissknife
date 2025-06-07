@@ -3,20 +3,20 @@ import {
   MessageParam,
   ToolUseBlock,
 } from '@anthropic-ai/sdk/resources/index.mjs'
-import { UUID } from 'crypto'
-import type { Tool, ToolUseContext } from './Tool'
+import { UUID } from 'crypto.js'
+import type { Tool, ToolUseContext } from './Tool.js'
 import {
   messagePairValidForBinaryFeedback,
   shouldUseBinaryFeedback,
 } from './components/binary-feedback/utils.js'
-import { CanUseToolFn } from './hooks/useCanUseTool'
+import { CanUseToolFn } from './hooks/useCanUseTool.js'
 import {
   formatSystemPromptWithContext,
   querySonnet,
 } from './services/claude.js'
-import { logEvent } from './services/statsig'
-import { all } from './utils/generators'
-import { logError } from './utils/log'
+import { logEvent } from './services/statsig.js'
+import { all } from './utils/generators.js'
+import { logError } from './utils/log.js'
 import {
   createAssistantMessage,
   createProgressMessage,
@@ -28,8 +28,8 @@ import {
   NormalizedMessage,
   normalizeMessagesForAPI,
 } from './utils/messages.js'
-import { BashTool } from './tools/BashTool/BashTool'
-import { getCwd } from './utils/state'
+import { BashTool } from './tools/BashTool/BashTool.js'
+import { getCwd } from './utils/state.js'
 
 export type Response = { costUSD: number; response: string }
 export type UserMessage = {

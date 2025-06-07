@@ -1,0 +1,33 @@
+// Simple diagnostic test - CJS style
+const fs = require('fs');
+const path = require('path');
+
+// Basic tests
+test('Basic test - addition works', () => {
+  expect(1 + 1).toBe(2);
+});
+
+test('File system operations work', () => {
+  // Test basic file system access
+  const cwd = process.cwd();
+  expect(typeof cwd).toBe('string');
+  
+  // Check if we can access the file system
+  try {
+    const files = fs.readdirSync(cwd);
+    expect(Array.isArray(files)).toBe(true);
+  } catch (err) {
+    console.error('Error accessing file system:', err);
+    throw err;
+  }
+});
+
+test('Path operations work', () => {
+  const joined = path.join('a', 'b', 'c');
+  expect(joined).toBe('a/b/c');
+});
+
+test('Async operations work', async () => {
+  const result = await Promise.resolve(42);
+  expect(result).toBe(42);
+});

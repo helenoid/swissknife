@@ -1,5 +1,6 @@
-import fs from 'fs/promises'
-import { logError } from './log'
+import { Tool } from '../ai/types.js';
+import fs from 'fs/promises';
+import { logError } from './log.js';
 
 /**
  * Load messages from a log file

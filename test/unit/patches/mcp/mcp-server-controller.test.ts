@@ -1,11 +1,12 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 /**
  * Tests for the MCP Server Controller
  */
 
-import { MCPServerController } from '../../../../src/patches/mcp/mcp-server-controller';
-import { MemoryChannel, MemoryTransport } from '../../../../src/patches/mcp/memory-transport';
-import { createMemoryPair } from '../../../../src/patches/mcp/test/memory-test-utils';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { Client } from '@modelcontextprotocol/sdk/client/index';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

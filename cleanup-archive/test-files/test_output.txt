@@ -1,0 +1,44 @@
+[0;34m[INFO] ========================================================[0m
+[0;34m[INFO] 🚀 Enhanced MCP Server Test Suite[0m
+[0;34m[INFO] ========================================================[0m
+[0;34m[INFO] Started at: Mon May 12 07:41:31 PM PDT 2025[0m
+[0;34m[INFO] Log file: ./test-logs/mcp_test_20250512_194131.log[0m
+[0;34m[INFO] Checking environment...[0m
+[0;34m[INFO] Node.js version: v22.15.0[0m
+[0;34m[INFO] Checking MCP SDK installation...[0m
+[0;34m[INFO] Found MCP SDK version 1.11.2[0m
+[0;34m[INFO] Building project...[0m
+[0;32m[SUCCESS] Build completed successfully[0m
+[0;34m[INFO] Created test directory: /tmp/tmp.ehNhrcCoVq[0m
+[0;34m[INFO] Locating MCP server implementations...[0m
+[0;34m[INFO] Found TypeScript MCP server at: dist/src/entrypoints/mcp.js[0m
+[0;34m[INFO] Found standalone MCP server at: standalone-mcp-server.js[0m
+[0;34m[INFO] Created Python MCP server at: /tmp/tmp.ehNhrcCoVq/python-mcp-server.py[0m
+[0;34m[INFO] Creating MCP test client...[0m
+[0;34m[INFO] Testing server implementations...[0m
+[0;34m[INFO] Testing TypeScript MCP Server...[0m
+[0;31m[ERROR] TypeScript MCP Server tests failed[0m
+Server: TypeScript MCP Server
+Success: No
+Error: MCP error -32000: Connection closed
+[0;34m[INFO] Complete test output saved to: /tmp/tmp.ehNhrcCoVq/TypeScript_MCP_Server-output.log[0m
+[0;34m[INFO] Testing Standalone JavaScript MCP Server...[0m
+[0;31m[ERROR] Standalone JavaScript MCP Server tests failed[0m
+Server: Standalone JavaScript MCP Server
+Success: No
+Error: MCP error -32000: Connection closed
+[0;34m[INFO] Complete test output saved to: /tmp/tmp.ehNhrcCoVq/Standalone_JavaScript_MCP_Server-output.log[0m
+[0;34m[INFO] Testing Python MCP Server...[0m
+[0;31m[ERROR] Python MCP Server tests failed[0m
+Server: Python MCP Server
+Success: No
+Error: MCP error -32000: Connection closed
+[0;34m[INFO] Complete test output saved to: /tmp/tmp.ehNhrcCoVq/Python_MCP_Server-output.log[0m
+[0;31m[ERROR] All server implementations failed basic tests, skipping Jest tests[0m
+[0;34m[INFO] Generating test report...[0m
+[0;34m[INFO] Test report generated: mcp_test_report_20250512_194131.md[0m
+[0;34m[INFO] Cleaning up...[0m
+[0;31m[ERROR] ❌ All MCP server implementations failed tests.[0m
+[0;34m[INFO] Test completed[0m
+[0;34m[INFO] Report: mcp_test_report_20250512_194131.md[0m
+[0;34m[INFO] Log: ./test-logs/mcp_test_20250512_194131.log[0m

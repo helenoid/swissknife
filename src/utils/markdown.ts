@@ -1,9 +1,9 @@
 import { marked, Token } from 'marked'
-import { stripSystemMessages } from './messages'
+import { stripSystemMessages } from './messages.js'
 import chalk from 'chalk'
 import { EOL } from 'os'
 import { highlight, supportsLanguage } from 'cli-highlight'
-import { logError } from './log'
+import { logError } from './log.js'
 
 export function applyMarkdown(content: string): string {
   return marked

@@ -1,5 +1,5 @@
-import { Box, Text } from 'ink'
-import * as React from 'react'
+import { Box, Text } from 'ink.js.js.js.js.js'
+import * as React from 'react.js.js.js.js.js'
 
 type Props = {
   children: React.ReactNode

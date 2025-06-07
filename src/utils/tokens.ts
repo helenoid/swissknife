@@ -1,5 +1,5 @@
-import { Message } from '../query'
-import { SYNTHETIC_ASSISTANT_MESSAGES } from './messages'
+import { Message } from '../query.js'
+import { SYNTHETIC_ASSISTANT_MESSAGES } from './messages.js'
 
 export function countTokens(messages: Message[]): number {
   let i = messages.length - 1

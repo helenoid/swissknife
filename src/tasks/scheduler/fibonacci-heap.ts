@@ -1,278 +1,247 @@
-import { logger } from '../../utils/logger.js'; // Use relative path
-
-/**
- * Internal node structure for the Fibonacci Heap.
- */
-export class FibonacciHeapNode<T> {
-  data: T;
-  priority: number; // The key for heap ordering (lower value = higher priority)
-  parent: FibonacciHeapNode<T> | null = null;
-  child: FibonacciHeapNode<T> | null = null;
-  left: FibonacciHeapNode<T> = this; // Points to self initially
-  right: FibonacciHeapNode<T> = this; // Points to self initially
-  degree: number = 0; // Number of children
-  marked: boolean = false; // Used for decreaseKey cascading cuts
-
-  constructor(data: T, priority: number) {
-    this.data = data;
-    this.priority = priority;
-  }
+// src/tasks/scheduler/fibonacci-heap.ts
+export interface FibHeapNode<T> {
+  key: number;
+  value: T;
+  degree: number;
+  marked: boolean;
+  parent: FibHeapNode<T> | null;
+  child: FibHeapNode<T> | null;
+  left: FibHeapNode<T>;
+  right: FibHeapNode<T>;
 }
 
-/**
- * Implementation of a Fibonacci Heap data structure.
- * Used for efficient priority queue operations.
- * Based on standard algorithms (e.g., CLRS).
- */
 export class FibonacciHeap<T> {
-  private min: FibonacciHeapNode<T> | null = null;
+  private min: FibHeapNode<T> | null = null;
   private nodeCount: number = 0;
-  // Comparator for priorities (min-heap)
-  private comparator: (a: number, b: number) => number = (a, b) => a - b; 
 
-  // --- List Manipulation Helpers ---
-  private insertIntoList(a: FibonacciHeapNode<T>, b: FibonacciHeapNode<T>): void {
-    // Inserts node 'a' into the circular doubly linked list containing 'b' (to the right of b)
-    a.left = b;
-    a.right = b.right;
-    b.right.left = a;
-    b.right = a;
+  isEmpty(): boolean {
+    return this.min === null;
   }
 
-  private removeFromList(node: FibonacciHeapNode<T>): void {
-    // Removes node from its circular doubly linked list
-    node.left.right = node.right;
-    node.right.left = node.left;
-    // Reset pointers to self to indicate detachment (optional but good practice)
-    node.left = node; 
-    node.right = node; 
+  size(): number {
+    return this.nodeCount;
   }
 
-  private mergeLists(a: FibonacciHeapNode<T> | null, b: FibonacciHeapNode<T> | null): FibonacciHeapNode<T> | null {
-      // Merges two circular doubly linked lists (root lists or child lists)
-      if (!a) return b;
-      if (!b) return a;
-
-      // Swap pointers to merge lists
-      const aRight = a.right;
-      a.right = b.right;
-      b.right.left = a;
-      b.right = aRight;
-      aRight.left = b;
-      
-      // Return the node with the minimum key if comparing root lists (optional here)
-      return (this.comparator(a.priority, b.priority) < 0) ? a : b;
-  }
-
-  // --- Core Heap Operations ---
-
-  /** Inserts a node into the heap's root list. */
-  insert(node: FibonacciHeapNode<T>): void {
-    node.parent = null;
-    node.child = null;
-    node.degree = 0;
-    node.marked = false;
-    node.left = node; // Ensure node points to self before insertion
-    node.right = node;
-
-    // Merge the new node (as a list of one) into the root list
-    this.min = this.mergeLists(this.min, node);
-
-    // Update min pointer if the new node has a smaller key (redundant if mergeLists handles min update)
-    // if (!this.min || this.comparator(node.priority, this.min.priority) < 0) {
-    //   this.min = node;
-    // }
-    
-    this.nodeCount++;
-    logger.debug(`FibHeap: Inserted node with priority ${node.priority}`);
-  } 
-
-  /** Extracts the node with the minimum priority. */
-  extractMin(): FibonacciHeapNode<T> | null {
-    const z = this.min;
-    if (!z) {
-      logger.debug("FibHeap: extractMin called on empty heap.");
-      return null; // Heap is empty
+  insert(key: number, value: T): FibHeapNode<T> {
+    const node = this.createNode(key, value);
+    if (this.min === null) {
+      this.min = node;
+    } else {
+      this.insertIntoRootList(node);
+      if (node.key < this.min.key) {
+        this.min = node;
+      }
     }
+    this.nodeCount++;
+    return node;
+  }
 
-    logger.debug(`FibHeap: Extracting min with priority ${z.priority}`);
-
-    // 1. Promote children to root list
-    if (z.child) {
-      let child = z.child;
-      // Break the circular link of the child list before merging
+  extractMin(): T | null {
+    if (this.min === null) {
+      return null;
+    }
+    const minNode = this.min;
+    if (minNode.child !== null) {
+      let child = minNode.child;
       const firstChild = child;
       do {
-          const nextChild = child.right;
-          child.parent = null; // Children become roots
-          child = nextChild;
+        const next = child.right;
+        this.insertIntoRootList(child);
+        child.parent = null;
+        child = next;
       } while (child !== firstChild);
-      
-      // Merge child list into root list
-      this.min = this.mergeLists(this.min, z.child);
     }
-
-    // 2. Remove z from root list
-    this.removeFromList(z);
-
-    // 3. Update min pointer and consolidate
-    if (z === z.right) {
-      // z was the only node in the root list (and had no children promoted)
-      this.min = null; 
+    this.removeFromRootList(minNode);
+    if (minNode === minNode.right) { // If it was the last node in the root list
+      this.min = null;
     } else {
-      // Set min to an arbitrary node (z.right) and consolidate
-      this.min = z.right; 
+      this.min = minNode.right; // Arbitrarily point to next node
       this.consolidate();
     }
-
     this.nodeCount--;
-    // Reset pointers of extracted node
-    z.left = z;
-    z.right = z;
-    z.child = null; 
-    return z;
+    return minNode.value;
   }
 
-  /** Consolidates the root list to ensure no two trees have the same degree. */
-  private consolidate(): void {
-    if (!this.min) return;
-    logger.debug("FibHeap: Consolidating root list...");
+  findMin(): T | null {
+    return this.min ? this.min.value : null;
+  }
 
-    // Calculate a safe upper bound for the degree array size
-    // phi = (1 + sqrt(5)) / 2 approx 1.618
-    // Max degree D(n) <= log_phi(n)
-    const maxDegree = Math.floor(Math.log(this.nodeCount) / Math.log(1.618)) + 2; 
-    const A: (FibonacciHeapNode<T> | null)[] = new Array(maxDegree).fill(null);
+  getSize(): number {
+    return this.nodeCount;
+  }
 
-    // Iterate through the root list
-    const rootNodes: FibonacciHeapNode<T>[] = [];
-    let current = this.min;
-    do {
-        rootNodes.push(current);
-        current = current.right;
-    } while (current !== this.min);
+  delete(node: FibHeapNode<T>): void {
+    this.decreaseKey(node, -Infinity);
+    this.extractMin();
+  }
 
-    for (let w of rootNodes) {
-        let x = w;
-        let d = x.degree;
-        while (A[d] !== null) {
-            let y = A[d]!; // y is another node in A with the same degree d
-            if (this.comparator(x.priority, y.priority) > 0) {
-                // Ensure x has the smaller key (is the parent)
-                [x, y] = [y, x]; 
-            }
-            this.link(y, x); // Make y a child of x
-            A[d] = null; // Clear the slot
-            d++; // Move to check the next degree
-        }
-        A[d] = x; // Place the resulting tree in the slot
+  merge(otherHeap: FibonacciHeap<T>): void {
+    if (otherHeap.min === null) return;
+
+    if (this.min === null) {
+      this.min = otherHeap.min;
+    } else {
+      const temp = this.min.right;
+      this.min.right = otherHeap.min;
+      otherHeap.min.left = this.min;
+      temp.left = otherHeap.min.right;
+      otherHeap.min.right.right = temp;
+      if (otherHeap.min.key < this.min.key) {
+        this.min = otherHeap.min;
+      }
     }
+    this.nodeCount += otherHeap.nodeCount;
+  }
 
-    // Rebuild root list from array A and find new minimum
-    this.min = null;
-    for (let i = 0; i < A.length; i++) {
-        if (A[i] !== null) {
-            const node = A[i]!;
-            // Ensure node is detached before re-inserting (link removes it from root list)
-            node.left = node;
-            node.right = node;
-            
-            // Merge node into the new root list
-            this.min = this.mergeLists(this.min, node);
-            // Update min pointer explicitly after merge
-            if (this.min && this.comparator(node.priority, this.min.priority) < 0) {
-               this.min = node;
-            }
-        }
+  decreaseKey(node: FibHeapNode<T>, newKey: number): void {
+    if (newKey > node.key) {
+      throw new Error('New key is greater than current key.');
     }
-    logger.debug("FibHeap: Consolidation complete.");
+    node.key = newKey;
+    const parent = node.parent;
+    if (parent !== null && node.key < parent.key) {
+      this.cut(node, parent);
+      this.cascadingCut(parent);
+    }
+    if (this.min === null || node.key < this.min.key) { 
+      this.min = node;
+    }
   }
 
-  /** Links node y as a child of node x. Assumes x.priority <= y.priority. */
-  private link(y: FibonacciHeapNode<T>, x: FibonacciHeapNode<T>): void {
-    logger.debug(`FibHeap: Linking node (p=${y.priority}) under node (p=${x.priority})`);
-    // 1. Remove y from root list
-    this.removeFromList(y);
-
-    // 2. Make y a child of x
-    y.parent = x;
-    // Merge y into x's child list
-    x.child = this.mergeLists(x.child, y); 
-    
-    x.degree++;
-    y.marked = false; // Children become unmarked when linked
+  private cut(node: FibHeapNode<T>, parent: FibHeapNode<T>): void {
+    // Remove node from child list of parent
+    if (node.right === node) { // node is the only child
+      parent.child = null;
+    } else {
+      node.left.right = node.right;
+      node.right.left = node.left;
+      if (parent.child === node) {
+        parent.child = node.right;
+      }
+    }
+    parent.degree--;
+    // Add node to root list
+    this.insertIntoRootList(node); // node is now part of the root list
+    node.parent = null;
+    node.marked = false;
   }
 
-  /** Decreases the key (priority) of a given node. */
-  decreaseKey(node: FibonacciHeapNode<T>, newPriority: number): void { 
-     logger.warn('FibonacciHeap.decreaseKey not fully implemented (missing cuts)'); 
-     if (this.comparator(newPriority, node.priority) > 0) {
-        logger.error("New priority is greater than current priority - cannot increase key.");
-        return; // Or throw error
-     }
-     if (this.comparator(newPriority, node.priority) === 0) {
-         return; // No change needed
-     }
-
-     node.priority = newPriority;
-     const parent = node.parent;
-
-     if (parent && this.comparator(node.priority, parent.priority) < 0) {
-        // Heap property violated, need to cut
+  private cascadingCut(node: FibHeapNode<T>): void {
+    const parent = node.parent;
+    if (parent !== null) {
+      if (!node.marked) {
+        node.marked = true;
+      } else {
         this.cut(node, parent);
         this.cascadingCut(parent);
-     }
-
-     // Update overall minimum if necessary
-     if (this.min && this.comparator(node.priority, this.min.priority) < 0) {
-        this.min = node;
-     }
-  } 
-
-  /** Cuts node x from its parent y, moving x to the root list. */
-  private cut(x: FibonacciHeapNode<T>, y: FibonacciHeapNode<T>): void {
-      logger.debug(`FibHeap: Cutting node (p=${x.priority}) from parent (p=${y.priority})`);
-      // 1. Remove x from y's child list
-      if (y.child === x) {
-          // x was the direct child pointer
-          if (x.right === x) {
-              y.child = null; // x was the only child
-          } else {
-              y.child = x.right; // Point to another child
-          }
       }
-      this.removeFromList(x); // Remove x from the child list sibling pointers
-      
-      // 2. Decrease parent's degree
-      y.degree--;
-
-      // 3. Add x to the root list
-      x.parent = null;
-      x.marked = false; // Nodes become unmarked when moved to root list
-      this.min = this.mergeLists(this.min, x); // Merge x into root list
-      // Update min pointer explicitly after merge
-      if (this.min && this.comparator(x.priority, this.min.priority) < 0) {
-         this.min = x;
-      }
+    }
   }
 
-  /** Performs cascading cuts upwards from node y. */
-  private cascadingCut(y: FibonacciHeapNode<T>): void {
-      const z = y.parent;
-      if (z) { // If y is not a root
-          if (!y.marked) {
-              // If y is not marked, mark it (first time child lost)
-              y.marked = true;
-              logger.debug(`FibHeap: Marking node (p=${y.priority})`);
-          } else {
-              // If y is already marked, cut it from its parent and cascade
-              logger.debug(`FibHeap: Cascading cut for node (p=${y.priority})`);
-              this.cut(y, z);
-              this.cascadingCut(z);
-          }
-      }
+  private createNode(key: number, value: T): FibHeapNode<T> {
+    const node: FibHeapNode<T> = {
+      key, value, degree: 0, marked: false, parent: null, child: null,
+      left: null as any, // Will be self-referenced
+      right: null as any, // Will be self-referenced
+    };
+    node.left = node;
+    node.right = node;
+    return node;
   }
 
-  isEmpty(): boolean { return this.nodeCount === 0; }
-  getSize(): number { return this.nodeCount; }
+  private insertIntoRootList(node: FibHeapNode<T>): void {
+    if (this.min === null) {
+      this.min = node;
+      node.left = node;
+      node.right = node;
+    } else {
+      node.left = this.min;
+      node.right = this.min.right;
+      this.min.right.left = node;
+      this.min.right = node;
+    }
+  }
+
+  private removeFromRootList(node: FibHeapNode<T>): void {
+    // This function assumes node is in the root list.
+    // If node.right === node, it's the only node. The caller (extractMin) handles setting this.min to null.
+    if (node.right !== node) {
+        node.left.right = node.right;
+        node.right.left = node.left;
+    }
+    // If this.min was node, extractMin will update it.
+  }
+  
+  private consolidate(): void {
+    if (this.min === null) return;
+
+    // Max degree is O(log n)
+    const maxDegree = Math.floor(Math.log(this.nodeCount) / Math.log(1.618)) + 1; // Golden ratio based bound
+    const degreeTable: Array<FibHeapNode<T> | null> = new Array(maxDegree + 1).fill(null);
+
+    let currentNodes: FibHeapNode<T>[] = [];
+    let temp = this.min;
+    do {
+      currentNodes.push(temp);
+      temp = temp.right;
+    } while (temp !== this.min);
+
+    for (let x of currentNodes) {
+      let d = x.degree;
+      while (degreeTable[d] !== null) {
+        let y = degreeTable[d]!; // y is another node in the degree table with the same degree as x
+        if (x.key > y.key) {
+          [x, y] = [y, x]; // Ensure x has the smaller key
+        }
+        this.link(y, x); // Link y to x (y becomes child of x)
+        degreeTable[d] = null; // Clear the slot for degree d
+        d++; // Move to next degree
+      }
+      degreeTable[d] = x; // Store x in the degree table
+    }
+
+    this.min = null; // Rebuild the root list
+    for (let i = 0; i <= maxDegree; i++) {
+      if (degreeTable[i] !== null) {
+        const nodeInTable = degreeTable[i]!;
+        // Add node to root list (it's already unlinked from previous lists by link or was a root)
+        if (this.min === null) {
+          this.min = nodeInTable;
+          nodeInTable.left = nodeInTable;
+          nodeInTable.right = nodeInTable;
+        } else {
+          nodeInTable.left = this.min;
+          nodeInTable.right = this.min.right;
+          this.min.right.left = nodeInTable;
+          this.min.right = nodeInTable;
+          if (nodeInTable.key < this.min.key) {
+            this.min = nodeInTable;
+          }
+        }
+      }
+    }
+  }
+
+  private link(y: FibHeapNode<T>, x: FibHeapNode<T>): void {
+    // Remove y from root list (it's guaranteed to be in the root list at this point)
+    y.left.right = y.right;
+    y.right.left = y.left;
+    // If y was this.min, this.min will be updated by consolidate later
+
+    // Make y a child of x
+    y.parent = x;
+    if (x.child === null) {
+      x.child = y;
+      y.right = y; // y is the only child, so it points to itself
+      y.left = y;
+    } else {
+      // Insert y into x's child list
+      y.left = x.child;
+      y.right = x.child.right;
+      x.child.right.left = y;
+      x.child.right = y;
+    }
+    x.degree++;
+    y.marked = false; // Children of linked nodes are unmarked
+  }
 }

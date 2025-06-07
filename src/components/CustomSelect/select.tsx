@@ -1,9 +1,9 @@
-import { Box, Text } from 'ink'
-import React, { type ReactNode } from 'react'
-import { SelectOption } from './select-option'
-import { type Theme } from './theme'
-import { useSelectState } from './use-select-state'
-import { useSelect } from './use-select'
+import { Box, Text } from 'ink.js.js.js.js.js'
+import React, { type ReactNode } from 'react.js.js.js.js.js'
+import { SelectOption } from './select-option.js.js.js.js.js.js.js.js.js.js'
+import { type Theme } from './theme.js.js.js.js.js.js.js.js.js.js'
+import { useSelectState } from './use-select-state.js.js.js.js.js.js.js.js.js.js'
+import { useSelect } from './use-select.js.js.js.js.js.js.js.js.js.js'
 import { Option, useComponentTheme } from '@inkjs/ui'
 
 export type OptionSubtree = {

@@ -15,8 +15,8 @@ import {
   ListToolsResultSchema,
   ToolSchema,
 } from '@modelcontextprotocol/sdk/types.js'
-import { z } from 'zod'
-import { zodToJsonSchema } from 'zod-to-json-schema'
+import { z } from 'zod.js'
+import { zodToJsonSchema } from 'zod-to-json-schema.js'
 import { AgentTool } from '../tools/AgentTool/AgentTool.js'
 import { hasPermissionsToUseTool } from '../permissions.js'
 import { setCwd } from '../utils/state.js'

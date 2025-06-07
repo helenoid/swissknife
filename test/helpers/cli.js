@@ -1,12 +1,16 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 /**
  * CLI test helper utilities
  * 
  * Provides functions for executing CLI commands in tests and analyzing results
  */
 
-import { execSync, exec } from 'child_process';
-import { join } from 'path';
-import { promisify } from 'util';
+import { execSync, exec } from 'child_process.js';
+import { join } from 'path.js';
+import { promisify } from 'util.js';
 
 const execPromise = promisify(exec);
 const CLI_PATH = join(process.cwd(), 'cli.mjs');

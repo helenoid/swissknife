@@ -1,0 +1,52 @@
+/**
+ * Enhanced diagnostic test to identify issues with Jest configuration
+ * This test includes various import types to diagnose module loading problems
+ */
+
+// Regular CommonJS-style import using jest globals
+const { test, expect, describe } = global;
+const fs = require('fs');
+const path = require('path');
+
+// Try to diagnose Node.js environment
+const nodeEnv = {
+  version: process.version,
+  type: typeof require,
+  env: process.env.NODE_ENV
+};
+
+// Test basic functionality
+describe('Diagnostic tests for Jest configuration', () => {
+  // Basic test
+  test('Basic test functionality works', () => {
+    expect(1 + 1).toBe(2);
+  });
+  
+  // Check Node environment
+  test('Node environment details', () => {
+    console.log('Node environment:', JSON.stringify(nodeEnv, null, 2));
+    expect(process.version).toBeDefined();
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+  
+  // Test file system access
+  test('File system access works', () => {
+    expect(typeof fs.readFileSync).toBe('function');
+    expect(typeof path.join).toBe('function');
+    
+    // Check if basic file system operations work
+    try {
+      const packageJson = fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8');
+      expect(packageJson).toContain('"name":');
+    } catch (err) {
+      console.error('Error reading file:', err);
+      throw err;
+    }
+  });
+  
+  // Test async operations
+  test('Async operations work', async () => {
+    const result = await Promise.resolve(42);
+    expect(result).toBe(42);
+  });
+});

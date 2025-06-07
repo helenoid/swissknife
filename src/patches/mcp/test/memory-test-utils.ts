@@ -4,7 +4,7 @@
  * Provides utilities for testing MCP implementations using the memory transport.
  */
 
-import { MemoryChannel, MemoryTransport } from '../memory-transport';
+import { MemoryChannel, MemoryTransport } from '../memory-transport.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 

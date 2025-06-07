@@ -1,0 +1,78 @@
+/**
+ * Mock command registry for testing
+ */
+
+// Class-based implementation with singleton pattern
+class CommandRegistryClass {
+  constructor() {
+    this.commands = new Map();
+  }
+
+  static getInstance() {
+    if (!CommandRegistryClass.instance) {
+      CommandRegistryClass.instance = new CommandRegistryClass();
+    }
+    return CommandRegistryClass.instance;
+  }
+
+  register(name, command) {
+    this.commands.set(name, command);
+    return this;
+  }
+
+  execute(commandName, args, context) {
+    const command = this.commands.get(commandName);
+    if (!command) {
+      return Promise.resolve({
+        success: true,
+        data: { commandName, args, mockResult: true }
+      });
+    }
+    return command.execute(args, context);
+  }
+
+  list() {
+    return Array.from(this.commands.keys());
+  }
+
+  // Clear all commands (for testing)
+  clear() {
+    this.commands.clear();
+  }
+}
+
+// Object-based implementation for direct mocking
+const CommandRegistry = {
+  register: jest.fn(),
+  execute: jest.fn().mockImplementation((commandName, args, context) => {
+    return Promise.resolve({
+      success: true,
+      data: { commandName, args }
+    });
+  }),
+  list: jest.fn().mockReturnValue([]),
+  getInstance: jest.fn().mockReturnValue({
+    register: jest.fn(),
+    execute: jest.fn().mockImplementation((commandName, args, context) => {
+      return Promise.resolve({
+        success: true,
+        data: { commandName, args }
+      });
+    }),
+    list: jest.fn().mockReturnValue([])
+  })
+};
+
+const CommandExecutionContext = class {
+  constructor(options = {}) {
+    this.options = options;
+    this.config = options.config;
+    this.stdout = options.stdout || process.stdout;
+    this.stderr = options.stderr || process.stderr;
+  }
+};
+
+module.exports = {
+  CommandRegistry,
+  CommandExecutionContext
+};

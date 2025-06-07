@@ -5,7 +5,7 @@
  * which provides IPFS and content-addressable storage capabilities.
  */
 
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios.js';
 import { ConfigManager } from '../../config/manager.js';
 import { logger } from '../../utils/logger.js';
 import { CID } from '../../types/common.js';

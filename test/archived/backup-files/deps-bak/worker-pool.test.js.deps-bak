@@ -1,0 +1,40 @@
+// Mock temp directory helpers
+const createTempTestDir = jest.fn().mockImplementation((name) => `/tmp/test-${name}-${Date.now()}`);
+const removeTempTestDir = jest.fn().mockImplementation(async (dir) => Promise.resolve());
+describe('WorkerPool', () => {
+
+// Mock worker_threads
+jest.mock('worker_threads', () => {
+  return {
+    Worker: function() {
+      return new (require('../../../test/mocks/workers/worker').MockWorker)();
+    },
+    isMainThread: true
+  };
+});
+
+    let workerPool;
+    let tempDir;
+    beforeAll(async () => {
+        tempDir = await createTempTestDir('worker-pool-test');
+    });
+    afterAll(async () => {
+        await removeTempTestDir(tempDir);
+    });
+    beforeEach(() => {
+        WorkerPool.instance = null;
+        workerPool = WorkerPool.getInstance({
+            minWorkers: 2,
+            maxWorkers: 5,
+            taskTimeout: 1000
+        });
+    });
+    it('should start and stop successfully', async () => {
+        workerPool.start();
+        expect(workerPool.getWorkerCount()).toBe(2);
+        workerPool.stop();
+        expect(workerPool.getWorkerCount()).toBe(0);
+    });
+    // Additional tests...
+});
+//# sourceMappingURL=worker-pool.test.js.map

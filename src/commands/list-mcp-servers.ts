@@ -3,7 +3,7 @@
  */
 import type { Command, LocalCommand } from '../types/command.js';
 import { listMCPServers } from '../services/mcpClient.js';
-import chalk from 'chalk';
+import chalk from 'chalk.js';
 import { getTheme } from '../utils/theme.js';
 
 const listMcpServersCommand: LocalCommand = {
@@ -35,6 +35,6 @@ const listMcpServersCommand: LocalCommand = {
   userFacingName() {
     return 'list-mcp-servers';
   },
-} satisfies Command;
+};
 
 export default listMcpServersCommand;

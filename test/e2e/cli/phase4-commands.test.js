@@ -1,0 +1,252 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+/**
+ * End-to-End Tests for Phase 4 CLI Commands
+ *
+ * These tests verify the behavior of Phase 4 commands related to:
+ * - Cross-component CLI integration
+ * - TaskCommand integration with other subsystems
+ * - IPFSCommand integration with task workflows
+ * - AgentCommand integration with TaskNet
+ * - End-to-end workflow execution
+ */
+
+const path = require('path');
+const { execFile } = require('child_process');
+const fs = require('fs').promises;
+const os = require('os');
+
+const CLI_PATH = path.resolve(__dirname, '../../../cli.mjs');
+const TEST_CONFIG_PATH = path.join(os.tmpdir(), 'sk-test-config-phase4.json');
+const TEST_WORKSPACE = path.join(os.tmpdir(), 'sk-phase4-workspace');
+
+// Helper function to run CLI commands
+const runCLI = (args = [], env = {}) => {
+  return new Promise((resolve, reject) => {
+    execFile('node', [CLI_PATH, ...args], { 
+      env: { ...process.env, ...env, SK_CONFIG_PATH: TEST_CONFIG_PATH },
+      timeout: 10000 // 10 second timeout
+    }, (error, stdout, stderr) => {
+      resolve({
+        code: error ? error.code : 0,
+        error,
+        stdout,
+        stderr
+      });
+    });
+  });
+};
+
+// Parse JSON output from CLI with fallback
+const parseJsonOutput = (output) => {
+  try {
+    // Find JSON content in output
+    const jsonMatch = output.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return null;
+  } catch (err) {
+    console.log('Failed to parse JSON output:', output);
+    return null;
+  }
+};
+
+describe('SwissKnife CLI - Phase 4 E2E Tests', () => {
+  // Setup/teardown for test config and workspace
+  beforeAll(async () => {
+    // Create test workspace directory
+    await fs.mkdir(TEST_WORKSPACE, { recursive: true });
+    
+    // Create test files for workflows
+    await fs.writeFile(
+      path.join(TEST_WORKSPACE, 'workflow-input.txt'),
+      'This is sample content for the end-to-end workflow test.'
+    );
+    
+    await fs.writeFile(
+      path.join(TEST_WORKSPACE, 'agent-task.json'),
+      JSON.stringify({
+        name: "Agent-Driven Task",
+        description: "Test agent execution with task orchestration",
+        inputs: {
+          prompt: "Summarize the key features of SwissKnife Phase 4",
+          modelName: "test-model"
+        },
+        outputs: {
+          format: "text",
+          destination: path.join(TEST_WORKSPACE, 'agent-output.txt')
+        }
+      })
+    );
+  });
+
+  beforeEach(async () => {
+    // Create a config for testing Phase 4 features
+    await fs.writeFile(TEST_CONFIG_PATH, JSON.stringify({
+      version: '1.0.0',
+      configSchema: 'phase4',
+      ai: {
+        agents: {
+          default: 'test-agent',
+          'test-agent': {
+            model: 'test-model',
+            parameters: { temperature: 0.7 }
+          }
+        },
+        models: {
+          'test-model': {
+            provider: 'mock-provider',
+            capabilities: ['text', 'code', 'chat']
+          }
+        }
+      },
+      storage: {
+        ipfs: {
+          gateway: 'http://localhost:8080/ipfs/',
+          apiUrl: 'http://localhost:5001/api/v0',
+          mock: true
+        }
+      },
+      tasknet: {
+        scheduler: {
+          type: 'fibonacci-heap',
+          options: { priorityLevels: 5 }
+        },
+        workflows: {
+          default: 'sequential',
+          enableCrossComponentWorkflows: true
+        }
+      },
+      cli: {
+        integrations: {
+          taskAgentIntegration: true,
+          storageTaskIntegration: true,
+          agentStorageIntegration: true
+        }
+      }
+    }));
+  });
+
+  afterEach(async () => {
+    try {
+      await fs.unlink(TEST_CONFIG_PATH);
+    } catch (err) {
+      // Ignore errors if file doesn't exist
+    }
+  });
+
+  afterAll(async () => {
+    try {
+      // Clean up test workspace
+      // Clean up test workspace - use shell command for Node.js compatibility
+      const { execSync } = require('child_process');
+      execSync(`rm -rf "${TEST_WORKSPACE}"`, { stdio: 'ignore' });
+    } catch (err) {
+      console.error('Error cleaning up test workspace:', err);
+    }
+  });
+
+  test('should execute an agent with task integration', async () => {
+    // Execute agent and create task in one command
+    const agentTaskResult = await runCLI(
+      ['agent', 'run', 'test-agent', '--prompt', 'Test prompt', '--create-task'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(agentTaskResult.code).toBe(0);
+    // Should show both agent response and task creation
+    expect(agentTaskResult.stdout).toContain('Agent Response');
+    expect(agentTaskResult.stdout).toMatch(/task id|created task|task created/i);
+  });
+
+  test('should store task results to IPFS', async () => {
+    // Create a task
+    const createTaskResult = await runCLI(
+      ['task', 'create', '--type', 'echo', '--input', 'Content to be stored in IPFS'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(createTaskResult.code).toBe(0);
+    
+    // Extract task ID
+    const taskIdMatch = createTaskResult.stdout.match(/Task ID: ([a-zA-Z0-9-]+)/);
+    expect(taskIdMatch).toBeTruthy();
+    
+    if (taskIdMatch && taskIdMatch[1]) {
+      const taskId = taskIdMatch[1];
+      
+      // Wait a bit for task to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Store task result to IPFS
+      const storeResult = await runCLI(
+        ['task', 'result', taskId, '--store-ipfs'],
+        { SK_MOCK_MODE: 'true' }
+      );
+      
+      expect(storeResult.code).toBe(0);
+      expect(storeResult.stdout).toMatch(/stored|ipfs|cid|Qm/i);
+    }
+  });
+
+  test('should run a complete cross-component workflow', async () => {
+    // Path to test input file
+    const inputFilePath = path.join(TEST_WORKSPACE, 'workflow-input.txt');
+    
+    // Execute an end-to-end workflow
+    // 1. Read input file
+    // 2. Pass to agent
+    // 3. Create a task from agent output
+    // 4. Store result in IPFS
+    const workflowResult = await runCLI(
+      ['workflow', 'run', '--input-file', inputFilePath, 
+       '--agent', 'test-agent', '--store-result'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(workflowResult.code).toBe(0);
+    // Should show workflow execution stages
+    expect(workflowResult.stdout).toMatch(/workflow|started|completed|step/i);
+    
+    // Should show IPFS storage completion
+    expect(workflowResult.stdout).toMatch(/stored|ipfs|cid/i);
+  });
+  
+  test('should fetch agent task results', async () => {
+    // Path to agent task definition
+    const taskFilePath = path.join(TEST_WORKSPACE, 'agent-task.json');
+    
+    // Run agent task
+    const agentTaskResult = await runCLI(
+      ['agent', 'task', '--file', taskFilePath],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(agentTaskResult.code).toBe(0);
+    expect(agentTaskResult.stdout).toMatch(/task|created|agent/i);
+    
+    // Should output task ID
+    const taskIdMatch = agentTaskResult.stdout.match(/Task ID: ([a-zA-Z0-9-]+)/);
+    expect(taskIdMatch).toBeTruthy();
+    
+    if (taskIdMatch && taskIdMatch[1]) {
+      const taskId = taskIdMatch[1];
+      
+      // Wait a bit for task to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get task result
+      const resultResult = await runCLI(
+        ['task', 'result', taskId],
+        { SK_MOCK_MODE: 'true' }
+      );
+      
+      expect(resultResult.code).toBe(0);
+      // Should contain summary or agent output
+      expect(resultResult.stdout.length).toBeGreaterThan(0);
+    }
+  });
+});

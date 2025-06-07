@@ -1,0 +1,106 @@
+FAIL test/e2e/cli/commands.test.js
+  CLI Core Commands (E2E with Mocks)
+    ✕ should display help information when called with --help (101 ms)
+    ✕ should display version information when called with --version (70 ms)
+    ✕ should return a non-zero exit code and error message for an unknown command (72 ms)
+    ✕ should execute the "model execute" command successfully using mocks (70 ms)
+    ✕ should handle "config set" and "config get" commands using mocks (74 ms)
+
+  ● CLI Core Commands (E2E with Mocks) › should display help information when called with --help
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      155 |
+      156 |     // Assert
+    > 157 |     expect(result.exitCode).toBe(0);
+          |                             ^
+      158 |     expect(result.stdout).toMatch(/Usage: swissknife \[command]/i); // Check for usage string
+      159 |     expect(result.stdout).toContain('Options:');
+      160 |     expect(result.stdout).toContain('Commands:');
+
+      at Object.toBe (test/e2e/cli/commands.test.js:157:29)
+
+  ● CLI Core Commands (E2E with Mocks) › should display version information when called with --version
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      173 |
+      174 |     // Assert
+    > 175 |     expect(result.exitCode).toBe(0);
+          |                             ^
+      176 |     // Match Semantic Version pattern
+      177 |     expect(result.stdout).toMatch(/\d+\.\d+\.\d+/);
+      178 |     expect(result.stderr).toBe('');
+
+      at Object.toBe (test/e2e/cli/commands.test.js:175:29)
+
+  ● CLI Core Commands (E2E with Mocks) › should return a non-zero exit code and error message for an unknown command
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /error: unknown command 'this-is-not-a-real-command'/i
+    Received string:  "node:internal/modules/cjs/loader:1404
+      throw err;
+      ^·
+    Error: Cannot find module '/home/barberb/swissknife/dist/cli.mjs'
+
+      188 |     // Assert
+      189 |     expect(result.exitCode).not.toBe(0); // Expect non-zero exit code
+    > 190 |     expect(result.stderr).toMatch(/error: unknown command 'this-is-not-a-real-command'/i); // Check stderr for error
+          |                           ^
+      191 |     expect(result.stdout).toBe(''); // Expect no stdout
+      192 |   });
+      193 |
+
+      at node:internal/main/run_main_module:36:49 {
+        code: 'MODULE_NOT_FOUND',
+        requireStack: []
+      }·
+      Node.js v22.15.0"
+      at Object.toMatch (test/e2e/cli/commands.test.js:190:27)
+
+  ● CLI Core Commands (E2E with Mocks) › should execute the "model execute" command successfully using mocks
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      209 |
+      210 |     // Assert
+    > 211 |     expect(result.exitCode).toBe(0);
+          |                             ^
+      212 |     expect(modelService.execute).toHaveBeenCalledTimes(1);
+      213 |     // Check if the correct prompt was passed (might need more specific task structure check)
+      214 |     // expect(modelService.execute).toHaveBeenCalledWith(expect.objectContaining({ prompt: prompt }), expect.anything());
+
+      at Object.toBe (test/e2e/cli/commands.test.js:211:29)
+
+  ● CLI Core Commands (E2E with Mocks) › should handle "config set" and "config get" commands using mocks
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      229 |
+      230 |     // Assert: Check set result and mock calls
+    > 231 |     expect(setResult.exitCode).toBe(0);
+          |                                ^
+      232 |     expect(setResult.stdout).toContain(`Set '${key}' to '${value}'`);
+      233 |     expect(configManagerInstance.set).toHaveBeenCalledWith(key, value);
+      234 |     expect(configManagerInstance.save).toHaveBeenCalled(); // Assume set triggers save
+
+      at Object.toBe (test/e2e/cli/commands.test.js:231:32)
+
+Test Suites: 1 failed, 1 total
+Tests:       5 failed, 5 total
+Snapshots:   0 total
+Time:        2.198 s
+Ran all test suites matching ./test/e2e/cli/commands.test.js.

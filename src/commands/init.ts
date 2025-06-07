@@ -34,6 +34,6 @@ If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (
       },
     ]
   },
-} satisfies Command
+};
 
 export default initCommand;

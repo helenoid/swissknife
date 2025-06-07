@@ -1,0 +1,18 @@
+import { BashTool } from '../../../../src/tools/BashTool/BashTool.ts';
+
+describe('BashTool', () => {
+  it('should have the correct name', () => {
+    expect(BashTool.name).toBe('bash');
+  });
+
+  it('should be enabled', async () => {
+    const enabled = await BashTool.isEnabled();
+    expect(enabled).toBe(true);
+  });
+
+  it("should not be read-only", () => {
+    expect(BashTool.isReadOnly()).toBe(false);
+  });
+
+  // Add more tests as needed
+});

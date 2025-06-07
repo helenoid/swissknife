@@ -1,0 +1,32 @@
+FAIL test/command-registry-simplified.test.js
+  CommandRegistry
+    ✕ registry can be instantiated (16 ms)
+    ✓ registry can register a command (3 ms)
+    ✓ registry warns when overwriting a command (1 ms)
+    ✓ registry returns undefined for non-existent commands (1 ms)
+    ✓ registry can list command names (5 ms)
+    ✓ registry can list all commands (3 ms)
+
+  ● CommandRegistry › registry can be instantiated
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "Initializing CommandRegistry..."
+
+    Number of calls: 0
+
+      69 |   test('registry can be instantiated', () => {
+      70 |     expect(registry).toBeDefined();
+    > 71 |     expect(logger.debug).toHaveBeenCalledWith('Initializing CommandRegistry...');
+         |                          ^
+      72 |   });
+      73 |
+      74 |   test('registry can register a command', () => {
+
+      at Object.toHaveBeenCalledWith (test/command-registry-simplified.test.js:71:26)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 5 passed, 6 total
+Snapshots:   0 total
+Time:        1.664 s, estimated 2 s
+Ran all test suites matching ./test/command-registry-simplified.test.js.

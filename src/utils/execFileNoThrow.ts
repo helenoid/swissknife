@@ -1,6 +1,6 @@
 import { execFile } from 'child_process'
-import { getCwd } from './state'
-import { logError } from './log'
+import { getCwd } from './state.js'
+import { logError } from './log.js'
 
 const MS_IN_SECOND = 1000
 const SECONDS_IN_MINUTE = 60

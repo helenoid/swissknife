@@ -1,0 +1,32 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@src/*": ["src/*"],
+      "@dist/*": ["dist/*"]
+    },
+    "allowJs": true,
+    "checkJs": false,
+    "types": ["node", "jest"],
+    "module": "NodeNext",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.mts",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+    "test/**/*.mts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

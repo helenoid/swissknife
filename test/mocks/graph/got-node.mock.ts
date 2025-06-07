@@ -1,0 +1,313 @@
+/**
+ * Graph-of-Thought Node Mock Implementation
+ * 
+ * This module provides a test-friendly implementation of the GoTNode class.
+ */
+
+const { v4: uuidv4 } = require('uuid');
+
+// Node type enum
+export type GoTNodeType = 'question' | 'task' | 'research' | 'analysis' | 'answer' | 'error' | 'intermediate' | 'hypothesis' | 'synthesis';
+
+export const GoTNodeTypeEnum = {
+  QUESTION: 'question',
+  TASK: 'task',
+  RESEARCH: 'research',
+  ANALYSIS: 'analysis',
+  ANSWER: 'answer',
+  ERROR: 'error',
+  INTERMEDIATE: 'intermediate',
+  HYPOTHESIS: 'hypothesis',
+  SYNTHESIS: 'synthesis'
+} as const;
+
+// Node status enum
+export type GoTNodeStatus = 'pending' | 'running' | 'completed' | 'failed' | 'blocked' | 'in_progress' | 'completed_success';
+
+export const GoTNodeStatusEnum = {
+  PENDING: 'pending',
+  RUNNING: 'running',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  BLOCKED: 'blocked',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED_SUCCESS: 'completed_success'
+} as const;
+
+// Node data interface type
+interface GoTNodeData {
+  source?: string;
+  assignedTo?: string;
+  timestamp?: number;
+  priority?: number;
+  requiresAllParents?: boolean;
+  [key: string]: any;
+}
+
+// Node creation options
+export interface GoTNodeOptions {
+  id?: string;
+  graphId?: string;
+  type: string;
+  content?: string;
+  parentIds?: string[];
+  childIds?: string[];
+  data?: GoTNodeData;
+  status?: string;
+  priority?: number;
+  createdAt?: number;
+  updatedAt?: number;
+  completedAt?: number;
+}
+
+/**
+ * Graph-of-Thought Node
+ * 
+ * Represents a node in the reasoning graph, which can be a question, task,
+ * analysis, or answer.
+ */
+export class GoTNode {
+  // Core properties
+  public id: string;
+  public graphId?: string;
+  public type: string;
+  public content: string;
+  public status: string;
+  public data: GoTNodeData;
+  public priority: number;
+  
+  // Timestamps
+  public createdAt: number;
+  public updatedAt: number;
+  public completedAt?: number;
+  
+  // Relationships
+  private _parentIds: Set<string>;
+  private _childIds: Set<string>;
+  
+  // Results
+  public result?: any;
+  public error?: string;
+  
+  /**
+   * Create a new GoT node
+   * 
+   * @param options Node creation options
+   */
+  constructor(options: GoTNodeOptions) {
+    this.id = options.id || uuidv4();
+    this.graphId = options.graphId;
+    this.type = options.type;
+    this.content = options.content || '';
+    this.status = options.status || GoTNodeStatusEnum.PENDING;
+    this.data = options.data || {};
+    this.priority = options.priority || 1;
+    
+    // Initialize timestamps
+    this.createdAt = options.createdAt || Date.now();
+    this.updatedAt = options.updatedAt || this.createdAt;
+    this.completedAt = options.completedAt;
+    
+    // Initialize relationships
+    this._parentIds = new Set(options.parentIds || []);
+    this._childIds = new Set(options.childIds || []);
+  }
+
+  // Getters for parentIds and childIds as arrays to match test expectations
+  get parentIds(): string[] {
+    return Array.from(this._parentIds);
+  }
+
+  get childIds(): string[] {
+    return Array.from(this._childIds);
+  }
+  
+  /**
+   * Update the status of the node
+   * 
+   * @param status New status
+   * @param error Optional error message for failed status
+   */
+  updateStatus(status: GoTNodeStatus, error?: string): void {
+    // Don't update timestamps if status hasn't changed
+    if (this.status === status) {
+      return;
+    }
+    
+    this.status = status;
+    this.updatedAt = Date.now();
+    
+    if (status === GoTNodeStatusEnum.COMPLETED || status === GoTNodeStatusEnum.COMPLETED_SUCCESS) {
+      this.completedAt = this.updatedAt;
+    } else if (status === GoTNodeStatusEnum.FAILED && error) {
+      this.error = error;
+    }
+  }
+  
+  /**
+   * Update the content of the node
+   * 
+   * @param content New content
+   */
+  updateContent(content: string): void {
+    this.content = content;
+    this.updatedAt = Date.now();
+  }
+  
+  /**
+   * Set the result of the node
+   * 
+   * @param result Node result
+   */
+  setResult(result: any): void {
+    this.result = result;
+    this.updatedAt = Date.now();
+    
+    // Automatically update status to completed if not already
+    if (this.status !== GoTNodeStatusEnum.COMPLETED && this.status !== GoTNodeStatusEnum.COMPLETED_SUCCESS) {
+      this.status = GoTNodeStatusEnum.COMPLETED;
+      this.completedAt = this.updatedAt;
+    }
+  }
+  
+  /**
+   * Add a parent node ID
+   * 
+   * @param parentId Parent node ID
+   */
+  addParent(parentId: string): void {
+    this._parentIds.add(parentId);
+    this.updatedAt = Date.now();
+  }
+  
+  /**
+   * Remove a parent node ID
+   * 
+   * @param parentId Parent node ID
+   */
+  removeParent(parentId: string): void {
+    this._parentIds.delete(parentId);
+    this.updatedAt = Date.now();
+  }
+  
+  /**
+   * Add a child node ID
+   * 
+   * @param childId Child node ID
+   */
+  addChild(childId: string): void {
+    this._childIds.add(childId);
+    this.updatedAt = Date.now();
+  }
+  
+  /**
+   * Remove a child node ID
+   * 
+   * @param childId Child node ID
+   */
+  removeChild(childId: string): void {
+    this._childIds.delete(childId);
+    this.updatedAt = Date.now();
+  }
+  
+  /**
+   * Check if the node is blocked by any parents
+   * 
+   * @returns True if blocked, false otherwise
+   */
+  isBlocked(): boolean {
+    return this.status === GoTNodeStatusEnum.BLOCKED;
+  }
+  
+  /**
+   * Check if the node is completed
+   * 
+   * @returns True if completed, false otherwise
+   */
+  isCompleted(): boolean {
+    return this.status === GoTNodeStatusEnum.COMPLETED || this.status === GoTNodeStatusEnum.COMPLETED_SUCCESS;
+  }
+  
+  /**
+   * Check if the node is a root node (has no parents)
+   * 
+   * @returns True if root, false otherwise
+   */
+  isRoot(): boolean {
+    return this._parentIds.size === 0;
+  }
+  
+  /**
+   * Check if the node is a leaf node (has no children)
+   * 
+   * @returns True if leaf, false otherwise
+   */
+  isLeaf(): boolean {
+    return this._childIds.size === 0;
+  }
+  
+  /**
+   * Update node data
+   * 
+   * @param data New data to merge
+   */
+  updateData(data: Partial<GoTNodeData>): void {
+    this.data = {
+      ...this.data,
+      ...data
+    };
+    this.updatedAt = Date.now();
+  }
+  
+  /**
+   * Serialize the node to a plain object
+   * 
+   * @returns Serialized node
+   */
+  toJSON(): Record<string, any> {
+    return {
+      id: this.id,
+      graphId: this.graphId,
+      type: this.type,
+      content: this.content,
+      status: this.status,
+      data: this.data,
+      priority: this.priority,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      completedAt: this.completedAt,
+      parentIds: this.parentIds,
+      childIds: this.childIds,
+      result: this.result,
+      error: this.error
+    };
+  }
+  
+  /**
+   * Create a node from a serialized object
+   * 
+   * @param json JSON representation of the node
+   * @returns Deserialized node
+   */
+  static fromJSON(json: Record<string, any>): GoTNode {
+    const node = new GoTNode({
+      id: json.id,
+      graphId: json.graphId,
+      type: json.type as GoTNodeTypeEnum,
+      content: json.content,
+      status: json.status as GoTNodeStatusEnum,
+      data: json.data,
+      priority: json.priority,
+      parentIds: json.parentIds,
+      childIds: json.childIds,
+      createdAt: json.createdAt,
+      updatedAt: json.updatedAt,
+      completedAt: json.completedAt
+    });
+    
+    node.result = json.result;
+    node.error = json.error;
+    
+    return node;
+  }
+}

@@ -1,0 +1,463 @@
+/**
+ * Benchmark Tests for Phase 3 Components
+ * 
+ * This file contains benchmark tests for core Phase 3 components:
+ * - FibonacciHeapScheduler
+ * - GraphOfThought
+ * - MerkleClock
+ * - TaskDecomposer
+ * - TaskSynthesizer
+ */
+
+const { performance } = require('perf_hooks');
+const FibonacciHeapScheduler = require('../../src/tasknet/scheduler/fibonacci-heap').FibonacciHeapScheduler;
+const GraphOfThought = require('../../src/tasknet/reasoning/graph-of-thought').GraphOfThought;
+const MerkleClock = require('../../src/tasknet/consistency/merkle-clock').MerkleClock;
+const TaskDecomposer = require('../../src/tasknet/decomposition/decomposer').TaskDecomposer;
+const TaskSynthesizer = require('../../src/tasknet/synthesis/synthesizer').TaskSynthesizer;
+
+/**
+ * Benchmark helper that measures execution time of a function
+ * @param {Function} fn - Function to benchmark
+ * @param {number} iterations - Number of iterations to run
+ * @returns {Object} Benchmark results with min, max, avg times
+ */
+async function benchmark(fn, iterations = 50) {
+  const times = [];
+  
+  for (let i = 0; i < iterations; i++) {
+    const start = performance.now();
+    await fn();
+    const end = performance.now();
+    times.push(end - start);
+  }
+  
+  const sum = times.reduce((a, b) => a + b, 0);
+  return {
+    min: Math.min(...times),
+    max: Math.max(...times),
+    avg: sum / times.length,
+    p95: times.sort((a, b) => a - b)[Math.floor(times.length * 0.95)],
+    p50: times.sort((a, b) => a - b)[Math.floor(times.length * 0.5)],
+    iterations
+  };
+}
+
+describe('Phase 3 Benchmark Tests', () => {
+  // FibonacciHeapScheduler benchmarks
+  describe('FibonacciHeapScheduler', () => {
+    let scheduler;
+    
+    beforeEach(() => {
+      // Create a scheduler with standard settings
+      scheduler = new FibonacciHeapScheduler({
+        maxPriority: 10,
+        defaultPriority: 5
+      });
+    });
+    
+    test('add() performance', async () => {
+      // Benchmark adding tasks with different priorities
+      const results = await benchmark(() => {
+        const priority = Math.floor(Math.random() * 10) + 1;
+        const taskId = `task-${Math.random().toString(36).substring(2, 10)}`;
+        scheduler.add(taskId, priority);
+      }, 1000); // More iterations for this lightweight operation
+      
+      console.log('FibonacciHeapScheduler.add() performance:', results);
+      
+      // Should be very fast
+      expect(results.avg).toBeLessThan(0.5); // Under 0.5ms
+    });
+    
+    test('extractNext() performance', async () => {
+      // First add a large number of tasks
+      for (let i = 0; i < 1000; i++) {
+        const priority = Math.floor(Math.random() * 10) + 1;
+        scheduler.add(`task-${i}`, priority);
+      }
+      
+      // Benchmark extracting tasks
+      const results = await benchmark(() => {
+        return scheduler.extractNext();
+      }, 200); // Fewer iterations as heap size changes
+      
+      console.log('FibonacciHeapScheduler.extractNext() performance:', results);
+      
+      // Should be logarithmic time complexity
+      expect(results.avg).toBeLessThan(1); // Should be under 1ms
+    });
+    
+    test('updatePriority() performance', async () => {
+      // Add tasks first
+      const taskIds = [];
+      for (let i = 0; i < 500; i++) {
+        const taskId = `task-${i}`;
+        scheduler.add(taskId, 5); // Default priority
+        taskIds.push(taskId);
+      }
+      
+      // Benchmark priority updates
+      const results = await benchmark(() => {
+        const randomIndex = Math.floor(Math.random() * taskIds.length);
+        const taskId = taskIds[randomIndex];
+        const newPriority = Math.floor(Math.random() * 10) + 1;
+        scheduler.updatePriority(taskId, newPriority);
+      }, 200);
+      
+      console.log('FibonacciHeapScheduler.updatePriority() performance:', results);
+      
+      // Priority updates require some heap manipulation
+      expect(results.avg).toBeLessThan(2); // Under 2ms
+    });
+    
+    test('performance under load', async () => {
+      // Test performance with a mix of operations
+      const results = await benchmark(async () => {
+        // Add 10 tasks
+        for (let i = 0; i < 10; i++) {
+          scheduler.add(`load-task-${Math.random()}`, Math.floor(Math.random() * 10) + 1);
+        }
+        
+        // Extract 3 tasks
+        for (let i = 0; i < 3; i++) {
+          scheduler.extractNext();
+        }
+        
+        // Update 2 priorities
+        const ids = scheduler.getIds();
+        if (ids.length >= 2) {
+          scheduler.updatePriority(ids[0], Math.floor(Math.random() * 10) + 1);
+          scheduler.updatePriority(ids[1], Math.floor(Math.random() * 10) + 1);
+        }
+      }, 50);
+      
+      console.log('FibonacciHeapScheduler mixed operations performance:', results);
+      
+      // Mixed operations should still be efficient
+      expect(results.avg).toBeLessThan(10); // Under 10ms for the mixed operations
+    });
+  });
+  
+  // GraphOfThought benchmarks
+  describe('GraphOfThought', () => {
+    let got;
+    
+    beforeEach(() => {
+      // Create a GraphOfThought instance with mock reasoning function
+      got = new GraphOfThought({
+        // Mock reasoning function that returns a simple result
+        reasoner: async (thought, context) => {
+          return {
+            id: `thought-${Math.random().toString(36).substring(2, 10)}`,
+            content: `Reasoning about: ${thought}`,
+            connections: []
+          };
+        },
+        maxDepth: 3,
+        branchingFactor: 2
+      });
+    });
+    
+    test('addThought() performance', async () => {
+      const results = await benchmark(async () => {
+        await got.addThought({
+          content: `Test thought ${Math.random()}`,
+          metadata: { source: 'benchmark' }
+        });
+      }, 50);
+      
+      console.log('GraphOfThought.addThought() performance:', results);
+      
+      // Adding a thought should be relatively quick
+      expect(results.avg).toBeLessThan(10); // Under 10ms
+    });
+    
+    test('explore() performance', async () => {
+      // Add a root thought
+      const root = await got.addThought({
+        content: 'Root thought for exploration benchmark',
+        metadata: { type: 'root' }
+      });
+      
+      // Benchmark exploration from this root
+      const results = await benchmark(async () => {
+        await got.explore(root.id, 2); // Explore with depth 2
+      }, 10); // Fewer iterations for more complex operation
+      
+      console.log('GraphOfThought.explore() performance:', results);
+      
+      // Exploration is more complex and depends on the reasoner
+      expect(results.avg).toBeLessThan(100); // Under 100ms with mock
+    });
+    
+    test('findPath() performance', async () => {
+      // Create a more complex graph first
+      const root = await got.addThought({ content: 'Root thought' });
+      await got.explore(root.id, 2); // Create some nodes
+      
+      // Add a target thought
+      const target = await got.addThought({ 
+        content: 'Target thought',
+        connections: [{ from: root.id, weight: 0.5 }]
+      });
+      
+      // Benchmark finding paths
+      const results = await benchmark(async () => {
+        return got.findPath(root.id, target.id);
+      }, 20);
+      
+      console.log('GraphOfThought.findPath() performance:', results);
+      
+      // Path finding complexity depends on graph size
+      expect(results.avg).toBeLessThan(50); // Under 50ms for small graph
+    });
+  });
+  
+  // MerkleClock benchmarks
+  describe('MerkleClock', () => {
+    let clock;
+    
+    beforeEach(() => {
+      // Create a MerkleClock instance
+      clock = new MerkleClock({
+        interval: 1000, // 1 second
+        initialEvents: []
+      });
+    });
+    
+    test('tick() performance', async () => {
+      const results = await benchmark(() => {
+        return clock.tick();
+      }, 100);
+      
+      console.log('MerkleClock.tick() performance:', results);
+      
+      // Tick operation computes hashes so should be efficient but not trivial
+      expect(results.avg).toBeLessThan(5); // Under 5ms
+    });
+    
+    test('recordEvent() performance', async () => {
+      const results = await benchmark(() => {
+        return clock.recordEvent({
+          type: 'benchmark',
+          data: { value: Math.random() },
+          timestamp: Date.now()
+        });
+      }, 100);
+      
+      console.log('MerkleClock.recordEvent() performance:', results);
+      
+      // Recording events involves Merkle tree updates
+      expect(results.avg).toBeLessThan(5); // Under 5ms
+    });
+    
+    test('verify() performance', async () => {
+      // Add a series of events first
+      for (let i = 0; i < 50; i++) {
+        clock.recordEvent({
+          type: 'test',
+          data: { value: i },
+          timestamp: Date.now() - (50 - i) * 1000
+        });
+      }
+      
+      // Generate a proof first
+      const state = clock.getState();
+      const events = clock.getEvents();
+      const randomIndex = Math.floor(Math.random() * events.length);
+      const testEvent = events[randomIndex];
+      const proof = clock.generateProof(testEvent.id);
+      
+      // Benchmark verification
+      const results = await benchmark(() => {
+        return clock.verify(testEvent, proof, state.root);
+      }, 50);
+      
+      console.log('MerkleClock.verify() performance:', results);
+      
+      // Verification should be efficient
+      expect(results.avg).toBeLessThan(10); // Under 10ms
+    });
+  });
+  
+  // TaskDecomposer benchmarks
+  describe('TaskDecomposer', () => {
+    let decomposer;
+    
+    beforeEach(() => {
+      // Create a TaskDecomposer with mock decomposition function
+      decomposer = new TaskDecomposer({
+        // Mock decomposition function
+        decompositionStrategy: async (task) => {
+          // Return 2-4 subtasks based on the main task
+          const subtaskCount = 2 + Math.floor(Math.random() * 3);
+          const subtasks = [];
+          
+          for (let i = 0; i < subtaskCount; i++) {
+            subtasks.push({
+              id: `subtask-${Math.random().toString(36).substring(2, 10)}`,
+              name: `Subtask ${i + 1} for ${task.name}`,
+              description: `Part of ${task.description}`,
+              type: task.type,
+              priority: task.priority - 1 + Math.floor(Math.random() * 3),
+              dependencies: i > 0 ? [subtasks[i-1].id] : []
+            });
+          }
+          
+          return subtasks;
+        },
+        maxDepth: 3
+      });
+    });
+    
+    test('decompose() performance', async () => {
+      // Test task
+      const task = {
+        id: 'benchmark-task',
+        name: 'Benchmark Task',
+        description: 'A task for benchmarking the decomposer',
+        type: 'benchmark',
+        priority: 5,
+        inputs: { complexity: 'medium' }
+      };
+      
+      // Benchmark with different depths
+      for (const depth of [1, 2, 3]) {
+        const results = await benchmark(async () => {
+          return await decomposer.decompose(task, depth);
+        }, 10); // Fewer iterations for complex operation
+        
+        console.log(`TaskDecomposer.decompose() performance (depth=${depth}):`, results);
+        
+        // Complexity increases with depth
+        expect(results.avg).toBeLessThan(50 * depth); // Scale with depth
+      }
+    });
+    
+    test('validateDecomposition() performance', async () => {
+      // Create a test decomposition
+      const task = {
+        id: 'validation-task',
+        name: 'Validation Task',
+        type: 'test'
+      };
+      
+      const decomposition = await decomposer.decompose(task, 2);
+      
+      // Benchmark validation
+      const results = await benchmark(() => {
+        return decomposer.validateDecomposition(task, decomposition);
+      }, 50);
+      
+      console.log('TaskDecomposer.validateDecomposition() performance:', results);
+      
+      // Validation should be relatively quick
+      expect(results.avg).toBeLessThan(10); // Under 10ms
+    });
+  });
+  
+  // TaskSynthesizer benchmarks
+  describe('TaskSynthesizer', () => {
+    let synthesizer;
+    
+    beforeEach(() => {
+      // Create a TaskSynthesizer with mock synthesis function
+      synthesizer = new TaskSynthesizer({
+        // Mock synthesis strategy
+        synthesisStrategies: {
+          sequential: async (results) => {
+            // Simple sequential combination
+            return {
+              type: 'text',
+              content: results.map(r => r.content || '').join('\n'),
+              metadata: {
+                strategy: 'sequential',
+                sourceCount: results.length
+              }
+            };
+          },
+          parallel: async (results) => {
+            // Simple parallel combination with summary
+            return {
+              type: 'text',
+              content: `Combined ${results.length} results in parallel`,
+              details: results.map(r => r.content || ''),
+              metadata: {
+                strategy: 'parallel',
+                sourceCount: results.length
+              }
+            };
+          }
+        },
+        defaultStrategy: 'sequential'
+      });
+    });
+    
+    test('synthesize() performance', async () => {
+      // Generate test results to synthesize
+      const generateResults = (count) => {
+        const results = [];
+        for (let i = 0; i < count; i++) {
+          results.push({
+            taskId: `task-${i}`,
+            content: `Result from task ${i}: ${Math.random()}`,
+            type: 'text',
+            metadata: { source: 'benchmark' }
+          });
+        }
+        return results;
+      };
+      
+      // Test with different result set sizes
+      for (const count of [5, 20, 50]) {
+        const results = await benchmark(async () => {
+          const testResults = generateResults(count);
+          return synthesizer.synthesize(testResults, 'sequential');
+        }, 20);
+        
+        console.log(`TaskSynthesizer.synthesize() performance (${count} results):`, results);
+        
+        // Synthesis time should scale with input size
+        expect(results.avg).toBeLessThan(20 + count * 0.5); // Base time + scaling factor
+      }
+      
+      // Test different strategies
+      for (const strategy of ['sequential', 'parallel']) {
+        const results = await benchmark(async () => {
+          const testResults = generateResults(10);
+          return synthesizer.synthesize(testResults, strategy);
+        }, 20);
+        
+        console.log(`TaskSynthesizer.synthesize() performance (${strategy}):`, results);
+        
+        // Different strategies may have different performance characteristics
+        expect(results.avg).toBeLessThan(30); // Under 30ms
+      }
+    });
+    
+    test('validateSynthesisInput() performance', async () => {
+      // Generate test results of different sizes
+      for (const count of [10, 50, 100]) {
+        const testResults = [];
+        for (let i = 0; i < count; i++) {
+          testResults.push({
+            taskId: `task-${i}`,
+            content: `Result ${i}`,
+            type: i % 3 === 0 ? 'text' : (i % 3 === 1 ? 'json' : 'binary'),
+            metadata: { benchmark: true }
+          });
+        }
+        
+        const results = await benchmark(() => {
+          return synthesizer.validateSynthesisInput(testResults);
+        }, 50);
+        
+        console.log(`TaskSynthesizer.validateSynthesisInput() performance (${count} results):`, results);
+        
+        // Validation should scale linearly but remain efficient
+        expect(results.avg).toBeLessThan(5 + count * 0.1); // Base time + scaling factor
+      }
+    });
+  });
+});

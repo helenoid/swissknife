@@ -1,0 +1,145 @@
+// Mock global config functions
+const getGlobalConfig = jest.fn().mockReturnValue({});
+const saveGlobalConfig = jest.fn().mockImplementation(() => Promise.resolve());
+const addApiKey = jest.fn().mockImplementation(() => Promise.resolve());
+// MCP deployment manager test with Jest
+// This file tests the deployment manager with specialized Jest configuration
+
+/**
+ * @jest-environment node
+ */
+
+
+// Mock the registry
+jest.mock('../../src/services/mcp-registry.js', () => {
+  const mockServerRegistry = {
+    initialize: jest.fn().mockResolvedValue(undefined),
+    registerServer: jest.fn(),
+    getServerVersion: jest.fn(),
+    getBlueVersion: jest.fn(),
+    updateServerStatus: jest.fn().mockReturnValue(true),
+    updateTrafficPercentage: jest.fn().mockReturnValue(true),
+    getServerVersions: jest.fn(),
+    getVersionHistory: jest.fn(),
+    recordRollback: jest.fn(),
+    removeServerVersion: jest.fn(),
+    getRollbackHistory: jest.fn(),
+    getHealthStatus: jest.fn().mockReturnValue({
+      isHealthy: true,
+      lastCheck: Date.now(),
+      consecutiveFailures: 0,
+      consecutiveSuccesses: 3,
+    }),
+    on: jest.fn(),
+    emit: jest.fn(),
+  };
+  
+  return {
+    ServerRegistry: {
+      getInstance: jest.fn().mockReturnValue(mockServerRegistry)
+    }
+  };
+});
+
+// Mock configuration utilities
+const configValues = {
+  getCurrentProjectConfig: { mcpServers: {} },
+  getGlobalConfig: { mcpServers: {} },
+  getMcprcConfig: {}
+};
+
+jest.mock('../../src/utils/config.js', () => ({
+  getCurrentProjectConfig: jest.fn(() => configValues.getCurrentProjectConfig),
+  getGlobalConfig: jest.fn(() => configValues.getGlobalConfig),
+  getMcprcConfig: jest.fn(() => configValues.getMcprcConfig),
+}));
+
+// Mock logging
+jest.mock('../../src/utils/log.js', () => ({
+  logEvent: jest.fn(),
+  logError: jest.fn(),
+}));
+
+describe('DeploymentManager - Simple Tests', () => {
+  let deploymentManager;
+  let mockRegistry;
+  
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    
+    // Get singleton instance
+    deploymentManager = DeploymentManager.getInstance();
+    mockRegistry = ServerRegistry.getInstance();
+    
+    // Initialize the manager
+    await deploymentManager.initialize();
+  });
+  
+  it('should return the same instance (singleton pattern)', () => {
+    const instance1 = DeploymentManager.getInstance();
+    const instance2 = DeploymentManager.getInstance();
+    expect(instance1).toBe(instance2);
+  });
+  
+  it('should initialize and ensure registry is initialized', () => {
+    expect(mockRegistry.initialize).toHaveBeenCalled();
+  });
+  
+  it('should deploy a new version as green with 0% traffic by default', async () => {
+    // Mock registry responses
+    mockRegistry.getServerVersion.mockReturnValue(undefined); // Version doesn't exist yet
+    
+    // Deploy the version
+    const result = await deploymentManager.deployVersion(
+      'test-server',
+      '1.0.0',
+      {
+        type: 'stdio',
+        command: 'echo',
+        args: ['test'],
+      }
+    );
+    
+    expect(result).toBe(true);
+    
+    // Check registry calls
+    expect(mockRegistry.registerServer).toHaveBeenCalledWith(
+      'test-server',
+      expect.objectContaining({
+        type: 'stdio',
+        command: 'echo',
+        args: ['test'],
+        version: '1.0.0',
+        status: 'green',
+        trafficPercentage: 0,
+      })
+    );
+  });
+  
+  it('should promote a version to blue and give it 100% traffic', async () => {
+    // Mock version
+    mockRegistry.getServerVersion.mockReturnValue({
+      version: '1.0.0',
+      status: 'green',
+      trafficPercentage: 30,
+    });
+    
+    // Promote to blue
+    const result = await deploymentManager.promoteToBlue('test-server', '1.0.0');
+    
+    expect(result).toBe(true);
+    
+    // Check registry calls
+    expect(mockRegistry.updateServerStatus).toHaveBeenCalledWith(
+      'test-server',
+      '1.0.0',
+      'blue'
+    );
+    
+    expect(mockRegistry.updateTrafficPercentage).toHaveBeenCalledWith(
+      'test-server',
+      '1.0.0',
+      100
+    );
+  });
+});

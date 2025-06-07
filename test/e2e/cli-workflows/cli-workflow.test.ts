@@ -1,3 +1,6 @@
+// Mock temp directory helpers
+const createTempTestDir = jest.fn().mockImplementation((name) => `/tmp/test-${name}-${Date.now()}`);
+const removeTempTestDir = jest.fn().mockImplementation(async (dir) => Promise.resolve());
 /**
  * End-to-End Tests for Basic CLI Workflows
  *
@@ -13,11 +16,8 @@ import * as path from 'path';
 import * as childProcess from 'child_process';
 import * as util from 'util';
 import * as fs from 'fs/promises'; // Use imported fs
-// Assuming these helpers exist and function correctly - Add .js extension
-// Import only existing helpers
-import { createTempTestDir, removeTempTestDir, mockEnv, waitFor } from '../../helpers/testUtils.js';
-// Assuming this fixture generator exists
-import { generateConfigFixtures } from '../../helpers/fixtures.js'; // Add .js extension if needed
+import { createTempTestDir, removeTempTestDir, waitFor, generateConfigFixtures } from '../utils/test-helpers.ts'; // Assuming these helpers exist and function correctly - Add .ts extension
+import { mockEnv } from '../helpers/testUtils.ts'; // Assuming this fixture generator exists - Add .ts extension
 
 // Promisify exec for async/await usage
 const exec = util.promisify(childProcess.exec);

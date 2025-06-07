@@ -12,26 +12,26 @@ import {
   addMcpServer as addOriginalMcpServer,
   removeMcpServer as removeOriginalMcpServer,
   McpServerConfig
-} from './mcpClient';
+} from './mcpClient.js';
 import { 
   ServerRegistry 
-} from './mcp-registry';
+} from './mcp-registry.js';
 import {
   TrafficManager
-} from './mcp-traffic-manager';
+} from './mcp-traffic-manager.js';
 import { 
   VersionedServerConfig 
-} from './mcp-types';
+} from './mcp-types.js';
 import { 
   logEvent, 
   logError 
-} from '../utils/log';
+} from '../utils/log.js';
 import {
   Tool
-} from '../Tool';
+} from '../Tool.js';
 import {
   MCPTool
-} from '../tools/MCPTool/MCPTool';
+} from '../tools/MCPTool/MCPTool.js';
 import {
   Client
 } from '@modelcontextprotocol/sdk/client/index.js';
@@ -50,7 +50,7 @@ import {
   ToolResultBlockParam,
 } from '@anthropic-ai/sdk/resources/index.mjs';
 
-import { memoize } from 'lodash-es';
+import { memoize } from 'lodash-es.js';
 
 /**
  * Client with version information

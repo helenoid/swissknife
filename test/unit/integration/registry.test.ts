@@ -1,5 +1,7 @@
-import { IntegrationRegistry, IntegrationBridge, SystemType } from '../../../src/integration/registry';
-import { expect } from 'chai';
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 import * as sinon from 'sinon';
 
 /**
@@ -91,9 +93,9 @@ describe('Integration Registry', () => {
     registry.registerBridge(mockBridge);
     const retrievedBridge = registry.getBridge('mock-bridge');
     
-    expect(retrievedBridge).to.equal(mockBridge);
-    expect(registry.getAllBridges()).to.have.lengthOf(1);
-    expect(registry.getAllBridges()[0]).to.equal(mockBridge);
+    expect(retrievedBridge).toBe(mockBridge);
+    expect(registry.getAllBridges()).toHaveLength(1);
+    expect(registry.getAllBridges()[0]).toBe(mockBridge);
   });
   
   it('should retrieve bridges by source and target', () => {
@@ -105,21 +107,21 @@ describe('Integration Registry', () => {
     registry.registerBridge(mockBridge3);
     
     const currentSourceBridges = registry.getBridgesBySource('current');
-    expect(currentSourceBridges).to.have.lengthOf(2);
-    expect(currentSourceBridges).to.include(mockBridge);
-    expect(currentSourceBridges).to.include(mockBridge2);
+    expect(currentSourceBridges).toHaveLength(2);
+    expect(currentSourceBridges).toContain(mockBridge);
+    expect(currentSourceBridges).toContain(mockBridge2);
     
     const currentTargetBridges = registry.getBridgesByTarget('current');
-    expect(currentTargetBridges).to.have.lengthOf(1);
-    expect(currentTargetBridges).to.include(mockBridge3);
+    expect(currentTargetBridges).toHaveLength(1);
+    expect(currentTargetBridges).toContain(mockBridge3);
   });
   
   it('should initialize a bridge', async () => {
     registry.registerBridge(mockBridge);
     const success = await registry.initializeBridge('mock-bridge');
     
-    expect(success).to.be.true;
-    expect(mockBridge.isInitialized()).to.be.true;
+    expect(success).toBe(true);
+    expect(mockBridge.isInitialized()).toBe(true);
   });
   
   it('should initialize all bridges', async () => {
@@ -130,11 +132,11 @@ describe('Integration Registry', () => {
     
     const results = await registry.initializeAllBridges();
     
-    expect(results.size).to.equal(2);
-    expect(results.get('mock-bridge')).to.be.true;
-    expect(results.get('mock-bridge-2')).to.be.true;
-    expect(mockBridge.isInitialized()).to.be.true;
-    expect(mockBridge2.isInitialized()).to.be.true;
+    expect(results.size).toBe(2);
+    expect(results.get('mock-bridge')).toBe(true);
+    expect(results.get('mock-bridge-2')).toBe(true);
+    expect(mockBridge.isInitialized()).toBe(true);
+    expect(mockBridge2.isInitialized()).toBe(true);
   });
   
   it('should handle bridge initialization failure', async () => {
@@ -143,8 +145,8 @@ describe('Integration Registry', () => {
     
     const success = await registry.initializeBridge('mock-bridge');
     
-    expect(success).to.be.false;
-    expect(mockBridge.isInitialized()).to.be.false;
+    expect(success).toBe(false);
+    expect(mockBridge.isInitialized()).toBe(false);
   });
   
   it('should throw for unknown bridge', async () => {
@@ -152,14 +154,14 @@ describe('Integration Registry', () => {
       await registry.initializeBridge('unknown-bridge');
       expect.fail('Should have thrown');
     } catch (error) {
-      expect(error.message).to.include('Bridge not found');
+      expect(error.message).toContain('Bridge not found');
     }
     
     try {
       await registry.callBridge('unknown-bridge', 'echo', {});
       expect.fail('Should have thrown');
     } catch (error) {
-      expect(error.message).to.include('Bridge not found');
+      expect(error.message).toContain('Bridge not found');
     }
   });
   
@@ -170,7 +172,7 @@ describe('Integration Registry', () => {
     const testData = { test: 'value' };
     const result = await registry.callBridge<typeof testData>('mock-bridge', 'echo', testData);
     
-    expect(result).to.deep.equal(testData);
+    expect(result).toEqual(testData);
   });
   
   it('should throw if bridge is not initialized', async () => {
@@ -180,7 +182,7 @@ describe('Integration Registry', () => {
       await registry.callBridge('mock-bridge', 'echo', {});
       expect.fail('Should have thrown');
     } catch (error) {
-      expect(error.message).to.include('not initialized');
+      expect(error.message).toContain('not initialized');
     }
   });
   
@@ -192,7 +194,7 @@ describe('Integration Registry', () => {
       await registry.callBridge('mock-bridge', 'error', {});
       expect.fail('Should have thrown');
     } catch (error) {
-      expect(error.message).to.equal('Test error');
+      expect(error.message).toBe('Test error');
     }
   });
   
@@ -207,11 +209,11 @@ describe('Integration Registry', () => {
     
     // Registration
     registry.registerBridge(mockBridge);
-    expect(registeredSpy.calledWith('mock-bridge')).to.be.true;
+    expect(registeredSpy.calledWith('mock-bridge')).toBe(true);
     
     // Initialization
     await registry.initializeBridge('mock-bridge');
-    expect(initializedSpy.calledWith({ id: 'mock-bridge', success: true })).to.be.true;
+    expect(initializedSpy.calledWith({ id: 'mock-bridge', success: true })).toBe(true);
     
     // Error
     mockBridge.setCallError('error', new Error('Test error'));
@@ -222,6 +224,6 @@ describe('Integration Registry', () => {
       // Expected error
     }
     
-    expect(errorSpy.called).to.be.true;
+    expect(errorSpy.called).toBe(true);
   });
 });

@@ -1,0 +1,242 @@
+[0;34m[INFO] ======================================================[0m
+[0;34m[INFO] 🧪 MCP Server Test Suite - Final Solution[0m
+[0;34m[INFO] ======================================================[0m
+[0;34m[INFO] Started at: Mon May 12 06:41:32 PM PDT 2025[0m
+[0;34m[INFO] Log file: ./test-logs/mcp_test_20250512_184132.log[0m
+[0;34m[INFO] Checking environment...[0m
+[0;34m[INFO] Node.js version: v22.15.0[0m
+[0;34m[INFO] Checking for required NPM packages...[0m
+[0;34m[INFO] Building project...[0m
+
+> swissknife@0.0.53 build
+> mkdir -p temp && node --no-warnings=ExperimentalWarning ./build-wrapper.js
+
+Building simplified SwissKnife CLI...
+Created simplified CLI file successfully!
+[0;34m[INFO] Created test directory: /tmp/tmp.rJZB3slOA0[0m
+[0;34m[INFO] Creating test client at /tmp/tmp.rJZB3slOA0/mcp-test-client.js[0m
+[0;34m[INFO] Found MCP server at: dist/src/entrypoints/mcp.js[0m
+[0;34m[INFO] Running MCP server basic tests...[0m
+[0;31m[ERROR] MCP server basic tests failed[0m
+[0;34m[INFO] Client output:[0m
+First import attempt failed: Cannot find module '/home/barberb/swissknife/node_modules/@modelcontextprotocol/sdk/dist/client/index.js'
+Require stack:
+- /tmp/tmp.rJZB3slOA0/mcp-test-client.js
+Second import attempt failed: Cannot find module '@modelcontextprotocol/sdk/client/index.js'
+Require stack:
+- /tmp/tmp.rJZB3slOA0/mcp-test-client.js
+All import attempts failed:
+Error 1: Cannot find module '/home/barberb/swissknife/node_modules/@modelcontextprotocol/sdk/dist/client/index.js'
+Require stack:
+- /tmp/tmp.rJZB3slOA0/mcp-test-client.js
+Error 2: Cannot find module '@modelcontextprotocol/sdk/client/index.js'
+Require stack:
+- /tmp/tmp.rJZB3slOA0/mcp-test-client.js
+Error 3: Cannot find module '@modelcontextprotocol/sdk/client/index'
+Require stack:
+- /tmp/tmp.rJZB3slOA0/mcp-test-client.js
+[0;31m[ERROR] Module resolution error detected[0m
+[0;34m[INFO] Trying to resolve module issues...[0m
+[0;34m[INFO] Created symlink to node_modules in test directory[0m
+[0;34m[INFO] Retrying with fixed module paths...[0m
+[0;31m[ERROR] MCP server tests still failing after module resolution fix[0m
+First import attempt failed: Cannot find module '/home/barberb/swissknife/node_modules/@modelcontextprotocol/sdk/dist/client/index.js'
+Require stack:
+- /tmp/tmp.rJZB3slOA0/mcp-test-client.js
+Testing MCP server
+Server path: /home/barberb/swissknife/dist/src/entrypoints/mcp.js
+Work dir: /tmp/tmp.rJZB3slOA0
+Creating transport...
+Creating client...
+Connecting to server...
+Error testing MCP server: McpError: MCP error -32000: Connection closed
+    at Client._onclose (/home/barberb/swissknife/node_modules/@modelcontextprotocol/sdk/dist/cjs/shared/protocol.js:101:23)
+    at _transport.onclose (/home/barberb/swissknife/node_modules/@modelcontextprotocol/sdk/dist/cjs/shared/protocol.js:73:18)
+    at ChildProcess.<anonymous> (/home/barberb/swissknife/node_modules/@modelcontextprotocol/sdk/dist/cjs/client/stdio.js:97:77)
+    at ChildProcess.emit (node:events:518:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: -32000,
+  data: undefined
+}
+[0;34m[INFO] Running MCP server unit tests...[0m
+[0;31m[ERROR] MCP server unit tests failed[0m
+FAIL test/unit/mcp-server/mcp-server.test.ts
+  ● MCP Server › Server reports expected capabilities
+
+    McpError: MCP error -32000: Connection closed
+
+      at Client._onclose (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:312:19)
+      at StdioClientTransport._onclose [as onclose] (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:283:12)
+      at ChildProcess.call (node_modules/@modelcontextprotocol/sdk/src/client/stdio.ts:150:21)
+
+  ● MCP Server › Server lists available tools
+
+    McpError: MCP error -32000: Connection closed
+
+      at Client._onclose (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:312:19)
+      at StdioClientTransport._onclose [as onclose] (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:283:12)
+      at ChildProcess.call (node_modules/@modelcontextprotocol/sdk/src/client/stdio.ts:150:21)
+
+  ● MCP Server › Server can execute bash tool
+
+    McpError: MCP error -32000: Connection closed
+
+      at Client._onclose (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:312:19)
+      at StdioClientTransport._onclose [as onclose] (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:283:12)
+      at ChildProcess.call (node_modules/@modelcontextprotocol/sdk/src/client/stdio.ts:150:21)
+
+  ● MCP Server › Server can execute fileRead tool
+
+    McpError: MCP error -32000: Connection closed
+
+      at Client._onclose (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:312:19)
+      at StdioClientTransport._onclose [as onclose] (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:283:12)
+      at ChildProcess.call (node_modules/@modelcontextprotocol/sdk/src/client/stdio.ts:150:21)
+
+  ● MCP Server › Server returns error for invalid tool
+
+    McpError: MCP error -32000: Connection closed
+
+      at Client._onclose (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:312:19)
+      at StdioClientTransport._onclose [as onclose] (node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:283:12)
+      at ChildProcess.call (node_modules/@modelcontextprotocol/sdk/src/client/stdio.ts:150:21)
+
+
+  ● Test suite failed to run
+
+    TypeError: client.disconnect is not a function
+
+      65 |     // Disconnect the client
+      66 |     if (client) {
+    > 67 |       await client.disconnect();
+         |                    ^
+      68 |     }
+      69 |     
+      70 |     // Kill the server process
+
+      at Object.disconnect (test/unit/mcp-server/mcp-server.test.ts:67:20)
+
+Test Suites: 1 failed, 1 total
+Tests:       5 failed, 5 total
+Snapshots:   0 total
+Time:        1.833 s, estimated 2 s
+Ran all test suites matching /test\/unit\/mcp-server\/mcp-server.test.ts/i.
+Jest did not exit one second after the test run has completed.
+
+'This usually means that there are asynchronous operations that weren't stopped in your tests. Consider running Jest with `--detectOpenHandles` to troubleshoot this issue.
+[0;34m[INFO] Running enhanced MCP server tests...[0m
+[0;31m[ERROR] Enhanced MCP server tests failed[0m
+  console.log
+    ✓ Node.js version: v22.15.0
+
+      at log (test/unit/mcp-server/enhanced-mcp-server.test.ts:38:13)
+
+  console.log
+    ✓ Found @modelcontextprotocol/sdk version: undefined
+
+      at log (test/unit/mcp-server/enhanced-mcp-server.test.ts:43:13)
+
+  console.log
+    [2025-05-13T01:42:40.742Z] [INFO] Attempting to build project...
+
+      at log (test/unit/mcp-server/enhanced-mcp-server.test.ts:60:15)
+
+
+> swissknife@0.0.53 build
+> mkdir -p temp && node --no-warnings=ExperimentalWarning ./build-wrapper.js
+
+Building simplified SwissKnife CLI...
+Created simplified CLI file successfully!
+FAIL test/unit/mcp-server/enhanced-mcp-server.test.ts
+  Enhanced MCP Server Integration Tests
+    Server Process Lifecycle
+      ✕ should start the MCP server process successfully (2 ms)
+      ✕ should expose expected tools via SDK Client
+
+  ● Enhanced MCP Server Integration Tests › Server Process Lifecycle › should start the MCP server process successfully
+
+    Server entrypoint not found at /home/barberb/swissknife/dist/entrypoints/mcp.js. Build failed.
+
+      102 |       
+      103 |       if (!buildStatus || !fs.existsSync(CONFIG.serverEntrypoint)) {
+    > 104 |         throw new Error(`Server entrypoint not found at ${CONFIG.serverEntrypoint}. Build failed.`);
+          |               ^
+      105 |       }
+      106 |     }
+      107 |     
+
+      at Object.<anonymous> (test/unit/mcp-server/enhanced-mcp-server.test.ts:104:15)
+
+  ● Enhanced MCP Server Integration Tests › Server Process Lifecycle › should expose expected tools via SDK Client
+
+    Server entrypoint not found at /home/barberb/swissknife/dist/entrypoints/mcp.js. Build failed.
+
+      102 |       
+      103 |       if (!buildStatus || !fs.existsSync(CONFIG.serverEntrypoint)) {
+    > 104 |         throw new Error(`Server entrypoint not found at ${CONFIG.serverEntrypoint}. Build failed.`);
+          |               ^
+      105 |       }
+      106 |     }
+      107 |     
+
+      at Object.<anonymous> (test/unit/mcp-server/enhanced-mcp-server.test.ts:104:15)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 2 total
+Snapshots:   0 total
+Time:        1.072 s
+Ran all test suites matching /test\/unit\/mcp-server\/enhanced-mcp-server.test.ts/i.
+[0;34m[INFO] Running Python diagnostic tool...[0m
+[0;33m[WARNING] Python diagnostic detected issues[0m
+
+[1m[94mMCP Server Diagnostic Tool[0m
+========================================
+
+[2025-05-12T18:42:41.181] [94m[INFO][0m Starting MCP server diagnostics
+[2025-05-12T18:42:41.181] [94m[INFO][0m Running command: node --version
+[2025-05-12T18:42:41.187] [94m[INFO][0m Node.js version: v22.15.0
+[2025-05-12T18:42:41.187] [94m[INFO][0m Running command: npm list @modelcontextprotocol/sdk --json --depth=0
+[2025-05-12T18:42:42.275] [92m[SUCCESS][0m @modelcontextprotocol/sdk found: version 1.11.2
+[2025-05-12T18:42:42.275] [94m[INFO][0m Found MCP server at: dist/src/entrypoints/mcp.js
+[2025-05-12T18:42:42.276] [94m[INFO][0m Created test client at: /tmp/tmpvzrlymxb.js
+[2025-05-12T18:42:42.276] [94m[INFO][0m Running command: node /tmp/tmpvzrlymxb.js /home/barberb/swissknife/dist/src/entrypoints/mcp.js /tmp/tmp.rJZB3slOA0
+[2025-05-12T18:42:42.322] [91m[ERROR][0m Failed to connect to MCP server after 0.05s
+[2025-05-12T18:42:42.322] [91m[ERROR][0m Module import/require error - possible ESM/CommonJS conflict
+[2025-05-12T18:42:42.323] [94m[INFO][0m Diagnostic report saved to: /tmp/tmp.rJZB3slOA0/python-diagnostic.json
+
+============================================================
+[1mMCP Server Diagnostic Summary[0m
+============================================================
+Total checks run: 11
+Overall status: [93mWARNING[0m
+Issues found: [93m2[0m
+
+Recommendations:
+  1. Check for ESM/CommonJS compatibility issues in the MCP server
+
+============================================================
+[0;34m[INFO] Diagnostic recommendations:[0m
+  "recommendations": [
+    "Check for ESM/CommonJS compatibility issues in the MCP server"
+  ],
+  "summary": {
+    "total_checks": 10,
+    "issues_found": 2,
+    "recommendations": 1
+  },
+  "severity": "WARNING",
+  "error_analysis": {
+    "failed": 1,
+    "error": 1
+  }
+}
+[0;34m[INFO] Creating Python MCP server for comparison...[0m
+[0;34m[INFO] Testing Python MCP server...[0m
+[0;32m[SUCCESS] Python MCP server tests passed[0m
+[0;34m[INFO] Generating test report...[0m
+[0;34m[INFO] Test report generated: mcp_test_report_20250512_184132.md[0m
+[0;34m[INFO] Cleaning up...[0m
+[0;32m[SUCCESS] All tests completed![0m
+[0;34m[INFO] Test report: mcp_test_report_20250512_184132.md[0m
+[0;34m[INFO] Test log: ./test-logs/mcp_test_20250512_184132.log[0m

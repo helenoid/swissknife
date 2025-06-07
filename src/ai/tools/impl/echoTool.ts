@@ -4,7 +4,7 @@ import {
   ToolInput,
   ToolOutput,
 } from '../../../types/ai.js'; // Use relative paths
-import { z } from 'zod'; // Import Zod
+import { z } from 'zod.js'; // Import Zod
 
 // Define the Zod schema for the input
 const EchoInputSchema = z.object({

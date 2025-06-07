@@ -1,10 +1,10 @@
 import { last } from 'lodash-es'
-import type { Message } from '../query'
-import { logEvent } from '../services/statsig'
-import { getLastAssistantMessageId } from './messages'
-import { ThinkTool } from '../tools/ThinkTool/ThinkTool'
-import { USE_BEDROCK, USE_VERTEX } from './model'
-import { getGlobalConfig } from './config'
+import type { Message } from '../query.js'
+import { logEvent } from '../services/statsig.js'
+import { getLastAssistantMessageId } from './messages.js'
+import { ThinkTool } from '../tools/ThinkTool/ThinkTool.js'
+import { USE_BEDROCK, USE_VERTEX } from './model.js'
+import { getGlobalConfig } from './config.js'
 
 export async function getMaxThinkingTokens(
   messages: Message[],

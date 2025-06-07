@@ -1,16 +1,18 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 /**
  * Mock storage provider implementation for testing
  */
+import { StorageProvider, StorageItemMetadata, ListOptions, AddOptions } from '../../src/types/storage.js';
+import { CID, JSONValue } from '../../src/types/common.js';
 
 /**
  * Interface representing a content-addressable storage provider
  */
-export interface MockStorageProvider {
-  add(content: string | Buffer): Promise<string>; // Returns CID
-  get(cid: string): Promise<Buffer>;
-  list(options?: { prefix?: string; limit?: number; recursive?: boolean }): Promise<string[]>;
-  delete(cid: string): Promise<boolean>;
-  exists(cid: string): Promise<boolean>;
+export interface MockStorageProvider extends StorageProvider {
+  // Additional methods for test convenience
   storeTask(task: any): Promise<void>;
   getTask(taskId: string): Promise<any | null>;
   updateTask(task: any): Promise<void>;
@@ -24,13 +26,23 @@ export interface MockStorageProvider {
  */
 export function createMockStorage(): MockStorageProvider {
   const storage = new Map<string, Buffer>();
+  const metadata = new Map<string, StorageItemMetadata>();
   const tasks = new Map<string, any>();
   
   return {
-    async add(content: string | Buffer): Promise<string> {
+    async add(content: string | Buffer, options?: AddOptions): Promise<string> {
       const data = typeof content === 'string' ? Buffer.from(content) : content;
       const cid = `mock-cid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       storage.set(cid, data);
+      
+      // Store metadata
+      metadata.set(cid, {
+        contentType: options?.contentType || 'application/octet-stream',
+        size: data.length,
+        createdAt: Date.now(),
+        tags: options?.tags || []
+      });
+      
       return cid;
     },
     
@@ -42,7 +54,7 @@ export function createMockStorage(): MockStorageProvider {
       return content;
     },
     
-    async list(options: { prefix?: string; limit?: number; recursive?: boolean } = {}): Promise<string[]> {
+    async list(options: ListOptions = {}): Promise<{ cids: string[], metadata?: StorageItemMetadata[] }> {
       const { prefix = '', limit } = options;
       
       let results = Array.from(storage.keys())

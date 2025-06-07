@@ -1,0 +1,145 @@
+/**
+ * Mock bridge implementations for integration testing (universal module)
+ */
+import { EventEmitter } from 'events';
+
+/**
+ * Creates a mock Goose bridge for testing
+ */
+function createMockGooseBridge() {
+  return {
+    id: 'goose',
+    name: 'Mock Goose Bridge',
+    call: jest.fn().mockImplementation(async (method, params) => {
+      if (method === 'locate') {
+        return {
+          result: {
+            files: [
+              { path: '/mock/path/file1.js', matches: [] },
+              { path: '/mock/path/file2.js', matches: [] }
+            ]
+          }
+        };
+      }
+      
+      if (method === 'read') {
+        return {
+          result: {
+            content: '// Mock file content\nconst test = "This is mock content";\n'
+          }
+        };
+      }
+      
+      if (method === 'edit') {
+        return { result: { success: true } };
+      }
+      
+      return { result: `Mock result for ${method}` };
+    })
+  };
+}
+
+/**
+ * Creates a mock VS Code bridge for testing
+ */
+function createMockVSCodeBridge() {
+  return {
+    id: 'vscode',
+    name: 'Mock VS Code Bridge',
+    call: jest.fn().mockImplementation(async (method, params) => {
+      if (method === 'getWorkspaceInfo') {
+        return {
+          result: {
+            folders: [
+              { path: '/mock/workspace', name: 'mock-workspace' }
+            ],
+            openFiles: [
+              { path: '/mock/workspace/index.js', languageId: 'javascript' }
+            ]
+          }
+        };
+      }
+      
+      return { result: `Mock result for ${method}` };
+    })
+  };
+}
+
+/**
+ * Creates a mock general bridge implementation for testing
+ */
+function createMockBridge(id = 'mock-bridge', options = {}) {
+  const { source = 'current', target = 'goose', methods = {}, autoInitialize = true } = options;
+  const events = new EventEmitter();
+  let initialized = false;
+  const callHistory = [];
+  
+  return {
+    id,
+    name: `Mock Bridge (${id})`,
+    source,
+    target,
+    events,
+    callHistory,
+    
+    async initialize() {
+      initialized = true;
+      events.emit('initialized', { bridgeId: id });
+      return true;
+    },
+    
+    isInitialized() {
+      return initialized;
+    },
+    
+    async call(method, args) {
+      if (!initialized && !autoInitialize) {
+        throw new Error(`Bridge ${id} not initialized`);
+      }
+      
+      if (!initialized) {
+        await this.initialize();
+      }
+      
+      // Record call for testing
+      callHistory.push({ method, args, timestamp: Date.now() });
+      
+      if (methods[method]) {
+        return methods[method](args);
+      }
+      
+      // Default mock implementations for common methods
+      switch (method) {
+        case 'status':
+          return { result: { status: 'ok', bridgeId: id } };
+          
+        case 'info':
+          return {
+            result: {
+              id,
+              name: `Mock Bridge (${id})`,
+              version: '1.0.0',
+              capabilities: ['text', 'code', 'files']
+            }
+          };
+          
+        default:
+          return { result: `Mock result for ${method}` };
+      }
+    }
+  };
+}
+
+// Support both CommonJS and ES modules
+const bridges = {
+  createMockGooseBridge,
+  createMockVSCodeBridge,
+  createMockBridge
+};
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = bridges;
+}
+
+export default bridges;
+export { createMockGooseBridge, createMockVSCodeBridge, createMockBridge };
