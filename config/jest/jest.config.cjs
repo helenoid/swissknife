@@ -1,11 +1,12 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  rootDir: '../..',
   extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
   transform: {
     "^.+\\.(ts|tsx|mts)$": ["ts-jest", {
       useESM: true,
-      tsconfig: "tsconfig.test.json",
+      tsconfig: "config/typescript/tsconfig.test.json",
       diagnostics: false,
       isolatedModules: true
     }],
@@ -32,7 +33,6 @@ module.exports = {
     "^(merkletreejs)$": "<rootDir>/node_modules/merkletreejs/dist/esm/index.js",
     "^(zod)$": "<rootDir>/node_modules/zod/dist/esm/index.js"
   },
-  rootDir: '.',
   testMatch: [
     "<rootDir>/test/**/*.test.ts",
     "<rootDir>/test/**/*.test.tsx",
