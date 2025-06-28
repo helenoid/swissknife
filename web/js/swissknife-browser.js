@@ -347,21 +347,38 @@ export class SwissKnifeBrowser {
    * Get hardware status for system monitoring
    */
   getHardwareStatus() {
-    return {
+    // Cache the result to avoid creating multiple WebGL contexts
+    if (this._hardwareStatus) {
+      return this._hardwareStatus;
+    }
+
+    this._hardwareStatus = {
       webnn: 'ml' in navigator || 'webkitML' in navigator || false,
       gpu: 'gpu' in navigator || false,
       webgl: (() => {
         try {
           const canvas = document.createElement('canvas');
-          return !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+          const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+          if (gl) {
+            // Immediately clean up the context to prevent accumulation
+            const loseContext = gl.getExtension('WEBGL_lose_context');
+            if (loseContext) {
+              loseContext.loseContext();
+            }
+            return true;
+          }
+          return false;
         } catch (e) {
           return false;
         }
       })(),
+      webgpu: 'gpu' in navigator && typeof navigator.gpu?.requestAdapter === 'function',
       storage: 'storage' in navigator && 'estimate' in navigator.storage,
       workers: 'Worker' in window && 'SharedWorker' in window,
       wasm: 'WebAssembly' in window
     };
+
+    return this._hardwareStatus;
   }
 
   /**

@@ -63,6 +63,11 @@ class SwissKnifeDesktop {
             document.getElementById('loading-screen').style.display = 'none';
         }, 3000);
         
+        // Debug: Check DOM structure after initialization
+        setTimeout(() => {
+            this.debugDOMStructure();
+        }, 4000);
+        
         // Set up global functions for HTML onclick handlers
         window.showDesktopProperties = () => this.showDesktopProperties();
         window.openTerminalHere = () => this.openTerminalHere();
@@ -74,6 +79,50 @@ class SwissKnifeDesktop {
         console.log('SwissKnife Web Desktop ready!');
     }
     
+    debugDOMStructure() {
+        console.log('🔍 DEBUG: Checking DOM structure...');
+        
+        // Check desktop icons
+        const desktopIcons = document.querySelectorAll('.desktop-icons .icon');
+        console.log('🖥️ Desktop icons found:', desktopIcons.length);
+        
+        desktopIcons.forEach((icon, index) => {
+            const appId = icon.dataset.app;
+            const label = icon.querySelector('.icon-label')?.textContent;
+            console.log(`  Icon ${index + 1}: ${appId} (${label})`);
+        });
+        
+        // Check system menu items
+        const menuItems = document.querySelectorAll('.system-menu .menu-item[data-app]');
+        console.log('📋 System menu items found:', menuItems.length);
+        
+        menuItems.forEach((item, index) => {
+            const appId = item.dataset.app;
+            const text = item.textContent.trim();
+            console.log(`  Menu item ${index + 1}: ${appId} (${text})`);
+        });
+        
+        // Check if navi icon image is loaded
+        const naviIcon = document.querySelector('.icon[data-app="navi"] img');
+        if (naviIcon) {
+            console.log('🤖 NAVI icon found, checking if image loaded...');
+            if (naviIcon.complete && naviIcon.naturalHeight !== 0) {
+                console.log('✅ NAVI icon image loaded successfully');
+            } else {
+                console.log('❌ NAVI icon image failed to load');
+                naviIcon.addEventListener('load', () => console.log('✅ NAVI icon image loaded (delayed)'));
+                naviIcon.addEventListener('error', () => console.log('❌ NAVI icon image error'));
+            }
+        } else {
+            console.log('❌ NAVI icon not found in DOM');
+        }
+        
+        // Test manual app launch
+        console.log('🧪 Testing manual app launches...');
+        console.log('🧪 To test NAVI: desktop.launchApp("navi")');
+        console.log('🧪 To test Device Manager: desktop.launchApp("device-manager")');
+    }
+    
     initializeDesktop() {
         // Initialize system time
         this.updateSystemTime();
@@ -81,7 +130,7 @@ class SwissKnifeDesktop {
         
         // Initialize system status
         this.updateSystemStatus();
-        setInterval(() => this.updateSystemStatus(), 5000);
+        setInterval(() => this.updateSystemStatus(), 30000); // Reduced from 5000 to 30000 (30 seconds)
         
         // Setup desktop context menu
         this.setupContextMenu();
@@ -161,6 +210,8 @@ class SwissKnifeDesktop {
     }
     
     initializeApps() {
+        console.log('🔧 Initializing apps...');
+        
         // Register available applications
         this.apps.set('terminal', {
             name: 'SwissKnife Terminal',
@@ -168,6 +219,7 @@ class SwissKnifeDesktop {
             component: 'TerminalApp',
             singleton: false
         });
+        console.log('✅ Registered terminal app');
         
         this.apps.set('vibecode', {
             name: 'VibeCode Editor',
@@ -245,14 +297,34 @@ class SwissKnifeDesktop {
             component: 'DeviceManagerApp',
             singleton: true
         });
+        console.log('✅ Registered device-manager app');
+
+        this.apps.set('navi', {
+            name: 'NAVI',
+            icon: '<img src="/assets/icons/navi-icon.png" style="width: 24px; height: 24px; border-radius: 4px;">',
+            component: 'NaviApp',
+            singleton: true
+        });
+        console.log('✅ Registered navi app');
+        
+        console.log('📱 Total apps registered:', this.apps.size);
+        console.log('📱 Apps list:', Array.from(this.apps.keys()));
     }
     
     setupEventListeners() {
+        console.log('🎯 Setting up event listeners...');
+        
         // Desktop icon clicks - changed to single click
-        document.querySelectorAll('.icon').forEach(icon => {
+        const desktopIcons = document.querySelectorAll('.icon');
+        console.log('🖱️ Found desktop icons:', desktopIcons.length);
+        
+        desktopIcons.forEach((icon, index) => {
+            const appId = icon.dataset.app;
+            console.log(`🔗 Setting up icon ${index + 1}: ${appId}`);
+            
             icon.addEventListener('click', (e) => {
                 e.preventDefault();
-                const appId = icon.dataset.app;
+                console.log(`🖱️ Desktop icon clicked: ${appId}`);
                 this.launchApp(appId);
             });
         });
@@ -281,9 +353,15 @@ class SwissKnifeDesktop {
         });
         
         // Menu item clicks
-        document.querySelectorAll('.menu-item[data-app]').forEach(item => {
+        const menuItems = document.querySelectorAll('.menu-item[data-app]');
+        console.log('📋 Found menu items:', menuItems.length);
+        
+        menuItems.forEach((item, index) => {
+            const appId = item.dataset.app;
+            console.log(`📋 Setting up menu item ${index + 1}: ${appId}`);
+            
             item.addEventListener('click', () => {
-                const appId = item.dataset.app;
+                console.log(`📋 Menu item clicked: ${appId}`);
                 this.launchApp(appId);
                 systemMenu.classList.remove('visible');
             });
@@ -317,23 +395,30 @@ class SwissKnifeDesktop {
     }
     
     async launchApp(appId) {
+        console.log(`🚀 Launching app: ${appId}`);
+        
         const appConfig = this.apps.get(appId);
         if (!appConfig) {
-            console.error(`App ${appId} not found`);
+            console.error(`❌ App ${appId} not found in registered apps`);
+            console.log('📱 Available apps:', Array.from(this.apps.keys()));
             return;
         }
         
+        console.log(`✅ Found app config for ${appId}:`, appConfig);
+
         // Check if singleton app is already running
         if (appConfig.singleton) {
             const existingWindow = Array.from(this.windows.values())
                 .find(w => w.appId === appId);
             if (existingWindow) {
+                console.log(`🔄 Focusing existing window for ${appId}`);
                 this.focusWindow(existingWindow.element);
                 return;
             }
         }
-        
+
         try {
+            console.log(`🪟 Creating window for ${appId}...`);
             // Create new window for the app
             const window = await this.createWindow({
                 title: appConfig.name,
@@ -345,12 +430,13 @@ class SwissKnifeDesktop {
                 y: 100 + (this.windowCounter * 30)
             });
             
+            console.log(`🎨 Loading app component: ${appConfig.component}`);
             // Load app component
             await this.loadAppComponent(window, appConfig.component);
             
-            console.log(`Launched ${appConfig.name}`);
+            console.log(`✅ Successfully launched ${appConfig.name}`);
         } catch (error) {
-            console.error(`Failed to launch ${appConfig.name}:`, error);
+            console.error(`❌ Failed to launch ${appConfig.name}:`, error);
         }
     }
     
@@ -424,19 +510,37 @@ class SwissKnifeDesktop {
     }
     
     async loadAppComponent(window, componentName) {
+        console.log(`🎨 Loading app component: ${componentName}`);
+        
         try {
             // Get the content element
             const contentElement = document.getElementById(`${window.id}-content`);
+            if (!contentElement) {
+                throw new Error(`Content element not found for window ${window.id}`);
+            }
             
             // Handle different app types
             let appInstance;
             
             switch (componentName.toLowerCase()) {
                 case 'terminalapp':
+                    console.log('🖥️ Loading Terminal app...');
                     // Import and instantiate Terminal app
                     const TerminalModule = await import('./apps/terminal.js');
                     const TerminalApp = TerminalModule.TerminalApp;
                     appInstance = new TerminalApp(contentElement, this);
+                    break;
+                    
+                case 'devicemanagerapp':
+                    console.log('🔧 Loading Device Manager app...');
+                    // Device Manager
+                    this.loadDeviceManagerApp(contentElement);
+                    break;
+                    
+                case 'naviapp':
+                    console.log('🤖 Loading NAVI app...');
+                    // NAVI App - loads the chat application
+                    this.loadNaviApp(contentElement);
                     break;
                     
                 case 'aichatapp':
@@ -516,6 +620,11 @@ class SwissKnifeDesktop {
                 case 'devicemanagerapp':
                     // Device Manager
                     this.loadDeviceManagerApp(contentElement);
+                    break;
+                    
+                case 'naviapp':
+                    // NAVI App - loads the chat application
+                    this.loadNaviApp(contentElement);
                     break;
                     
                 default:
@@ -1625,6 +1734,160 @@ class SwissKnifeDesktop {
         }, 10);
     }
     
+    showTaskbarContextMenu(x, y) {
+        console.log('SwissKnife: Showing taskbar context menu at', x, y);
+        
+        // Create taskbar context menu if it doesn't exist
+        let taskbarMenu = document.getElementById('taskbar-context-menu');
+        if (!taskbarMenu) {
+            taskbarMenu = document.createElement('div');
+            taskbarMenu.id = 'taskbar-context-menu';
+            taskbarMenu.className = 'context-menu hidden';
+            taskbarMenu.innerHTML = `
+                <div class="context-menu-item" data-action="task-manager">Task Manager</div>
+                <div class="context-menu-item" data-action="system-settings">System Settings</div>
+                <div class="context-menu-item" data-action="about">About SwissKnife</div>
+            `;
+            document.body.appendChild(taskbarMenu);
+            
+            // Add event listeners for menu items
+            taskbarMenu.addEventListener('click', (e) => {
+                const action = e.target.dataset.action;
+                if (action) {
+                    console.log('SwissKnife: Taskbar context menu action:', action);
+                    this.handleTaskbarMenuAction(action);
+                    taskbarMenu.classList.add('hidden');
+                }
+            });
+        }
+        
+        taskbarMenu.style.left = x + 'px';
+        taskbarMenu.style.top = y + 'px';
+        taskbarMenu.classList.remove('hidden');
+        
+        // Hide menu when clicking elsewhere
+        const hideMenu = (e) => {
+            if (!taskbarMenu.contains(e.target)) {
+                taskbarMenu.classList.add('hidden');
+                document.removeEventListener('click', hideMenu);
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', hideMenu);
+        }, 10);
+    }
+    
+    showTaskbarAppContextMenu(x, y, windowId) {
+        console.log('SwissKnife: Showing taskbar app context menu for window:', windowId);
+        
+        // Create taskbar app context menu if it doesn't exist
+        let appMenu = document.getElementById('taskbar-app-context-menu');
+        if (!appMenu) {
+            appMenu = document.createElement('div');
+            appMenu.id = 'taskbar-app-context-menu';
+            appMenu.className = 'context-menu hidden';
+            appMenu.innerHTML = `
+                <div class="context-menu-item" data-action="restore">Restore</div>
+                <div class="context-menu-item" data-action="minimize">Minimize</div>
+                <div class="context-menu-item" data-action="maximize">Maximize</div>
+                <div class="context-menu-separator"></div>
+                <div class="context-menu-item" data-action="close">Close</div>
+            `;
+            document.body.appendChild(appMenu);
+            
+            // Add event listeners for menu items
+            appMenu.addEventListener('click', (e) => {
+                const action = e.target.dataset.action;
+                if (action && this.currentAppWindowId) {
+                    console.log('SwissKnife: Taskbar app context menu action:', action, 'for window:', this.currentAppWindowId);
+                    this.handleAppMenuAction(action, this.currentAppWindowId);
+                    appMenu.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Store the window ID for the menu action handler
+        this.currentAppWindowId = windowId;
+        
+        appMenu.style.left = x + 'px';
+        appMenu.style.top = y + 'px';
+        appMenu.classList.remove('hidden');
+        
+        // Hide menu when clicking elsewhere
+        const hideMenu = (e) => {
+            if (!appMenu.contains(e.target)) {
+                appMenu.classList.add('hidden');
+                document.removeEventListener('click', hideMenu);
+                this.currentAppWindowId = null;
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', hideMenu);
+        }, 10);
+    }
+    
+    handleTaskbarMenuAction(action) {
+        console.log('SwissKnife: Handling taskbar menu action:', action);
+        switch (action) {
+            case 'task-manager':
+                // Open task manager (could be implemented as an app)
+                console.log('SwissKnife: Opening task manager');
+                break;
+            case 'system-settings':
+                // Open system settings
+                console.log('SwissKnife: Opening system settings');
+                break;
+            case 'about':
+                // Show about dialog
+                console.log('SwissKnife: Showing about dialog');
+                this.showAboutDialog();
+                break;
+        }
+    }
+    
+    handleAppMenuAction(action, windowId) {
+        console.log('SwissKnife: Handling app menu action:', action, 'for window:', windowId);
+        const windowElement = document.getElementById(windowId);
+        if (!windowElement) {
+            console.error('SwissKnife: Window not found:', windowId);
+            return;
+        }
+        
+        switch (action) {
+            case 'restore':
+                this.restoreWindow(windowId);
+                break;
+            case 'minimize':
+                this.minimizeWindow(windowId);
+                break;
+            case 'maximize':
+                this.maximizeWindow(windowId);
+                break;
+            case 'close':
+                this.closeWindow(windowId);
+                break;
+        }
+    }
+    
+    showAboutDialog() {
+        console.log('SwissKnife: Showing about dialog');
+        // Create a simple about dialog
+        const aboutDialog = document.createElement('div');
+        aboutDialog.className = 'modal-overlay';
+        aboutDialog.innerHTML = `
+            <div class="modal-content">
+                <h2>About SwissKnife Desktop</h2>
+                <p>SwissKnife Desktop Environment</p>
+                <p>Version 1.0.0</p>
+                <p>A modern web-based desktop experience</p>
+                <button onclick="this.closest('.modal-overlay').remove()">Close</button>
+            </div>
+        `;
+        document.body.appendChild(aboutDialog);
+    }
+    
     startSystemMonitoring() {
         // Monitor system performance, memory usage, etc.
         setInterval(() => {
@@ -2213,6 +2476,109 @@ class SwissKnifeDesktop {
             });
             observer.observe(windowElement.parentElement, { childList: true });
         }
+    }
+
+    loadNaviApp(contentElement) {
+        // Check if the chat app exists before creating iframe
+        const chatAppPath = window.location.origin + '/chat/webapp/app.html';
+        
+        contentElement.innerHTML = `
+            <div class="navi-app" style="width: 100%; height: 100%; position: relative;">
+                <div class="navi-loading" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5;">
+                    <div style="text-align: center;">
+                        <img src="/assets/icons/navi-icon.png" style="width: 64px; height: 64px; border-radius: 8px; margin-bottom: 16px;">
+                        <h3>Loading NAVI...</h3>
+                        <p>Initializing chat application</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Test if chat app is available first
+        fetch(chatAppPath, { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    // Chat app exists, load it in iframe
+                    this.loadNaviIframe(contentElement, chatAppPath);
+                } else {
+                    // Chat app not found, show placeholder
+                    this.showNaviPlaceholder(contentElement);
+                }
+            })
+            .catch(() => {
+                // Network error or chat app not available
+                this.showNaviPlaceholder(contentElement);
+            });
+    }
+    
+    loadNaviIframe(contentElement, chatAppPath) {
+        const iframe = document.createElement('iframe');
+        iframe.src = chatAppPath;
+        iframe.style.cssText = `
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+            background: white;
+        `;
+        iframe.allow = "camera; microphone; autoplay";
+        iframe.sandbox = "allow-scripts allow-same-origin allow-forms allow-popups allow-modals";
+        iframe.title = "NAVI Chat Application";
+        
+        // Handle iframe load success
+        iframe.addEventListener('load', () => {
+            const loadingDiv = contentElement.querySelector('.navi-loading');
+            if (loadingDiv) {
+                loadingDiv.style.display = 'none';
+            }
+        });
+        
+        // Handle iframe load errors
+        iframe.addEventListener('error', () => {
+            this.showNaviPlaceholder(contentElement);
+        });
+        
+        // Add cleanup when window is closed
+        const windowElement = contentElement.closest('.window');
+        if (windowElement) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        mutation.removedNodes.forEach((node) => {
+                            if (node === windowElement) {
+                                // Clean up iframe when window is closed
+                                if (iframe.parentNode) {
+                                    iframe.src = 'about:blank';
+                                    iframe.remove();
+                                }
+                                observer.disconnect();
+                            }
+                        });
+                    }
+                });
+            });
+            observer.observe(windowElement.parentElement, { childList: true });
+        }
+        
+        contentElement.querySelector('.navi-app').appendChild(iframe);
+    }
+    
+    showNaviPlaceholder(contentElement) {
+        contentElement.innerHTML = `
+            <div class="app-placeholder" style="padding: 20px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                <img src="/assets/icons/navi-icon.png" style="width: 64px; height: 64px; border-radius: 8px; margin: 0 auto 16px;">
+                <h2>NAVI Chat Application</h2>
+                <p>The NAVI chat application is not currently available.</p>
+                <p>Please ensure the chat application is properly installed in the <code>/chat</code> directory.</p>
+                <div style="margin-top: 20px;">
+                    <button onclick="location.reload()" style="margin: 5px; padding: 8px 16px; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Reload Application
+                    </button>
+                    <button onclick="this.closest('.window').querySelector('.window-control.close').click()" style="margin: 5px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
     }
 
     showDesktopProperties() {

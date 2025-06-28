@@ -21,26 +21,6 @@ module.exports = (env, argv) => {
     
       resolve: {
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
-        alias: {
-          // Node.js polyfills for browser
-          'buffer': require.resolve('buffer'),
-          'process': require.resolve('process/browser'),
-          'stream': require.resolve('stream-browserify'),
-          'crypto': require.resolve('crypto-browserify'),
-          'path': require.resolve('path-browserify'),
-          'os': require.resolve('os-browserify'),
-          'util': require.resolve('util'),
-          'fs': false,
-          'child_process': false,
-          'worker_threads': false,
-          
-          // Map source paths to web-compatible versions
-          '@swissknife/core': path.resolve(__dirname, '../src'),
-          '@swissknife/ai': path.resolve(__dirname, '../src/ai'),
-          '@swissknife/tasks': path.resolve(__dirname, '../src/tasks'),
-          '@swissknife/storage': path.resolve(__dirname, '../src/storage'),
-          '@swissknife/utils': path.resolve(__dirname, '../src/utils'),
-        },
         fallback: {
           "buffer": require.resolve("buffer"),
           "crypto": require.resolve("crypto-browserify"),
@@ -59,6 +39,14 @@ module.exports = (env, argv) => {
           "url": false,
           "querystring": false,
           "zlib": false
+        },
+        alias: {
+          // Map source paths to web-compatible versions
+          '@swissknife/core': path.resolve(__dirname, '../src'),
+          '@swissknife/ai': path.resolve(__dirname, '../src/ai'),
+          '@swissknife/tasks': path.resolve(__dirname, '../src/tasks'),
+          '@swissknife/storage': path.resolve(__dirname, '../src/storage'),
+          '@swissknife/utils': path.resolve(__dirname, '../src/utils'),
         }
       },
     
