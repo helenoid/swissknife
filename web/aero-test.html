@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwissKnife Debug - Aero Desktop</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: #1a1a2e;
+            color: white;
+        }
+        
+        .desktop {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .desktop-background {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop&q=80') center/cover no-repeat;
+            background-attachment: fixed;
+        }
+        
+        .desktop-background::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(1px);
+        }
+        
+        .desktop-icons {
+            position: absolute;
+            top: 20px; left: 20px; right: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 80px);
+            gap: 20px;
+            z-index: 10;
+            max-height: calc(100vh - 120px);
+            overflow: hidden;
+        }
+        
+        .icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .icon:hover {
+            background: rgba(74, 144, 226, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .icon-image { font-size: 32px; margin-bottom: 4px; }
+        .icon-label { 
+            font-size: 11px; text-align: center; 
+            color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        .system-panel {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            z-index: 1000;
+            box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .system-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                rgba(255, 255, 255, 0.02) 100%);
+            pointer-events: none;
+        }
+        
+        .system-menu-button {
+            width: 36px;
+            height: 36px;
+            background: #ff0000;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .system-menu-button::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .system-menu-button::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 4px;
+            background: white;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .system-menu-button:hover {
+            background: #cc0000;
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .system-menu {
+            position: fixed;
+            bottom: 60px; left: 12px;
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            z-index: 1500;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .system-menu.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            color: white;
+        }
+        
+        .menu-item:hover {
+            background: rgba(74, 144, 226, 0.3);
+        }
+        
+        .test-window {
+            position: absolute;
+            top: 100px; left: 100px;
+            width: 500px; height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .test-window.visible { display: flex; }
+        
+        .window-titlebar {
+            height: 32px;
+            background: linear-gradient(180deg, 
+                rgba(74, 144, 226, 0.4) 0%, 
+                rgba(74, 144, 226, 0.2) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .window-content {
+            flex: 1;
+            padding: 20px;
+            color: white;
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="desktop" class="desktop">
+        <div class="desktop-background"></div>
+        
+        <div class="desktop-icons">
+            <div class="icon" onclick="openTestWindow()">
+                <div class="icon-image">🖥️</div>
+                <div class="icon-label">Terminal</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">📝</div>
+                <div class="icon-label">VibeCode</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">🤖</div>
+                <div class="icon-label">AI Chat</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">📁</div>
+                <div class="icon-label">Files</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">⚡</div>
+                <div class="icon-label">Tasks</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">🧠</div>
+                <div class="icon-label">Models</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">🌐</div>
+                <div class="icon-label">IPFS</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">⚙️</div>
+                <div class="icon-label">Settings</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">🔌</div>
+                <div class="icon-label">MCP</div>
+            </div>
+            <div class="icon" onclick="testIcon()">
+                <div class="icon-image">🔑</div>
+                <div class="icon-label">API Keys</div>
+            </div>
+        </div>
+        
+        <div class="system-panel">
+            <div class="system-menu-button" onclick="toggleMenu()" title="SwissKnife Start Menu">
+            </div>
+        </div>
+        
+        <div id="system-menu" class="system-menu hidden">
+            <div class="menu-item" onclick="openWindow('Terminal', '🖥️', 'SwissKnife Terminal with full command support.'); toggleMenu();">
+                <span>🖥️</span> Terminal
+            </div>
+            <div class="menu-item" onclick="openWindow('VibeCode', '📝', 'Advanced code editor with AI assistance.'); toggleMenu();">
+                <span>📝</span> VibeCode
+            </div>
+            <div class="menu-item" onclick="openWindow('AI Chat', '🤖', 'Intelligent AI assistant for all your needs.'); toggleMenu();">
+                <span>🤖</span> AI Chat
+            </div>
+            <div class="menu-item" onclick="openWindow('File Manager', '📁', 'Browse and manage your files and folders.'); toggleMenu();">
+                <span>📁</span> File Manager
+            </div>
+            <div class="menu-item" onclick="openWindow('Settings', '⚙️', 'Configure your SwissKnife desktop environment.'); toggleMenu();">
+                <span>⚙️</span> Settings
+            </div>
+        </div>
+        
+        <div id="test-window" class="test-window">
+            <div class="window-titlebar">
+                Test Aero Window
+            </div>
+            <div class="window-content">
+                <h3>🎉 Aero Glass Effect Working!</h3>
+                <p>This window demonstrates the Windows 7 Aero glass effect with:</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Backdrop blur and transparency</li>
+                    <li>Glass-like appearance</li>
+                    <li>Swiss Alps background visible through glass</li>
+                    <li>Smooth animations and transitions</li>
+                </ul>
+                <button onclick="closeTestWindow()" style="
+                    background: rgba(74, 144, 226, 0.5);
+                    border: 1px solid rgba(74, 144, 226, 0.8);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    backdrop-filter: blur(10px);
+                ">Close Window</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('system-menu');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                menu.classList.add('visible');
+            } else {
+                menu.classList.add('hidden');
+                menu.classList.remove('visible');
+            }
+        }
+        
+        function testIcon() {
+            openWindow('Test Application', '⚡', 'This window was launched from a desktop icon!');
+        }
+        
+        function openTestWindow() {
+            openWindow('Terminal', '🖥️', 'SwissKnife Terminal window with Aero glass effects.');
+        }
+        
+        function openWindow(title, icon, content) {
+            const windowId = 'window-' + Date.now();
+            const window = document.createElement('div');
+            window.id = windowId;
+            window.className = 'test-window visible';
+            window.style.left = (100 + Math.random() * 200) + 'px';
+            window.style.top = (100 + Math.random() * 100) + 'px';
+            
+            window.innerHTML = `
+                <div class="window-titlebar">
+                    <span style="margin-right: 8px;">${icon}</span>
+                    ${title}
+                    <div style="margin-left: auto;">
+                        <button onclick="closeWindow('${windowId}')" style="
+                            background: rgba(220, 53, 69, 0.8);
+                            border: none;
+                            color: white;
+                            width: 20px;
+                            height: 20px;
+                            border-radius: 3px;
+                            cursor: pointer;
+                            font-size: 12px;
+                        ">×</button>
+                    </div>
+                </div>
+                <div class="window-content">
+                    <h3>${icon} ${title}</h3>
+                    <p>${content}</p>
+                    <p>This demonstrates the full window management system with:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Aero glass transparency effects</li>
+                        <li>Swiss Alps background visible through glass</li>
+                        <li>Smooth animations and transitions</li>
+                        <li>Multiple windows support</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('desktop').appendChild(window);
+            makeWindowDraggable(window);
+        }
+        
+        function closeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            if (window) {
+                window.remove();
+            }
+        }
+        
+        function makeWindowDraggable(windowElement) {
+            const titlebar = windowElement.querySelector('.window-titlebar');
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+            
+            titlebar.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = parseInt(windowElement.style.left);
+                startTop = parseInt(windowElement.style.top);
+                
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+                
+                e.preventDefault();
+            });
+            
+            function handleMouseMove(e) {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                windowElement.style.left = (startLeft + deltaX) + 'px';
+                windowElement.style.top = (startTop + deltaY) + 'px';
+            }
+            
+            function handleMouseUp() {
+                isDragging = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            }
+        }
+        
+        function closeTestWindow() {
+            document.getElementById('test-window').classList.remove('visible');
+        }
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('system-menu');
+            const button = document.querySelector('.system-menu-button');
+            
+            if (!menu.contains(e.target) && !button.contains(e.target)) {
+                menu.classList.add('hidden');
+                menu.classList.remove('visible');
+            }
+        });
+        
+        console.log('Aero Desktop loaded with Swiss Alps background');
+    </script>
+</body>
+</html>

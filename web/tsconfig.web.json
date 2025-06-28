@@ -1,0 +1,38 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable", "WebWorker"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "jsx": "react-jsx",
+    "declaration": false,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@swissknife/core/*": ["../src/*"],
+      "@swissknife/ai/*": ["../src/ai/*"],
+      "@swissknife/tasks/*": ["../src/tasks/*"],
+      "@swissknife/storage/*": ["../src/storage/*"],
+      "@swissknife/utils/*": ["../src/utils/*"]
+    },
+    "types": ["node", "webrtc"]
+  },
+  "include": [
+    "./js/**/*",
+    "../src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "../src/entrypoints/cli.tsx",
+    "../src/**/*.test.ts",
+    "../src/**/*.test.tsx"
+  ]
+}

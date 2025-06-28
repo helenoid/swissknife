@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwissKnife Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        #debug-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            color: green;
+            background: #e6ffe6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="debug-info">
+        <h1>SwissKnife Debug Page</h1>
+        <div id="status">Loading...</div>
+        <div id="errors"></div>
+        <div id="details"></div>
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const errorsDiv = document.getElementById('errors');
+        const detailsDiv = document.getElementById('details');
+
+        // Capture console errors
+        const errors = [];
+        const originalError = console.error;
+        console.error = function(...args) {
+            errors.push(args.join(' '));
+            originalError.apply(console, args);
+        };
+
+        window.addEventListener('error', function(e) {
+            errors.push(`${e.filename}:${e.lineno} - ${e.message}`);
+            showErrors();
+        });
+
+        function showErrors() {
+            if (errors.length > 0) {
+                errorsDiv.innerHTML = '<h3>Errors:</h3>' + 
+                    errors.map(err => `<div class="error">${err}</div>`).join('');
+            }
+        }
+
+        // Test basic functionality
+        try {
+            statusDiv.innerHTML = '<div class="success">Basic HTML/CSS loading OK</div>';
+            
+            // Try to load the bundle
+            const script = document.createElement('script');
+            script.src = './dist/bundle.js';
+            script.onload = function() {
+                statusDiv.innerHTML += '<div class="success">Bundle loaded successfully</div>';
+                setTimeout(() => {
+                    checkDesktopElements();
+                }, 1000);
+            };
+            script.onerror = function() {
+                statusDiv.innerHTML += '<div class="error">Failed to load bundle.js</div>';
+            };
+            document.head.appendChild(script);
+
+        } catch (e) {
+            errorsDiv.innerHTML += `<div class="error">Script error: ${e.message}</div>`;
+        }
+
+        function checkDesktopElements() {
+            const desktop = document.getElementById('desktop');
+            if (desktop) {
+                detailsDiv.innerHTML += '<div class="success">Desktop element found</div>';
+                
+                const computedStyle = window.getComputedStyle(desktop);
+                detailsDiv.innerHTML += `<div>Desktop display: ${computedStyle.display}</div>`;
+                detailsDiv.innerHTML += `<div>Desktop visibility: ${computedStyle.visibility}</div>`;
+                detailsDiv.innerHTML += `<div>Desktop opacity: ${computedStyle.opacity}</div>`;
+            } else {
+                detailsDiv.innerHTML += '<div class="error">Desktop element not found</div>';
+            }
+            
+            showErrors();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwissKnife Web Desktop</title>
+</head>
+<body>
+    <!-- Desktop Environment -->
+    <div id="desktop" class="desktop">
+        <!-- Desktop Background -->
+        <div class="desktop-background"></div>
+        
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <div class="icon" data-app="terminal" title="SwissKnife Terminal">
+                <div class="icon-image">🖥️</div>
+                <div class="icon-label">Terminal</div>
+            </div>
+            <div class="icon" data-app="vibecode" title="VibeCode Editor">
+                <div class="icon-image">📝</div>
+                <div class="icon-label">VibeCode</div>
+            </div>
+            <div class="icon" data-app="ai-chat" title="AI Chat">
+                <div class="icon-image">🤖</div>
+                <div class="icon-label">AI Chat</div>
+            </div>
+            <div class="icon" data-app="file-manager" title="File Manager">
+                <div class="icon-image">📁</div>
+                <div class="icon-label">Files</div>
+            </div>
+            <div class="icon" data-app="task-manager" title="Task Manager">
+                <div class="icon-image">⚡</div>
+                <div class="icon-label">Tasks</div>
+            </div>
+            <div class="icon" data-app="model-browser" title="Model Browser">
+                <div class="icon-image">🧠</div>
+                <div class="icon-label">Models</div>
+            </div>
+            <div class="icon" data-app="ipfs-explorer" title="IPFS Explorer">
+                <div class="icon-image">🌐</div>
+                <div class="icon-label">IPFS</div>
+            </div>
+            <div class="icon" data-app="device-manager" title="Device Manager">
+                <div class="icon-image">🔧</div>
+                <div class="icon-label">Devices</div>
+            </div>
+            <div class="icon" data-app="settings" title="Settings">
+                <div class="icon-image">⚙️</div>
+                <div class="icon-label">Settings</div>
+            </div>
+        </div>
+        
+        <!-- Windows Container -->
+        <div id="windows-container" class="windows-container"></div>
+        
+        <!-- System Panel/Taskbar -->
+        <div class="system-panel">
+            <div class="panel-left">
+                <div class="system-menu-button" id="system-menu-btn">
+                    <span class="swiss-logo">🇨🇭</span>
+                    <span>SwissKnife</span>
+                </div>
+                <div class="taskbar-apps" id="taskbar-apps"></div>
+            </div>
+            <div class="panel-right">
+                <div class="system-status">
+                    <span id="ai-status" class="status-indicator">🤖</span>
+                    <span id="ipfs-status" class="status-indicator">🌐</span>
+                    <span id="gpu-status" class="status-indicator">🎮</span>
+                </div>
+                <div class="system-time" id="system-time"></div>
+            </div>
+        </div>
+        
+        <!-- System Menu -->
+        <div id="system-menu" class="system-menu">
+            <div class="menu-section">
+                <div class="menu-title">Applications</div>
+                <div class="menu-item" data-app="terminal">🖥️ Terminal</div>
+                <div class="menu-item" data-app="vibecode">📝 VibeCode</div>
+                <div class="menu-item" data-app="ai-chat">🤖 AI Chat</div>
+                <div class="menu-item" data-app="file-manager">📁 File Manager</div>
+            </div>
+            <div class="menu-separator"></div>
+            <div class="menu-section">
+                <div class="menu-item" data-app="task-manager">⚡ Task Manager</div>
+                <div class="menu-item" data-app="model-browser">🧠 Model Browser</div>
+                <div class="menu-item" data-app="ipfs-explorer">🌐 IPFS Explorer</div>
+                <div class="menu-item" data-app="device-manager">🔧 Device Manager</div>
+            </div>
+            <div class="menu-separator"></div>
+            <div class="menu-section">
+                <div class="menu-item" data-app="settings">⚙️ Settings</div>
+                <div class="menu-item" onclick="showAbout()">ℹ️ About</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <pre class="ascii-art">
+███████╗██╗    ██╗██╗███████╗███████╗
+██╔════╝██║    ██║██║██╔════╝██╔════╝
+███████╗██║ █╗ ██║██║███████╗███████╗
+╚════██║██║███╗██║██║╚════██║╚════██║
+███████║╚███╔███╔╝██║███████║███████║
+╚══════╝ ╚══╝╚══╝ ╚═╝╚══════╝╚══════╝
+██╗  ██╗███╗   ██╗██╗███████╗███████╗
+██║ ██╔╝████╗  ██║██║██╔════╝██╔════╝
+█████╔╝ ██╔██╗ ██║██║█████╗  █████╗  
+██╔═██╗ ██║╚██╗██║██║██╔══╝  ██╔══╝  
+██║  ██╗██║ ╚████║██║██║     ███████╗
+╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚══════╝
+                </pre>
+            </div>
+            <div class="loading-text">
+                <h2>SwissKnife Web Desktop</h2>
+                <p>Initializing AI-powered development environment...</p>
+                <div class="loading-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="loading-progress"></div>
+                    </div>
+                    <div class="loading-status" id="loading-status">Starting up...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu hidden">
+        <div class="context-item" onclick="openTerminalHere()">🖥️ Open Terminal Here</div>
+        <div class="context-item" onclick="createNewFile()">📄 New File</div>
+        <div class="context-item" onclick="createNewFolder()">📁 New Folder</div>
+        <div class="context-separator"></div>
+        <div class="context-item" onclick="refreshDesktop()">🔄 Refresh</div>
+        <div class="context-item" onclick="showDesktopProperties()">⚙️ Properties</div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/core/swissknife-core.js"></script>
+    <script src="js/core/window-manager.js"></script>
+    <script src="js/core/desktop-manager.js"></script>
+    <script src="js/core/ai-engine.js"></script>
+    <script src="js/core/storage-engine.js"></script>
+    <script src="js/core/webnn-engine.js"></script>
+    <script src="js/apps/terminal.js"></script>
+    <script src="js/apps/vibecode.js"></script>
+    <script src="js/apps/ai-chat.js"></script>
+    <script src="js/apps/file-manager.js"></script>
+    <script src="js/apps/task-manager.js"></script>
+    <script src="js/apps/model-browser.js"></script>
+    <script src="js/apps/ipfs-explorer.js"></script>
+    <script src="js/apps/settings.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
