@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strudel Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #0f5132; border: 1px solid #198754; }
+        .error { background: #58151c; border: 1px solid #dc3545; }
+        .warning { background: #664d03; border: 1px solid #ffc107; }
+        button {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0b559f; }
+        #test-output {
+            background: #212529;
+            border: 1px solid #495057;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎵 Strudel Integration Test</h1>
+        
+        <div class="test-section">
+            <h2>CDN Loading Test</h2>
+            <p>Test CDN-first loading with NPM fallback capability</p>
+            <button onclick="testCDNLoading()">Test CDN Loading</button>
+            <button onclick="testNPMFallback()">Test NPM Fallback</button>
+            <div id="cdn-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Audio Context Test</h2>
+            <p>Test audio context initialization and capabilities</p>
+            <button onclick="testAudioContext()">Test Audio Context</button>
+            <div id="audio-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Strudel App Integration</h2>
+            <p>Test the full Strudel app integration</p>
+            <button onclick="testStrudelApp()">Test Strudel App</button>
+            <div id="strudel-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Comprehensive Test Suite</h2>
+            <p>Run the full integration test suite with detailed reporting</p>
+            <button onclick="runComprehensiveTests()">Run All Tests</button>
+            <div id="comprehensive-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test Output</h2>
+            <div id="test-output"></div>
+        </div>
+    </div>
+
+    <!-- Include CSS for Strudel -->
+    <link rel="stylesheet" href="css/strudel.css">
+    
+    <!-- Include test framework -->
+    <script src="js/test/strudel-integration-tester.js"></script>
+    
+    <!-- Include Strudel App -->
+    <script src="js/apps/strudel.js"></script>
+    
+    <script>
+        let output = document.getElementById('test-output');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            const logMessage = `[${timestamp}] ${message}\n`;
+            output.textContent += logMessage;
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+        
+        function showResult(containerId, message, success) {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${success ? 'success' : 'error'}`;
+            resultDiv.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(resultDiv);
+        }
+        
+        async function testCDNLoading() {
+            log('🌐 Testing CDN loading...');
+            
+            try {
+                // Test if CDN URLs are accessible
+                const cdnUrls = [
+                    'https://unpkg.com/@strudel/core@latest/dist/strudel.mjs',
+                    'https://unpkg.com/@strudel/webaudio@latest/dist/webaudio.mjs',
+                    'https://unpkg.com/@strudel/mini@latest/dist/mini.mjs'
+                ];
+                
+                const results = await Promise.allSettled(
+                    cdnUrls.map(url => fetch(url, { method: 'HEAD' }))
+                );
+                
+                const successCount = results.filter(r => r.status === 'fulfilled' && r.value.ok).length;
+                
+                if (successCount === cdnUrls.length) {
+                    log('✅ All CDN URLs accessible');
+                    showResult('cdn-results', `✅ CDN test passed: ${successCount}/${cdnUrls.length} URLs accessible`, true);
+                } else {
+                    log(`⚠️ CDN partial success: ${successCount}/${cdnUrls.length} URLs accessible`);
+                    showResult('cdn-results', `⚠️ CDN partial: ${successCount}/${cdnUrls.length} URLs accessible`, false);
+                }
+                
+            } catch (error) {
+                log(`❌ CDN test error: ${error.message}`);
+                showResult('cdn-results', `❌ CDN test failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testNPMFallback() {
+            log('📦 Testing NPM fallback...');
+            
+            try {
+                // Check if NPM packages are available in node_modules
+                const npmPackages = [
+                    '@strudel/core',
+                    '@strudel/webaudio', 
+                    '@strudel/mini',
+                    '@strudel/soundfonts'
+                ];
+                
+                // For web environment, we'll check if the packages were installed
+                // by looking for typical NPM installation indicators
+                const packageJsonResponse = await fetch('/package.json');
+                
+                if (packageJsonResponse.ok) {
+                    const packageJson = await packageJsonResponse.json();
+                    const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
+                    
+                    const installedPackages = npmPackages.filter(pkg => dependencies[pkg]);
+                    
+                    if (installedPackages.length === npmPackages.length) {
+                        log('✅ All NPM packages are installed');
+                        showResult('cdn-results', '✅ NPM fallback ready: All packages installed', true);
+                    } else {
+                        log(`⚠️ NPM partial: ${installedPackages.length}/${npmPackages.length} packages installed`);
+                        showResult('cdn-results', `⚠️ NPM partial: ${installedPackages.length}/${npmPackages.length} installed`, false);
+                    }
+                } else {
+                    log('⚠️ Could not verify NPM packages (package.json not accessible)');
+                    showResult('cdn-results', '⚠️ NPM status unknown (package.json not accessible)', false);
+                }
+                
+            } catch (error) {
+                log(`❌ NPM test error: ${error.message}`);
+                showResult('cdn-results', `❌ NPM test failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testAudioContext() {
+            log('🔊 Testing audio context...');
+            
+            try {
+                // Test AudioContext creation
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                
+                if (!AudioContextClass) {
+                    throw new Error('AudioContext not supported');
+                }
+                
+                const audioContext = new AudioContextClass();
+                
+                // Test basic audio context properties
+                log(`Audio context state: ${audioContext.state}`);
+                log(`Sample rate: ${audioContext.sampleRate}Hz`);
+                log(`Base latency: ${audioContext.baseLatency || 'unknown'}`);
+                
+                // Test if we can create basic audio nodes
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                log('✅ Audio nodes created successfully');
+                
+                // Clean up
+                await audioContext.close();
+                
+                showResult('audio-results', '✅ Audio context test passed', true);
+                
+            } catch (error) {
+                log(`❌ Audio context error: ${error.message}`);
+                showResult('audio-results', `❌ Audio context failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testStrudelApp() {
+            log('🎵 Testing Strudel app integration...');
+            
+            try {
+                if (typeof StrudelApp === 'undefined') {
+                    throw new Error('StrudelApp class not found');
+                }
+                
+                log('✅ StrudelApp class is available');
+                
+                // Create a test container
+                const testContainer = document.createElement('div');
+                testContainer.style.width = '400px';
+                testContainer.style.height = '300px';
+                testContainer.style.position = 'absolute';
+                testContainer.style.top = '-9999px'; // Hide offscreen
+                document.body.appendChild(testContainer);
+                
+                // Test app instantiation
+                const strudelApp = new StrudelApp();
+                log('✅ StrudelApp instance created');
+                
+                // Test initialization (with timeout)
+                const initPromise = strudelApp.initialize(testContainer);
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Initialization timeout')), 10000)
+                );
+                
+                await Promise.race([initPromise, timeoutPromise]);
+                log('✅ StrudelApp initialized successfully');
+                
+                // Test UI creation
+                if (testContainer.children.length > 0) {
+                    log('✅ UI elements created');
+                } else {
+                    log('⚠️ No UI elements found');
+                }
+                
+                // Clean up
+                document.body.removeChild(testContainer);
+                if (strudelApp.cleanup) {
+                    strudelApp.cleanup();
+                }
+                
+                showResult('strudel-results', '✅ Strudel app integration test passed', true);
+                
+            } catch (error) {
+                log(`❌ Strudel app error: ${error.message}`);
+                showResult('strudel-results', `❌ Strudel app failed: ${error.message}`, false);
+            }
+        }
+        
+        async function runComprehensiveTests() {
+            log('🚀 Starting comprehensive test suite...');
+            
+            if (typeof StrudelIntegrationTester === 'undefined') {
+                log('❌ Comprehensive tester not available');
+                showResult('comprehensive-results', '❌ Test framework not loaded', false);
+                return;
+            }
+            
+            try {
+                const tester = new StrudelIntegrationTester();
+                const report = await tester.runAllTests();
+                
+                const message = `${report.overallSuccess ? '✅' : '❌'} Tests: ${report.passedTests}/${report.totalTests} (${report.successRate}%)`;
+                showResult('comprehensive-results', message, report.overallSuccess);
+                
+            } catch (error) {
+                log(`❌ Comprehensive test error: ${error.message}`);
+                showResult('comprehensive-results', `❌ Test suite failed: ${error.message}`, false);
+            }
+        }
+        
+        // Auto-run basic tests on load
+        window.addEventListener('load', () => {
+            log('🚀 Starting Strudel integration tests...');
+            setTimeout(testCDNLoading, 1000);
+            
+            // Auto-run comprehensive tests after basic ones
+            setTimeout(runComprehensiveTests, 3000);
+        });
+    </script>
+</body>
+</html>
