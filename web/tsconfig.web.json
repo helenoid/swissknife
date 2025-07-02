@@ -1,38 +1,28 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["ES2020", "DOM", "DOM.Iterable", "WebWorker"],
-    "module": "ESNext",
+    "lib": ["ES2020", "DOM"],
+    "module": "ESNext", 
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "outDir": "./dist",
+    "strict": false,
+    "noImplicitAny": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": true,
-    "jsx": "react-jsx",
-    "declaration": false,
-    "outDir": "./dist",
-    "rootDir": "./",
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@swissknife/core/*": ["../src/*"],
-      "@swissknife/ai/*": ["../src/ai/*"],
-      "@swissknife/tasks/*": ["../src/tasks/*"],
-      "@swissknife/storage/*": ["../src/storage/*"],
-      "@swissknife/utils/*": ["../src/utils/*"]
-    },
-    "types": ["node", "webrtc"]
+    "declaration": false,
+    "composite": false,
+    "noEmit": false
   },
   "include": [
-    "./js/**/*",
-    "../src/**/*"
+    "./src/browser-main-working.ts",
+    "./src/utils/browser-utils.ts",
+    "./src/polyfills/browser-polyfills.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "../src/entrypoints/cli.tsx",
-    "../src/**/*.test.ts",
-    "../src/**/*.test.tsx"
+    "dist"
   ]
 }

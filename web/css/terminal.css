@@ -87,6 +87,25 @@
     overflow: hidden;
 }
 
+.terminal-body {
+    height: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    background: #0c0c0c;
+    position: relative;
+}
+
+.terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+}
+
 .terminal-content {
     padding: 12px;
     height: 100%;
@@ -135,6 +154,59 @@
 .terminal-line.welcome {
     color: #4fc1ff;
     margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.terminal-line.help {
+    color: #dcdcaa;
+    font-weight: bold;
+}
+
+.terminal-line.category {
+    color: #ffcc02;
+    font-weight: bold;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+/* Terminal output element styles */
+.terminal-prompt-echo {
+    color: #569cd6;
+}
+
+.terminal-error {
+    color: #f48771;
+}
+
+.terminal-warning {
+    color: #dcdcaa;
+}
+
+.terminal-success {
+    color: #4ec9b0;
+}
+
+.terminal-info {
+    color: #9cdcfe;
+}
+
+.terminal-welcome {
+    color: #4fc1ff;
+    font-weight: bold;
+}
+
+.terminal-help {
+    color: #dcdcaa;
+    font-weight: bold;
+}
+
+.terminal-category {
+    color: #ffcc02;
+    font-weight: bold;
+}
+
+.terminal-ai {
+    color: #c586c0;
 }
 
 .terminal-prompt {
@@ -146,11 +218,11 @@
 .terminal-input-line {
     display: flex;
     align-items: center;
-    margin-top: 8px;
-    position: sticky;
-    bottom: 0;
+    padding: 8px 12px;
     background: #0c0c0c;
-    padding: 4px 0;
+    border-top: 1px solid #3e3e42;
+    flex-shrink: 0;
+    min-height: 40px;
 }
 
 .terminal-input {
