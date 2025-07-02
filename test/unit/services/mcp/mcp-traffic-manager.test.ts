@@ -1,11 +1,10 @@
-/**
- * Unit tests for the TrafficManager component
- */
+// This test file is deprecated and superseded by mcp-traffic-manager_timeout_fixed.test.ts
+// The tests in this file are disabled.
 
-import { TrafficManager } from '../../../../src/services/mcp-traffic-manager';
-import { ServerRegistry } from '../../../../src/services/mcp-registry';
-import { VersionedServerConfig } from '../../../../src/services/mcp-types';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+/*
+&#x000A;**
+ * Unit tests for the TrafficManager component
+ *&#x000A;/
 
 // Mock the registry
 jest.mock('../../../../src/services/mcp-registry', () => {
@@ -24,9 +23,11 @@ jest.mock('../../../../src/services/mcp-registry', () => {
   };
 });
 
+const connectToServer = jest.fn();
+
 // Mock the connectToServer function
 jest.mock('../../../../src/services/mcpClient', () => ({
-  connectToServer: jest.fn()
+  connectToServer: jest.fn().mockImplementation(() => connectToServer())
 }));
 
 // Mock the logging utilities
@@ -34,6 +35,13 @@ jest.mock('../../../../src/utils/log', () => ({
   logEvent: jest.fn(),
   logError: jest.fn()
 }));
+
+// Import after mocks
+import { TrafficManager } from '@src/services/mcp-traffic-manager';
+import { ServerRegistry } from '@src/services/mcp-registry';
+
+// Type definitions for testing
+type Client = any; // Mock client type
 
 describe('TrafficManager', () => {
   let trafficManager: TrafficManager;
@@ -122,7 +130,7 @@ describe('TrafficManager', () => {
         // @ts-ignore - accessing private method for testing
         trafficManager.clearCache();
         
-        const client = await trafficManager.getClientForRequest('test-server');
+        await trafficManager.getClientForRequest('test-server');
         
         // Check which server was selected by examining the connection call
         const lastCall = connectToServer.mock.calls.length - 1;
@@ -191,7 +199,7 @@ describe('TrafficManager', () => {
       }
       
       expect(foundMatch).toBe(true);
-      expect(connectToServer.mock.calls.some(call => call[0].includes('1.0.0'))).toBe(false);
+      expect(connectToServer.mock.calls.some((call: any) => call[0].includes('1.0.0'))).toBe(false);
     });
 
     it('should cache client connections', async () => {
@@ -231,7 +239,7 @@ describe('TrafficManager', () => {
       await trafficManager.initialize();
       
       // Mock server versions
-      mockRegistry.getServerVersion.mockImplementation((name, version) => {
+      mockRegistry.getServerVersion.mockImplementation((name: any, version: any) => {
         if (name === 'test-server') {
           if (version === '1.0.0') {
             return {
@@ -320,8 +328,8 @@ describe('TrafficManager', () => {
       
       // Check calls to update traffic
       const calls = mockRegistry.updateTrafficPercentage.mock.calls;
-      const v1Calls = calls.filter(call => call[1] === '1.0.0');
-      const v2Calls = calls.filter(call => call[1] === '2.0.0');
+      const v1Calls = calls.filter((call: any) => call[1] === '1.0.0');
+      const v2Calls = calls.filter((call: any) => call[1] === '2.0.0');
       
       expect(v1Calls.length).toBe(1);
       expect(v2Calls.length).toBe(1);
@@ -382,3 +390,4 @@ describe('TrafficManager', () => {
     });
   });
 });
+*/

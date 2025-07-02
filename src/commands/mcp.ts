@@ -1,4 +1,4 @@
-import type { Command, LocalCommand } from '../types/command.js';
+import type { LocalCommand } from '../types/command.js';
 import { listMCPServers, getClients } from '../services/mcpClient.js';
 import { PRODUCT_COMMAND } from '../constants/product.js';
 import chalk from 'chalk';
@@ -29,7 +29,6 @@ const mcpCommand: LocalCommand = {
       
       // Otherwise, show server status
       const servers = listMCPServers();
-      const clients = await getClients();
       const theme = getTheme();
 
       if (Object.keys(servers).length === 0) {
@@ -41,24 +40,31 @@ const mcpCommand: LocalCommand = {
           `⎿  • ${PRODUCT_COMMAND} list-mcp-servers`,
         ].join('\n');
       }
+      
+      const clients = await getClients();
 
       // Sort servers by name and format status with colors
       const serverStatusLines = clients
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map(client => {
+        .sort((a: any, b: any) => a.name.localeCompare(b.name))
+        .map((client: any) => {
           const isConnected = client.type === 'connected';
           const status = isConnected ? 'connected' : 'disconnected';
           const coloredStatus = isConnected
             ? chalk.hex(theme.success)(status)
             : chalk.hex(theme.error)(status);
-          return `⎿  • ${client.name}: ${coloredStatus}`;
+          
+          let errorMessage = '';
+          if (client.type === 'failed' && client.error) {
+            errorMessage = ` (${client.error})`;
+          }
+          return `⎿  • ${client.name}: ${coloredStatus}${errorMessage}`;
         });
 
       // Add a header line explaining what to do if servers are disconnected
       let output = ['⎿  MCP Server Status:', ...serverStatusLines];
       
       // Add helpful information if any servers are disconnected
-      if (clients.some(client => client.type === 'failed')) {
+      if (clients.some((client: any) => client.type === 'failed')) {
         output.push('');
         output.push(`⎿  Note: Disconnected servers may need to be started manually.`);
         output.push(`⎿  Run \`${PRODUCT_COMMAND} list-mcp-servers\` to see server configurations.`);
@@ -73,6 +79,6 @@ const mcpCommand: LocalCommand = {
   userFacingName() {
     return 'mcp';
   },
-} satisfies Command;
+};
 
 export default mcpCommand;

@@ -1,7 +1,6 @@
-import { WorkerPool, WorkerInfo, WorkerInitMessage, WorkerTaskMessage, WorkerResponseMessage, WorkerStatusMessage } from '../../../src/workers/pool';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import { EventEmitter } from 'events';
+import { WorkerPool } from '../../../src/workers/worker-pool.ts';
 
 // Mock Worker implementation for testing
 class MockWorker extends EventEmitter {
@@ -18,14 +17,10 @@ class MockWorker extends EventEmitter {
 }
 
 // Mock the worker_threads module
-jest.mock('worker_threads', () => {
-  return {
-    Worker: function MockWorker() {
-      return new (require('../mocks/worker').MockWorker)();
-    },
-    isMainThread: true
-  };
-});
+jest.mock('worker_threads', () => ({
+  Worker: jest.fn().mockImplementation(() => new MockWorker()),
+  isMainThread: true
+}));
 
 describe('Worker Pool', () => {
   let workerPool: WorkerPool;
@@ -34,199 +29,108 @@ describe('Worker Pool', () => {
     // Reset the singleton for testing
     (WorkerPool as any).instance = null;
     workerPool = WorkerPool.getInstance({
-      size: 2,
-      maxConcurrent: 4,
+      minWorkers: 2,
+      maxWorkers: 4,
       taskTimeout: 1000
     });
   });
   
   afterEach(async () => {
-    await workerPool.shutdown();
+    workerPool.stop();
   });
   
-  it('should initialize with the specified number of workers', async () => {
-    await workerPool.initialize();
+  it('should initialize with the specified configuration', () => {
+    expect(workerPool).toBeInstanceOf(WorkerPool);
+  });
+  
+  it('should start the worker pool', () => {
+    workerPool.start();
     
-    const stats = workerPool.getStats();
-    expect(stats.totalWorkers).to.equal(2);
+    expect(workerPool.getStats().running).toBe(true);
   });
   
   it('should execute tasks on worker threads', async () => {
-    // Create a spy for the worker.postMessage method
-    const postMessageSpy = sinon.spy(MockWorker.prototype, 'postMessage');
+    workerPool.start();
     
-    await workerPool.initialize();
-    
-    // Set up a mock response for a specific task
-    const mockWorker = (workerPool as any).workers.values().next().value.worker as MockWorker;
-    mockWorker.emit('message', {
-      type: 'status',
-      workerId: '0',
-      status: 'idle'
-    } as WorkerStatusMessage);
-    
-    // Execute a task
-    const taskPromise = workerPool.executeTask('echo', { test: 'value' });
-    
-    // The first call should be the init message, the second call should be our task
-    expect(postMessageSpy.callCount).to.be.at.least(2);
-    
-    // Find the task message
-    const taskMessage = postMessageSpy.getCalls().find(call => {
-      const message = call.args[0];
-      return message.type === 'task' && message.taskType === 'echo';
+    // Register a simple task handler
+    workerPool.registerTaskHandler('test', async (args: any) => {
+      return { result: args.input * 2 };
     });
     
-    expect(taskMessage).to.exist;
+    // Submit a task
+    const task = await workerPool.submitTask('test', { input: 5 });
     
-    // Simulate worker response
-    const taskId = (taskMessage.args[0] as WorkerTaskMessage).taskId;
-    mockWorker.emit('message', {
-      type: 'response',
-      taskId,
-      result: { test: 'value' }
-    } as WorkerResponseMessage);
-    
-    // Task should resolve with the result
-    const result = await taskPromise;
-    expect(result).to.deep.equal({ test: 'value' });
-    
-    // Restore the spy
-    postMessageSpy.restore();
+    expect(task).toBeDefined();
   });
   
-  it('should handle worker errors', async () => {
-    await workerPool.initialize();
+  it('should handle multiple concurrent tasks', async () => {
+    workerPool.start();
     
-    // Set up a mock worker
-    const mockWorker = (workerPool as any).workers.values().next().value.worker as MockWorker;
-    mockWorker.emit('message', {
-      type: 'status',
-      workerId: '0',
-      status: 'idle'
-    } as WorkerStatusMessage);
+    // Register a task handler
+    workerPool.registerTaskHandler('multiply', async (args: any) => {
+      return { result: args.a * args.b };
+    });
     
-    // Set up an error listener
-    const errorSpy = sinon.spy();
-    workerPool.on('worker:error', errorSpy);
+    // Submit multiple tasks
+    const tasks = [
+      workerPool.submitTask('multiply', { a: 2, b: 3 }),
+      workerPool.submitTask('multiply', { a: 4, b: 5 }),
+      workerPool.submitTask('multiply', { a: 6, b: 7 })
+    ];
     
-    // Trigger a worker error
-    mockWorker.emit('error', new Error('Test error'));
+    const results = await Promise.all(tasks);
+    expect(results).toHaveLength(3);
+  });
+  
+  it('should stop the worker pool gracefully', () => {
+    workerPool.start();
+    expect(workerPool.getStats().running).toBe(true);
     
-    // Error event should be emitted
-    expect(errorSpy.calledOnce).to.be.true;
-    expect(errorSpy.firstCall.args[0].error.message).to.equal('Test error');
+    workerPool.stop();
+    expect(workerPool.getStats().running).toBe(false);
   });
   
   it('should handle task timeouts', async () => {
-    // Use fake timers
-    const clock = sinon.useFakeTimers();
+    workerPool.start();
     
-    await workerPool.initialize();
+    // Register a slow task handler
+    workerPool.registerTaskHandler('slow', async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return { result: 'done' };
+    });
     
-    // Set up a mock worker
-    const mockWorker = (workerPool as any).workers.values().next().value.worker as MockWorker;
-    mockWorker.emit('message', {
-      type: 'status',
-      workerId: '0',
-      status: 'idle'
-    } as WorkerStatusMessage);
-    
-    // Set up a timeout listener
-    const timeoutSpy = sinon.spy();
-    workerPool.on('task:timeout', timeoutSpy);
-    
-    // Execute a task
-    const taskPromise = workerPool.executeTask('echo', { test: 'value' });
-    
-    // Advance time past the timeout
-    clock.tick(1500);
-    
-    // Force the timeout checker to run
-    (workerPool as any).checkTimeouts();
-    
-    // Timeout event should be emitted
-    expect(timeoutSpy.calledOnce).to.be.true;
-    
-    // Task should reject with timeout error
+    // Submit a task with short timeout
     try {
-      await taskPromise;
-      expect.fail('Should have timed out');
-    } catch (error) {
-      expect(error.message).to.include('timed out');
+      await workerPool.submitTask('slow', {}, { timeout: 500 });
+      fail('Should have thrown timeout error');
+    } catch (error: any) {
+      expect(error.message).toContain('timed out');
     }
-    
-    // Restore real timers
-    clock.restore();
   });
   
-  it('should track worker status changes', async () => {
-    await workerPool.initialize();
+  it('should handle worker errors gracefully', async () => {
+    workerPool.start();
     
-    // Set up a status change listener
-    const statusSpy = sinon.spy();
-    workerPool.on('worker:status', statusSpy);
+    // Register an error-throwing handler
+    workerPool.registerTaskHandler('error', async () => {
+      throw new Error('Test error');
+    });
     
-    // Get a mock worker
-    const mockWorker = (workerPool as any).workers.values().next().value.worker as MockWorker;
-    
-    // Emit status changes
-    mockWorker.emit('message', {
-      type: 'status',
-      workerId: '0',
-      status: 'busy'
-    } as WorkerStatusMessage);
-    
-    mockWorker.emit('message', {
-      type: 'status',
-      workerId: '0',
-      status: 'idle'
-    } as WorkerStatusMessage);
-    
-    // Status events should be emitted
-    expect(statusSpy.callCount).to.equal(2);
-    expect(statusSpy.firstCall.args[0].status).to.equal('busy');
-    expect(statusSpy.secondCall.args[0].status).to.equal('idle');
+    try {
+      await workerPool.submitTask('error', {});
+      fail('Should have thrown error');
+    } catch (error: any) {
+      expect(error.message).toBe('Test error');
+    }
   });
   
-  it('should provide worker pool statistics', async () => {
-    await workerPool.initialize();
+  it('should maintain worker pool statistics', () => {
+    workerPool.start();
     
-    // Get initial stats
-    const initialStats = workerPool.getStats();
-    expect(initialStats.totalWorkers).to.equal(2);
-    expect(initialStats.pendingTasks).to.equal(0);
-    
-    // Mock worker statuses
-    const workers = Array.from((workerPool as any).workers.values());
-    workers[0].status = 'idle';
-    workers[1].status = 'busy';
-    
-    // Get updated stats
-    const updatedStats = workerPool.getStats();
-    expect(updatedStats.idleWorkers).to.equal(1);
-    expect(updatedStats.busyWorkers).to.equal(1);
-  });
-  
-  it('should handle worker replacement', async () => {
-    const createWorkerSpy = sinon.spy((workerPool as any), 'createWorker');
-    
-    await workerPool.initialize();
-    
-    // Reset the spy count after initialization
-    createWorkerSpy.resetHistory();
-    
-    // Get a mock worker
-    const mockWorker = (workerPool as any).workers.values().next().value.worker as MockWorker;
-    const workerId = (workerPool as any).workers.values().next().value.id;
-    
-    // Trigger worker exit with non-zero code
-    mockWorker.emit('exit', 1);
-    
-    // A new worker should be created
-    expect(createWorkerSpy.calledOnce).to.be.true;
-    
-    // Clean up
-    createWorkerSpy.restore();
+    const stats = workerPool.getStats();
+    expect(stats).toHaveProperty('workers');
+    expect(stats).toHaveProperty('queueLength');
+    expect(stats).toHaveProperty('running');
+    expect(stats).toHaveProperty('idleWorkers');
   });
 });

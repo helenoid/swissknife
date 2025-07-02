@@ -1,3 +1,12 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ 
+  promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() },
+  mkdtempSync: jest.fn(() => "/tmp/mcp-test-12345"),
+  existsSync: jest.fn(() => true),
+  rmSync: jest.fn()
+}));
 /**
  * Integration Tests for the MCP Server Entrypoint (`src/entrypoints/mcp.ts`)
  *

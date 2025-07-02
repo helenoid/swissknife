@@ -1,24 +1,24 @@
-import { Box, Text } from 'ink'
-import React, { useMemo } from 'react'
+import { Box, Text } from 'ink.js.js.js.js.js'
+import React, { useMemo } from 'react.js.js.js.js.js'
 import { Select } from '@inkjs/ui'
-import { getTheme } from '../../utils/theme'
+import { getTheme } from '../../utils/theme.js.js.js.js.js.js.js.js.js.js'
 import {
   PermissionRequestTitle,
   textColorForRiskScore,
-} from './PermissionRequestTitle.js'
-import { logUnaryEvent } from '../../utils/unaryLogging'
-import { env } from '../../utils/env'
-import { getCwd } from '../../utils/state'
-import { savePermission } from '../../permissions'
+} from './PermissionRequestTitle.js.js.js.js.js.js.js.js.js.js.js'
+import { logUnaryEvent } from '../../utils/unaryLogging.js.js.js.js.js.js.js.js.js.js'
+import { env } from '../../utils/env.js.js.js.js.js.js.js.js.js.js'
+import { getCwd } from '../../utils/state.js.js.js.js.js.js.js.js.js.js'
+import { savePermission } from '../../permissions.js.js.js.js.js.js.js.js.js.js'
 import {
   type ToolUseConfirm,
   toolUseConfirmGetPrefix,
-} from './PermissionRequest.js'
-import chalk from 'chalk'
+} from './PermissionRequest.js.js.js.js.js.js.js.js.js.js.js'
+import chalk from 'chalk.js.js.js.js.js'
 import {
   UnaryEvent,
   usePermissionRequestLogging,
-} from '../../hooks/usePermissionRequestLogging.js'
+} from '../../hooks/usePermissionRequestLogging.js.js.js.js.js.js.js.js.js.js.js'
 
 type Props = {
   toolUseConfirm: ToolUseConfirm

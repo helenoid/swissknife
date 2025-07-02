@@ -1,0 +1,54 @@
+// Mock temp directory helpers
+const createTempTestDir = jest.fn().mockImplementation((name) => `/tmp/test-${name}-${Date.now()}`);
+const removeTempTestDir = jest.fn().mockImplementation(async (dir) => Promise.resolve());
+/**
+ * Test Utilities for SwissKnife
+ */
+
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as os from 'os';
+
+/**
+ * Create a temporary directory for testing
+ * @returns {Promise<string>} Path to the created directory
+ */
+export async function createTempTestDir(): Promise<string> {
+  const tempDir = path.join(os.tmpdir(), `swissknife-test-${Date.now()}`);
+  await fs.mkdir(tempDir, { recursive: true });
+  return tempDir;
+}
+
+/**
+ * Remove a temporary test directory
+ * @param {string} dirPath Path to the directory to remove
+ */
+export async function removeTempTestDir(dirPath: string): Promise<void> {
+  try {
+    await fs.rm(dirPath, { recursive: true, force: true });
+  } catch (err) {
+    // Ignore errors if the directory doesn't exist
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+}
+
+/**
+ * Create a file with test content
+ * @param {string} filePath Path to create the file
+ * @param {string} content Content to write to the file
+ */
+export async function createTestFile(filePath: string, content: string): Promise<void> {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, content, 'utf-8');
+}
+
+/**
+ * Read the content of a test file
+ * @param {string} filePath Path to the file to read
+ * @returns {Promise<string>} Content of the file
+ */
+export async function readTestFile(filePath: string): Promise<string> {
+  return fs.readFile(filePath, 'utf-8');
+}

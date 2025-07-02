@@ -1,0 +1,448 @@
+/**
+ * API Key Persistence Test
+ * 
+/**
+ * Unit Tests for API Key Persistence and Retrieval Logic.
+ * Focuses on functions within `src/utils/config.js`.
+ */
+
+// --- Mock Setup ---
+
+// Mock the entire config utility module
+jest.mock('../../src/utils/config.js', () => {
+  const originalModule = jest.requireActual('../../src/utils/config.js');
+
+  // Keep original constants if needed, mock functions
+  return {
+    ...originalModule, // Keep constants like MODEL_TYPES if they exist
+    getGlobalConfig: jest.fn(),
+    saveGlobalConfig: jest.fn(),
+    getSessionState: jest.fn(),
+    setSessionState: jest.fn(),
+    // We will import the *actual* functions we want to test later
+    // This setup primarily mocks the functions *called by* the functions under test.
+  };
+});
+
+// Import the mocked functions for controlling them in tests
+const {
+  getGlobalConfig,
+  saveGlobalConfig,
+  getSessionState,
+  setSessionState,
+} = require('../../src/utils/config.js');
+
+// Import the *actual* functions to test
+// This works because jest.mock hoists, but the require gets the original implementations
+const {
+  getActiveApiKey,
+  addApiKey,
+  removeApiKey,
+  markApiKeyAsFailed,
+  // Assuming saveConfiguration is also in config.js for the integration tests
+  saveConfiguration,
+} = jest.requireActual('../../src/utils/config.js');
+
+// --- Test Data and State ---
+
+// Default mock config state for resetting
+const initialMockConfig = () => ({
+  primaryProvider: 'lilypad',
+  largeModelName: 'llama3.1:8b',
+  smallModelName: 'llama3.1:8b',
+  largeModelApiKeys: ['test-api-key-1', 'test-api-key-2'],
+  smallModelApiKeys: ['test-api-key-3', 'test-api-key-4'],
+});
+
+// Default mock session state for resetting
+const initialMockSessionState = () => ({
+  modelErrors: {},
+  currentError: null,
+  currentApiKeyIndex: { small: 0, large: 0 },
+  failedApiKeys: { small: [], large: [] },
+});
+
+let mockConfig;
+let mockSessionState;
+
+// --- Test Suite ---
+
+describe('API Key Handling (config.js)', () => {
+  const ENV_VAR_KEY = 'ANURA_API_KEY'; // Use a constant for the env var name
+  const ENV_VAR_VALUE = 'env-api-key';
+  let originalEnvVarValue;
+
+  // Setup before each test
+  beforeEach(() => {
+    // Reset state
+    mockConfig = initialMockConfig();
+    mockSessionState = initialMockSessionState();
+
+    // Reset mocks and configure their default behavior
+    getGlobalConfig.mockReturnValue(mockConfig);
+    saveGlobalConfig.mockImplementation((newConfig) => {
+      Object.assign(mockConfig, newConfig); // Simulate saving by updating the mock object
+      return true;
+    });
+    getSessionState.mockImplementation((key) => {
+      if (key) return mockSessionState[key];
+      return mockSessionState;
+    });
+    setSessionState.mockImplementation((keyOrState, value) => {
+      if (typeof keyOrState === 'string') {
+        mockSessionState[keyOrState] = value;
+      } else {
+        Object.assign(mockSessionState, keyOrState);
+      }
+    });
+
+    // Backup and set environment variable for tests
+    originalEnvVarValue = process.env[ENV_VAR_KEY];
+    process.env[ENV_VAR_KEY] = ENV_VAR_VALUE;
+  });
+
+  // Restore environment variable after each test
+  afterEach(() => {
+    if (originalEnvVarValue === undefined) {
+      delete process.env[ENV_VAR_KEY];
+    } else {
+      process.env[ENV_VAR_KEY] = originalEnvVarValue;
+    }
+  });
+
+  // --- getActiveApiKey Tests ---
+
+  describe('getActiveApiKey', () => {
+    it('should return the first key by default (no roundRobin)', () => {
+      // Arrange
+      const modelType = 'large';
+
+      // Act
+      const key = getActiveApiKey(modelType, false); // Pass only necessary args
+
+      // Assert
+      expect(key).toBe('test-api-key-1');
+      expect(getSessionState).toHaveBeenCalledWith('currentApiKeyIndex');
+      expect(getGlobalConfig).toHaveBeenCalled();
+    });
+
+    it('should rotate keys when roundRobin is true', () => {
+      // Arrange
+      const modelType = 'large';
+
+      // Act: First call
+      const key1 = getActiveApiKey(modelType, true);
+      // Act: Second call
+      const key2 = getActiveApiKey(modelType, true);
+      // Act: Third call (wraps around)
+      const key3 = getActiveApiKey(modelType, true);
+
+
+      // Assert
+      expect(key1).toBe('test-api-key-2'); // Index 0 -> 1
+      expect(key2).toBe('test-api-key-1'); // Index 1 -> 0
+      expect(key3).toBe('test-api-key-2'); // Index 0 -> 1 again
+      expect(setSessionState).toHaveBeenCalledTimes(3); // Called each time to update index
+    });
+
+    it('should use environment variable as fallback if config array is empty', () => {
+      // Arrange
+      mockConfig.largeModelApiKeys = []; // Make config array empty
+
+      // Act
+      const key = getActiveApiKey('large'); // roundRobin defaults to false
+
+      // Assert
+      expect(key).toBe(ENV_VAR_VALUE);
+      // Check if it also *adds* the env var key back to config (based on original test)
+      expect(saveGlobalConfig).toHaveBeenCalled();
+      expect(mockConfig.largeModelApiKeys).toContain(ENV_VAR_VALUE);
+    });
+
+     it('should return undefined if config array is empty and environment variable is not set', () => {
+      // Arrange
+      mockConfig.largeModelApiKeys = [];
+      delete process.env[ENV_VAR_KEY]; // Unset env var
+
+      // Act
+      const key = getActiveApiKey('large');
+
+      // Assert
+      expect(key).toBeUndefined();
+      expect(saveGlobalConfig).not.toHaveBeenCalled(); // Should not save if no key found
+    });
+
+    it('should handle out-of-bounds index by resetting to 0', () => {
+      // Arrange
+      mockSessionState.currentApiKeyIndex.large = 10; // Set invalid index
+
+      // Act
+      const key = getActiveApiKey('large', false);
+
+      // Assert
+      expect(key).toBe('test-api-key-1'); // Should reset to index 0
+      expect(setSessionState).toHaveBeenCalledWith('currentApiKeyIndex', { small: 0, large: 0 }); // Verify index reset
+    });
+
+    it('should filter out failed API keys', () => {
+      // Arrange
+      mockSessionState.failedApiKeys.large = ['test-api-key-1']; // Mark first key as failed
+
+      // Act
+      const key = getActiveApiKey('large', false);
+
+      // Assert
+      expect(key).toBe('test-api-key-2'); // Should skip the failed key
+    });
+
+     it('should rotate correctly while filtering out failed API keys', () => {
+      // Arrange
+      mockConfig.largeModelApiKeys = ['key1', 'key2', 'key3', 'key4'];
+      mockSessionState.failedApiKeys.large = ['key2']; // Mark key2 as failed
+      mockSessionState.currentApiKeyIndex.large = 0; // Start at index 0
+
+      // Act & Assert
+      expect(getActiveApiKey('large', true)).toBe('key3'); // Skips key2 (index 1 -> 2)
+      expect(getActiveApiKey('large', true)).toBe('key4'); // Index 2 -> 3
+      expect(getActiveApiKey('large', true)).toBe('key1'); // Index 3 -> 0
+      expect(getActiveApiKey('large', true)).toBe('key3'); // Index 0 -> skips key2 (index 1) -> 2
+    });
+
+    it('should return environment variable if all configured keys have failed', () => {
+      // Arrange
+      mockSessionState.failedApiKeys.large = ['test-api-key-1', 'test-api-key-2']; // Mark all as failed
+
+      // Act
+      const key = getActiveApiKey('large');
+
+      // Assert
+      expect(key).toBe(ENV_VAR_VALUE);
+      // Check if it adds the env var key back
+      expect(saveGlobalConfig).toHaveBeenCalled();
+      expect(mockConfig.largeModelApiKeys).toContain(ENV_VAR_VALUE);
+    });
+
+    it('should return undefined if all configured keys failed and no env var is set', () => {
+      // Arrange
+      mockSessionState.failedApiKeys.large = ['test-api-key-1', 'test-api-key-2'];
+      delete process.env[ENV_VAR_KEY]; // Unset env var
+
+      // Act
+      const key = getActiveApiKey('large');
+
+      // Assert
+      expect(key).toBeUndefined();
+    });
+  });
+
+  // --- addApiKey Tests ---
+
+  describe('addApiKey', () => {
+    it('should add a new key to the specified model type array', () => {
+      // Arrange
+      const newKey = 'new-api-key';
+      const modelType = 'large';
+
+      // Act
+      addApiKey(newKey, modelType); // Uses mocked get/save config
+
+      // Assert
+      expect(saveGlobalConfig).toHaveBeenCalledTimes(1);
+      expect(mockConfig.largeModelApiKeys).toContain(newKey);
+      expect(mockConfig.largeModelApiKeys).toHaveLength(3);
+    });
+
+    it('should not add a duplicate key', () => {
+      // Arrange
+      const existingKey = 'test-api-key-1';
+      const modelType = 'large';
+
+      // Act
+      addApiKey(existingKey, modelType);
+
+      // Assert
+      expect(saveGlobalConfig).not.toHaveBeenCalled(); // Should not save if key exists
+      expect(mockConfig.largeModelApiKeys).toHaveLength(2); // Length should be unchanged
+    });
+  });
+
+  // --- removeApiKey Tests ---
+
+  describe('removeApiKey', () => {
+    it('should remove an existing key from the specified model type array', () => {
+      // Arrange
+      const keyToRemove = 'test-api-key-1';
+      const modelType = 'large';
+
+      // Act
+      removeApiKey(keyToRemove, modelType);
+
+      // Assert
+      expect(saveGlobalConfig).toHaveBeenCalledTimes(1);
+      expect(mockConfig.largeModelApiKeys).not.toContain(keyToRemove);
+      expect(mockConfig.largeModelApiKeys).toHaveLength(1);
+    });
+
+    it('should not change config or save if the key does not exist', () => {
+      // Arrange
+      const nonExistentKey = 'non-existent-key';
+      const modelType = 'large';
+
+      // Act
+      removeApiKey(nonExistentKey, modelType);
+
+      // Assert
+      expect(saveGlobalConfig).not.toHaveBeenCalled();
+      expect(mockConfig.largeModelApiKeys).toHaveLength(2); // Length unchanged
+    });
+  });
+
+  // --- markApiKeyAsFailed Tests ---
+
+  describe('markApiKeyAsFailed', () => {
+    it('should add the key to the failed keys list in session state', () => {
+      // Arrange
+      const failedKey = 'test-api-key-1';
+      const modelType = 'large';
+
+      // Act
+      markApiKeyAsFailed(failedKey, modelType);
+
+      // Assert
+      expect(getSessionState).toHaveBeenCalledWith('failedApiKeys');
+      expect(setSessionState).toHaveBeenCalledWith('failedApiKeys', {
+        small: [],
+        large: [failedKey], // Expect key to be added
+      });
+      // Direct check on mock state (less ideal than checking mock calls, but ok here)
+      expect(mockSessionState.failedApiKeys.large).toContain(failedKey);
+    });
+
+    it('should not add a duplicate key to the failed keys list', () => {
+      // Arrange
+      const failedKey = 'test-api-key-1';
+      const modelType = 'large';
+      mockSessionState.failedApiKeys.large = [failedKey]; // Key already failed
+
+      // Act
+      markApiKeyAsFailed(failedKey, modelType);
+
+      // Assert
+      // setSessionState should still be called, but the array shouldn't change length
+      expect(setSessionState).toHaveBeenCalled();
+      expect(mockSessionState.failedApiKeys.large).toHaveLength(1);
+    });
+  });
+});
+
+// --- Integration Tests for saveConfiguration ---
+// These test how saveConfiguration (assumed to be in config.js) interacts
+// with API keys, particularly the environment variable handling.
+
+describe('saveConfiguration Integration', () => {
+  const ENV_VAR_KEY = 'ANURA_API_KEY';
+  const ENV_VAR_VALUE = 'env-api-key';
+  let originalEnvVarValue;
+
+  beforeEach(() => {
+    // Reset state
+    mockConfig = initialMockConfig();
+    mockSessionState = initialMockSessionState();
+
+    // Configure mocks
+    getGlobalConfig.mockReturnValue(mockConfig);
+    saveGlobalConfig.mockImplementation((newConfig) => {
+      Object.assign(mockConfig, newConfig);
+      return true;
+    });
+     getSessionState.mockImplementation((key) => {
+      if (key) return mockSessionState[key];
+      return mockSessionState;
+    });
+    setSessionState.mockImplementation((keyOrState, value) => {
+      if (typeof keyOrState === 'string') {
+        mockSessionState[keyOrState] = value;
+      } else {
+        Object.assign(mockSessionState, keyOrState);
+      }
+    });
+
+    // Backup and set environment variable
+    originalEnvVarValue = process.env[ENV_VAR_KEY];
+    process.env[ENV_VAR_KEY] = ENV_VAR_VALUE;
+  });
+
+   afterEach(() => {
+    // Restore environment variable
+    if (originalEnvVarValue === undefined) {
+      delete process.env[ENV_VAR_KEY];
+    } else {
+      process.env[ENV_VAR_KEY] = originalEnvVarValue;
+    }
+  });
+
+
+  it('should add environment variable API key to config when provider is lilypad', () => {
+    // Arrange
+    mockConfig.largeModelApiKeys = ['existing-key']; // Start with some keys
+    mockConfig.smallModelApiKeys = ['existing-key'];
+
+    // Act
+    saveConfiguration('lilypad', 'llama3.1:8b'); // Simulate selecting lilypad
+
+    // Assert
+    expect(saveGlobalConfig).toHaveBeenCalled();
+    expect(mockConfig.largeModelApiKeys).toContain(ENV_VAR_VALUE);
+    expect(mockConfig.smallModelApiKeys).toContain(ENV_VAR_VALUE);
+    expect(mockConfig.largeModelApiKeys).toHaveLength(2); // Check length increased
+  });
+
+   it('should NOT add environment variable API key to config for other providers', () => {
+    // Arrange
+    mockConfig.largeModelApiKeys = ['existing-key'];
+    mockConfig.smallModelApiKeys = ['existing-key'];
+
+    // Act
+    saveConfiguration('openai', 'gpt-4'); // Simulate selecting another provider
+
+    // Assert
+    expect(saveGlobalConfig).toHaveBeenCalled();
+    expect(mockConfig.largeModelApiKeys).not.toContain(ENV_VAR_VALUE); // Should NOT contain env var
+    expect(mockConfig.smallModelApiKeys).not.toContain(ENV_VAR_VALUE);
+    expect(mockConfig.largeModelApiKeys).toHaveLength(1); // Length unchanged
+  });
+
+  it('should reset session state API key indices when called', () => {
+    // Arrange
+    mockSessionState.currentApiKeyIndex = { small: 2, large: 3 }; // Set indices to non-zero
+
+    // Act
+    saveConfiguration('lilypad', 'llama3.1:8b');
+
+    // Assert
+    expect(setSessionState).toHaveBeenCalledWith('currentApiKeyIndex', { small: 0, large: 0 });
+    // Direct check (less ideal but ok)
+    expect(mockSessionState.currentApiKeyIndex.small).toBe(0);
+    expect(mockSessionState.currentApiKeyIndex.large).toBe(0);
+  });
+
+  // Test combining the flow as in the original file
+  it('should handle flow: empty keys -> saveConfig(lilypad) -> getActiveApiKey', () => {
+    // Arrange: Start with empty API keys in config
+    mockConfig.largeModelApiKeys = [];
+    mockConfig.smallModelApiKeys = [];
+
+    // Act 1: Call saveConfiguration to simulate model selection for lilypad
+    saveConfiguration('lilypad', 'llama3.1:8b');
+
+    // Assert 1: Check if environment variable was added to config
+    expect(saveGlobalConfig).toHaveBeenCalled();
+    expect(mockConfig.largeModelApiKeys).toContain(ENV_VAR_VALUE);
+
+    // Act 2: Get the active API key
+    const key = getActiveApiKey('large');
+
+    // Assert 2: Verify it's the correct key (which should be the env var key)
+    expect(key).toBe(ENV_VAR_VALUE);
+  });
+});

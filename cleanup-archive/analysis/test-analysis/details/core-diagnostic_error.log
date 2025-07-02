@@ -1,0 +1,64 @@
+FAIL test/core-diagnostic.test.js (12.057 s)
+  Core Diagnostics
+    ✓ Basic test functionality (8 ms)
+    ✓ Async test functionality (2 ms)
+    ✕ Environment variables are accessible (9 ms)
+    ✓ Jest mock functions work (5 ms)
+    ✕ Fetch API is mocked (10622 ms)
+    ✕ Timeout is increased (1 ms)
+
+  ● Core Diagnostics › Environment variables are accessible
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "test-api-key"
+    Received: undefined
+
+      16 |   test('Environment variables are accessible', () => {
+      17 |     expect(process.env.NODE_ENV).toBe('test');
+    > 18 |     expect(process.env.TEST_PROVIDER_API_KEY).toBe('test-api-key');
+         |                                               ^
+      19 |   });
+      20 |   
+      21 |   test('Jest mock functions work', () => {
+
+      at Object.toBe (test/core-diagnostic.test.js:18:47)
+
+  ● Core Diagnostics › Fetch API is mocked
+
+    TypeError: fetch failed
+
+      27 |   
+      28 |   test('Fetch API is mocked', async () => {
+    > 29 |     const response = await fetch('https://test.com');
+         |                      ^
+      30 |     expect(response.ok).toBe(true);
+      31 |     expect(typeof response.json).toBe('function');
+      32 |   });
+
+      at Object.<anonymous> (test/core-diagnostic.test.js:29:22)
+
+    Cause:
+    ConnectTimeoutError: Connect Timeout Error (attempted addresses: 3.18.255.247:443, 34.224.149.186:443, timeout: 10000ms)
+
+
+
+  ● Core Diagnostics › Timeout is increased
+
+    ReferenceError: jasmine is not defined
+
+      34 |   test('Timeout is increased', () => {
+      35 |     // This test verifies that the timeout has been increased
+    > 36 |     expect(jasmine.DEFAULT_TIMEOUT_INTERVAL).toBeGreaterThan(5000);
+         |            ^
+      37 |   });
+      38 | });
+      39 |
+
+      at Object.jasmine (test/core-diagnostic.test.js:36:12)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 3 passed, 6 total
+Snapshots:   0 total
+Time:        12.272 s
+Ran all test suites matching ./test/core-diagnostic.test.js.

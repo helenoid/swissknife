@@ -5,18 +5,18 @@
  */
 
 // Integration Registry and Bridges
-export { IntegrationRegistry, type IntegrationBridge } from './registry';
-export { GooseBridge, type GooseBridgeConfig } from './bridges/goose-bridge';
+export { IntegrationRegistry, type IntegrationBridge } from './registry.js';
+export { GooseBridge, type GooseBridgeConfig } from './bridges/goose-bridge.js';
 
 // Graph-of-Thought Components
-export { GoTNode, type GoTNodeType, type GoTNodeStatus, type GoTNodeData } from '../tasks/graph/node';
-export { GoTManager } from '../tasks/graph/manager';
+export { GoTNode, type GoTNodeType, type GoTNodeStatus, type GoTNodeData } from '../tasks/graph/node.js';
+export { GoTManager } from '../tasks/graph/manager.js';
 
 // Task Scheduling Components
-export { FibonacciHeap, FibHeapScheduler } from '../tasks/scheduler/fibonacci-heap';
+export { FibonacciHeap, FibHeapScheduler } from '../tasks/scheduler/fibonacci-heap.js';
 
 // IPFS Storage Components
-export { MCPClient, type MCPClientConfig, type AddContentOptions, type IPLDNode } from '../storage/ipfs/mcp-client';
+export { MCPClient, type MCPClientConfig, type AddContentOptions, type IPLDNode } from '../storage/ipfs/mcp-client.js';
 
 /**
  * Initialize the Phase 1 integration components

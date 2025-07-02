@@ -1,211 +1,192 @@
-import {
-  AgentContext,
-  Model,
-  ModelGenerateInput,
-  ModelGenerateOutput,
-  Tool,
-  ToolExecutionContext,
-  ToolInput,
-  ToolOutput,
+// src/ai/agent/agent.ts
+import { ToolExecutor } from '../tools/executor.js';
+import { ThinkingManager } from '../thinking/manager.js';
+import { 
+    AgentMessage, 
+    AgentOptions, 
+    IModel, // Use IModel for the agent's model interface
+    ToolCallResult,
+    Tool // Using Tool from types/ai.js
 } from '../../types/ai.js';
-import { StorageProvider } from '../../types/storage.js';
-import { logger } from '../../utils/logger.js';
-import { ConfigManager } from '../../config/manager.js';
-import { ToolExecutor } from '../tools/executor.js'; 
-// Import other necessary types and utilities
-import { GraphOfThoughtEngine } from '../../tasks/graph/graph-of-thought.js'; 
-import { TaskManager } from '../../tasks/manager.js'; 
-import { InferenceExecutor } from '../../ml/inference/executor.js'; 
-
-interface AgentOptions {
-  model: Model;
-  storage: StorageProvider;
-  config: ConfigManager;
-  tools?: Tool[];
-  useGraphOfThought?: boolean; // Flag to enable GoT
-}
+import { v4 as uuidv4 } from 'uuid';
 
 export class Agent {
-  readonly model: Model; // Make model publicly readable
-  private storage: StorageProvider;
-  private config: ConfigManager;
-  private tools = new Map<string, Tool>();
-  private toolExecutor: ToolExecutor; 
-  private graphOfThought?: GraphOfThoughtEngine; 
-  private taskManager: TaskManager; 
-  private inferenceExecutor: InferenceExecutor; 
+  private model: IModel; // Agent holds an IModel instance
+  private tools: Map<string, Tool<any>> = new Map(); // Specify Tool generic type
+  private toolExecutor: ToolExecutor;
+  private thinkingManager: ThinkingManager;
+  private memory: AgentMessage[] = [];
+  private agentOptions: AgentOptions; // Store the original options
+  private currentConversationId: string;
 
-  constructor(options: AgentOptions) {
-    logger.debug('Initializing Agent...');
-    this.model = options.model;
-    this.storage = options.storage;
-    this.config = options.config;
-    this.toolExecutor = new ToolExecutor(); 
-    // TaskManager no longer needs the model directly
-    this.taskManager = new TaskManager({ storage: this.storage }); 
-    this.inferenceExecutor = new InferenceExecutor(); 
-
-    // Instantiate GoT engine if the flag is set, passing the agent instance (this)
-    if (options.useGraphOfThought) {
-      // GoTEngine needs the agent to access model and tools
-      this.graphOfThought = new GraphOfThoughtEngine({ storage: this.storage, agent: this }); 
-      logger.info('Graph-of-Thought engine enabled for Agent.');
-    }
+  constructor(options: AgentOptions, conversationId?: string) {
+    this.model = options.model; // options.model is IModel
+    this.agentOptions = { 
+        maxTokens: 1000, 
+        temperature: 0.7, 
+        // defaultThinkingPattern from options is not directly compatible with ReasoningStrategyType
+        ...options 
+    };
+    
+    this.toolExecutor = new ToolExecutor();
+    // Instantiate ThinkingManager with its own default strategy, or map ThinkingPattern if needed
+    this.thinkingManager = new ThinkingManager(); 
 
     if (options.tools) {
-      options.tools.forEach(tool => this.registerTool(tool));
+      for (const tool of options.tools) {
+        this.registerTool(tool);
+      }
     }
-    logger.info(`Agent initialized with model: ${this.model.id}`);
+    this.currentConversationId = conversationId || uuidv4();
   }
 
-  registerTool(tool: Tool): void {
-    if (this.tools.has(tool.name)) {
-      logger.warn(`Tool with name "${tool.name}" is already registered. Overwriting.`);
+  public setCurrentConversationId(conversationId: string): void {
+    if (this.currentConversationId !== conversationId) {
+        this.currentConversationId = conversationId;
+        this.clearMemory(); // Changing conversation usually implies clearing context/memory
+        console.log(`Agent conversation ID set to: ${conversationId}`);
     }
-    logger.debug(`Registering tool: ${tool.name}`);
+  }
+
+  public getCurrentConversationId(): string {
+    return this.currentConversationId;
+  }
+
+  public registerTool(tool: Tool<any>): void { // Specify Tool generic type
     this.tools.set(tool.name, tool);
+    this.toolExecutor.registerTool(tool); 
   }
 
-  getTool(name: string): Tool | undefined {
-    return this.tools.get(name);
+  async processMessage(messageContent: string): Promise<AgentMessage> {
+    const userMessage: AgentMessage = {
+      role: 'user',
+      content: messageContent,
+      id: uuidv4(),
+      conversationId: this.currentConversationId,
+      timestamp: new Date().toISOString(),
+    };
+    this.memory.push(userMessage);
+
+    // 1. Create initial thinking graph (e.g., a single question node)
+    // The model passed to createThinkingGraph should be the concrete Model class instance
+    // if ThinkingManager expects that. But TM's methods take IModel.
+    // The model instance held by Agent is IModel.
+    const thoughtGraph = await this.thinkingManager.createThinkingGraph(
+      messageContent, 
+      this.model // Pass IModel instance
+    ); 
+
+    // 2. Process the graph (expand, reason, etc.)
+    const processedGraph = await this.thinkingManager.processGraph(
+      thoughtGraph, 
+      this.model // Pass IModel instance
+    );
+
+    // 3. Identify tools to use from the processed graph
+    const toolsToExecute = this.thinkingManager.identifyTools(
+      processedGraph, 
+      Array.from(this.tools.values())
+    );
+
+    // 4. Execute tools
+    const toolExecutionResults: ToolCallResult[] = [];
+    for (const toolRequest of toolsToExecute) {
+      try {
+        // ToolExecutor needs context. AgentContext might be suitable.
+        // This part needs a proper ToolExecutionContext.
+        // For now, ToolExecutor in Phase 2 plan didn't take context.
+        // Assuming ToolExecutor.execute is updated or context is optional.
+        const result = await this.toolExecutor.execute(
+          toolRequest.name, 
+          toolRequest.args
+          // TODO: Provide ToolExecutionContext here
+        );
+        toolExecutionResults.push({
+          toolName: toolRequest.name,
+          args: toolRequest.args,
+          result: result,
+          success: true,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (error: any) {
+        toolExecutionResults.push({
+          toolName: toolRequest.name,
+          args: toolRequest.args,
+          result: null,
+          success: false,
+          error: error.message,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    // 5. Generate final response based on graph and tool results
+    const responseContent = await this.thinkingManager.generateResponse(
+      processedGraph, 
+      this.model, // Pass IModel instance
+      toolExecutionResults
+    );
+
+    // Add token usage metrics if available from the model
+    let usage;
+    try {
+      // Check if the model supports usage metrics
+      if (typeof this.model.getLastUsageMetrics === 'function') {
+        const lastModelResponse = await this.model.getLastUsageMetrics();
+        if (lastModelResponse) {
+          usage = {
+            promptTokens: lastModelResponse.promptTokens || 0,
+            completionTokens: lastModelResponse.completionTokens || 0,
+            totalTokens: lastModelResponse.totalTokens || 0
+          };
+        }
+      }
+    } catch (error) {
+      // Silently handle if usage metrics aren't available
+    }
+    
+    const assistantMessage: AgentMessage = {
+      role: 'assistant',
+      content: responseContent,
+      id: uuidv4(),
+      conversationId: this.currentConversationId,
+      timestamp: new Date().toISOString(),
+      toolResults: toolExecutionResults.length > 0 ? toolExecutionResults : undefined,
+      usage: usage,
+      // thinking: { ... } // TODO: Populate thinking result from ThinkingManager if available
+    };
+    this.memory.push(assistantMessage);
+    return assistantMessage;
   }
 
-  listTools(): Tool[] {
+  public getTools(): Tool[] {
     return Array.from(this.tools.values());
   }
 
-  // Placeholder function to parse tool calls from model output
-  private parseToolCall(content: string): { name: string; input: ToolInput } | null {
-    // Simple regex example: [TOOL_CALL: tool_name({"arg": "value"})]
-    const match = content.match(/\[TOOL_CALL:\s*(\w+)\((.*)\)\]/);
-    if (match) {
-      const name = match[1];
-      const argsString = match[2];
-      try {
-        const input = JSON.parse(argsString || '{}'); 
-        logger.debug(`Parsed tool call: Name=${name}, Input=`, input);
-        return { name, input };
-      } catch (e) {
-        logger.error(`Failed to parse tool arguments for ${name}: ${argsString}`, e);
-        return null; 
-      }
-    }
-    return null; 
+  public getMemory(): AgentMessage[] {
+    return [...this.memory];
   }
 
-  /**
-   * Processes a user message, potentially involving model generation and tool execution.
-   * Uses Graph-of-Thought if enabled, otherwise falls back to direct model interaction.
-   */
-  async processMessage(message: string, userId?: string, taskId?: string): Promise<string> {
-    logger.info(`Processing message (task: ${taskId || 'none'}, user: ${userId || 'unknown'}): "${message}"`);
-
-    // If GoT engine is available and enabled, use it
-    if (this.graphOfThought) {
-        logger.info('Processing message using Graph-of-Thought engine.');
-        try {
-            const result = await this.graphOfThought.processQuery(message);
-            return result.finalAnswer; 
-        } catch (error: any) {
-            logger.error('Error during GoT processing:', error);
-            return `Sorry, an error occurred during complex processing: ${error.message}`;
-        }
-    }
-
-    // Fallback to simple model call loop if GoT is not used
-    logger.info('Processing message using direct model call (GoT not enabled/available).');
-    
-    const history: { role: 'User' | 'Assistant' | 'TOOL_RESULT' | 'TOOL_ERROR'; content: string }[] = [
-        { role: 'User', content: message }
-    ];
-    let finalResponse = '';
-    const maxIterations = 5; 
-
-    for (let i = 0; i < maxIterations; i++) {
-        const currentPrompt = history.map(item => `${item.role}: ${item.content}`).join('\n') + '\nAssistant:'; 
-        logger.debug(`Prompt for Iteration ${i+1}:\n${currentPrompt}`);
-
-        const modelInput: ModelGenerateInput = {
-            prompt: currentPrompt, 
-            maxTokens: 500, 
-            temperature: 0.7,
-            userId: userId,
-            taskId: taskId,
-        };
-
-        try {
-            const modelOutput: ModelGenerateOutput = await this.model.generate(modelInput);
-            
-            if (modelOutput.status !== 'success') {
-                logger.error('Model generation failed:', modelOutput.error);
-                return `Sorry, I encountered an error: ${modelOutput.error || 'Unknown error'}`;
-            }
-
-            logger.info(`Model generation successful (Iteration ${i+1}).`);
-            logger.debug(`Model Output (Iteration ${i+1}):`, modelOutput.content);
-
-            const toolCall = this.parseToolCall(modelOutput.content);
-
-            if (toolCall) {
-                logger.info(`Detected tool call: ${toolCall.name}`);
-                try {
-                    // Execute tool using the public executeTool method
-                    const toolResult = await this.executeTool(toolCall.name, toolCall.input, taskId, userId); 
-                    const resultString = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
-                    
-                    history.push({ role: 'Assistant', content: modelOutput.content });
-                    history.push({ role: 'TOOL_RESULT', content: resultString }); 
-                    logger.debug(`Appended tool result to history.`);
-
-                } catch (toolError: any) {
-                    logger.error(`Error executing tool ${toolCall.name}:`, toolError);
-                    history.push({ role: 'Assistant', content: modelOutput.content });
-                    history.push({ role: 'TOOL_ERROR', content: toolError.message });
-                    logger.debug(`Appended tool error to history.`);
-                }
-            } else {
-                finalResponse = modelOutput.content;
-                history.push({ role: 'Assistant', content: finalResponse }); 
-                logger.info('No tool call detected. Final response generated.');
-                break; 
-            }
-
-        } catch (error: any) {
-            logger.error(`Error during agent processing loop (Iteration ${i+1}):`, error);
-            return `Sorry, an unexpected error occurred: ${error.message}`;
-        }
-        
-        if (i === maxIterations - 1) {
-           logger.warn('Reached max iterations for tool calls.');
-           finalResponse = "Sorry, I couldn't complete the request within the allowed steps.";
-        }
-    }
-    
-    return finalResponse;
+  public clearMemory(): void {
+    this.memory = [];
   }
-
+  
   /**
-   * Executes a tool by name with the given input.
-   * This method is now public to be callable by GoTEngine.
+   * Sets the model for this agent
+   * @param model The new model to use
    */
-  async executeTool(name: string, input: ToolInput, taskId?: string, userId?: string): Promise<ToolOutput> {
-     const tool = this.getTool(name);
-     if (!tool) {
-       throw new Error(`Tool "${name}" not found.`);
-     }
-     
-     const context: ToolExecutionContext = {
-        config: this.config,
-        storage: this.storage,
-        taskManager: this.taskManager, 
-        inferenceExecutor: this.inferenceExecutor, 
-        taskId: taskId,
-        userId: userId,
-        // TODO: Implement callTool if needed for tool chaining
-        // callTool: (toolName, toolInput) => this.executeTool(toolName, toolInput, taskId, userId), 
-     };
-
-     // Delegate execution to the ToolExecutor
-     return this.toolExecutor.execute(tool, input, context);
+  public setModel(model: IModel): void {
+    this.model = model;
+  }
+  
+  /**
+   * Sets the temperature parameter for this agent
+   * @param temperature The new temperature value (0-2)
+   */
+  public setTemperature(temperature: number): void {
+    if (temperature < 0 || temperature > 2) {
+      throw new Error('Temperature must be between 0 and 2');
+    }
+    this.agentOptions.temperature = temperature;
   }
 }

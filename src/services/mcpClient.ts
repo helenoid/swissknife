@@ -1,4 +1,4 @@
-import { zipObject } from 'lodash-es'
+import { zipObject } from 'lodash-es.js'
 import {
   getCurrentProjectConfig,
   McpServerConfig,
@@ -9,8 +9,8 @@ import {
   addMcprcServerForTesting,
   removeMcprcServerForTesting,
 } from '../utils/config.js'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import { existsSync, readFileSync, writeFileSync } from 'fs.js'
+import { join } from 'path.js'
 import { getCwd } from '../utils/state.js'
 import { safeParseJSON } from '../utils/json.js'
 import {
@@ -31,7 +31,7 @@ import {
   Result,
   ResultSchema,
 } from '@modelcontextprotocol/sdk/types.js'
-import { memoize, pickBy } from 'lodash-es'
+import { memoize, pickBy } from 'lodash-es.js'
 import type { Tool } from '../Tool.js'
 import { MCPTool } from '../tools/MCPTool/MCPTool.js'
 import { logMCPError } from '../utils/log.js'

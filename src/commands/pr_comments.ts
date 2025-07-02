@@ -57,6 +57,6 @@ ${args ? 'Additional user input: ' + args : ''}
       },
     ]
   },
-} satisfies Command;
+};
 
 export default prCommentsCommand;

@@ -1,19 +1,19 @@
-import type { CanUseToolFn } from './hooks/useCanUseTool'
-import { Tool, ToolUseContext } from './Tool'
-import { BashTool, inputSchema } from './tools/BashTool/BashTool'
-import { FileEditTool } from './tools/FileEditTool/FileEditTool'
-import { FileWriteTool } from './tools/FileWriteTool/FileWriteTool'
-import { NotebookEditTool } from './tools/NotebookEditTool/NotebookEditTool'
-import { getCommandSubcommandPrefix, splitCommand } from './utils/commands'
+import type { CanUseToolFn } from './hooks/useCanUseTool.js'
+import { Tool, ToolUseContext } from './Tool.js'
+import { BashTool, inputSchema } from './tools/BashTool/BashTool.js'
+import { FileEditTool } from './tools/FileEditTool/FileEditTool.js'
+import { FileWriteTool } from './tools/FileWriteTool/FileWriteTool.js'
+import { NotebookEditTool } from './tools/NotebookEditTool/NotebookEditTool.js'
+import { getCommandSubcommandPrefix, splitCommand } from './utils/commands.js'
 import {
   getCurrentProjectConfig,
   saveCurrentProjectConfig,
 } from './utils/config.js'
-import { AbortError } from './utils/errors'
-import { logError } from './utils/log'
-import { grantWritePermissionForOriginalDir } from './utils/permissions/filesystem'
-import { getCwd } from './utils/state'
-import { PRODUCT_NAME } from './constants/product'
+import { AbortError } from './utils/errors.js'
+import { logError } from './utils/log.js'
+import { grantWritePermissionForOriginalDir } from './utils/permissions/filesystem.js'
+import { getCwd } from './utils/state.js'
+import { PRODUCT_NAME } from './constants/product.js'
 
 // Commands that are known to be safe for execution
 const SAFE_COMMANDS = new Set([

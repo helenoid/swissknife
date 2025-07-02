@@ -220,4 +220,4 @@ export const BashTool = {
       data,
     }
   },
-} satisfies Tool<In, Out>
+};

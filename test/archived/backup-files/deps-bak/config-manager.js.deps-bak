@@ -1,0 +1,44 @@
+// Mock config manager module
+class MockConfigurationManager {
+  constructor() {
+    this.config = {};
+  }
+
+  get(key, defaultValue = null) {
+    return this.config[key] !== undefined ? this.config[key] : defaultValue;
+  }
+
+  set(key, value) {
+    this.config[key] = value;
+  }
+
+  has(key) {
+    return key in this.config;
+  }
+
+  delete(key) {
+    delete this.config[key];
+  }
+
+  clear() {
+    this.config = {};
+  }
+
+  getAll() {
+    return { ...this.config };
+  }
+
+  load() {
+    return Promise.resolve();
+  }
+
+  save() {
+    return Promise.resolve();
+  }
+
+  reload() {
+    return Promise.resolve();
+  }
+}
+
+module.exports = { ConfigurationManager: MockConfigurationManager };

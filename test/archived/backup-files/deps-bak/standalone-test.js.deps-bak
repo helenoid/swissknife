@@ -1,0 +1,38 @@
+/**
+ * Ultra-minimal test to validate test infrastructure
+ * This file is self-contained and doesn't rely on any external files
+ */
+
+// Setup global expect
+global.expect = function(value) {
+  return {
+    toBe: (expected) => {
+      if (value !== expected) {
+        throw new Error(`Expected ${value} to be ${expected}`);
+      }
+    },
+    toEqual: (expected) => {
+      const valueStr = JSON.stringify(value);
+      const expectedStr = JSON.stringify(expected);
+      if (valueStr !== expectedStr) {
+        throw new Error(`Expected ${valueStr} to equal ${expectedStr}`);
+      }
+    }
+  };
+};
+
+// Define our tests
+describe('Basic Functionality', () => {
+  test('true is true', () => {
+    expect(true).toBe(true);
+  });
+
+  test('1 equals 1', () => {
+    expect(1).toBe(1);
+  });
+
+  test('objects can be compared', () => {
+    const obj = { name: 'test' };
+    expect(obj).toEqual({ name: 'test' });
+  });
+});

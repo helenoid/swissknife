@@ -90,6 +90,6 @@ const compactCommand: LocalCommand = {
   userFacingName() {
     return 'compact'
   },
-} satisfies Command
+};
 
 export default compactCommand;

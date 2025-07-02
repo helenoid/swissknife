@@ -1,3 +1,8 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str: any) => str, red: (str: any) => str, green: (str: any) => str, blue: (str: any) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn(), rm: jest.fn() } })); // Add rm to mock fs
+
 /**
  * End-to-End Tests for CLI Task System Integration
  *
@@ -15,13 +20,10 @@ import * as path from 'path';
 import * as childProcess from 'child_process';
 import * as util from 'util';
 import * as fs from 'fs/promises';
-// Assuming these helpers exist and function correctly - Add .js extension
-import { createTempTestDir, removeTempTestDir, mockEnv, waitFor } from '../../helpers/testUtils.js';
+import { createTempTestDir, removeTempTestDir, sleep, mockEnv } from '@test-helpers/testUtils';
+import { waitFor } from '../../utils/test-helpers'; // Correct path for waitFor
 
-// Promisify exec for async/await usage
 const exec = util.promisify(childProcess.exec);
-
-// --- Test Setup ---
 
 describe('CLI Task System Integration (E2E)', () => {
   let tempDir: string;

@@ -1,0 +1,117 @@
+// Mock logger
+jest.mock('@/utils/logger.js', () => ({ // Use alias
+  logger: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+import { DirectedAcyclicGraph } from '@/tasks/graph/dag.js'; // Use alias
+
+// Define a simple node type for testing
+type TestNode = { id: string; value: number };
+
+describe('DirectedAcyclicGraph', () => {
+  let dag: DirectedAcyclicGraph<TestNode>;
+
+  beforeEach(() => {
+    dag = new DirectedAcyclicGraph<TestNode>();
+  });
+
+  it('should add a node successfully', () => {
+    const nodeData: TestNode = { id: 'node1', value: 10 };
+    const result = dag.addNode(nodeData);
+    expect(result).toBe(true);
+    expect(dag.hasNode('node1')).toBe(true);
+    expect(dag.getNode('node1')).toEqual(nodeData);
+    expect(dag.getNodeCount()).toBe(1);
+  });
+
+  it('should not add a node with a duplicate ID', () => {
+    const nodeData1: TestNode = { id: 'node1', value: 10 };
+    const nodeData2: TestNode = { id: 'node1', value: 20 };
+    dag.addNode(nodeData1);
+    const result = dag.addNode(nodeData2);
+    expect(result).toBe(false);
+    expect(dag.getNode('node1')).toEqual(nodeData1); 
+    expect(dag.getNodeCount()).toBe(1);
+  });
+
+  it('should return undefined for a non-existent node', () => {
+    expect(dag.hasNode('node1')).toBe(false);
+    expect(dag.getNode('node1')).toBeUndefined();
+  });
+
+  it('should add an edge between existing nodes', () => {
+    const nodeA: TestNode = { id: 'A', value: 1 };
+    const nodeB: TestNode = { id: 'B', value: 2 };
+    dag.addNode(nodeA);
+    dag.addNode(nodeB);
+    
+    const result = dag.addEdge('A', 'B');
+    expect(result).toBe(true);
+
+    const successorsA = dag.getSuccessors('A');
+    expect(successorsA).toBeDefined();
+    expect(successorsA!.has('B')).toBe(true);
+    expect(successorsA!.size).toBe(1);
+
+    const predecessorsB = dag.getPredecessors('B');
+    expect(predecessorsB).toBeDefined();
+    expect(predecessorsB!.has('A')).toBe(true);
+    expect(predecessorsB!.size).toBe(1);
+  });
+
+  it('should not add an edge if a node does not exist', () => {
+    const nodeA: TestNode = { id: 'A', value: 1 };
+    dag.addNode(nodeA);
+    
+    const result1 = dag.addEdge('A', 'B'); 
+    expect(result1).toBe(false);
+    
+    const result2 = dag.addEdge('C', 'A'); 
+    expect(result2).toBe(false);
+
+    expect(dag.getSuccessors('A')?.size).toBe(0);
+  });
+
+  it('should not add a duplicate edge', () => {
+    const nodeA: TestNode = { id: 'A', value: 1 };
+    const nodeB: TestNode = { id: 'B', value: 2 };
+    dag.addNode(nodeA);
+    dag.addNode(nodeB);
+    
+    dag.addEdge('A', 'B'); 
+    const result = dag.addEdge('A', 'B'); 
+    expect(result).toBe(false);
+    expect(dag.getSuccessors('A')?.size).toBe(1); 
+  });
+
+  it('should retrieve successors and predecessors correctly', () => {
+     const nodes: TestNode[] = [
+        { id: 'A', value: 1 }, { id: 'B', value: 2 }, { id: 'C', value: 3 }, { id: 'D', value: 4 }
+     ];
+     nodes.forEach(n => dag.addNode(n));
+     dag.addEdge('A', 'B');
+     dag.addEdge('A', 'C');
+     dag.addEdge('B', 'D');
+     dag.addEdge('C', 'D');
+
+     expect(Array.from(dag.getSuccessors('A')!)).toEqual(['B', 'C']);
+     expect(Array.from(dag.getSuccessors('B')!)).toEqual(['D']);
+     expect(Array.from(dag.getSuccessors('C')!)).toEqual(['D']);
+     expect(dag.getSuccessors('D')?.size).toBe(0);
+
+     expect(dag.getPredecessors('A')?.size).toBe(0);
+     expect(Array.from(dag.getPredecessors('B')!)).toEqual(['A']);
+     expect(Array.from(dag.getPredecessors('C')!)).toEqual(['A']);
+     expect(Array.from(dag.getPredecessors('D')!).sort()).toEqual(['B', 'C']); 
+  });
+
+  // TODO: Add tests for cycle detection once implemented
+  // it('should throw an error when adding an edge creates a cycle', () => { ... });
+
+  // TODO: Add tests for graph traversal methods once implemented
+});

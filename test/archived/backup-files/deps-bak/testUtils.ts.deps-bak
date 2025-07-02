@@ -1,0 +1,87 @@
+// Mock temp directory helpers
+const createTempTestDir = jest.fn().mockImplementation((name) => `/tmp/test-${name}-${Date.now()}`);
+const removeTempTestDir = jest.fn().mockImplementation(async (dir) => Promise.resolve());
+/**
+ * Universal test utilities
+ */
+
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import * as os from 'os';
+
+// Test helper functions
+export function createMockModel(id: string, name: string, provider: string) {
+  return {
+    id,
+    name,
+    provider,
+    parameters: { temperature: 0.7 },
+    metadata: { version: '1.0' }
+  };
+}
+
+export async function createTempTestDir(): Promise<string> {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'swissknife-test-'));
+  return tempDir;
+}
+
+export async function removeTempTestDir(dirPath: string): Promise<void> {
+  try {
+    await fs.rm(dirPath, { recursive: true, force: true });
+  } catch (error) {
+    console.warn('Failed to remove temp directory:', error);
+  }
+}
+
+export function createMockStorage() {
+  return {
+    store: jest.fn(),
+    retrieve: jest.fn(),
+    delete: jest.fn(),
+    list: jest.fn()
+  };
+}
+
+export function createMockLogger() {
+  return {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+  };
+}
+
+// Mock implementations for common classes
+export class MockModel {
+  constructor(public config: any) {}
+  
+  async execute(input: any): Promise<any> {
+    return { output: `Mock output for ${input}` };
+  }
+}
+
+export class MockStorage {
+  private data = new Map();
+  
+  async store(key: string, value: any): Promise<void> {
+    this.data.set(key, value);
+  }
+  
+  async retrieve(key: string): Promise<any> {
+    return this.data.get(key);
+  }
+  
+  async delete(key: string): Promise<void> {
+    this.data.delete(key);
+  }
+  
+  async list(): Promise<string[]> {
+    return Array.from(this.data.keys());
+  }
+}
+
+export const testConfig = {
+  tempDir: os.tmpdir(),
+  timeout: 10000,
+  retries: 3
+};

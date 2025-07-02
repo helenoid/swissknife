@@ -4,7 +4,7 @@
  */
 
 // Proper imports with explicit types
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'events'; // Corrected import path
 
 /** Defines the supported MCP transport protocol types. */
 export type MCPTransportType = 'websocket' | 'libp2p' | 'webrtc' | 'https';

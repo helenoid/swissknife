@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
-import { logError } from './log'
-import { CACHE_PATHS } from './log'
+import { logError } from './log.js'
+import { CACHE_PATHS } from './log.js'
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 

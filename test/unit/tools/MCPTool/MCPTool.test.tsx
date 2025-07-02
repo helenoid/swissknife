@@ -2,9 +2,10 @@
  * Unit tests for the MCPTool component
  */
 
-import { render } from 'ink-testing-library'
+import { MCPTool } from '../../../../src/tools/MCPTool/MCPTool.tsx';
+import { render } from 'ink-testing-library/index.js'
 import React from 'react'
-import { MCPTool } from '../../../src/tools/MCPTool/MCPTool'
+import { screen, fireEvent } from "@testing-library/react";
 
 describe('MCPTool', () => {
   it('should have the correct name', () => {

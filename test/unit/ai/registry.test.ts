@@ -12,7 +12,7 @@
 // Add .js extension
 
 // Mock logger
-jest.mock('@/utils/logger.js', () => ({
+jest.mock('@/utils/logger', () => ({
   logger: { debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 
@@ -21,7 +21,7 @@ const mockConfigManagerInstance = {
     get: jest.fn(),
     // Add other methods if needed by ModelRegistry
 };
-jest.mock('@/config/manager.js', () => ({
+jest.mock('@/config/manager', () => ({
   ConfigurationManager: {
     getInstance: jest.fn(() => mockConfigManagerInstance),
   },

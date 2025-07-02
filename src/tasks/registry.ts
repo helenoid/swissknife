@@ -2,34 +2,42 @@
  * Task Registry - Central registry for task definitions
  */
 
-import { JSONSchemaType } from 'ajv';
-
 /**
- * Task definition interface
+ * Task definition representing a type of task that can be executed
  */
 export interface TaskDefinition {
-  type: string;
+  id: string;
+  name: string;
   description: string;
-  schema?: JSONSchemaType<any>; // JSON Schema for task data validation
-  handler?: (data: any) => Promise<any>; // Optional direct handler
-  category?: string;
+  category: string;
+  parameters: TaskParameter[];
   examples?: string[];
+  requiredBridges?: string[];
+  requiredCapabilities?: string[];
 }
 
 /**
- * Task Registry class
- * 
- * Manages task definitions and validates task data
+ * Task parameter for a task definition
+ */
+export interface TaskParameter {
+  name: string;
+  description: string;
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  required: boolean;
+  default?: any;
+}
+
+/**
+ * Registry for managing task definitions
  */
 export class TaskRegistry {
   private static instance: TaskRegistry;
-  private taskDefinitions: Map<string, TaskDefinition> = new Map();
-  private categories: Set<string> = new Set();
+  private tasks: Map<string, TaskDefinition> = new Map();
   
   private constructor() {}
   
   /**
-   * Get singleton instance
+   * Get the singleton instance
    */
   static getInstance(): TaskRegistry {
     if (!TaskRegistry.instance) {
@@ -40,80 +48,81 @@ export class TaskRegistry {
   
   /**
    * Register a task definition
+   * @param task The task definition to register
    */
-  registerTaskDefinition(definition: TaskDefinition): void {
-    if (!definition.type) {
-      throw new Error('Task definition must have a type');
+  registerTask(task: TaskDefinition): void {
+    // Validate task
+    if (!task.id || !task.name || !task.description) {
+      throw new Error(`Invalid task definition: ${task.id || 'unknown'}`);
     }
     
-    // Store the definition
-    this.taskDefinitions.set(definition.type, definition);
+    // Register task
+    this.tasks.set(task.id, task);
+  }
+  
+  /**
+   * Get a task definition by ID
+   * @param id The task ID
+   * @returns The task definition or undefined if not found
+   */
+  getTask(id: string): TaskDefinition | undefined {
+    return this.tasks.get(id);
+  }
+  
+  /**
+   * Get all registered tasks
+   * @returns Array of all registered tasks
+   */
+  getAllTasks(): TaskDefinition[] {
+    return Array.from(this.tasks.values());
+  }
+  
+  /**
+   * Get tasks in a specific category
+   * @param category The category to filter by
+   * @returns Array of tasks in the category
+   */
+  getTasksByCategory(category: string): TaskDefinition[] {
+    return this.getAllTasks().filter(task => task.category === category);
+  }
+  
+  /**
+   * Check if a task requires specific bridges
+   * @param taskId The task ID
+   * @param bridgeIds Array of available bridge IDs
+   * @returns True if all required bridges are available, false otherwise
+   */
+  hasRequiredBridges(taskId: string, bridgeIds: string[]): boolean {
+    const task = this.getTask(taskId);
     
-    // Track category if provided
-    if (definition.category) {
-      this.categories.add(definition.category);
+    if (!task || !task.requiredBridges || task.requiredBridges.length === 0) {
+      return true;
     }
     
-    console.log(`Registered task definition: ${definition.type}`);
+    return task.requiredBridges.every(bridgeId => bridgeIds.includes(bridgeId));
   }
   
   /**
-   * Get a task definition by type
+   * Check if a task requires specific capabilities
+   * @param taskId The task ID
+   * @param capabilities Array of available capabilities
+   * @returns True if all required capabilities are available, false otherwise
    */
-  getTaskDefinition(type: string): TaskDefinition | undefined {
-    return this.taskDefinitions.get(type);
-  }
-  
-  /**
-   * Get all task definitions
-   */
-  getAllTaskDefinitions(): TaskDefinition[] {
-    return Array.from(this.taskDefinitions.values());
-  }
-  
-  /**
-   * Get task definitions by category
-   */
-  getTaskDefinitionsByCategory(category: string): TaskDefinition[] {
-    return this.getAllTaskDefinitions().filter(def => def.category === category);
-  }
-  
-  /**
-   * Get all task categories
-   */
-  getAllCategories(): string[] {
-    return Array.from(this.categories);
-  }
-  
-  /**
-   * Check if a task type is registered
-   */
-  hasTaskDefinition(type: string): boolean {
-    return this.taskDefinitions.has(type);
-  }
-  
-  /**
-   * Validate task data against schema
-   */
-  validateTaskData(type: string, data: any): { valid: boolean; errors: any[] } {
-    const definition = this.getTaskDefinition(type);
-    if (!definition) {
-      throw new Error(`Task definition not found: ${type}`);
+  hasRequiredCapabilities(taskId: string, capabilities: string[]): boolean {
+    const task = this.getTask(taskId);
+    
+    if (!task || !task.requiredCapabilities || task.requiredCapabilities.length === 0) {
+      return true;
     }
     
-    // If no schema, assume valid
-    if (!definition.schema) {
-      return { valid: true, errors: [] };
-    }
-    
-    // This is just a placeholder. In a real implementation, we would
-    // use Ajv to validate the data against the schema.
-    // For Phase 1, we'll assume all data is valid.
-    return { valid: true, errors: [] };
+    return task.requiredCapabilities.every(capability => capabilities.includes(capability));
   }
 }
 
-// Helper function for registering task definitions
-export function registerTaskDefinition(definition: TaskDefinition): void {
-  TaskRegistry.getInstance().registerTaskDefinition(definition);
+/**
+ * Helper function to register a task
+ * @param task The task to register
+ */
+export function registerTask(task: TaskDefinition): void {
+  TaskRegistry.getInstance().registerTask(task);
 }

@@ -1,0 +1,125 @@
+/**
+ * Integration test for Phase 5 components
+ */
+// Import dependencies
+const TaskManager = require('../../src/tasks/manager').default;
+// Mock dependencies
+jest.mock('../../src/tasks/manager');
+jest.mock('../../src/ipfs/client');
+jest.mock('../../src/ai/agent/agent');
+jest.mock('child_process', () => ({
+    exec: jest.fn((cmd, callback) => {
+        callback(null, { stdout: 'Success', stderr: '' });
+    })
+}));
+jest.mock('fs/promises', () => ({
+    writeFile: jest.fn().mockResolvedValue(undefined)
+}));
+describe('Phase 5 Component Integration', () => {
+    // Setup mocks and instances
+    let taskManager;
+    let ipfsClient;
+    let agent;
+    let optimizer;
+    let packager;
+    let testRunner;
+    let docGenerator;
+    let consoleLogSpy;
+    beforeEach(() => {
+        // Reset mocks
+        jest.clearAllMocks();
+        // Create mocked instances
+        const configManager = {};
+        taskManager = new TaskManager(configManager);
+        ipfsClient = new IPFSKitClient();
+        agent = new Agent({ model: {} });
+        // Create component instances
+        optimizer = new PerformanceOptimizer(taskManager, ipfsClient, agent);
+        packager = new ReleasePackager();
+        testRunner = new TestRunner();
+        docGenerator = new DocumentationGenerator();
+        // Spy on console.log
+        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    });
+    afterEach(() => {
+        consoleLogSpy.mockRestore();
+    });
+    describe('Performance Optimization Flow', () => {
+        it('should profile all components and suggest optimizations', async () => {
+            // Arrange
+            taskManager.listTasks.mockResolvedValue([]);
+            ipfsClient.getContent.mockResolvedValue('test content');
+            agent.processMessage.mockResolvedValue({ content: 'response' });
+            // Act
+            await optimizer.optimize();
+            // Assert
+            expect(taskManager.listTasks).toHaveBeenCalled();
+            expect(ipfsClient.getContent).toHaveBeenCalled();
+            expect(agent.processMessage).toHaveBeenCalled();
+            expect(consoleLogSpy).toHaveBeenCalledWith('Performance optimization completed.');
+        });
+    });
+    describe('Release Preparation Flow', () => {
+        it('should perform optimization, run tests, generate docs, and create packages', async () => {
+            // Arrange
+            const optimizeSpy = jest.spyOn(optimizer, 'optimize').mockResolvedValue();
+            const runAllTestsSpy = jest.spyOn(testRunner, 'runAllTests').mockResolvedValue();
+            const generateAllDocsSpy = jest.spyOn(docGenerator, 'generateAllDocs').mockResolvedValue();
+            const createPackagesSpy = jest.spyOn(packager, 'createPackages').mockResolvedValue();
+            // Function to simulate a complete release flow
+            async function completeReleaseFlow() {
+                // Step 1: Performance optimization
+                await optimizer.optimize();
+                // Step 2: Run all tests
+                await testRunner.runAllTests();
+                // Step 3: Generate documentation
+                await docGenerator.generateAllDocs();
+                // Step 4: Package for distribution
+                await packager.createPackages();
+                return { success: true };
+            }
+            // Act
+            const result = await completeReleaseFlow();
+            // Assert
+            expect(optimizeSpy).toHaveBeenCalled();
+            expect(runAllTestsSpy).toHaveBeenCalled();
+            expect(generateAllDocsSpy).toHaveBeenCalled();
+            expect(createPackagesSpy).toHaveBeenCalled();
+            expect(result.success).toBe(true);
+        });
+    });
+    describe('UI Enhancement Integration', () => {
+        it('should use CLIUXEnhancer to display progress during long operations', async () => {
+            // Arrange
+            const formatHeaderSpy = jest.spyOn(CLIUXEnhancer, 'formatHeader').mockImplementation();
+            const showSpinnerSpy = jest.spyOn(CLIUXEnhancer, 'showSpinner').mockReturnValue({
+                start: jest.fn().mockReturnThis(),
+                succeed: jest.fn(),
+                fail: jest.fn()
+            });
+            const stopSpinnerSpy = jest.spyOn(CLIUXEnhancer, 'stopSpinner').mockImplementation();
+            const formatSuccessSpy = jest.spyOn(CLIUXEnhancer, 'formatSuccess').mockImplementation();
+            // Mock package creation to use UI elements
+            async function packageWithUI() {
+                // Display header
+                CLIUXEnhancer.formatHeader('Starting Release Process');
+                // Show spinner for optimization
+                const spinner = CLIUXEnhancer.showSpinner('Optimizing performance...');
+                await optimizer.optimize();
+                CLIUXEnhancer.stopSpinner(spinner, true, 'Performance optimization complete');
+                // Show success message
+                CLIUXEnhancer.formatSuccess('Release process completed successfully');
+                return true;
+            }
+            // Act
+            const result = await packageWithUI();
+            // Assert
+            expect(formatHeaderSpy).toHaveBeenCalled();
+            expect(showSpinnerSpy).toHaveBeenCalled();
+            expect(stopSpinnerSpy).toHaveBeenCalled();
+            expect(formatSuccessSpy).toHaveBeenCalled();
+            expect(result).toBe(true);
+        });
+    });
+});
+//# sourceMappingURL=phase5.test.js.map

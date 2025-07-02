@@ -1,33 +1,55 @@
 # SwissKnife Testing Framework
 
-This document provides an overview of the testing framework created for the SwissKnife project, focusing on the Phase 1 implementation.
+This document provides an overview of the comprehensive testing framework created for the SwissKnife project, covering all phases from Phase 1 through Phase 5.
 
 ## Overview
 
-The SwissKnife testing framework is designed to support comprehensive testing of all components in the system, from individual units to full end-to-end workflows. It provides mock implementations, fixtures, and utilities to make testing easier and more consistent.
+The SwissKnife testing framework is designed to support comprehensive testing of all components in the system, from individual units to full end-to-end workflows across all project phases. It provides mock implementations, fixtures, utilities, and benchmarks to make testing easier, more consistent, and capable of tracking performance.
 
 ## Directory Structure
 
 ```
 /test
 ├── unit/                  # Unit tests for individual components
-│   ├── commands/          # Command system tests
-│   ├── config/            # Configuration system tests
-│   ├── integration/       # Integration bridge tests
-│   ├── models/            # Model system tests
-│   ├── workers/           # Worker system tests
-│   └── tasks/             # Task system tests
+│   ├── phase1/            # Phase 1: Configuration and Command Registry
+│   ├── phase2/            # Phase 2: AI Agent, Task System, Storage System
+│   ├── phase3/            # Phase 3: TaskNet enhancements
+│   ├── phase4/            # Phase 4: CLI integration components
+│   ├── performance/       # Phase 5: Performance optimization
+│   ├── release/           # Phase 5: Release management
+│   ├── testing/           # Phase 5: Testing framework
+│   ├── documentation/     # Phase 5: Documentation generation
+│   ├── ux/                # Phase 5: UX enhancements
+│   ├── cli/               # CLI-specific components
+│   └── tasknet/           # TaskNet trace-based tests
 │
 ├── integration/           # Integration tests between components
-│   ├── command-config/    # Command and config integration
-│   ├── model-integration/ # Model provider integration
-│   ├── worker-task/       # Worker and task integration
-│   └── cli-service/       # CLI and service integration
+│   ├── phase1/            # Phase 1: Configuration-Command integration
+│   ├── phase2/            # Phase 2: Agent-Task-Storage integration
+│   ├── phase3/            # Phase 3: TaskNet integration
+│   ├── phase4/            # Phase 4: Cross-component integration
+│   ├── phase5.test.ts     # Phase 5: Integration tests
+│   └── ai-storage/        # AI and storage integration
 │
 ├── e2e/                   # End-to-end workflow tests
-│   ├── cli/               # CLI workflow tests
+│   ├── cli/               # CLI workflow tests by phase
+│   │   ├── phase1-commands.test.js  # Phase 1 CLI tests
+│   │   ├── phase2-commands.test.js  # Phase 2 CLI tests
+│   │   ├── phase3-commands.test.js  # Phase 3 CLI tests
+│   │   └── phase4-commands.test.js  # Phase 4 CLI tests
+│   ├── cli-workflows/     # CLI workflow tests
 │   ├── task-execution/    # Complete task execution workflows
-│   └── model-execution/   # Complete model execution workflows
+│   ├── platform-specific.test.js    # Platform-specific tests
+│   └── all-phases.test.js # Comprehensive E2E tests across all phases
+│
+├── benchmark/             # Performance benchmarks
+│   ├── phase1.benchmark.ts # Configuration and Command Registry
+│   ├── phase2.benchmark.ts # AI, Task, Storage components
+│   ├── phase3.benchmark.ts # TaskNet components
+│   ├── phase4.benchmark.ts # CLI integration components
+│   ├── phase5.benchmark.ts # Performance optimization
+│   ├── collect-results.js  # Script to collect benchmark results
+│   └── README.md           # Benchmark documentation
 │
 ├── mocks/                 # Mock implementations for testing
 │   ├── bridges/           # Mock integration bridges
@@ -70,6 +92,10 @@ Mock implementations provide replacements for real system components, allowing i
 - **Tasks**: Mock implementation of task system (`mock-tasks.js`)
 - **Services**: Mock implementations of various services (`mock-services.js`)
 - **Graph**: Mock implementation of Graph-of-Thought system (`mock-graph-of-thought.js`)
+- **IPFS**: Mock implementation of IPFS storage system (`mock-ipfs.js`)
+- **AI Agents**: Mock AI agent implementations for testing (`mock-agent.js`)
+- **Scheduler**: Mock scheduler implementations (`enhanced-fibonacci-heap.js`)
+- **MerkleClock**: Mock implementation of Merkle clock for testing consistency (`mock-merkle.js`)
 
 ### Test Fixtures
 
@@ -96,6 +122,48 @@ Example tests demonstrate how to use the framework for different testing scenari
 - **Worker-Task Integration**: Testing interaction between worker and task systems
 - **CLI End-to-End**: Testing complete CLI workflows
 - **Graph-of-Thought**: Testing the Graph-of-Thought reasoning system
+
+## Available Test Scripts
+
+The following npm scripts are available to run tests:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests by type
+npm run test:unit         # All unit tests
+npm run test:integration  # All integration tests
+npm run test:e2e          # All end-to-end tests
+npm run test:benchmark    # All benchmark tests
+
+# Run tests by phase
+npm run test:phase1       # All Phase 1 tests
+npm run test:phase2       # All Phase 2 tests
+npm run test:phase3       # All Phase 3 tests
+npm run test:phase4       # All Phase 4 tests
+npm run test:phase5       # All Phase 5 tests
+npm run test:all-phases   # All phase tests sequentially
+
+# Run specific benchmarks
+npm run test:benchmark:phase1  # Phase 1 benchmarks
+npm run test:benchmark:phase2  # Phase 2 benchmarks
+npm run test:benchmark:phase3  # Phase 3 benchmarks
+npm run test:benchmark:phase4  # Phase 4 benchmarks
+npm run test:benchmark:phase5  # Phase 5 benchmarks
+npm run test:benchmark:all     # All benchmarks
+
+# Code coverage
+npm run test:coverage     # Generate code coverage report
+```
+
+## Documentation Links
+
+For more detailed information about the testing framework:
+
+- [Testing Framework Guide](/docs/phase5/testing_framework_guide.md) - Comprehensive guide
+- [Benchmark Quick Reference](/docs/phase5/benchmark_quick_reference.md) - Guide to performance testing
+- [Testing Framework Documentation](/docs/phase5/testing_framework.md) - Technical documentation
 
 ## How to Use
 
@@ -218,7 +286,59 @@ npm run test:coverage
 
 # Run tests in watch mode (for development)
 npm run test:watch
+
+# Run platform-specific tests
+npm run test:platform
+
+# Run trace-based tests for TaskNet
+npm run test:trace
+
+# Benchmark tools
+npm run benchmark:collect     # Collect benchmark results to a JSON file
+npm run benchmark:compare     # Compare benchmark results and detect regressions
 ```
+
+## Advanced Testing Features
+
+### Event Tracing Framework
+
+The event tracing framework (`/test/utils/event-tracer.ts`) enables sophisticated testing of complex asynchronous workflows, particularly in TaskNet components. It records and validates event sequences, making it easy to verify that components interact correctly in complex scenarios.
+
+Example usage:
+
+```typescript
+import { TaskNetTracer } from '../utils/event-tracer';
+
+// Create a tracer
+const tracer = new TaskNetTracer();
+tracer.startRecording();
+
+// Record events during component execution
+tracer.recordTaskCreation('task-123', taskData);
+await taskManager.executeTask('task-123');
+tracer.recordTaskCompletion('task-123', result);
+
+// Validate event sequences
+expect(tracer.hasSequence([
+  'task:created',
+  'TaskManager:executeTask:called',
+  'task:completed'
+])).toBe(true);
+```
+
+### Platform-Specific Testing
+
+Platform-specific tests verify that SwissKnife works correctly across different operating systems. These tests automatically detect the current platform and run the appropriate test suite.
+
+Key aspects tested:
+- Path handling differences
+- File system case sensitivity
+- Environment variable handling
+- Configuration directory locations
+- Line ending differences
+
+For more detailed information about these advanced features, see:
+- [Advanced Testing Features](/docs/phase5/advanced_testing_features.md)
 
 ## Continuous Integration
 

@@ -1,20 +1,25 @@
 import React from 'react'; // Needed if using Ink components directly for rendering
 import { render, Box, Text } from 'ink'; // Example Ink components
-import { CommandRegistry, CommandExecutionContext } from './command-registry.js';
-import { ConfigManager } from './config/manager.js';
-import { logger } from './utils/logger.js';
-import { StorageFactory } from './storage/factory.js';
-import { StorageProvider } from './types/storage.js'; 
-import { TaskManager } from './tasks/manager.js'; 
-import { Agent } from './ai/agent/agent.js'; // Import Agent
-import { ModelRegistry } from './ai/models/registry.js'; // Import ModelRegistry
-import { Model } from './types/ai.js'; // Import Model type
+import { CommandRegistry, CommandExecutionContext } from './command-registry';
+import { ConfigManager } from './config/manager';
+import { logger } from './utils/logger';
+import { StorageFactory } from './storage/factory';
+import { StorageProvider } from './types/storage'; 
+import { TaskManager } from './tasks/manager'; 
+import { Agent } from './ai/agent/agent'; // Import Agent
+import { ModelRegistry } from './ai/models/registry'; // Import ModelRegistry
+import { Model } from './types/ai'; // Import Model type
 // Import command implementations
-import { TaskCreateCommand } from './cli/commands/taskCreateCommand.js'; 
-import { AiChatCommand } from './cli/commands/aiChatCommand.js'; 
-import { StorageAddCommand } from './cli/commands/storageAddCommand.js'; 
-import { TaskStatusCommand } from './cli/commands/taskStatusCommand.js'; 
-import { TaskListCommand } from './cli/commands/taskListCommand.js'; // Import TaskListCommand
+import { TaskCreateCommand } from './cli/commands/taskCreateCommand'; 
+import { AiChatCommand } from './cli/commands/aiChatCommand'; 
+import { StorageAddCommand } from './cli/commands/storageAddCommand'; 
+import { TaskStatusCommand } from './cli/commands/taskStatusCommand'; 
+import { TaskListCommand } from './cli/commands/taskListCommand'; // Import TaskListCommand
+// Import Phase 5 commands
+import { 
+  registerPhase5Commands 
+} from './cli/commands/index';
+import { CLIUXEnhancer } from './ux/cli-ux-enhancer';
 
 /**
  * Main CLI application class.
@@ -29,6 +34,7 @@ export class CLI {
   private storage: StorageProvider;
   private modelRegistry: ModelRegistry;
   private defaultModel: Model; // Store the default model
+  private program: any; // Commander program
 
   constructor() {
     logger.debug('Initializing CLI...');
@@ -62,15 +68,61 @@ export class CLI {
     logger.info('CLI initialized.');
   }
 
+  /**
+   * Register all available commands.
+   */
   private registerCommands(): void {
-    logger.debug('Registering CLI commands...');
-    // Explicitly register commands here
+    logger.debug('Registering commands...');
+    
+    // Register core commands
     this.commandRegistry.register(new TaskCreateCommand());
-    this.commandRegistry.register(new AiChatCommand()); 
-    this.commandRegistry.register(new StorageAddCommand()); 
-    this.commandRegistry.register(new TaskStatusCommand()); 
-    this.commandRegistry.register(new TaskListCommand()); // Register TaskListCommand
-    logger.info(`Registered commands: ${this.commandRegistry.listCommandNames().join(', ')}`);
+    this.commandRegistry.register(new AiChatCommand());
+    this.commandRegistry.register(new StorageAddCommand());
+    this.commandRegistry.register(new TaskStatusCommand());
+    this.commandRegistry.register(new TaskListCommand());
+    
+    // Register Phase 5 commands via the helper function
+    this.registerPhase5Commands();
+  }
+  
+  /**
+   * Register Phase 5 commands separately for organization
+   */
+  private registerPhase5Commands(): void {
+    logger.debug('Registering Phase 5 commands...');
+    
+    // Use Commander to register commands with the program
+    const { Command } = require('commander');
+    const program = new Command();
+    registerPhase5Commands(program);
+    
+    // Add the Commander program to our application
+    // This approach allows us to mix our custom command registry with Commander's
+    this.program = program;
+  }
+
+  /**
+   * Creates an execution context for commands.
+   * @returns The execution context with shared services.
+   */
+  private createExecutionContext(): CommandExecutionContext {
+    return {
+      config: this.configManager,
+      taskManager: this.taskManager,
+      agent: this.agent,
+      getService: <T>(serviceName: string): T => {
+        switch (serviceName) {
+          case 'TaskManager':
+            return this.taskManager as T;
+          case 'Agent':
+            return this.agent as T;
+          case 'StorageProvider':
+            return this.storage as T;
+          default:
+            throw new Error(`Service not found: ${serviceName}`);
+        }
+      },
+    };
   }
 
   /**
@@ -100,11 +152,7 @@ export class CLI {
     }
 
     // Prepare execution context
-    const context: CommandExecutionContext = {
-      config: this.configManager,
-      taskManager: this.taskManager, 
-      agent: this.agent, 
-    };
+    const context: CommandExecutionContext = this.createExecutionContext();
 
     try {
       logger.debug(`Parsing arguments for command: ${commandName}`);
@@ -189,16 +237,61 @@ export class CLI {
   }
 }
 
-// --- Potential Entry Point ---
-// #!/usr/bin/env node
-// import { CLI } from '../dist/cli.js'; 
-// 
-// (async () => {
-//   try {
-//     const cli = await CLI.create();
-//     await cli.run(process.argv.slice(2));
-//   } catch (error) {
-//     console.error("Failed to initialize CLI:", error);
-//     process.exit(1);
-//   }
-// })();
+// src/cli.ts
+
+import { parseCommandLine } from './commands/parser';
+import { createExecutionContext } from './commands/context';
+import { initializeIntegrationFramework } from './integration/init';
+
+// Import core commands to ensure they're registered
+import './commands/help';
+import './commands/version';
+
+/**
+ * Main CLI entry point
+ */
+async function main(): Promise<number> {
+  try {
+    // Initialize configuration
+    const configManager = ConfigManager.getInstance();
+    await configManager.initialize();
+    
+    // Initialize integration framework (bridges to other components)
+    await initializeIntegrationFramework();
+    
+    // Parse command line arguments
+    const parsedCommand = parseCommandLine(process.argv);
+    
+    // If no command was provided, show help
+    if (!parsedCommand) {
+      const registry = new CommandRegistry();
+      const helpCommand = registry.getCommand('help');
+      
+      if (helpCommand) {
+        const context = createExecutionContext({});
+return await helpCommand.execute({}, context);
+      } else {
+        console.error('No command specified. Run with --help for usage information.');
+        return 1;
+      }
+    }
+    
+    // Execute the parsed command with its arguments
+    const { command, args } = parsedCommand;
+    const context = createExecutionContext(args);
+    
+    return await command.execute(args, context);
+  } catch (error) {
+    console.error('Error:', error);
+    return 1;
+  }
+}
+
+// Run the CLI and exit with appropriate exit code
+main().then(
+  (exitCode) => process.exit(exitCode),
+  (error) => {
+    console.error('Unhandled error:', error);
+    process.exit(1);
+  }
+);

@@ -2,7 +2,9 @@
  * Unit tests for MCP transport service
  */
 
-import { MCPTransportFactory, MCPTransportType, MCPClient } from '../../../../src/services/mcp-transport';
+
+
+const { MCPTransportFactory, MCPClient, MCPTransportType } = require('@src/services/mcp-transport') as { MCPTransportFactory: any, MCPClient: any, MCPTransportType: any };
 
 describe('MCP Transport Service', () => {
   describe('MCPTransportFactory', () => {
@@ -48,7 +50,7 @@ describe('MCP Transport Service', () => {
     
     it('should throw for unsupported transport type', () => {
       // Using type assertion to simulate invalid input
-      const invalidType = 'invalid' as MCPTransportType;
+      const invalidType = 'invalid' as any;
       
       expect(() => {
         MCPTransportFactory.create({
@@ -60,7 +62,7 @@ describe('MCP Transport Service', () => {
   });
   
   describe('MCPClient', () => {
-    let client: MCPClient;
+    let client: any;
     
     beforeEach(() => {
       client = new MCPClient({

@@ -1,26 +1,62 @@
 import { logger } from './utils/logger.js';
-import { ConfigManager } from './config/manager.js';
+import { ConfigurationManager, IConfigManager } from './config/manager.js';
 import { TaskManager } from './tasks/manager.js'; // Import TaskManager
 import { StorageProvider } from './types/storage.js'; // Import StorageProvider
 import { Agent } from './ai/agent/agent.js'; // Import Agent
+import { ModelRegistry } from './ai/models/registry.js'; // Import ModelRegistry
+import { ToolExecutor } from './tools/executor.js'; // Import ToolExecutor
+import { Tool } from './Tool.js'; // Import Tool
 
 /**
  * Interface defining the context passed to a command's execute method.
  * Contains shared resources and services needed by commands.
  */
 export interface CommandExecutionContext {
-  config: ConfigManager;
-  taskManager: TaskManager; 
+  config: IConfigManager;
+  taskManager: TaskManager;
   // Add other shared resources as they are implemented and needed
   agent: Agent; // Add Agent instance
   // storage?: StorageProvider; // Storage is likely accessed via Agent/TaskManager now
+
+  /**
+   * Retrieves a service by name.
+   * @param serviceName The name of the service to retrieve.
+   * @returns The requested service instance.
+   */
+  getService<T>(serviceName: string): T;
+
+  /**
+   * Retrieves a service from the context by name.
+   * @param serviceName The name of the service to retrieve.
+   * @returns The requested service instance.
+   */
+}
+
+/**
+ * Defines a single command-line option with its metadata.
+ */
+export interface CommandOption {
+  /** Name of the option (e.g., "help", "output") */
+  readonly name: string;
+  /** Type of the option value (e.g., "boolean", "string") */
+  readonly type: 'boolean' | 'string' | 'number';
+  /** Short alias for the option (e.g., "h" for "--help") */
+  readonly alias?: string;
+  /** Description shown in help text */
+  readonly description: string;
+  /** Default value if not provided */
+  readonly default?: any;
+  /** Whether the option is required */
+  readonly required?: boolean;
 }
 
 /**
  * Interface defining the structure for CLI command definitions.
  */
 export interface Command {
-  /** Unique name used to invoke the command */
+  /** Unique identifier for the command (e.g., "task:create") */
+  readonly id: string;
+  /** Name used to invoke the command (e.g., "create" for "task create") */
   readonly name: string;
   /** Short description shown in help */
   readonly description: string;
@@ -28,6 +64,10 @@ export interface Command {
   readonly help?: string;
   /** Definition of expected arguments/options (e.g., using yargs-parser options) */
   readonly argumentParserOptions?: any; // Define a stricter type if using a specific parser library
+  /** Options for the command */
+  readonly options?: CommandOption[];
+  /** Optional nested commands */
+  readonly subcommands?: Command[];
 
   /** 
    * Parses raw command-line arguments into a structured object.
@@ -95,5 +135,16 @@ export class CommandRegistry {
    */
   listCommands(): Command[] {
     return Array.from(this.commands.values());
+  }
+
+  /**
+   * Get the CommandRegistry singleton instance.
+   * @returns The singleton instance of CommandRegistry.
+   */
+  static getInstance(): CommandRegistry {
+    if (!(global as any)._commandRegistryInstance) {
+      (global as any)._commandRegistryInstance = new CommandRegistry();
+    }
+    return (global as any)._commandRegistryInstance;
   }
 }

@@ -98,6 +98,6 @@ const addMcpServerCommand: LocalCommand = {
   userFacingName() {
     return 'add-mcp-server';
   },
-} satisfies Command;
+};
 
 export default addMcpServerCommand;

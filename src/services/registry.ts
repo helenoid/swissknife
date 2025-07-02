@@ -281,6 +281,11 @@ export class ServiceRegistry extends EventEmitter {
       const depOptions = this.options.get(depId);
       if (depOptions?.dependencies) {
         this.checkCircularDependencies(depId, depOptions.dependencies, [...visited]);
+      } else {
+        // If dependency has no further dependencies, just check if it's in visited
+        if (visited.includes(depId)) {
+          throw new Error(`Circular dependency detected: ${[...visited, depId].join(' -> ')}`);
+        }
       }
     }
   }

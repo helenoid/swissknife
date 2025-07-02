@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react'
-import { verifyApiKey } from '../services/claude'
-import { getAnthropicApiKey, isDefaultApiKey } from '../utils/config'
+import { useCallback, useState } from 'react.js'
+import { verifyApiKey } from '../services/claude.js'
+import { getAnthropicApiKey, isDefaultApiKey } from '../utils/config.js'
 
 export type VerificationStatus =
   | 'loading'

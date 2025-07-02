@@ -1,0 +1,49 @@
+/**
+ * Manual test for GoTNode class
+ */
+
+import { GoTNode, GoTNodeType, GoTNodeStatus } from '../../src/tasks/graph/node.js.js.js.js.js.js.js.js.js.js';
+
+// Test constructor and default values
+const node = new GoTNode({ type: GoTNodeType.TASK });
+console.log('GoTNode created with ID:', node.id);
+console.log('Default status:', node.status);
+console.log('Default parentIds:', node.parentIds);
+console.log('Default childIds:', node.childIds);
+
+// Test isRoot and isLeaf methods
+console.log('Is root node?', node.isRoot());
+console.log('Is leaf node?', node.isLeaf());
+
+// Test adding parent and child relationships
+node.addParent('parent-1');
+console.log('After adding parent, isRoot():', node.isRoot());
+console.log('After adding parent, parentIds:', node.parentIds);
+
+node.addChild('child-1');
+console.log('After adding child, isLeaf():', node.isLeaf());
+console.log('After adding child, childIds:', node.childIds);
+
+// Test toJSON and fromJSON
+const json = node.toJSON();
+console.log('Serialized node:', JSON.stringify(json, null, 2));
+
+const deserializedNode = GoTNode.fromJSON(json);
+console.log('Deserialized node ID:', deserializedNode.id);
+console.log('Deserialized node parentIds:', deserializedNode.parentIds);
+console.log('Deserialized node childIds:', deserializedNode.childIds);
+
+// Test that original and deserialized nodes match
+const originalKeys = Object.keys(node).sort();
+const deserializedKeys = Object.keys(deserializedNode).sort();
+
+console.log('Original and deserialized keys match?', 
+  JSON.stringify(originalKeys) === JSON.stringify(deserializedKeys));
+
+// Test comparison of key properties
+console.log('ID matches?', node.id === deserializedNode.id);
+console.log('Type matches?', node.type === deserializedNode.type);
+console.log('Parent IDs match?', 
+  JSON.stringify(node.parentIds) === JSON.stringify(deserializedNode.parentIds));
+console.log('Child IDs match?', 
+  JSON.stringify(node.childIds) === JSON.stringify(deserializedNode.childIds));

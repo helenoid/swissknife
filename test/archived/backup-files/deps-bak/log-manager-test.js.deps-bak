@@ -1,0 +1,97 @@
+/**
+ * Basic test for LogManager functionality
+ */
+
+import { LogManager } from '../../src/utils/logging/manager.js.js.js.js.js.js.js';
+import * as path from 'path.js.js.js';
+import * as fs from 'fs/promises.js.js.js';
+import * as os from 'os.js.js.js';
+
+async function runTests() {
+  console.log('Starting LogManager tests...');
+  
+  // Create a temporary log file
+  const tempDir = path.join(os.tmpdir(), `log-manager-test-${Date.now()}`);
+  await fs.mkdir(tempDir, { recursive: true });
+  const logFilePath = path.join(tempDir, 'test.log');
+  
+  console.log(`Using log file: ${logFilePath}`);
+  
+  try {
+    // Test 1: Basic logging with console transport
+    console.log('\nTest 1: Basic logging with console transport');
+    const consoleLogger = LogManager.getInstance({
+      level: 'debug',
+      console: true,
+      file: false
+    });
+    
+    console.log('Testing different log levels:');
+    consoleLogger.error('This is an error message');
+    consoleLogger.warn('This is a warning message');
+    consoleLogger.info('This is an info message');
+    consoleLogger.debug('This is a debug message');
+    
+    // Test 2: File logging
+    console.log('\nTest 2: File logging');
+    const fileLogger = LogManager.getInstance({
+      level: 'debug',
+      console: false,
+      file: true,
+      logFilePath
+    });
+    
+    console.log('Writing logs to file...');
+    fileLogger.error('File error message');
+    fileLogger.warn('File warning message');
+    fileLogger.info('File info message');
+    fileLogger.debug('File debug message');
+    
+    // Allow time for file writes to complete
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Read the log file
+    const logContent = await fs.readFile(logFilePath, 'utf-8');
+    console.log('\nLog file content:');
+    console.log(logContent);
+    
+    // Test 3: Context logging
+    console.log('\nTest 3: Context logging');
+    const contextLogger = consoleLogger.withContext({ 
+      requestId: '12345', 
+      user: 'test-user' 
+    });
+    
+    contextLogger.info('This log should include context data');
+    
+    // Test 4: Log level filtering
+    console.log('\nTest 4: Log level filtering');
+    const infoLogger = LogManager.getInstance({
+      level: 'info',
+      console: true,
+      file: false
+    });
+    
+    console.log('The debug message below should NOT appear:');
+    infoLogger.debug('This debug message should be filtered out');
+    
+    console.log('The info message below SHOULD appear:');
+    infoLogger.info('This info message should be visible');
+    
+    // Test 5: isRoot/isLeaf methods
+    console.log('\nTests completed successfully');
+    
+  } catch (error) {
+    console.error('Test error:', error);
+  } finally {
+    // Clean up
+    try {
+      await fs.rm(tempDir, { recursive: true, force: true });
+      console.log(`\nCleaned up temporary directory: ${tempDir}`);
+    } catch (error) {
+      console.error('Error cleaning up:', error);
+    }
+  }
+}
+
+runTests().catch(console.error);

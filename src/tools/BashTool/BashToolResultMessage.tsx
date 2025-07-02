@@ -1,15 +1,15 @@
-import { Box, Text } from 'ink'
-import { OutputLine } from './OutputLine'
-import React from 'react'
-import { getTheme } from '../../utils/theme'
-import { Out as BashOut } from './BashTool'
+import { Box, Text } from 'ink.js.js.js.js.js'
+import { OutputLine } from './OutputLine.js.js.js.js.js.js.js.js.js.js'
+import React from 'react.js.js.js.js.js'
+import { getTheme } from '../../utils/theme.js.js.js.js.js.js.js.js.js.js'
+import { Out as BashOut } from './BashTool.js.js.js.js.js.js.js.js.js.js'
 
 type Props = {
   content: Omit<BashOut, 'interrupted'>
   verbose: boolean
 }
 
-function BashToolResultMessage({ content, verbose }: Props): JSX.Element {
+function BashToolResultMessage({ content, verbose }: Props): React.JSX.Element {
   const { stdout, stdoutLines, stderr, stderrLines } = content
 
   return (

@@ -1,6 +1,5 @@
-import { TaskRegistry, TaskDefinition } from '../../../src/tasks/registry';
-import { expect } from 'chai';
-import { JSONSchemaType } from 'ajv';
+import { expect } from '@jest/globals';
+import { JSONSchemaType } from 'ajv.js';
 
 describe('Task Registry', () => {
   let registry: TaskRegistry;
@@ -16,17 +15,17 @@ describe('Task Registry', () => {
     const taskDefinition: TaskDefinition = {
       type: 'test-task',
       description: 'A test task',
-      handler: async (data) => data
+      handler: async (data: any) => data
     };
     
     // Register the task definition
-    registry.registerTaskDefinition(taskDefinition);
+    registry.registerTask(taskDefinition);
     
     // Retrieve the task definition
-    const retrievedDefinition = registry.getTaskDefinition('test-task');
+    const retrievedDefinition = registry.getTask('test-task');
     
     // Verify it matches
-    expect(retrievedDefinition).to.deep.equal(taskDefinition);
+    expect(retrievedDefinition).toEqual(taskDefinition);
   });
   
   it('should retrieve all task definitions', () => {
@@ -34,26 +33,25 @@ describe('Task Registry', () => {
     const taskDefinition1: TaskDefinition = {
       type: 'test-task-1',
       description: 'Test task 1',
-      handler: async (data) => data
+      handler: async (data: any) => data
     };
     
     const taskDefinition2: TaskDefinition = {
       type: 'test-task-2',
       description: 'Test task 2',
-      handler: async (data) => data
+      handler: async (data: any) => data
     };
     
     // Register both task definitions
-    registry.registerTaskDefinition(taskDefinition1);
-    registry.registerTaskDefinition(taskDefinition2);
+    registry.registerTask(taskDefinition1);
+    registry.registerTask(taskDefinition2);
     
     // Get all task definitions
     const allDefinitions = registry.getAllTaskDefinitions();
     
     // Verify the result
-    expect(allDefinitions).to.have.lengthOf(2);
-    expect(allDefinitions).to.deep.include(taskDefinition1);
-    expect(allDefinitions).to.deep.include(taskDefinition2);
+    expect(allDefinitions).toHaveLength(2);
+    expect(allDefinitions).toEqual(expect.arrayContaining([taskDefinition1, taskDefinition2]));
   });
   
   it('should handle task definitions with categories', () => {
@@ -62,45 +60,39 @@ describe('Task Registry', () => {
       type: 'cat1-task',
       description: 'Category 1 task',
       category: 'category1',
-      handler: async (data) => data
+      handler: async (data: any) => data
     };
     
     const taskDefinition2: TaskDefinition = {
       type: 'cat1-task-2',
       description: 'Another category 1 task',
       category: 'category1',
-      handler: async (data) => data
+      handler: async (data: any) => data
     };
     
     const taskDefinition3: TaskDefinition = {
       type: 'cat2-task',
       description: 'Category 2 task',
       category: 'category2',
-      handler: async (data) => data
+      handler: async (data: any) => data
     };
     
     // Register all task definitions
-    registry.registerTaskDefinition(taskDefinition1);
-    registry.registerTaskDefinition(taskDefinition2);
-    registry.registerTaskDefinition(taskDefinition3);
+    registry.registerTask(taskDefinition1);
+    registry.registerTask(taskDefinition2);
+    registry.registerTask(taskDefinition3);
     
     // Get task definitions by category
     const category1Tasks = registry.getTaskDefinitionsByCategory('category1');
     const category2Tasks = registry.getTaskDefinitionsByCategory('category2');
     
     // Verify results
-    expect(category1Tasks).to.have.lengthOf(2);
-    expect(category1Tasks).to.deep.include(taskDefinition1);
-    expect(category1Tasks).to.deep.include(taskDefinition2);
-    
-    expect(category2Tasks).to.have.lengthOf(1);
-    expect(category2Tasks).to.deep.include(taskDefinition3);
-    
-    // Get all categories
-    const allCategories = registry.getAllCategories();
-    expect(allCategories).to.have.lengthOf(2);
-    expect(allCategories).to.include('category1');
-    expect(allCategories).to.include('category2');
+    expect(category1Tasks).toHaveLength(2);
+    expect(category1Tasks).toEqual(expect.arrayContaining([taskDefinition1, taskDefinition2]));
+    expect(category2Tasks).toHaveLength(1);
+    expect(category2Tasks).toEqual(expect.arrayContaining([taskDefinition3]));
+    expect(registry.getAllCategories()).toHaveLength(2);
+    expect(registry.getAllCategories()).toEqual(expect.arrayContaining(['category1', 'category2']));
   });
   
   it('should throw for invalid task definitions', () => {
@@ -110,7 +102,7 @@ describe('Task Registry', () => {
     } as TaskDefinition;
     
     // Should throw when registering
-    expect(() => registry.registerTaskDefinition(invalidDefinition)).to.throw('must have a type');
+    expect(() => registry.registerTask(invalidDefinition as any)).toThrow('must have a type');
   });
   
   it('should validate task data', () => {
@@ -139,12 +131,12 @@ describe('Task Registry', () => {
     };
     
     // Register the task definition
-    registry.registerTaskDefinition(taskDefinition);
+    registry.registerTask(taskDefinition);
     
     // For Phase 1, we're assuming all data is valid
     const validationResult = registry.validateTaskData('schema-task', { name: 'test', value: 42 });
-    expect(validationResult.valid).to.be.true;
-    expect(validationResult.errors).to.be.empty;
+    expect(validationResult.valid).toBe(true);
+    expect(validationResult.errors).toEqual([]);
   });
   
   it('should check if a task type is registered', () => {
@@ -155,19 +147,19 @@ describe('Task Registry', () => {
     };
     
     // Task type should not exist initially
-    expect(registry.hasTaskDefinition('test-task')).to.be.false;
+    expect(registry.hasTask('test-task')).toBe(false);
     
     // Register the task definition
-    registry.registerTaskDefinition(taskDefinition);
+    registry.registerTask(taskDefinition);
     
     // Task type should now exist
-    expect(registry.hasTaskDefinition('test-task')).to.be.true;
+    expect(registry.hasTask('test-task')).toBe(true);
     
     // Unknown task type should not exist
-    expect(registry.hasTaskDefinition('unknown-task')).to.be.false;
+    expect(registry.hasTask('unknown-task')).toBe(false);
   });
   
   it('should throw when validating data for unknown task type', () => {
-    expect(() => registry.validateTaskData('unknown-task', {})).to.throw('Task definition not found');
+    expect(() => registry.validateTaskData('unknown-task', {})).toThrow('Task not found');
   });
 });

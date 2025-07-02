@@ -1,3 +1,6 @@
+// Mock temp directory helpers
+const createTempTestDir = jest.fn().mockImplementation((name) => `/tmp/test-${name}-${Date.now()}`);
+const removeTempTestDir = jest.fn().mockImplementation(async (dir) => Promise.resolve());
 /**
  * Integration Test for Complex Query Workflow
  *
@@ -9,6 +12,7 @@
  */
 
 import * as path from 'path';
+import { WorkerPool } from "@src/workers/worker-pool";
 import * as fs from 'fs/promises';
 
 // --- Mock Setup ---
@@ -16,7 +20,7 @@ import * as fs from 'fs/promises';
 // or external dependencies.
 // Add .js extensions assuming ESM resolution requires it.
 
-jest.mock('../../src/config/manager.js', () => ({
+jest.mock('../../src/config/manager', () => ({
     ConfigurationManager: jest.fn().mockImplementation(() => ({
         getInstance: jest.fn().mockReturnThis(),
         get: jest.fn((key, defaultValue) => defaultValue), // Basic mock
@@ -28,7 +32,7 @@ jest.mock('../../src/config/manager.js', () => ({
 
 // Mock the actual LLM calls within the AgentService or ModelExecutionService
 // This mock focuses on the *orchestration*, not the LLM's reasoning ability.
-jest.mock('../../src/models/execution.js', () => ({
+jest.mock('../../src/models/execution', () => ({
     ModelExecutionService: {
         getInstance: jest.fn().mockReturnValue({
             executeModel: jest.fn().mockImplementation(async (modelId, prompt, options) => {
@@ -53,7 +57,7 @@ jest.mock('../../src/models/execution.js', () => ({
 
 // Mock StorageOperations - Simulate storing/retrieving data via CIDs
 const mockStorageData = new Map<string, Buffer>();
-jest.mock('../../src/storage/operations.js', () => ({
+jest.mock('../../src/storage/operations', () => ({
     StorageOperations: jest.fn().mockImplementation(() => ({
         // Use a simple in-memory map for mock storage
         writeFile: jest.fn().mockImplementation(async (vfsPath, data) => {
@@ -77,20 +81,6 @@ jest.mock('../../src/storage/operations.js', () => ({
 
 // --- Imports ---
 // Import necessary services and types (adjust paths and add .js)
-import { TaskManager } from '../../src/tasks/manager.js';
-import { TaskScheduler } from '../../src/tasks/scheduler.js';
-import { DependencyManager } from '../../src/tasks/dependencies/manager.js';
-import { TaskExecutor } from '../../src/tasks/execution/executor.js';
-import { GoTEngine } from '../../src/tasks/graph/graph-of-thought.js'; // Assuming GoTEngine exists
-import { DecompositionEngine } from '../../src/tasks/decomposition/engine.js';
-import { SynthesisEngine } from '../../src/tasks/synthesis/engine.js';
-import { AgentService } from '../../src/ai/agent/agent.js'; // Assuming AgentService exists
-import { StorageOperations } from '../../src/storage/operations.js';
-import { ConfigurationManager } from '../../src/config/manager.js';
-import { ModelExecutionService } from '../../src/models/execution.js';
-import { createTempTestDir, removeTempTestDir, waitFor } from '../../helpers/testUtils.js';
-import type { Task, TaskResult, TaskCreationOptions } from '../../src/types/tasks.js'; // Adjust path
-import type { ExecutionContext } from '../../src/types/cli.js'; // Adjust path
 
 // --- Test Suite ---
 

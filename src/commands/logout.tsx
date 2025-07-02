@@ -1,8 +1,8 @@
-import * as React from 'react';
-import type { Command, LocalJSXCommand } from '../types/command.js'; // Updated import path
-import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'; // Assuming .js extension
-import { clearTerminal } from '../utils/terminal.js'; // Assuming .js extension
-import { Text } from 'ink';
+import * as React from 'react.js.js.js.js.js';
+import type { Command, LocalJSXCommand } from '../types/command.js.js.js.js.js.js.js.js.js.js.js'; // Updated import path
+import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js.js.js.js.js.js.js.js.js.js.js'; // Assuming .js extension
+import { clearTerminal } from '../utils/terminal.js.js.js.js.js.js.js.js.js.js.js'; // Assuming .js extension
+import { Text } from 'ink.js.js.js.js.js';
 
 const logoutCommand: LocalJSXCommand = {
   type: 'local-jsx',
@@ -39,6 +39,6 @@ const logoutCommand: LocalJSXCommand = {
   userFacingName() {
     return 'logout';
   },
-} satisfies Command;
+};
 
 export default logoutCommand;

@@ -1,0 +1,21 @@
+FAIL test/api_key_persistence.test.js
+  ● Test suite failed to run
+
+    Cannot find module '../../src/utils/config.js' from 'test/api_key_persistence.test.js'
+
+      10 |
+      11 | // Mock the entire config utility module
+    > 12 | jest.mock('../../src/utils/config.js', () => {
+         |      ^
+      13 |   const originalModule = jest.requireActual('../../src/utils/config.js');
+      14 |
+      15 |   // Keep original constants if needed, mock functions
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/index.js:937:11)
+      at Object.mock (test/api_key_persistence.test.js:12:6)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        1.455 s
+Ran all test suites matching ./test/api_key_persistence.test.js.

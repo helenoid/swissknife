@@ -13,7 +13,7 @@ import {
   DeploymentStatus, 
   RollbackEvent,
   McpVersionHistory
-} from './mcp-types';
+} from './mcp-types.js';
 import { 
   McpServerConfig,
   getCurrentProjectConfig, 
@@ -21,9 +21,9 @@ import {
   getGlobalConfig, 
   saveGlobalConfig,
   getMcprcConfig
-} from '../utils/config';
-import { logEvent, logError } from '../utils/log';
-import { EventEmitter } from 'events';
+} from '../utils/config.js';
+import { logError } from '../utils/log.js';
+import { EventEmitter } from 'events.js';
 
 /**
  * Server information cached in memory with additional metadata
@@ -155,10 +155,10 @@ export class ServerRegistry extends EventEmitter {
         this.loadVersionHistory(projectConfig.mcpVersionHistory);
       }
       
-      logEvent('mcp_registry_initialized', {
-        serverCount: this.getServerCount().toString(),
-        versionCount: this.getTotalVersionCount().toString()
-      });
+logError('MCP registry initialized', {
+  serverCount: this.getServerCount().toString(),
+  versionCount: this.getTotalVersionCount().toString()
+});
       
       this.initialized = true;
       this.emit('registry:initialized');
@@ -258,12 +258,12 @@ export class ServerRegistry extends EventEmitter {
       
       serverVersions.set(config.version, existingEntry);
       
-      logEvent('mcp_server_updated', {
-        name,
-        version: config.version,
-        status: config.status,
-        trafficPercentage: config.trafficPercentage.toString()
-      });
+logError('MCP server updated', {
+  name,
+  version: config.version,
+  status: config.status,
+  trafficPercentage: config.trafficPercentage.toString()
+});
     } else {
       // Create new entry for this version
       const entry: ServerRegistryEntry = {
@@ -294,7 +294,7 @@ export class ServerRegistry extends EventEmitter {
       
       serverVersions.set(config.version, entry);
       
-      logEvent('mcp_server_registered', {
+      logError('MCP server registered', {
         name,
         version: config.version,
         status: config.status,
@@ -409,7 +409,7 @@ export class ServerRegistry extends EventEmitter {
         // Save changes
         this.saveToConfig(name, entry.config);
         
-        logEvent('mcp_server_status_changed', {
+        logError('MCP server status changed', {
           name,
           version,
           status: 'inactive',
@@ -496,14 +496,21 @@ export class ServerRegistry extends EventEmitter {
     const scope = config.scope || 'project';
     
     // Extract McpServerConfig from VersionedServerConfig
-    const baseConfig: McpServerConfig = config.type === 'sse'
-      ? { type: 'sse', url: config.url }
-      : { 
+    const baseConfig: McpServerConfig = (() => {
+      if (config.type === 'sse') {
+        if (!('url' in config)) {
+          throw new Error('SSE config missing URL');
+        }
+        return { type: 'sse', url: config.url };
+      } else {
+        return { 
           type: 'stdio', 
-          command: config.command, 
-          args: config.args || [], 
-          env: config.env 
+          command: config.command,
+          args: config.args || [],
+          env: config.env
         };
+      }
+    })();
     
     if (scope === 'project') {
       const projectConfig = getCurrentProjectConfig();
@@ -709,6 +716,10 @@ export class ServerRegistry extends EventEmitter {
     version: string, 
     status: DeploymentStatus
   ): boolean {
+    const validStatuses: DeploymentStatus[] = ['blue', 'green', 'inactive'];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid deployment status: ${status}`);
+    }
     if (!this.initialized) {
       throw new Error('ServerRegistry not initialized. Call initialize() first.');
     }
@@ -756,14 +767,14 @@ export class ServerRegistry extends EventEmitter {
     // Validate traffic percentages
     this.validateTrafficPercentages(name);
     
-    logEvent('mcp_server_status_changed', {
-      name,
-      version,
-      oldStatus,
-      newStatus: status
-    });
+ logError('MCP server status changed', {
+ name,
+ version,
+ oldStatus,
+ newStatus: status
+ });
     
-    this.emit('server:status-changed', name, version, oldStatus, status);
+ this.emit('server:status-changed', name, version, oldStatus, status);
     
     return true;
   }
@@ -809,7 +820,7 @@ export class ServerRegistry extends EventEmitter {
     // Validate/adjust other server percentages
     this.validateTrafficPercentages(name);
     
-    logEvent('mcp_server_traffic_changed', {
+    logError('MCP server traffic changed', {
       name,
       version,
       oldPercentage: oldPercentage.toString(),
@@ -859,7 +870,7 @@ export class ServerRegistry extends EventEmitter {
       this.emit('server:health-changed', name, version, isHealthy);
     }
     
-    logEvent('mcp_server_health_check', {
+    logError('MCP server health check', {
       name,
       version,
       isHealthy: isHealthy.toString(),
@@ -934,7 +945,7 @@ export class ServerRegistry extends EventEmitter {
       this.emit('registry:error', error instanceof Error ? error : new Error(errorMessage));
     }
     
-    logEvent('mcp_server_rollback', {
+    logError('MCP server rollback', {
       name,
       fromVersion,
       toVersion,
@@ -996,7 +1007,7 @@ export class ServerRegistry extends EventEmitter {
       saveCurrentProjectConfig(projectConfig);
     }
     
-    logEvent('mcp_server_version_removed', {
+    logError('MCP server version removed', {
       name,
       version
     });
@@ -1011,6 +1022,8 @@ export class ServerRegistry extends EventEmitter {
     version: string, 
     constraint: string
   ): boolean {
+    // Add type annotation for v
+    const v: number[] = version.split('.').map(p => parseInt(p, 10));
     // For phase 1, we'll implement a simple version matching system
     // This will be expanded in phase 2 with the traffic manager
     

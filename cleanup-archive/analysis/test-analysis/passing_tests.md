@@ -1,0 +1,14 @@
+- ✅ `absolute-minimal.test.js`
+- ✅ `basic-copy.test.js`
+- ✅ `basic-error.test.js`
+- ✅ `basic.test.js`
+- ✅ `command-registry-core.test.js`
+- ✅ `command-registry-minimal.test.js`
+- ✅ `command_registry.test.js`
+- ✅ `comprehensive-diagnostic.test.js`
+- ✅ `diagnostic-basic.test.js`
+- ✅ `diagnostic-enhanced.test.js`
+- ✅ `diagnostic-simple.test.js`
+- ✅ `diagnostic.test.js`
+- ✅ `diagnostic-tool.test.js`
+- ✅ `dynamic-fib-heap.test.js`

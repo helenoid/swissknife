@@ -1,5 +1,5 @@
 import { type Option } from '@inkjs/ui'
-import { optionHeaderKey, type OptionHeader } from './select'
+import { optionHeaderKey, type OptionHeader } from './select.js'
 
 type OptionMapItem = (Option | OptionHeader) & {
   previous: OptionMapItem | undefined

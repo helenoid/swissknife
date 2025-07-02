@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwissKnife - AI-Powered Web Desktop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #desktop {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Loading overlay */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        /* Desktop Icons */
+        .desktop-icon {
+            position: absolute;
+            width: 80px;
+            height: 90px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .desktop-icon:hover {
+            transform: translateY(-5px);
+        }
+
+        .desktop-icon .icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
+            border-radius: 12px;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .desktop-icon .label {
+            color: white;
+            font-size: 12px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+            font-weight: 500;
+        }
+
+        /* Position desktop icons */
+        #terminal-icon {
+            top: 30px;
+            left: 30px;
+        }
+
+        #ai-chat-icon {
+            top: 30px;
+            left: 130px;
+        }
+
+        #file-manager-icon {
+            top: 30px;
+            left: 230px;
+        }
+
+        #settings-icon {
+            top: 30px;
+            left: 330px;
+        }
+
+        #code-editor-icon {
+            top: 140px;
+            left: 30px;
+        }
+
+        #task-manager-icon {
+            top: 140px;
+            left: 130px;
+        }
+
+        #model-browser-icon {
+            top: 140px;
+            left: 230px;
+        }
+
+        #ipfs-explorer-icon {
+            top: 140px;
+            left: 330px;
+        }
+
+        /* Taskbar */
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+
+        #start-button {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 20px;
+            transition: all 0.3s ease;
+        }
+
+        #start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #taskbar-apps {
+            display: flex;
+            flex: 1;
+            align-items: center;
+        }
+
+        .taskbar-app {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+
+        .taskbar-app:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .taskbar-app.active {
+            background: rgba(102, 126, 234, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #system-tray {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        #clock {
+            margin-right: 15px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .status-indicator.online {
+            background: #4CAF50;
+        }
+
+        .status-indicator.offline {
+            background: #f44336;
+        }
+
+        /* Window styles */
+        .window {
+            position: absolute;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            min-width: 400px;
+            min-height: 300px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .window-header {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: move;
+        }
+
+        .window-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .window-control:hover {
+            opacity: 0.8;
+        }
+
+        .window-control.close {
+            background: #ff5f57;
+        }
+
+        .window-control.minimize {
+            background: #ffbd2e;
+        }
+
+        .window-control.maximize {
+            background: #28ca42;
+        }
+
+        .window-content {
+            padding: 20px;
+            height: calc(100% - 48px);
+            overflow: auto;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .desktop-icon {
+                width: 60px;
+                height: 70px;
+            }
+
+            .desktop-icon .icon {
+                width: 48px;
+                height: 48px;
+                font-size: 24px;
+            }
+
+            .window {
+                min-width: 300px;
+                min-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div id="loading">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading SwissKnife</div>
+            <div class="loading-subtext">Initializing AI-powered workspace...</div>
+        </div>
+    </div>
+
+    <!-- Desktop -->
+    <div id="desktop">
+        <!-- Desktop Icons -->
+        <div class="desktop-icon" id="terminal-icon" data-app="terminal">
+            <div class="icon">💻</div>
+            <div class="label">Terminal</div>
+        </div>
+
+        <div class="desktop-icon" id="ai-chat-icon" data-app="ai-chat">
+            <div class="icon">🤖</div>
+            <div class="label">AI Chat</div>
+        </div>
+
+        <div class="desktop-icon" id="file-manager-icon" data-app="file-manager">
+            <div class="icon">📁</div>
+            <div class="label">Files</div>
+        </div>
+
+        <div class="desktop-icon" id="settings-icon" data-app="settings">
+            <div class="icon">⚙️</div>
+            <div class="label">Settings</div>
+        </div>
+
+        <div class="desktop-icon" id="code-editor-icon" data-app="code-editor">
+            <div class="icon">📝</div>
+            <div class="label">VibeCode</div>
+        </div>
+
+        <div class="desktop-icon" id="task-manager-icon" data-app="task-manager">
+            <div class="icon">📊</div>
+            <div class="label">Tasks</div>
+        </div>
+
+        <div class="desktop-icon" id="model-browser-icon" data-app="model-browser">
+            <div class="icon">🧠</div>
+            <div class="label">Models</div>
+        </div>
+
+        <div class="desktop-icon" id="ipfs-explorer-icon" data-app="ipfs-explorer">
+            <div class="icon">🌐</div>
+            <div class="label">IPFS</div>
+        </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div id="taskbar">
+        <button id="start-button">🔷 SwissKnife</button>
+        
+        <div id="taskbar-apps">
+            <!-- Active applications will be added here -->
+        </div>
+
+        <div id="system-tray">
+            <div id="clock">--:--</div>
+            <div class="status-indicator offline" id="ai-status" title="AI Services"></div>
+            <div class="status-indicator offline" id="storage-status" title="Storage"></div>
+            <div class="status-indicator offline" id="network-status" title="Network"></div>
+        </div>
+    </div>
+
+    <!-- Webpack will inject scripts here -->
+    <script>
+        // Initialize basic functionality before main bundle loads
+        let loadingSteps = [
+            'Loading SwissKnife Core...',
+            'Initializing AI Services...',
+            'Setting up Storage...',
+            'Loading Applications...',
+            'Ready!'
+        ];
+        
+        let currentStep = 0;
+        
+        function updateLoadingText() {
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText && currentStep < loadingSteps.length) {
+                loadingText.textContent = loadingSteps[currentStep];
+                currentStep++;
+            }
+        }
+        
+        // Update loading text every 800ms
+        const loadingInterval = setInterval(updateLoadingText, 800);
+        
+        // Update clock
+        function updateClock() {
+            const clock = document.getElementById('clock');
+            const now = new Date();
+            clock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        updateClock();
+        setInterval(updateClock, 1000);
+        
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            console.error('SwissKnife Error:', event.error);
+            showErrorToast(`Error: ${event.error.message}`);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled Promise Rejection:', event.reason);
+            showErrorToast(`Promise Error: ${event.reason}`);
+        });
+        
+        function showErrorToast(message) {
+            // Create error toast element
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #f44336;
+                color: white;
+                padding: 16px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                z-index: 10000;
+                max-width: 400px;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 5000);
+        }
+        
+        // Clean up loading interval when main script loads
+        window.addEventListener('load', () => {
+            clearInterval(loadingInterval);
+            
+            // Hide loading overlay after a brief delay to show "Ready!"
+            setTimeout(() => {
+                const loading = document.getElementById('loading');
+                if (loading) {
+                    loading.style.opacity = '0';
+                    loading.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                    }, 500);
+                }
+            }, 1000);
+        });
+        
+        // Initialize SwissKnife when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('SwissKnife DOM ready - initializing...');
+            
+            // The main SwissKnife bundle will be loaded by webpack
+            // and will automatically initialize the browser environment
+        });
+    </script>
+</body>
+</html>

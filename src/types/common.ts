@@ -7,6 +7,10 @@
 // Content-addressable identifier
 export type CID = string;
 
+// Unique identifiers for tasks and GoT nodes
+export type TaskID = string;
+export type GoTNodeID = string;
+
 // Result of an operation that may fail
 export interface Result<T> {
   success: boolean;

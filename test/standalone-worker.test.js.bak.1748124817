@@ -1,0 +1,220 @@
+/**
+ * Standalone worker test
+ */
+
+// Simple worker class
+class Worker {
+  constructor(id, options = {}) {
+    this.id = id;
+    this.status = 'idle';
+    this.options = {
+      maxRetries: 3,
+      timeout: 1000,
+      ...options
+    };
+    this.taskCounter = 0;
+    this.tasks = [];
+  }
+  
+  async executeTask(taskFn) {
+    try {
+      this.status = 'busy';
+      this.taskCounter++;
+      const result = await taskFn();
+      this.status = 'idle';
+      return result;
+    } catch (error) {
+      this.status = 'error';
+      throw error;
+    }
+  }
+  
+  isIdle() {
+    return this.status === 'idle';
+  }
+  
+  getTotalTasks() {
+    return this.taskCounter;
+  }
+  
+  reset() {
+    this.status = 'idle';
+    return this;
+  }
+}
+
+// Simple worker pool
+class WorkerPool {
+  constructor(size = 2, workerOptions = {}) {
+    this.workers = [];
+    this.size = size;
+    this.taskQueue = [];
+    
+    for (let i = 0; i < size; i++) {
+      this.workers.push(new Worker(`worker-${i}`, workerOptions));
+    }
+  }
+  
+  getIdleWorker() {
+    return this.workers.find(worker => worker.isIdle());
+  }
+  
+  async executeTask(taskFn) {
+    const worker = this.getIdleWorker();
+    if (worker) {
+      return worker.executeTask(taskFn);
+    }
+    
+    // Queue task if all workers are busy
+    return new Promise((resolve, reject) => {
+      this.taskQueue.push({
+        taskFn,
+        resolve,
+        reject
+      });
+    });
+  }
+  
+  processQueue() {
+    if (this.taskQueue.length === 0) return;
+    
+    const worker = this.getIdleWorker();
+    if (!worker) return;
+    
+    const task = this.taskQueue.shift();
+    worker.executeTask(task.taskFn)
+      .then(task.resolve)
+      .catch(task.reject);
+  }
+  
+  getTotalWorkers() {
+    return this.workers.length;
+  }
+  
+  getQueueLength() {
+    return this.taskQueue.length;
+  }
+}
+
+// Tests
+describe('Worker System', () => {
+  describe('Worker', () => {
+    it('should initialize with correct defaults', () => {
+      // Act
+      const worker = new Worker('test-worker');
+      
+      // Assert
+      expect(worker.id).toBe('test-worker');
+      expect(worker.status).toBe('idle');
+      expect(worker.options).toEqual({
+        maxRetries: 3,
+        timeout: 1000
+      });
+      expect(worker.taskCounter).toBe(0);
+    });
+    
+    it('should execute task and update status', async () => {
+      // Arrange
+      const worker = new Worker('test-worker');
+      const taskFn = jest.fn().mockResolvedValue('task result');
+      
+      // Act
+      const result = await worker.executeTask(taskFn);
+      
+      // Assert
+      expect(result).toBe('task result');
+      expect(worker.status).toBe('idle');
+      expect(worker.taskCounter).toBe(1);
+      expect(taskFn).toHaveBeenCalled();
+    });
+    
+    it('should handle errors during task execution', async () => {
+      // Arrange
+      const worker = new Worker('test-worker');
+      const error = new Error('Task failed');
+      const taskFn = jest.fn().mockRejectedValue(error);
+      
+      // Act & Assert
+      await expect(worker.executeTask(taskFn)).rejects.toThrow('Task failed');
+      expect(worker.status).toBe('error');
+      expect(taskFn).toHaveBeenCalled();
+    });
+    
+    it('should reset worker status', () => {
+      // Arrange
+      const worker = new Worker('test-worker');
+      worker.status = 'error';
+      
+      // Act
+      worker.reset();
+      
+      // Assert
+      expect(worker.status).toBe('idle');
+    });
+  });
+  
+  describe('WorkerPool', () => {
+    it('should initialize with correct number of workers', () => {
+      // Act
+      const pool = new WorkerPool(3);
+      
+      // Assert
+      expect(pool.getTotalWorkers()).toBe(3);
+      expect(pool.workers[0]).toBeInstanceOf(Worker);
+      expect(pool.taskQueue).toEqual([]);
+    });
+    
+    it('should find idle worker', () => {
+      // Arrange
+      const pool = new WorkerPool(2);
+      
+      // Act
+      const idleWorker = pool.getIdleWorker();
+      
+      // Assert
+      expect(idleWorker).toBeDefined();
+      expect(idleWorker.isIdle()).toBe(true);
+    });
+    
+    it('should execute task on available worker', async () => {
+      // Arrange
+      const pool = new WorkerPool(1);
+      const taskFn = jest.fn().mockResolvedValue('task result');
+      
+      // Act
+      const result = await pool.executeTask(taskFn);
+      
+      // Assert
+      expect(result).toBe('task result');
+      expect(taskFn).toHaveBeenCalled();
+      expect(pool.workers[0].taskCounter).toBe(1);
+    });
+    
+    it('should queue tasks when all workers are busy', async () => {
+      // Arrange
+      const pool = new WorkerPool(1);
+      let resolveTask;
+      
+      // Make the worker busy with a long-running task
+      pool.workers[0].executeTask(() => new Promise(resolve => {
+        resolveTask = resolve;
+      }));
+      
+      // Act - queue another task
+      const taskPromise = pool.executeTask(() => Promise.resolve('queued task result'));
+      
+      // Assert task was queued
+      expect(pool.getQueueLength()).toBe(1);
+      
+      // Resolve the first task to allow the queued task to execute
+      resolveTask('first task result');
+      
+      // Process the queue
+      pool.processQueue();
+      
+      // Wait for the queued task to complete
+      const result = await taskPromise;
+      expect(result).toBe('queued task result');
+    });
+  });
+});

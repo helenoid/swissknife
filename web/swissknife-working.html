@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwissKnife Web Desktop</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: #1a1a2e;
+            color: white;
+            user-select: none;
+        }
+        
+        .desktop {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .desktop-background {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop&q=80') center/cover no-repeat;
+            background-attachment: fixed;
+        }
+        
+        .desktop-background::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(1px);
+        }
+        
+        .desktop-icons {
+            position: absolute;
+            top: 20px; left: 20px; right: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 80px);
+            gap: 20px;
+            z-index: 10;
+            max-height: calc(100vh - 120px);
+            overflow: hidden;
+        }
+        
+        .icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .icon:hover {
+            background: rgba(74, 144, 226, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .icon-image { font-size: 32px; margin-bottom: 4px; }
+        .icon-label { 
+            font-size: 11px; text-align: center; 
+            color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        .system-panel {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 1000;
+            box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .panel-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .system-menu-button {
+            width: 36px;
+            height: 36px;
+            background: #ff0000;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .system-menu-button::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .system-menu-button::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 4px;
+            background: white;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .system-menu-button:hover {
+            background: #cc0000;
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .taskbar-apps {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            height: 100%;
+        }
+        
+        .taskbar-app {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            max-width: 200px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .taskbar-app:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .taskbar-app.active {
+            background: rgba(74, 144, 226, 0.3);
+            border-color: rgba(74, 144, 226, 0.6);
+        }
+        
+        .system-time {
+            font-size: 12px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .system-menu {
+            position: fixed;
+            bottom: 60px; left: 12px;
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            z-index: 1500;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .system-menu.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        
+        .menu-section {
+            padding: 8px 0;
+        }
+        
+        .menu-title {
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(74, 144, 226, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            color: white;
+            font-size: 13px;
+        }
+        
+        .menu-item:hover {
+            background: rgba(74, 144, 226, 0.3);
+        }
+        
+        .menu-separator {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 4px 8px;
+        }
+        
+        .window {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 320px;
+            min-height: 200px;
+            transition: all 0.3s ease;
+        }
+        
+        .window::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(255, 255, 255, 0.02) 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .window.focused {
+            border-color: rgba(74, 144, 226, 0.6);
+            box-shadow: 0 12px 48px rgba(74, 144, 226, 0.3);
+            z-index: 500;
+        }
+        
+        .window-titlebar {
+            height: 32px;
+            background: linear-gradient(180deg, 
+                rgba(74, 144, 226, 0.4) 0%, 
+                rgba(74, 144, 226, 0.2) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            color: white;
+            font-size: 12px;
+            cursor: move;
+            user-select: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .window-title {
+            flex: 1;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .window-controls {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .window-control {
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .window-control.close {
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+        }
+        
+        .window-control.close:hover {
+            background: rgba(220, 53, 69, 1);
+        }
+        
+        .window-control.minimize {
+            background: rgba(255, 193, 7, 0.8);
+            color: black;
+        }
+        
+        .window-control.minimize:hover {
+            background: rgba(255, 193, 7, 1);
+        }
+        
+        .window-control.maximize {
+            background: rgba(40, 167, 69, 0.8);
+            color: white;
+        }
+        
+        .window-control.maximize:hover {
+            background: rgba(40, 167, 69, 1);
+        }
+        
+        .window-content {
+            flex: 1;
+            padding: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.1);
+            overflow: auto;
+        }
+        
+        .hidden { display: none !important; }
+        .visible { display: block !important; }
+        
+        @media (max-width: 768px) {
+            .desktop-icons {
+                grid-template-columns: repeat(4, 80px);
+                justify-content: center;
+            }
+            
+            .window {
+                width: 100% !important;
+                height: calc(100vh - 48px) !important;
+                top: 0 !important;
+                left: 0 !important;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="desktop" class="desktop">
+        <div class="desktop-background"></div>
+        
+        <div class="desktop-icons">
+            <div class="icon" data-app="terminal" onclick="launchApp('terminal')">
+                <div class="icon-image">🖥️</div>
+                <div class="icon-label">Terminal</div>
+            </div>
+            <div class="icon" data-app="vibecode" onclick="launchApp('vibecode')">
+                <div class="icon-image">📝</div>
+                <div class="icon-label">VibeCode</div>
+            </div>
+            <div class="icon" data-app="ai-chat" onclick="launchApp('ai-chat')">
+                <div class="icon-image">🤖</div>
+                <div class="icon-label">AI Chat</div>
+            </div>
+            <div class="icon" data-app="file-manager" onclick="launchApp('file-manager')">
+                <div class="icon-image">📁</div>
+                <div class="icon-label">Files</div>
+            </div>
+            <div class="icon" data-app="task-manager" onclick="launchApp('task-manager')">
+                <div class="icon-image">⚡</div>
+                <div class="icon-label">Tasks</div>
+            </div>
+            <div class="icon" data-app="model-browser" onclick="launchApp('model-browser')">
+                <div class="icon-image">🧠</div>
+                <div class="icon-label">Models</div>
+            </div>
+            <div class="icon" data-app="ipfs-explorer" onclick="launchApp('ipfs-explorer')">
+                <div class="icon-image">🌐</div>
+                <div class="icon-label">IPFS</div>
+            </div>
+            <div class="icon" data-app="settings" onclick="launchApp('settings')">
+                <div class="icon-image">⚙️</div>
+                <div class="icon-label">Settings</div>
+            </div>
+            <div class="icon" data-app="mcp-control" onclick="launchApp('mcp-control')">
+                <div class="icon-image">🔌</div>
+                <div class="icon-label">MCP Control</div>
+            </div>
+            <div class="icon" data-app="api-keys" onclick="launchApp('api-keys')">
+                <div class="icon-image">🔑</div>
+                <div class="icon-label">API Keys</div>
+            </div>
+        </div>
+        
+        <div id="windows-container"></div>
+        
+        <div class="system-panel">
+            <div class="panel-left">
+                <div class="system-menu-button" onclick="toggleMenu()" title="SwissKnife Start Menu">
+                </div>
+                <div class="taskbar-apps" id="taskbar-apps"></div>
+            </div>
+            <div class="panel-right">
+                <div class="system-time" id="system-time"></div>
+            </div>
+        </div>
+        
+        <div id="system-menu" class="system-menu hidden">
+            <div class="menu-section">
+                <div class="menu-title">Applications</div>
+                <div class="menu-item" onclick="launchApp('terminal'); toggleMenu();">
+                    <span>🖥️</span> Terminal
+                </div>
+                <div class="menu-item" onclick="launchApp('vibecode'); toggleMenu();">
+                    <span>📝</span> VibeCode
+                </div>
+                <div class="menu-item" onclick="launchApp('ai-chat'); toggleMenu();">
+                    <span>🤖</span> AI Chat
+                </div>
+                <div class="menu-item" onclick="launchApp('file-manager'); toggleMenu();">
+                    <span>📁</span> File Manager
+                </div>
+            </div>
+            <div class="menu-separator"></div>
+            <div class="menu-section">
+                <div class="menu-item" onclick="launchApp('task-manager'); toggleMenu();">
+                    <span>⚡</span> Task Manager
+                </div>
+                <div class="menu-item" onclick="launchApp('model-browser'); toggleMenu();">
+                    <span>🧠</span> Model Browser
+                </div>
+                <div class="menu-item" onclick="launchApp('ipfs-explorer'); toggleMenu();">
+                    <span>🌐</span> IPFS Explorer
+                </div>
+            </div>
+            <div class="menu-separator"></div>
+            <div class="menu-section">
+                <div class="menu-item" onclick="launchApp('settings'); toggleMenu();">
+                    <span>⚙️</span> Settings
+                </div>
+                <div class="menu-item" onclick="launchApp('mcp-control'); toggleMenu();">
+                    <span>🔌</span> MCP Control
+                </div>
+                <div class="menu-item" onclick="launchApp('api-keys'); toggleMenu();">
+                    <span>🔑</span> API Keys
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Application definitions
+        const apps = {
+            'terminal': { name: 'SwissKnife Terminal', icon: '🖥️', content: 'Terminal interface for SwissKnife commands and AI interactions.' },
+            'vibecode': { name: 'VibeCode Editor', icon: '📝', content: 'Advanced code editor with AI-powered assistance and syntax highlighting.' },
+            'ai-chat': { name: 'AI Chat Assistant', icon: '🤖', content: 'Intelligent AI assistant for coding, analysis, and general assistance.' },
+            'file-manager': { name: 'File Manager', icon: '📁', content: 'Browse and manage your files and folders with advanced features.' },
+            'task-manager': { name: 'Task Manager', icon: '⚡', content: 'Monitor and manage running processes and system resources.' },
+            'model-browser': { name: 'Model Browser', icon: '🧠', content: 'Browse and manage AI models from various providers and sources.' },
+            'ipfs-explorer': { name: 'IPFS Explorer', icon: '🌐', content: 'Explore the InterPlanetary File System and distributed storage.' },
+            'settings': { name: 'Settings', icon: '⚙️', content: 'Configure your SwissKnife desktop environment and preferences.' },
+            'mcp-control': { name: 'MCP Server Control', icon: '🔌', content: 'Manage Model Context Protocol servers and connections.' },
+            'api-keys': { name: 'API Key Manager', icon: '🔑', content: 'Securely manage API keys for various AI and cloud services.' }
+        };
+        
+        let windowCounter = 0;
+        let activeWindows = new Map();
+        
+        function toggleMenu() {
+            const menu = document.getElementById('system-menu');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                menu.classList.add('visible');
+            } else {
+                menu.classList.add('hidden');
+                menu.classList.remove('visible');
+            }
+        }
+        
+        function launchApp(appId) {
+            const app = apps[appId];
+            if (!app) return;
+            
+            // Check if app is already open
+            if (activeWindows.has(appId)) {
+                focusWindow(activeWindows.get(appId));
+                return;
+            }
+            
+            const windowId = `window-${appId}-${++windowCounter}`;
+            const window = createWindow(windowId, app.name, app.icon, app.content);
+            
+            activeWindows.set(appId, window);
+            addToTaskbar(appId, app.name, app.icon);
+            
+            // Position window with slight offset
+            const offset = (windowCounter - 1) * 30;
+            window.style.left = (100 + offset) + 'px';
+            window.style.top = (100 + offset) + 'px';
+            window.style.width = '600px';
+            window.style.height = '400px';
+        }
+        
+        function createWindow(windowId, title, icon, content) {
+            const container = document.getElementById('windows-container');
+            const window = document.createElement('div');
+            window.id = windowId;
+            window.className = 'window focused';
+            
+            window.innerHTML = `
+                <div class="window-titlebar">
+                    <span style="margin-right: 8px;">${icon}</span>
+                    <div class="window-title">${title}</div>
+                    <div class="window-controls">
+                        <button class="window-control minimize" onclick="minimizeWindow('${windowId}')" title="Minimize">−</button>
+                        <button class="window-control maximize" onclick="toggleMaximize('${windowId}')" title="Maximize">□</button>
+                        <button class="window-control close" onclick="closeWindow('${windowId}')" title="Close">×</button>
+                    </div>
+                </div>
+                <div class="window-content">
+                    <h3>${icon} ${title}</h3>
+                    <p>${content}</p>
+                    <br>
+                    <p><strong>Features:</strong></p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Full Aero glass transparency effects</li>
+                        <li>Swiss Alps background visible through glass</li>
+                        <li>Draggable and resizable windows</li>
+                        <li>Taskbar integration</li>
+                        <li>Window snapping support</li>
+                    </ul>
+                    <br>
+                    <p><em>This is a demo window showing the ${title} application interface.</em></p>
+                </div>
+            `;
+            
+            container.appendChild(window);
+            makeWindowDraggable(window);
+            makeWindowResizable(window);
+            focusWindow(window);
+            
+            return window;
+        }
+        
+        function makeWindowDraggable(windowElement) {
+            const titlebar = windowElement.querySelector('.window-titlebar');
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+            
+            titlebar.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('window-control')) return;
+                
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = parseInt(windowElement.style.left) || 0;
+                startTop = parseInt(windowElement.style.top) || 0;
+                
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+                
+                focusWindow(windowElement);
+                e.preventDefault();
+            });
+            
+            function handleMouseMove(e) {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                windowElement.style.left = (startLeft + deltaX) + 'px';
+                windowElement.style.top = (startTop + deltaY) + 'px';
+            }
+            
+            function handleMouseUp() {
+                isDragging = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            }
+        }
+        
+        function makeWindowResizable(windowElement) {
+            // Simple resize handle in bottom-right corner
+            const resizeHandle = document.createElement('div');
+            resizeHandle.style.cssText = `
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 20px;
+                height: 20px;
+                cursor: se-resize;
+                background: rgba(255, 255, 255, 0.1);
+                border-top-left-radius: 4px;
+            `;
+            
+            windowElement.appendChild(resizeHandle);
+            
+            let isResizing = false;
+            let startX, startY, startWidth, startHeight;
+            
+            resizeHandle.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = parseInt(windowElement.style.width);
+                startHeight = parseInt(windowElement.style.height);
+                
+                document.addEventListener('mousemove', handleResize);
+                document.addEventListener('mouseup', stopResize);
+                e.preventDefault();
+            });
+            
+            function handleResize(e) {
+                if (!isResizing) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                const newWidth = Math.max(320, startWidth + deltaX);
+                const newHeight = Math.max(200, startHeight + deltaY);
+                
+                windowElement.style.width = newWidth + 'px';
+                windowElement.style.height = newHeight + 'px';
+            }
+            
+            function stopResize() {
+                isResizing = false;
+                document.removeEventListener('mousemove', handleResize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+        }
+        
+        function focusWindow(windowElement) {
+            // Remove focus from all windows
+            document.querySelectorAll('.window').forEach(w => w.classList.remove('focused'));
+            // Add focus to clicked window
+            windowElement.classList.add('focused');
+        }
+        
+        function closeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            if (window) {
+                window.remove();
+                
+                // Remove from active windows and taskbar
+                for (const [appId, win] of activeWindows.entries()) {
+                    if (win.id === windowId) {
+                        activeWindows.delete(appId);
+                        removeFromTaskbar(appId);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        function minimizeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            if (window) {
+                window.style.display = 'none';
+            }
+        }
+        
+        function toggleMaximize(windowId) {
+            const window = document.getElementById(windowId);
+            if (window) {
+                if (window.classList.contains('maximized')) {
+                    window.classList.remove('maximized');
+                    window.style.width = '600px';
+                    window.style.height = '400px';
+                    window.style.top = '100px';
+                    window.style.left = '100px';
+                } else {
+                    window.classList.add('maximized');
+                    window.style.width = '100%';
+                    window.style.height = 'calc(100vh - 48px)';
+                    window.style.top = '0';
+                    window.style.left = '0';
+                }
+            }
+        }
+        
+        function addToTaskbar(appId, appName, appIcon) {
+            const taskbar = document.getElementById('taskbar-apps');
+            const item = document.createElement('div');
+            item.className = 'taskbar-app active';
+            item.id = `taskbar-${appId}`;
+            item.innerHTML = `<span>${appIcon}</span><span>${appName}</span>`;
+            item.onclick = () => {
+                const window = activeWindows.get(appId);
+                if (window) {
+                    if (window.style.display === 'none') {
+                        window.style.display = 'flex';
+                        focusWindow(window);
+                    } else {
+                        focusWindow(window);
+                    }
+                }
+            };
+            taskbar.appendChild(item);
+        }
+        
+        function removeFromTaskbar(appId) {
+            const item = document.getElementById(`taskbar-${appId}`);
+            if (item) {
+                item.remove();
+            }
+        }
+        
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('system-time').textContent = timeStr;
+        }
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('system-menu');
+            const button = document.querySelector('.system-menu-button');
+            
+            if (!menu.contains(e.target) && !button.contains(e.target)) {
+                menu.classList.add('hidden');
+                menu.classList.remove('visible');
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            console.log('SwissKnife Web Desktop loaded successfully!');
+        });
+        
+        // Window click focusing
+        document.addEventListener('click', function(e) {
+            const window = e.target.closest('.window');
+            if (window) {
+                focusWindow(window);
+            }
+        });
+    </script>
+</body>
+</html>

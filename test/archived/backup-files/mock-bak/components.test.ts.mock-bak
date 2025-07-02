@@ -1,0 +1,99 @@
+/**
+ * Unit tests for Phase 1 components - Analysis & Planning
+ */
+
+
+// Mock dependencies
+jest.mock('../../../dist/src/config/manager.js', () => {
+  const mockConfig = {
+    getInstance: jest.fn(),
+    initialize: jest.fn().mockResolvedValue(undefined),
+    set: jest.fn(),
+    get: jest.fn()
+  };
+  mockConfig.getInstance.mockReturnValue(mockConfig);
+  return { ConfigurationManager: mockConfig };
+});
+
+describe('Phase 1: Analysis & Planning Components', () => {
+  describe('Configuration System', () => {
+    let configManager;
+    
+    beforeEach(() => {
+      jest.clearAllMocks();
+      configManager = ConfigurationManager.getInstance();
+    });
+    
+    it('should load configuration properly', async () => {
+      // Act
+      await configManager.initialize();
+      
+      // Assert
+      expect(configManager.initialize).toHaveBeenCalled();
+    });
+    
+    it('should save configuration properly', async () => {
+      // Arrange
+      const key = 'testKey';
+      const value = 'testValue';
+      configManager.get.mockReturnValue(value);
+      
+      // Act
+      configManager.set(key, value);
+      
+      // Assert
+      expect(configManager.set).toHaveBeenCalledWith(key, value);
+      expect(configManager.get(key)).toBe(value);
+    });
+  });
+  
+  describe('Command System Foundation', () => {
+    let commandRegistry: CommandRegistry;
+    
+    beforeEach(() => {
+      commandRegistry = new CommandRegistry();
+    });
+    
+    it('should register commands properly', () => {
+      // Arrange
+      const mockCommand: Command = {
+        name: 'test',
+        description: 'Test command',
+        parseArguments: jest.fn().mockReturnValue({}),
+        execute: jest.fn().mockResolvedValue({ success: true })
+      };
+      
+      // Act
+      commandRegistry.register(mockCommand);
+      
+      // Assert
+      expect(commandRegistry.getCommand('test')).toBe(mockCommand);
+    });
+    
+    it('should execute registered commands', async () => {
+      // Arrange
+      const mockCommand: Command = {
+        name: 'test',
+        description: 'Test command',
+        parseArguments: jest.fn().mockReturnValue({ flag: true }),
+        execute: jest.fn().mockResolvedValue({ success: true })
+      };
+      commandRegistry.register(mockCommand);
+      
+      // Act
+      const context = {} as CommandExecutionContext;
+      const command = commandRegistry.getCommand('test');
+      if (!command) throw new Error('Command not found');
+      await command.execute({ flag: true }, context);
+      
+      // Assert
+      expect(mockCommand.execute).toHaveBeenCalledWith({ flag: true }, context);
+    });
+    
+    it('should handle unknown commands', () => {
+      // Act & Assert
+      const command = commandRegistry.getCommand('unknown');
+      expect(command).toBeUndefined();
+    });
+  });
+});

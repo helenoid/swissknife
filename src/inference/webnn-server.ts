@@ -6,10 +6,10 @@
 
 // TODO: Import necessary types (Tensor, CompiledModel, DeviceManager, GraphRAGDatabase etc.)
 // These types would need to be defined elsewhere (e.g., ../types/tensor.ts, ../types/model.ts)
-// import { Tensor } from '../types/tensor';
-// import { CompiledModel } from '../types/model';
-// import { DeviceManager, Device } from '../services/device-manager'; // Assuming a DeviceManager exists
-// import { GraphRAGDatabase } from './graph-rag-database'; // Assuming GraphRAGDatabase exists
+// import { Tensor } from '../types/tensor.js';
+// import { CompiledModel } from '../types/model.js';
+// import { DeviceManager, Device } from '../services/device-manager.js'; // Assuming a DeviceManager exists
+// import { GraphRAGDatabase } from './graph-rag-database.js'; // Assuming GraphRAGDatabase exists
 
 // Placeholder types for demonstration
 type Tensor = any;

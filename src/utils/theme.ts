@@ -1,4 +1,4 @@
-import { getGlobalConfig } from './config'
+import { getGlobalConfig } from './config.js'
 
 export interface Theme {
   bashBorder: string

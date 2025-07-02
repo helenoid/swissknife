@@ -1,0 +1,4 @@
+// Super simple test 
+test('Simple addition works', () => {
+  expect(2 + 2).toBe(4);
+});

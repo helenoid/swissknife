@@ -7,10 +7,7 @@
  */
 
 // --- Mock Setup ---
-// Add .js extension
-
 // Mock CommandRegistry and its methods
-// Assume CommandRegistry is instantiated directly, not a singleton
 const mockCommandRegistryInstance = {
     getCommand: jest.fn(),
     getAllCommands: jest.fn(),
@@ -18,17 +15,19 @@ const mockCommandRegistryInstance = {
     getCategories: jest.fn(),
     // Add other methods if HelpGenerator uses them
 };
-jest.mock('@/command-registry.js', () => ({ // Adjust path if needed
-  CommandRegistry: jest.fn().mockImplementation(() => mockCommandRegistryInstance),
+jest.mock('../../../src/commands/registry.js', () => ({ 
+  CommandRegistry: {
+    getInstance: jest.fn().mockReturnValue(mockCommandRegistryInstance),
+  },
 }));
 
 // --- Imports ---
-// Add .js extension
-import { HelpGenerator, HelpFormatOptions } from '../../../src/commands/help-generator.js'; // Adjust path
-import { CommandRegistry } from '@/command-registry.js'; // Adjust path
+import { HelpGenerator, HelpFormatOptions } from '../../../src/commands/help-generator.js';
+import { CommandRegistry } from '../../../src/commands/registry.js';
+
 // Define placeholder types as imports might fail
-type CommandOption = { name: string; alias?: string; type: string; description: string; required?: boolean; default?: any; };
-type Command = { name: string; description: string; handler: Function; id?: string; options?: CommandOption[]; examples?: string[]; category?: string; subcommands?: Command[]; aliases?: string[] };
+type CommandOption = { name: string; alias?: string; type: 'string' | 'number' | 'boolean' | 'array'; description: string; required?: boolean; default?: any };
+type Command = { id: string; name: string; description: string; subcommands?: Command[]; options?: CommandOption[]; category?: string; examples?: string[]; aliases?: string[]; handler: (args: any, context: any) => Promise<number> };
 
 
 // --- Test Data ---
@@ -79,8 +78,8 @@ describe('HelpGenerator', () => {
     // Reset mocks
     jest.clearAllMocks();
 
-    // Instantiate the mocked registry directly
-    commandRegistry = new CommandRegistry() as any; // Use 'as any' to bypass strict type check
+    // Get the singleton instance of CommandRegistry
+    commandRegistry = CommandRegistry.getInstance() as any; // Use 'as any' to bypass strict type check
 
     // Configure mock responses for registry methods
     commandRegistry.getCommand.mockImplementation((name: string) => {
@@ -90,7 +89,7 @@ describe('HelpGenerator', () => {
     commandRegistry.getCommandsByCategory.mockImplementation((category: string) => {
         return mockCommands.filter(cmd => cmd.category === category) as any;
     });
-    commandRegistry.getCategories.mockReturnValue(['test', 'core']);
+    commandRegistry.getCategories.mockReturnValue(['test', 'core'] as any);
 
     // Create help generator instance for each test, potentially injecting registry if needed
     // Assuming HelpGenerator uses CommandRegistry.getInstance() internally, which is mocked

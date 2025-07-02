@@ -1,0 +1,319 @@
+/**
+ * Enhanced Jest setup for SwissKnife project
+ * Adds mocks and fixes for common testing issues
+ */
+
+// Import required Jest modules
+require('@jest/globals');
+
+// Create a comprehensive mock chai setup
+const chai = {
+  expect: jest.fn().mockImplementation(actual => {
+    const expectObj = {
+      to: {
+        equal: expected => jest.expect(actual).toBe(expected),
+        deep: {
+          equal: expected => jest.expect(actual).toEqual(expected),
+          include: subset => jest.expect(actual).toEqual(expect.objectContaining(subset)),
+          nested: {
+            include: subset => jest.expect(actual).toEqual(expect.objectContaining(subset)),
+            property: (path, value) => {
+              const pathParts = path.split('.');
+              let obj = actual;
+              for (const part of pathParts.slice(0, -1)) {
+                obj = obj[part];
+                jest.expect(obj).toBeDefined();
+              }
+              const lastPart = pathParts[pathParts.length - 1];
+              if (value !== undefined) {
+                jest.expect(obj[lastPart]).toEqual(value);
+              } else {
+                jest.expect(obj[lastPart]).toBeDefined();
+              }
+            }
+          }
+        },
+        be: {
+          true: () => jest.expect(actual).toBe(true),
+          false: () => jest.expect(actual).toBe(false),
+          null: () => jest.expect(actual).toBeNull(),
+          undefined: () => jest.expect(actual).toBeUndefined(),
+          empty: () => {
+            if (typeof actual === 'string' || Array.isArray(actual)) {
+              jest.expect(actual.length).toBe(0);
+            } else if (typeof actual === 'object' && actual !== null) {
+              jest.expect(Object.keys(actual).length).toBe(0);
+            } else {
+              throw new Error(`Cannot check if ${typeof actual} is empty`);
+            }
+          },
+          a: type => {
+            if (type === 'string') {
+              jest.expect(typeof actual).toBe('string');
+            } else if (type === 'number') {
+              jest.expect(typeof actual).toBe('number');
+            } else if (type === 'function') {
+              jest.expect(typeof actual).toBe('function');
+            } else if (type === 'object') {
+              jest.expect(typeof actual).toBe('object');
+              jest.expect(actual).not.toBeNull();
+            } else if (type === 'array') {
+              jest.expect(Array.isArray(actual)).toBe(true);
+            } else {
+              throw new Error(`Unknown type: ${type}`);
+            }
+          }
+        },
+        include: value => {
+          if (typeof actual === 'string') {
+            jest.expect(actual).toContain(value);
+          } else if (Array.isArray(actual)) {
+            jest.expect(actual).toContain(value);
+          } else if (typeof actual === 'object' && actual !== null) {
+            jest.expect(actual).toEqual(expect.objectContaining(value));
+          } else {
+            throw new Error(`Cannot check if ${typeof actual} includes ${value}`);
+          }
+        },
+        have: {
+          property: (prop, value) => {
+            jest.expect(actual).toHaveProperty(prop);
+            if (value !== undefined) {
+              jest.expect(actual[prop]).toEqual(value);
+            }
+          },
+          length: len => jest.expect(actual.length).toBe(len),
+          lengthOf: len => jest.expect(actual.length).toBe(len),
+          keys: keys => {
+            if (Array.isArray(keys)) {
+              keys.forEach(key => jest.expect(actual).toHaveProperty(key));
+            } else {
+              jest.expect(actual).toHaveProperty(keys);
+            }
+          }
+        },
+        match: regex => jest.expect(actual).toMatch(regex),
+        satisfy: predicate => jest.expect(predicate(actual)).toBe(true),
+        throw: expected => {
+          try {
+            actual();
+            jest.expect(true).toBe(false); // Force failure
+          } catch (error) {
+            if (expected) {
+              if (expected instanceof RegExp) {
+                jest.expect(error.message).toMatch(expected);
+              } else if (typeof expected === 'string') {
+                jest.expect(error.message).toContain(expected);
+              }
+            }
+          }
+        },
+      },
+      not: {},
+    };
+
+    // Create negated versions of all assertions
+    Object.keys(expectObj.to).forEach(key => {
+      if (typeof expectObj.to[key] === 'function') {
+        expectObj.not[key] = (...args) => {
+          try {
+            expectObj.to[key](...args);
+            throw new Error(`Expected ${actual} to not ${key} ${args.join(', ')}`);
+          } catch (e) {
+            // Success - negation worked
+          }
+        };
+      } else if (typeof expectObj.to[key] === 'object') {
+        expectObj.not[key] = {};
+        Object.keys(expectObj.to[key]).forEach(subKey => {
+          if (typeof expectObj.to[key][subKey] === 'function') {
+            expectObj.not[key][subKey] = (...args) => {
+              try {
+                expectObj.to[key][subKey](...args);
+                throw new Error(`Expected ${actual} to not ${key}.${subKey} ${args.join(', ')}`);
+              } catch (e) {
+                // Success - negation worked
+              }
+            };
+          }
+        });
+      }
+    });
+
+    return expectObj;
+  }),
+  
+  assert: {
+    isTrue: (value) => jest.expect(value).toBe(true),
+    isFalse: (value) => jest.expect(value).toBe(false),
+    isNull: (value) => jest.expect(value).toBeNull(),
+    isUndefined: (value) => jest.expect(value).toBeUndefined(),
+    exists: (value) => jest.expect(value).not.toBeUndefined(),
+    notEqual: (actual, expected) => jest.expect(actual).not.toBe(expected),
+    throws: (fn) => jest.expect(fn).toThrow(),
+    fail: (message) => {
+      throw new Error(message);
+    },
+    strictEqual: (actual, expected) => jest.expect(actual).toBe(expected),
+    deepEqual: (actual, expected) => jest.expect(actual).toEqual(expected),
+  }
+};
+
+// Mock chai module
+jest.mock('chai', () => chai);
+
+// Set up global mocks for IPFS related modules
+jest.mock('ipfs-core', () => ({
+  create: jest.fn().mockResolvedValue({
+    add: jest.fn().mockResolvedValue({ cid: { toString: () => 'mock-cid' } }),
+    cat: jest.fn().mockResolvedValue(new TextEncoder().encode('mock-data')),
+    files: {
+      mkdir: jest.fn().mockResolvedValue(undefined),
+      write: jest.fn().mockResolvedValue(undefined),
+      read: jest.fn().mockResolvedValue(new TextEncoder().encode('mock-file-data')),
+      stat: jest.fn().mockResolvedValue({ cid: { toString: () => 'mock-file-cid' } }),
+      ls: jest.fn().mockResolvedValue([{ name: 'mock-file', cid: { toString: () => 'mock-dir-cid' }, type: 'file', size: 123 }])
+    },
+    pin: {
+      add: jest.fn().mockResolvedValue([{ cid: { toString: () => 'mock-cid' } }]),
+      rm: jest.fn().mockResolvedValue([{ cid: { toString: () => 'mock-cid' } }]),
+      ls: jest.fn().mockResolvedValue([{ cid: { toString: () => 'mock-cid' } }])
+    },
+    dag: {
+      put: jest.fn().mockResolvedValue({ cid: { toString: () => 'mock-dag-cid' } }),
+      get: jest.fn().mockResolvedValue({ value: { data: 'mock-dag-data' } })
+    }
+  })
+}));
+
+// Mock MCP client
+jest.mock('../src/storage/ipfs/mcp-client.js', () => require('../test/utils/mockMCPClient.js').default);
+
+// Mock for models registry
+jest.mock('../src/models/registry.js', () => require('../test/mocks/models/registry.js'));
+
+// Mock for command registry
+jest.mock('../src/command-registry.js', () => require('../test/mocks/command-registry.js'));
+
+// Extend Jest's matchers
+expect.extend({
+  toBeWithinRange(received, floor, ceiling) {
+    const pass = received >= floor && received <= ceiling;
+    if (pass) {
+      return {
+        message: () => `expected ${received} not to be within range ${floor} - ${ceiling}`,
+        pass: true,
+      };
+    } else {
+      return {
+        message: () => `expected ${received} to be within range ${floor} - ${ceiling}`,
+        pass: false,
+      };
+    }
+  },
+  toHaveBeenCalledBefore(received, expected) {
+    const receivedMock = received.mock;
+    const expectedMock = expected.mock;
+    
+    if (!receivedMock || !expectedMock) {
+      return {
+        message: () => 'Received value and expected value must be Jest mocks',
+        pass: false
+      };
+    }
+    
+    if (receivedMock.invocationCallOrder.length === 0) {
+      return {
+        message: () => 'First mock was not called',
+        pass: false
+      };
+    }
+    
+    if (expectedMock.invocationCallOrder.length === 0) {
+      return {
+        message: () => 'Second mock was not called',
+        pass: false
+      };
+    }
+    
+    const firstCall = Math.min(...receivedMock.invocationCallOrder);
+    const secondCall = Math.min(...expectedMock.invocationCallOrder);
+    
+    return {
+      message: firstCall < secondCall
+        ? () => `expected ${received} not to have been called before ${expected}`
+        : () => `expected ${received} to have been called before ${expected}`,
+      pass: firstCall < secondCall
+    };
+  }
+});
+
+// Helper functions for testing
+global.createMockPromise = (resolution, shouldResolve = true) => {
+  if (shouldResolve) {
+    return Promise.resolve(resolution);
+  } else {
+    return Promise.reject(resolution instanceof Error ? resolution : new Error(resolution));
+  }
+};
+
+global.toggleSilentMode = (silent = true) => {
+  const original = {
+    log: console.log,
+    warn: console.warn,
+    error: console.error
+  };
+  
+  if (silent) {
+    console.log = jest.fn();
+    console.warn = jest.fn();
+    console.error = jest.fn();
+  } else {
+    console.log = original.log;
+    console.warn = original.warn;
+    console.error = original.error;
+  }
+  
+  return original;
+};
+
+global.mockPerformanceNow = (returnValues) => {
+  if (!Array.isArray(returnValues)) {
+    returnValues = [0, returnValues]; // Start at 0, then return the elapsed time
+  }
+  
+  let callCount = 0;
+  global.performance = {
+    now: jest.fn().mockImplementation(() => {
+      return returnValues[Math.min(callCount++, returnValues.length - 1)];
+    })
+  };
+  
+  return global.performance.now;
+};
+
+global.createFixture = (name, data) => {
+  const id = Math.random().toString(36).substring(2, 10);
+  const fileName = `test-fixture-${name}-${id}`;
+  return {
+    id,
+    name: fileName,
+    data,
+    toString: () => fileName
+  };
+};
+
+// Set up test environment
+global.TEST_ENV = {
+  inTest: true,
+  mockTimers: false
+};
+
+// Initialize test environment
+beforeAll(() => {
+  // Add any global setup here
+});
+
+afterAll(() => {
+  // Clean up global state
+});

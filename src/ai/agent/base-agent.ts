@@ -15,11 +15,14 @@ import {
   ToolCall, 
   ToolContext,
   ThinkingState 
-} from '../types';
-import { GoTManager } from '../../tasks/graph/manager';
-import { LogManager } from '../../utils/logging/manager';
-import { ModelSelector } from '../models/model-selector';
-import { getModelProvider } from '../models/providers';
+} from '../types.js';
+import { GoTManager } from '../../tasks/graph/manager.js';
+import { LogManager } from '../../utils/logging/manager.js';
+import { ModelRegistry } from '../models/registry.js';
+const modelRegistry = ModelRegistry.getInstance();
+const getModelProvider = (modelId: string) => modelRegistry.getModelProvider(modelId);
+
+import type { ModelSelector } from '../types.js';
 
 export class BaseAIAgent implements AIAgent {
   private tools: Map<string, Tool> = new Map();
@@ -28,7 +31,7 @@ export class BaseAIAgent implements AIAgent {
   private modelSelector: ModelSelector;
   
   constructor(modelSelector?: ModelSelector) {
-    this.modelSelector = modelSelector || (async (context) => {
+    this.modelSelector = modelSelector || (async (context: AgentContext) => {
       // Default to using the modelId from context, or gpt-4o if not specified
       return context.modelId || 'gpt-4o';
     });
@@ -130,12 +133,17 @@ export class BaseAIAgent implements AIAgent {
       
       return result;
     } catch (error) {
-      // Update tool call status
-      toolCall.status = 'failed';
-      toolCall.result = { error: error.message };
-      
-      this.logger.error('Error executing tool', { name: toolCall.name, error });
-      throw error;
+      if (error instanceof Error) {
+        // Update tool call status
+        toolCall.status = 'failed';
+        toolCall.result = { error: error.message };
+        
+        this.logger.error('Error executing tool', { name: toolCall.name, error });
+        throw error;
+      } else {
+        this.logger.error('Unknown error executing tool', { name: toolCall.name });
+        throw new Error('Unknown error executing tool');
+      }
     }
   }
   
@@ -176,15 +184,11 @@ export class BaseAIAgent implements AIAgent {
    * Get available tools for the given context
    */
   private getAvailableTools(context: AgentContext): Tool[] {
-    // Start with tools provided in context
     const contextTools = context.tools || [];
-    
-    // Add registered tools not already in context
-    const registeredTools = this.getTools().filter(tool => 
-      tool.isEnabled !== false && // Exclude disabled tools
-      !contextTools.some(t => t.name === tool.name) // Exclude tools already in context
+    const registeredTools = this.getTools().filter((tool: Tool) => 
+      tool.isEnabled !== false && 
+      !contextTools.some((t: Tool) => t.name === tool.name)
     );
-    
     return [...contextTools, ...registeredTools];
   }
   
@@ -294,22 +298,25 @@ export class BaseAIAgent implements AIAgent {
       
       return state;
     } catch (error) {
-      this.logger.error('Error continuing thinking process', error);
-      
-      // Create an error node
-      const errorNode = this.gotManager.createNode(state.graphId, {
-        type: 'error',
-        content: `Error: ${error.message}`,
-        parentIds: [state.currentNodeId],
-        data: { 
-          error: error.toString(),
-          stack: error.stack
-        }
-      });
-      
-      // Update the state to point to the error node
-      state.currentNodeId = errorNode.id;
-      state.reasoning.push(`Error occurred: ${error.message}`);
+      if (error instanceof Error) {
+        this.logger.error('Error continuing thinking process', error);
+        
+        const errorNode = this.gotManager.createNode(state.graphId, {
+          type: 'error',
+          content: `Error: ${error.message}`,
+          parentIds: [state.currentNodeId],
+          data: { 
+            error: error.toString(),
+            stack: error.stack
+          }
+        });
+        
+        state.currentNodeId = errorNode.id;
+        state.reasoning.push(`Error occurred: ${error.message}`);
+      } else {
+        this.logger.error('Unknown error continuing thinking process');
+        state.conclusions.push('An unknown error occurred');
+      }
       
       return state;
     }

@@ -54,7 +54,7 @@ export class LogManager {
     
     // Set up console transport if enabled
     if (options.console !== false) {
-      this.setTransport('console', this.createConsoleTransport());
+      this.addTransport('console', this.createConsoleTransport());
     }
     
     // Set up file transport if enabled
@@ -145,24 +145,30 @@ export class LogManager {
   private createConsoleTransport(): LogTransport {
     return {
       log: (entry: LogEntry) => {
-        const { timestamp, level, message } = entry;
-        const formattedMessage = `${timestamp} [${level.toUpperCase()}] ${message}`;
+        const { timestamp, level, message, context } = entry;
+        let formattedMessage = `${timestamp} [${level.toUpperCase()}] ${message}`;
+        
+        // Add context information if available
+        if (context) {
+          const contextStr = JSON.stringify(context);
+          formattedMessage += ` ${contextStr}`;
+        }
         
         switch (level) {
           case 'error':
-            console.error(formattedMessage);
+            console.error(formattedMessage, entry.data || '');
             break;
           case 'warn':
-            console.warn(formattedMessage);
+            console.warn(formattedMessage, entry.data || '');
             break;
           case 'info':
-            console.info(formattedMessage);
+            console.info(formattedMessage, entry.data || '');
             break;
           case 'debug':
-            console.debug(formattedMessage);
+            console.debug(formattedMessage, entry.data || '');
             break;
           case 'trace':
-            console.log(formattedMessage);
+            console.log(formattedMessage, entry.data || '');
             break;
         }
       }
@@ -186,9 +192,16 @@ export class LogManager {
           if (!this.logFileHandle) return;
           
           try {
-            const { timestamp, level, message } = entry;
-            const formattedMessage = `${timestamp} [${level.toUpperCase()}] ${message}\n`;
-            await this.logFileHandle.write(formattedMessage);
+            const { timestamp, level, message, context } = entry;
+            let formattedMessage = `${timestamp} [${level.toUpperCase()}] ${message}`;
+            
+            // Add context information if available
+            if (context) {
+              const contextStr = JSON.stringify(context);
+              formattedMessage += ` ${contextStr}`;
+            }
+            
+            await this.logFileHandle.write(formattedMessage + '\n');
           } catch (error) {
             console.error('Error writing to log file:', error);
           }

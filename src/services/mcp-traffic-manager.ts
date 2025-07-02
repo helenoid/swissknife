@@ -7,21 +7,21 @@
 
 import { 
   ServerRegistry 
-} from './mcp-registry';
+} from './mcp-registry.js';
 import { 
   VersionedServerConfig,
   DeploymentStatus
-} from './mcp-types';
+} from './mcp-types.js';
 import { 
   Client 
 } from '@modelcontextprotocol/sdk/client/index.js';
 import { 
   connectToServer as createServerConnection
-} from './mcpClient';
+} from './mcpClient.js';
 import { 
   logEvent, 
   logError 
-} from '../utils/log';
+} from '../utils/log.js';
 
 /**
  * Semver constraint formats

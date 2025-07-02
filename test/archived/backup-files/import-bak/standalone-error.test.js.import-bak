@@ -1,0 +1,134 @@
+/**
+ * Completely standalone error handling test
+ * This test contains all needed code and doesn't import anything
+ */
+
+// Custom error class
+class TestAppError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.code = code;
+    this.name = 'TestAppError';
+  }
+}
+
+// Simple error manager
+class TestErrorManager {
+  constructor() {
+    this.handlers = new Map();
+    this.defaultHandler = (error) => {
+      console.error('Default handler:', error.message);
+      return false;
+    };
+  }
+  
+  static getInstance() {
+    if (!TestErrorManager.instance) {
+      TestErrorManager.instance = new TestErrorManager();
+    }
+    return TestErrorManager.instance;
+  }
+  
+  registerHandler(errorType, handler) {
+    this.handlers.set(errorType, handler);
+    return this;
+  }
+  
+  handleError(error) {
+    const handler = this.handlers.get(error.name) || this.defaultHandler;
+    return handler(error);
+  }
+  
+  setDefaultHandler(handler) {
+    this.defaultHandler = handler;
+    return this;
+  }
+}
+
+// Tests
+describe('Error Handling System', () => {
+  let errorManager;
+  let mockConsoleError;
+  
+  beforeEach(() => {
+    // Create new instance for each test
+    TestErrorManager.instance = undefined;
+    errorManager = TestErrorManager.getInstance();
+    
+    // Mock console methods
+    mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  
+  afterEach(() => {
+    // Restore console methods
+    mockConsoleError.mockRestore();
+  });
+  
+  describe('TestAppError', () => {
+    it('should create error with code and message', () => {
+      // Act
+      const error = new TestAppError('TEST_ERROR', 'Test error message');
+      
+      // Assert
+      expect(error).toBeInstanceOf(Error);
+      expect(error.code).toBe('TEST_ERROR');
+      expect(error.message).toBe('Test error message');
+      expect(error.name).toBe('TestAppError');
+    });
+    
+    it('should support instanceof checks', () => {
+      // Act
+      const error = new TestAppError('TEST_ERROR', 'Test message');
+      
+      // Assert
+      expect(error instanceof Error).toBe(true);
+      expect(error instanceof TestAppError).toBe(true);
+    });
+  });
+  
+  describe('TestErrorManager', () => {
+    it('should be a singleton', () => {
+      // Act
+      const instance1 = TestErrorManager.getInstance();
+      const instance2 = TestErrorManager.getInstance();
+      
+      // Assert
+      expect(instance1).toBe(instance2);
+    });
+    
+    it('should handle errors with registered handlers', () => {
+      // Arrange
+      let handlerCalled = false;
+      errorManager.registerHandler('TestAppError', (error) => {
+        handlerCalled = true;
+        expect(error.code).toBe('TEST_ERROR');
+        return true;
+      });
+      
+      // Act
+      const error = new TestAppError('TEST_ERROR', 'Test message');
+      const result = errorManager.handleError(error);
+      
+      // Assert
+      expect(handlerCalled).toBe(true);
+      expect(result).toBe(true);
+    });
+    
+    it('should use default handler for unregistered error types', () => {
+      // Arrange
+      let defaultCalled = false;
+      errorManager.setDefaultHandler((error) => {
+        defaultCalled = true;
+        return true;
+      });
+      
+      // Act
+      const error = new Error('Regular error');
+      const result = errorManager.handleError(error);
+      
+      // Assert
+      expect(defaultCalled).toBe(true);
+      expect(result).toBe(true);
+    });
+  });
+});

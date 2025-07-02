@@ -1,0 +1,320 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+/**
+ * Enhanced MCP Server Integration Tests
+ *
+ * This test suite provides improved diagnostics and error handling
+ * for testing the Model Context Protocol server implementation.
+ */
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
+import { execSync } from 'child_process';
+import { Client } from '@modelcontextprotocol/sdk/client/index';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types';
+// Configuration
+const CONFIG = {
+    // Look for the server in both possible locations
+    // First in dist/src/entrypoints (TypeScript source-based structure)
+    // Then fallback to dist/entrypoints (flatter build output structure)
+    serverEntrypoint: (() => {
+        const primaryPath = path.resolve(__dirname, '../../../dist/src/entrypoints/mcp.js');
+        const fallbackPath = path.resolve(__dirname, '../../../dist/entrypoints/mcp.js');
+        return fs.existsSync(primaryPath) ? primaryPath : fallbackPath;
+    })(),
+    timeouts: {
+        serverStartup: 8000,
+        clientOperation: 5000,
+        processKill: 2000 // 2 seconds grace period for process termination
+    },
+    logDir: path.join(os.tmpdir(), 'mcp-server-diagnostic-logs'),
+    expectedTools: ['bash', 'fileRead', 'fileWrite', 'fileSearch']
+};
+// Create log directory if it doesn't exist
+if (!fs.existsSync(CONFIG.logDir)) {
+    fs.mkdirSync(CONFIG.logDir, { recursive: true });
+}
+// Helper function to check system dependencies
+function checkSystemDependencies() {
+    try {
+        const nodeVersion = execSync('node --version').toString().trim();
+        console.log(`✓ Node.js version: ${nodeVersion}`);
+        // Check for @modelcontextprotocol/sdk package
+        const sdkPath = require.resolve('@modelcontextprotocol/sdk/package.json');
+        const sdkPackage = JSON.parse(fs.readFileSync(sdkPath, 'utf-8'));
+        console.log(`✓ Found @modelcontextprotocol/sdk version: ${sdkPackage.version}`);
+        return true;
+    }
+    catch (error) {
+        console.error(`✗ System dependency check failed: ${error}`);
+        return false;
+    }
+}
+// Enhanced logging function
+function log(level, message, data) {
+    const timestamp = new Date().toISOString();
+    const formattedMsg = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
+    // Console output with colors
+    switch (level) {
+        case 'info':
+            console.log(formattedMsg);
+            break;
+        case 'warn':
+            console.warn(`\x1b[33m${formattedMsg}\x1b[0m`);
+            break;
+        case 'error':
+            console.error(`\x1b[31m${formattedMsg}\x1b[0m`);
+            break;
+    }
+    // Log to file
+    const logFile = path.join(CONFIG.logDir, `mcp-server-test-${new Date().toISOString().slice(0, 10)}.log`);
+    let logEntry = `${formattedMsg}\n`;
+    if (data) {
+        logEntry += `DATA: ${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}\n`;
+    }
+    fs.appendFileSync(logFile, logEntry);
+    return logEntry;
+}
+describe('Enhanced MCP Server Integration Tests', () => {
+    // Ensure system dependencies are available
+    beforeAll(() => {
+        // Skip all tests if dependencies are not met
+        if (!checkSystemDependencies()) {
+            log('error', 'Required dependencies not available. Skipping all tests.');
+            return;
+        }
+        // Verify server entrypoint exists
+        if (!fs.existsSync(CONFIG.serverEntrypoint)) {
+            const buildStatus = (() => {
+                try {
+                    log('info', 'Attempting to build project...');
+                    execSync('npm run build', { stdio: 'inherit' });
+                    return true;
+                }
+                catch (error) {
+                    log('error', 'Build failed', error);
+                    return false;
+                }
+            })();
+            if (!buildStatus || !fs.existsSync(CONFIG.serverEntrypoint)) {
+                throw new Error(`Server entrypoint not found at ${CONFIG.serverEntrypoint}. Build failed.`);
+            }
+        }
+        log('info', '✓ Server entrypoint found:', CONFIG.serverEntrypoint);
+    });
+    describe('Server Process Lifecycle', () => {
+        let tempDir;
+        let serverProcess = null;
+        let serverOutputLog = '';
+        let serverErrorLog = '';
+        beforeEach(() => {
+            // Reset logs
+            serverOutputLog = '';
+            serverErrorLog = '';
+            // Create a unique temp directory for each test
+            tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-test-'));
+            log('info', `Created temporary directory: ${tempDir}`);
+            // Create a test file to verify file operations
+            fs.writeFileSync(path.join(tempDir, 'test-file.txt'), 'Test content for MCP server');
+        });
+        afterEach(() => {
+            if (serverProcess && !serverProcess.killed) {
+                log('info', `Terminating server process (PID: ${serverProcess.pid})`);
+                return new Promise((resolve) => {
+                    // First try SIGTERM for graceful shutdown
+                    serverProcess?.kill('SIGTERM');
+                    // Set a timeout to force kill if it doesn't exit
+                    const killTimeout = setTimeout(() => {
+                        if (serverProcess && !serverProcess.killed) {
+                            log('warn', `Process didn't exit cleanly, using SIGKILL...`);
+                            serverProcess.kill('SIGKILL');
+                        }
+                        resolve();
+                    }, CONFIG.timeouts.processKill);
+                    // Clear timeout if process exits naturally
+                    serverProcess?.once('exit', () => {
+                        clearTimeout(killTimeout);
+                        log('info', 'Server process exited cleanly');
+                        resolve();
+                    });
+                });
+            }
+        });
+        afterAll(() => {
+            // Clean up the temporary directory
+            if (tempDir && fs.existsSync(tempDir)) {
+                try {
+                    fs.rmSync(tempDir, { recursive: true, force: true });
+                    log('info', `Cleaned up temporary directory: ${tempDir}`);
+                }
+                catch (error) {
+                    log('error', `Failed to clean up temp directory: ${tempDir}`, error);
+                }
+            }
+        });
+        it('should start the MCP server process successfully', async () => {
+            // Start the server process
+            log('info', 'Starting MCP server process...');
+            serverProcess = spawn('node', [CONFIG.serverEntrypoint, tempDir], {
+                stdio: ['pipe', 'pipe', 'pipe']
+            });
+            if (!serverProcess || !serverProcess.pid) {
+                throw new Error('Failed to start server process');
+            }
+            log('info', `Server process started with PID: ${serverProcess.pid}`);
+            // Monitor server output
+            serverProcess.stdout?.on('data', (data) => {
+                const output = data.toString();
+                serverOutputLog += output;
+                log('info', `Server stdout: ${output.trim()}`);
+            });
+            serverProcess.stderr?.on('data', (data) => {
+                const errorOutput = data.toString();
+                serverErrorLog += errorOutput;
+                log('error', `Server stderr: ${errorOutput.trim()}`);
+            });
+            // Wait for the server to indicate it's ready
+            let serverReady = false;
+            const readyPromise = new Promise((resolve, reject) => {
+                const timer = setTimeout(() => {
+                    // Collect diagnostic information on timeout
+                    const diagnosticInfo = {
+                        pid: serverProcess?.pid,
+                        outputLog: serverOutputLog,
+                        errorLog: serverErrorLog,
+                        tempDir,
+                        nodeVersion: process.version
+                    };
+                    log('error', `Server startup timed out after ${CONFIG.timeouts.serverStartup}ms`, diagnosticInfo);
+                    reject(new Error(`Server startup timed out. See logs for details.`));
+                }, CONFIG.timeouts.serverStartup);
+                // Consider server ready when it outputs specific text
+                const checkServerOutput = () => {
+                    if (serverOutputLog.includes('MCP server running') ||
+                        serverOutputLog.includes('listening') ||
+                        serverOutputLog.includes('Server started')) {
+                        serverReady = true;
+                        clearTimeout(timer);
+                        resolve();
+                    }
+                };
+                // Check for startup errors
+                const checkServerErrors = () => {
+                    if (serverErrorLog.includes('Error:') || serverErrorLog.includes('error:')) {
+                        clearTimeout(timer);
+                        reject(new Error(`Server failed to start: ${serverErrorLog}`));
+                    }
+                };
+                // Set up process exit handler
+                serverProcess?.on('exit', (code, signal) => {
+                    if (!serverReady) {
+                        clearTimeout(timer);
+                        const reason = signal ? `signal ${signal}` : `exit code ${code}`;
+                        const diagnosticInfo = {
+                            exitCode: code,
+                            signal,
+                            outputLog: serverOutputLog,
+                            errorLog: serverErrorLog
+                        };
+                        log('error', `Server process exited prematurely with ${reason}`, diagnosticInfo);
+                        reject(new Error(`Server process exited prematurely with ${reason}. Check logs for details.`));
+                    }
+                });
+                // Check output periodically
+                const checkInterval = setInterval(() => {
+                    checkServerOutput();
+                    checkServerErrors();
+                    if (serverReady) {
+                        clearInterval(checkInterval);
+                    }
+                }, 100);
+                
+                // Ensure interval is cleared after timeout
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                }, 30000);
+                // Also check immediately for any existing output
+                checkServerOutput();
+                checkServerErrors();
+            });
+            // Wait for readiness or timeout
+            await expect(readyPromise).resolves.toBeUndefined();
+            expect(serverReady).toBe(true);
+            // Store logs for debugging
+            if (serverOutputLog) {
+                fs.writeFileSync(path.join(CONFIG.logDir, `server-output-${Date.now()}.log`), serverOutputLog);
+            }
+            if (serverErrorLog) {
+                fs.writeFileSync(path.join(CONFIG.logDir, `server-error-${Date.now()}.log`), serverErrorLog);
+            }
+        }, CONFIG.timeouts.serverStartup + 2000);
+        it('should expose expected tools via SDK Client', async () => {
+            // Ensure server is running from previous test
+            if (!serverProcess || serverProcess.killed) {
+                log('info', 'Server not running from previous test, starting new process...');
+                serverProcess = spawn('node', [CONFIG.serverEntrypoint, tempDir], {
+                    stdio: ['pipe', 'pipe', 'pipe']
+                });
+                // Wait a moment for server startup
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            // Create MCP client and transport
+            log('info', 'Creating MCP client...');
+            try {
+                const transport = new StdioClientTransport({
+                    command: 'node',
+                    args: [CONFIG.serverEntrypoint, tempDir],
+                    stderr: 'pipe'
+                });
+                const client = new Client({ name: 'test-client', version: '1.0.0' }, { capabilities: {} });
+                // Connect to the server
+                await client.connect(transport);
+                log('info', 'Client connected to server successfully');
+                try {
+                    // List available tools
+                    log('info', 'Requesting tools list...');
+                    const result = await client.request({ method: 'tools/list' }, ListToolsRequestSchema);
+                    // Basic validation of tool list
+                    expect(result).toBeDefined();
+                    expect(result.tools).toBeInstanceOf(Array);
+                    log('info', `Server reported ${result.tools.length} tools`, result);
+                    // Check for expected tools
+                    const toolNames = result.tools.map(tool => tool.name);
+                    CONFIG.expectedTools.forEach(toolName => {
+                        const hasExpectedTool = toolNames.includes(toolName);
+                        if (hasExpectedTool) {
+                            log('info', `✓ Found expected tool: ${toolName}`);
+                        }
+                        else {
+                            log('warn', `✗ Missing expected tool: ${toolName}`);
+                        }
+                        expect(toolNames).toContain(toolName);
+                    });
+                    // Try executing the bash tool
+                    log('info', 'Testing bash tool execution...');
+                    const bashResult = await client.callTool({
+                        name: 'bash',
+                        arguments: { command: 'ls -la' }
+                    }, CallToolRequestSchema);
+                    expect(bashResult).toBeDefined();
+                    expect(bashResult.content).toBeInstanceOf(Array);
+                    log('info', 'Bash tool executed successfully');
+                }
+                finally {
+                    // Disconnect the client
+                    await client.disconnect();
+                    log('info', 'Client disconnected');
+                }
+            }
+            catch (error) {
+                log('error', 'Client operation error', error);
+                throw error;
+            }
+        }, CONFIG.timeouts.clientOperation + 2000);
+    });
+});
+//# sourceMappingURL=enhanced-mcp-server.test.js.map

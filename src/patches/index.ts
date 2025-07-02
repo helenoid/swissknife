@@ -5,7 +5,7 @@
  * It should be imported early in the application startup process.
  */
 
-import { applyAllMcpPatches } from './mcp';
+import { applyAllMcpPatches } from './mcp.js';
 
 /**
  * Initialize all patches in the application

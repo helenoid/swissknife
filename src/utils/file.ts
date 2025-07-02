@@ -7,7 +7,7 @@ import {
   existsSync,
   readdirSync,
 } from 'fs'
-import { logError } from './log'
+import { logError } from './log.js'
 import {
   isAbsolute,
   normalize,
@@ -22,9 +22,9 @@ import {
 } from 'path'
 import { glob as globLib } from 'glob'
 import { cwd } from 'process'
-import { listAllContentFiles } from './ripgrep'
+import { listAllContentFiles } from './ripgrep.js'
 import { LRUCache } from 'lru-cache'
-import { getCwd } from './state'
+import { getCwd } from './state.js'
 
 export type File = {
   filename: string
@@ -139,7 +139,7 @@ export function writeTextContent(
     toWrite = content.split('\n').join('\r\n')
   }
 
-  writeFileSync(filePath, toWrite, { encoding, flush: true })
+  writeFileSync(filePath, toWrite, { encoding })
 }
 
 const repoEndingCache = new LRUCache<string, LineEndingType>({

@@ -4,7 +4,7 @@
  */
 
 // TODO: Import necessary types, e.g., the actual accelerator/execution engine type
-// import { ExecutionEngine } from '../core/execution'; // Example
+// import { ExecutionEngine } from '../core/execution.js'; // Example
 
 /**
  * Configuration options for model streaming.

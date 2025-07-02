@@ -1,9 +1,15 @@
-import { ModelExecutionService, ModelExecutionOptions, ModelExecutionResult } from '../../../../src/models/execution/service';
-import { ModelRegistry, Model, Provider, ModelSource } from '../../../../src/models/registry';
-import { IntegrationRegistry, IntegrationBridge } from '../../../../src/integration/registry';
-import { ConfigurationManager } from '../../../../src/config/manager';
-import { expect } from 'chai';
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+
 import * as sinon from 'sinon';
+
+// Import required classes
+import { ModelExecutionService } from '../../../../src/models/execution/service.ts';
+import { ModelRegistry } from '../../../../src/models/registry.ts';
+import { IntegrationRegistry, IntegrationBridge } from '../../../../src/integration/registry.ts';
+import { ConfigManager as ConfigurationManager } from '../../../../src/config/manager.ts';
 
 // Mock bridge class
 class MockBridge implements IntegrationBridge {
@@ -125,18 +131,18 @@ describe('Model Execution Service', () => {
     const result = await service.executeModel('test-model', 'Test prompt');
     
     // Verify results
-    expect(result).to.have.property('response');
-    expect(result.response).to.include('Test prompt');
-    expect(result).to.have.property('usage');
-    expect(result.usage).to.have.property('promptTokens');
-    expect(result.usage).to.have.property('completionTokens');
-    expect(result.usage).to.have.property('totalTokens');
-    expect(result).to.have.property('timingMs');
+    expect(result).toHaveProperty('response');
+    expect(result.response).toContain('Test prompt');
+    expect(result).toHaveProperty('usage');
+    expect(result.usage).toHaveProperty('promptTokens');
+    expect(result.usage).toHaveProperty('completionTokens');
+    expect(result.usage).toHaveProperty('totalTokens');
+    expect(result).toHaveProperty('timingMs');
     
     // Verify events were emitted
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:stats')).to.be.true;
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:stats')).toBe(true);
   });
   
   it('should execute a model from the Goose source', async () => {
@@ -181,16 +187,16 @@ describe('Model Execution Service', () => {
     const result = await service.executeModel('goose-model', 'Test prompt for Goose');
     
     // Verify results
-    expect(result.response).to.equal('Response from Goose model');
-    expect(result.usage?.promptTokens).to.equal(10);
-    expect(result.usage?.completionTokens).to.equal(5);
-    expect(result.usage?.totalTokens).to.equal(15);
-    expect(result.timingMs).to.equal(300);
+    expect(result.response).toBe('Response from Goose model');
+    expect(result.usage?.promptTokens).toBe(10);
+    expect(result.usage?.completionTokens).toBe(5);
+    expect(result.usage?.totalTokens).toBe(15);
+    expect(result.timingMs).toBe(300);
     
     // Verify events were emitted
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:stats')).to.be.true;
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:stats')).toBe(true);
   });
   
   it('should execute a model from the IPFS Accelerate source', async () => {
@@ -235,16 +241,16 @@ describe('Model Execution Service', () => {
     const result = await service.executeModel('ipfs-model', 'Test prompt for IPFS');
     
     // Verify results
-    expect(result.response).to.equal('Response from IPFS model');
-    expect(result.usage?.promptTokens).to.equal(15);
-    expect(result.usage?.completionTokens).to.equal(8);
-    expect(result.usage?.totalTokens).to.equal(23);
-    expect(result.timingMs).to.equal(400);
+    expect(result.response).toBe('Response from IPFS model');
+    expect(result.usage?.promptTokens).toBe(15);
+    expect(result.usage?.completionTokens).toBe(8);
+    expect(result.usage?.totalTokens).toBe(23);
+    expect(result.timingMs).toBe(400);
     
     // Verify events were emitted
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:stats')).to.be.true;
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:stats')).toBe(true);
   });
   
   it('should execute a model from the SwissKnife Old source', async () => {
@@ -291,16 +297,16 @@ describe('Model Execution Service', () => {
     const result = await service.executeModel('swissknife-model', 'Test prompt for SwissKnife');
     
     // Verify results
-    expect(result.response).to.equal('Response from SwissKnife model');
-    expect(result.usage?.promptTokens).to.equal(20);
-    expect(result.usage?.completionTokens).to.equal(10);
-    expect(result.usage?.totalTokens).to.equal(30);
-    expect(result.timingMs).to.equal(500);
+    expect(result.response).toBe('Response from SwissKnife model');
+    expect(result.usage?.promptTokens).toBe(20);
+    expect(result.usage?.completionTokens).toBe(10);
+    expect(result.usage?.totalTokens).toBe(30);
+    expect(result.timingMs).toBe(500);
     
     // Verify events were emitted
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:stats')).to.be.true;
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:stats')).toBe(true);
   });
   
   it('should handle model not found error', async () => {
@@ -313,7 +319,7 @@ describe('Model Execution Service', () => {
       await service.executeModel('unknown-model', 'Test prompt');
       expect.fail('Should have thrown an error');
     } catch (error) {
-      expect(error.message).to.include('Model not found');
+      expect(error.message).toContain('Model not found');
     }
   });
   
@@ -338,7 +344,7 @@ describe('Model Execution Service', () => {
       await service.executeModel('test-model', 'Test prompt');
       expect.fail('Should have thrown an error');
     } catch (error) {
-      expect(error.message).to.include('Provider not found');
+      expect(error.message).toContain('Provider not found');
     }
   });
   
@@ -375,7 +381,7 @@ describe('Model Execution Service', () => {
       await service.executeModel('test-model', 'Test prompt');
       expect.fail('Should have thrown an error');
     } catch (error) {
-      expect(error.message).to.include('No API key found');
+      expect(error.message).toContain('No API key found');
     }
   });
   
@@ -414,12 +420,12 @@ describe('Model Execution Service', () => {
       await service.executeModel('goose-model', 'Test prompt');
       expect.fail('Should have thrown an error');
     } catch (error) {
-      expect(error.message).to.include('Bridge execution failed');
+      expect(error.message).toContain('Bridge execution failed');
     }
     
     // Verify events were emitted
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:error')).to.be.true;
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:error')).toBe(true);
   });
   
   it('should handle models that do not require authentication', async () => {
@@ -453,11 +459,11 @@ describe('Model Execution Service', () => {
     const result = await service.executeModel('test-model', 'Test prompt');
     
     // Verify results
-    expect(result).to.have.property('response');
+    expect(result).toHaveProperty('response');
     
     // Verify events were emitted
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).to.be.true;
-    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).to.be.true;
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:start')).toBe(true);
+    expect((service.emit as sinon.SinonSpy).calledWith('model:execution:complete')).toBe(true);
   });
   
   it('should track execution stats', async () => {
@@ -495,15 +501,15 @@ describe('Model Execution Service', () => {
     const stats = service.getExecutionStats();
     
     // Verify stats
-    expect(stats).to.be.an('array');
-    expect(stats.length).to.be.at.least(1);
+    expect(stats).toBe('array');
+    expect(stats.length).toBeGreaterThanOrEqual(1);
     
     const latestStats = stats[0];
-    expect(latestStats.provider).to.equal('test-provider');
-    expect(latestStats.model).to.equal('test-model');
-    expect(latestStats.totalTokens).to.be.a('number');
-    expect(latestStats.timingMs).to.be.a('number');
-    expect(latestStats.cost).to.be.a('number');
+    expect(latestStats.provider).toBe('test-provider');
+    expect(latestStats.model).toBe('test-model');
+    expect(latestStats.totalTokens).toBe('number');
+    expect(latestStats.timingMs).toBe('number');
+    expect(latestStats.cost).toBe('number');
   });
   
   it('should handle array prompts', async () => {
@@ -537,9 +543,9 @@ describe('Model Execution Service', () => {
     const result = await service.executeModel('test-model', ['Part 1', 'Part 2']);
     
     // Verify results
-    expect(result).to.have.property('response');
-    expect(result.response).to.include('Part 1');
-    expect(result.response).to.include('Part 2');
+    expect(result).toHaveProperty('response');
+    expect(result.response).toContain('Part 1');
+    expect(result.response).toContain('Part 2');
   });
   
   it('should pass execution options to model', async () => {
@@ -604,13 +610,15 @@ describe('Model Execution Service', () => {
     const result = await service.executeModel('goose-model', 'Test prompt with functions', options);
     
     // Verify call was made with options
-    expect(callStub.calledOnce).to.be.true;
+    expect(callStub.calledOnce).toBe(true);
     const callArgs = callStub.firstCall.args[1];
-    expect(callArgs.options).to.include(options);
+    expect(callArgs.options).toContain(options);
     
     // Verify function calls in result
-    expect(result.functionCalls).to.exist;
-    expect(result.functionCalls!.length).to.equal(1);
-    expect(result.functionCalls![0].name).to.equal('test_function');
+    expect(result.functionCalls).toBeDefined();
+    expect(result.functionCalls!.length).toBe(1);
+    expect(result.functionCalls![0].name).toBe('test_function');
   });
 });
+
+export {};

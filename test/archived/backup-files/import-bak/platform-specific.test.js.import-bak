@@ -1,0 +1,173 @@
+/**
+ * Platform-specific E2E tests for SwissKnife CLI
+ * 
+ * These tests verify SwissKnife's behavior across different operating systems,
+ * focusing on platform-specific features and compatibility issues.
+ */
+
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+
+// Determine current platform
+const platform = process.platform;
+const platformName = {
+  'win32': 'Windows',
+  'darwin': 'macOS',
+  'linux': 'Linux'
+}[platform] || 'Unknown';
+
+describe(`SwissKnife E2E Platform Tests (${platformName})`, () => {
+  // Helper function to execute CLI commands
+  const runCommand = (command) => {
+    try {
+      return execSync(command, { 
+        encoding: 'utf-8',
+        stdio: ['pipe', 'pipe', 'pipe']  // Capture both stdout and stderr
+      });
+    } catch (error) {
+      // Return the error output for analysis
+      return {
+        status: error.status,
+        stdout: error.stdout?.toString() || '',
+        stderr: error.stderr?.toString() || ''
+      };
+    }
+  };
+
+  // Common tests for all platforms
+  describe('Cross-platform functionality', () => {
+    test('CLI shows version information', () => {
+      const result = runCommand('node ./cli.mjs version');
+      expect(result).toContain('SwissKnife version');
+    });
+    
+    test('Config command works', () => {
+      const result = runCommand('node ./cli.mjs config show');
+      expect(result).toContain('Configuration');
+    });
+  });
+  
+  // Windows-specific tests
+  platform === 'win32' && describe('Windows-specific tests', () => {
+    test('Respects Windows path separators', () => {
+      const tempDir = path.join(os.tmpdir(), 'swissknife-test');
+      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+      
+      const result = runCommand(`node ./cli.mjs task create --title "Test Task" --output "${tempDir}\\output.json"`);
+      expect(result).not.toContain('Error');
+      
+      // Check if the output file was created
+      expect(fs.existsSync(path.join(tempDir, 'output.json'))).toBeTruthy();
+    });
+    
+    test('Works with Windows environment variables', () => {
+      const result = runCommand('node ./cli.mjs env --show-path');
+      expect(result).toContain('%USERPROFILE%');
+    });
+    
+    test('Handles Windows line endings correctly', () => {
+      const tempFile = path.join(os.tmpdir(), 'swissknife-test-crlf.txt');
+      fs.writeFileSync(tempFile, 'Line 1\r\nLine 2\r\nLine 3', { encoding: 'utf8' });
+      
+      const result = runCommand(`node ./cli.mjs process-file "${tempFile}"`);
+      expect(result).not.toContain('Error parsing file');
+      
+      fs.unlinkSync(tempFile);
+    });
+  });
+  
+  // macOS-specific tests
+  platform === 'darwin' && describe('macOS-specific tests', () => {
+    test('Uses correct macOS config directory', () => {
+      const result = runCommand('node ./cli.mjs config path');
+      expect(result).toContain('/Library/Preferences/swissknife') || expect(result).toContain('/.config/swissknife');
+    });
+    
+    test('Handles Apple silicon architecture detection', () => {
+      const cpuArch = os.arch();
+      const result = runCommand('node ./cli.mjs system info');
+      
+      if (cpuArch === 'arm64') {
+        expect(result).toContain('arm64') || expect(result).toContain('Apple Silicon');
+      } else {
+        expect(result).toContain('x64') || expect(result).toContain('Intel');
+      }
+    });
+    
+    test('UNIX permissions on executable files', () => {
+      // Check permission on install.sh
+      const stats = fs.statSync('./install.sh');
+      const isExecutable = !!(stats.mode & fs.constants.S_IXUSR);
+      expect(isExecutable).toBe(true);
+    });
+  });
+  
+  // Linux-specific tests
+  platform === 'linux' && describe('Linux-specific tests', () => {
+    test('Uses XDG config directories', () => {
+      const result = runCommand('node ./cli.mjs config path');
+      expect(result).toContain('/.config/swissknife');
+    });
+    
+    test('Works with symbolic links', () => {
+      const tempDir = path.join(os.tmpdir(), 'swissknife-test-symlink');
+      const symlinkTarget = path.join(os.tmpdir(), 'swissknife-test-symlink-target');
+      
+      try {
+        if (fs.existsSync(tempDir)) fs.unlinkSync(tempDir);
+        if (!fs.existsSync(symlinkTarget)) fs.mkdirSync(symlinkTarget);
+        
+        fs.symlinkSync(symlinkTarget, tempDir);
+        
+        const result = runCommand(`node ./cli.mjs task create --title "Test Task" --output "${tempDir}/output.json"`);
+        expect(result).not.toContain('Error');
+        
+        // Check if the output file was created at the symlink target
+        expect(fs.existsSync(path.join(symlinkTarget, 'output.json'))).toBeTruthy();
+      } finally {
+        // Clean up
+        if (fs.existsSync(tempDir)) fs.unlinkSync(tempDir);
+        if (fs.existsSync(symlinkTarget)) fs.rmSync(symlinkTarget, { recursive: true, force: true });
+      }
+    });
+    
+    test('Shell script compatibility', () => {
+      // Test if the shell script is compatible with current Linux environment
+      const result = runCommand('bash ./install.sh --help');
+      expect(result).not.toContain('command not found');
+      expect(result).not.toContain('syntax error');
+    });
+  });
+  
+  // File system case sensitivity tests (relevant for cross-platform compatibility)
+  describe('File system case sensitivity handling', () => {
+    test('Handles case sensitivity correctly', () => {
+      const isCaseSensitive = platform !== 'win32' && platform !== 'darwin';
+      const tempDir = path.join(os.tmpdir(), 'swissknife-case-test');
+      
+      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+      
+      // Create a file with lowercase name
+      const lowerPath = path.join(tempDir, 'test.json');
+      fs.writeFileSync(lowerPath, JSON.stringify({ case: 'lower' }));
+      
+      // Try to access with uppercase name
+      const upperPath = path.join(tempDir, 'TEST.json');
+      
+      if (isCaseSensitive) {
+        // On case-sensitive file systems (most Linux), these should be different files
+        expect(fs.existsSync(upperPath)).toBe(false);
+      } else {
+        // On case-insensitive file systems (Windows, macOS), these refer to the same file
+        expect(fs.existsSync(upperPath)).toBe(true);
+      }
+      
+      // Clean up
+      fs.unlinkSync(lowerPath);
+      if (fs.existsSync(upperPath) && lowerPath !== upperPath) fs.unlinkSync(upperPath);
+      fs.rmdirSync(tempDir);
+    });
+  });
+});

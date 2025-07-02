@@ -33,6 +33,6 @@ const clearCommand: LocalCommand = {
   userFacingName() {
     return 'clear'
   },
-} satisfies Command
+};
 
 export default clearCommand;

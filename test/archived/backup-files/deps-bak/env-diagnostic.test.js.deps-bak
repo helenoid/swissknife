@@ -1,0 +1,65 @@
+/**
+ * Jest Environment Diagnostic Test
+ * This test checks that the Jest environment is properly configured.
+ */
+
+// Test that basic Jest assertions work
+describe('Jest environment', () => {
+  test('Basic assertions work', () => {
+    expect(1 + 1).toBe(2);
+    expect(true).toBeTruthy();
+    expect(false).toBeFalsy();
+    expect({}).not.toBeNull();
+    expect([1, 2, 3]).toHaveLength(3);
+  });
+
+  test('Mock functions work', () => {
+    const mockFn = jest.fn();
+    mockFn('test');
+    expect(mockFn).toHaveBeenCalledWith('test');
+  });
+
+  test('Async/await works', async () => {
+    const result = await Promise.resolve('async works');
+    expect(result).toBe('async works');
+  });
+
+  test('Global variables are defined', () => {
+    expect(global.jest).toBeDefined();
+    expect(typeof global.jest.fn).toBe('function');
+    expect(typeof global.jest.spyOn).toBe('function');
+    expect(global.expect).toBeDefined();
+  });
+
+  // This will help us diagnose issues with chai if it's used in other tests
+  test('Chai library can be loaded if available', () => {
+    try {
+      expect(chai).toBeDefined();
+      expect(chai.expect).toBeDefined();
+      console.log('✅ Chai library loaded successfully');
+    } catch (e) {
+      console.log('⚠️ Chai library not available:', e.message);
+    }
+  });
+});
+
+// This test will help diagnose imports
+describe('Module imports', () => {
+  test('CommonJS require works', () => {
+    const path = require('path');
+    expect(path).toBeDefined();
+    expect(typeof path.join).toBe('function');
+  });
+
+  test('ESM dynamic import works', async () => {
+    try {
+      const fs = await import('fs/promises');
+      expect(fs).toBeDefined();
+      expect(typeof fs.readFile).toBe('function');
+      console.log('✅ ESM dynamic import works');
+    } catch (e) {
+      console.log('⚠️ ESM dynamic import failed:', e);
+      // Don't fail the test, just log the issue
+    }
+  });
+});

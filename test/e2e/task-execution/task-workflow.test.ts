@@ -1,3 +1,8 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str: any) => str, red: (str: any) => str, green: (str: any) => str, blue: (str: any) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+
 /**
  * End-to-End Tests for Task Execution Workflows
  *
@@ -13,10 +18,8 @@ import * as path from 'path';
 import * as childProcess from 'child_process';
 import * as util from 'util';
 import * as fs from 'fs/promises'; // Use imported fs
-// Assuming these helpers exist and function correctly - Add .js extension
-import { createTempTestDir, removeTempTestDir, mockEnv, waitFor } from '../../helpers/testUtils.js';
-// Assuming this fixture generator exists - Add .js extension
-import { generateConfigFixtures } from '../../helpers/fixtures.js';
+import { createTempTestDir, removeTempTestDir, mockEnv, restoreEnv } from '@test-helpers/testUtils';
+import { waitFor, generateConfigFixtures } from '../utils/test-helpers';
 
 // Promisify exec for async/await usage
 const exec = util.promisify(childProcess.exec);
@@ -39,13 +42,12 @@ describe('Task Execution Workflows (E2E)', () => {
     // Ensure config includes necessary task/worker settings if needed by tests
     const testConfig = {
         ...fixtures.config,
-        task: { // Corrected from 'tasks'
-            ...(fixtures.config.task || {}), // Corrected from 'tasks'
+        task: { // Corrected from 'tasks.js'
+            ...(fixtures.config.task || {}), // Corrected from 'tasks.js'
             // Add specific settings for task tests if needed
             logPath: path.join(tempDir, 'logs'), // Use temp dir for logs
             defaultTimeout: 30000,
         },
-        // Add worker config if needed by tests, based on fixture structure
         worker: {
              ...(fixtures.config.worker || {}),
              poolSize: 1, // Keep low for predictable testing

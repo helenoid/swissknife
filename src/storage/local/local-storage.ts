@@ -1,7 +1,7 @@
-import fs from 'fs/promises';
-import path from 'path';
-import os from 'os';
-import crypto from 'crypto';
+import fs from 'fs/promises.js';
+import path from 'path.js';
+import os from 'os.js';
+import crypto from 'crypto.js';
 import {
   StorageProvider,
   ListOptions,

@@ -1,0 +1,28 @@
+/**
+ * Unit Test for the FibonacciHeap implementation
+ * Demonstrates a working Jest test environment
+ */
+import { describe, it, expect } from '@jest/globals';
+describe('FibonacciHeap Sanity Test', () => {
+    // Basic insert and extract test
+    it('should insert items and extract min correctly', () => {
+        const heap = new FibonacciHeap();
+        heap.insert(5, 'five');
+        heap.insert(3, 'three');
+        heap.insert(8, 'eight');
+        expect(heap.findMin().key).toBe(3);
+        expect(heap.extractMin().value).toBe('three');
+        expect(heap.findMin().key).toBe(5);
+        expect(heap.extractMin().value).toBe('five');
+        expect(heap.findMin().key).toBe(8);
+        expect(heap.extractMin().value).toBe('eight');
+        expect(heap.isEmpty()).toBe(true);
+    });
+    it('should handle empty heap conditions', () => {
+        const heap = new FibonacciHeap();
+        expect(heap.isEmpty()).toBe(true);
+        expect(() => heap.findMin()).toThrow();
+        expect(() => heap.extractMin()).toThrow();
+    });
+});
+//# sourceMappingURL=fibonacci-sanity.test.js.map

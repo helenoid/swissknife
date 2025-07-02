@@ -1,5 +1,5 @@
-import { JSONSchemaType } from 'ajv';
-import { ConfigurationSchema, registerSchema } from '../manager';
+import { JSONSchemaType } from 'ajv.js';
+import { ConfigurationSchema, registerSchema } from '../manager.js';
 
 /**
  * Core configuration schema

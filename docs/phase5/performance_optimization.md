@@ -10,7 +10,7 @@ This document outlines the plan for the performance optimization activities cond
 -   **Optimize Critical Paths:** Refactor code, improve algorithms, and apply optimization techniques to the identified bottlenecks to meet defined performance targets.
 -   **Implement Caching:** Introduce or refine caching mechanisms (in-memory, disk) at appropriate layers (e.g., IPFS block cache, model response cache, task result cache) to reduce latency and redundant work.
 -   **Memory Management:** Analyze heap usage, identify potential leaks, and optimize data structures and processing patterns (e.g., streaming) to minimize memory footprint.
--   **Establish Benchmarks:** Create repeatable performance benchmark tests for key operations to track regressions in CI.
+-   **Establish Benchmarks:** Create repeatable performance benchmark tests for key operations to track regressions in CI. See detailed implementation in [Benchmark Framework](benchmark_framework.md).
 
 ## Architecture & Approach
 

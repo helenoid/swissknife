@@ -1,18 +1,18 @@
-import { stat } from 'fs/promises'
-import { Box, Text } from 'ink'
-import React from 'react'
-import { z } from 'zod'
-import { Cost } from '../../components/Cost'
-import { FallbackToolUseRejectedMessage } from '../../components/FallbackToolUseRejectedMessage'
-import { Tool } from '../../Tool'
-import { getCwd } from '../../utils/state'
+import { stat } from 'fs/promises.js.js.js.js.js'
+import { Box, Text } from 'ink.js.js.js.js.js'
+import React from 'react.js.js.js.js.js'
+import { z } from 'zod.js.js.js.js.js'
+import { Cost } from '../../components/Cost.js.js.js.js.js.js.js.js.js.js.js';
+import { FallbackToolUseRejectedMessage } from '../../components/FallbackToolUseRejectedMessage.js.js.js.js.js.js.js.js.js.js.js';
+import { Tool } from '../../Tool.js.js.js.js.js.js.js.js.js.js.js';
+import { getCwd } from '../../utils/state.js.js.js.js.js.js.js.js.js.js.js';
 import {
   getAbsolutePath,
   getAbsoluteAndRelativePaths,
-} from '../../utils/file.js'
-import { ripGrep } from '../../utils/ripgrep'
-import { DESCRIPTION, TOOL_NAME_FOR_PROMPT } from './prompt'
-import { hasReadPermission } from '../../utils/permissions/filesystem'
+} from '../../utils/file.js.js.js.js.js.js.js.js.js.js.js';
+import { ripGrep } from '../../utils/ripgrep.js.js.js.js.js.js.js.js.js.js.js';
+import { DESCRIPTION, TOOL_NAME_FOR_PROMPT } from './prompt.js.js.js.js.js.js.js.js.js.js.js';
+import { hasReadPermission } from '../../utils/permissions/filesystem.js.js.js.js.js.js.js.js.js.js.js';
 
 const inputSchema = z.strictObject({
   pattern: z
@@ -141,4 +141,4 @@ export const GrepTool = {
       data: output,
     }
   },
-} satisfies Tool<Input, Output>
+} as any

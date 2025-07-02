@@ -35,7 +35,7 @@ export interface StorageProvider {
   delete?(cid: CID): Promise<boolean>;
   
   // Metadata operations
-  getMetadata?(cid: CID): Promise<StorageItemMetadata>;
+  getMetadata?(cid: CID): Promise<StorageItemMetadata | undefined>; // Allow undefined in return type
   updateMetadata?(cid: CID, metadata: Partial<StorageItemMetadata>): Promise<boolean>;
   
   // Listing operations
@@ -56,6 +56,7 @@ export interface StorageProvider {
 
 // Options for adding content to storage
 export interface AddOptions {
+  filename?: string; // Added for FileStorage compatibility
   contentType?: string;
   tags?: string[];
   metadata?: Record<string, any>;

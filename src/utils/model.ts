@@ -1,7 +1,7 @@
 import { memoize } from 'lodash-es'
-import { getDynamicConfig, getExperimentValue } from '../services/statsig'
-import { logError } from './log'
-import { getGlobalConfig } from './config'
+import { getDynamicConfig, getExperimentValue } from '../services/statsig.js'
+import { logError } from './log.js'
+import { getGlobalConfig } from './config.js'
 
 export const USE_BEDROCK = !!process.env.CLAUDE_CODE_USE_BEDROCK
 export const USE_VERTEX = !!process.env.CLAUDE_CODE_USE_VERTEX

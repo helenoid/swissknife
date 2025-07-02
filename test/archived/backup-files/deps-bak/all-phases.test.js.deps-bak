@@ -1,0 +1,267 @@
+/**
+ * End-to-End Tests for SwissKnife CLI - All Phases
+ *
+ * This test suite runs a complete test of the SwissKnife CLI across all phases,
+ * validating the core functionality from Phase 1 through Phase 5.
+ */
+
+const path = require('path');
+const { execFile } = require('child_process');
+const fs = require('fs').promises;
+const os = require('os');
+
+const CLI_PATH = path.resolve(__dirname, '../../../cli.mjs');
+const TEST_CONFIG_PATH = path.join(os.tmpdir(), 'sk-test-config-all-phases.json');
+const TEST_WORKSPACE = path.join(os.tmpdir(), 'sk-all-phases-workspace');
+
+// Helper function to run CLI commands
+const runCLI = (args = [], env = {}) => {
+  return new Promise((resolve, reject) => {
+    execFile('node', [CLI_PATH, ...args], { 
+      env: { ...process.env, ...env, SK_CONFIG_PATH: TEST_CONFIG_PATH }
+    }, (error, stdout, stderr) => {
+      resolve({
+        code: error ? error.code : 0,
+        error,
+        stdout,
+        stderr
+      });
+    });
+  });
+};
+
+describe('SwissKnife CLI - Complete E2E Tests (All Phases)', () => {
+  // Setup/teardown for test config and workspace
+  beforeAll(async () => {
+    // Create test workspace directory
+    await fs.mkdir(TEST_WORKSPACE, { recursive: true });
+    
+    // Create test files
+    await fs.writeFile(
+      path.join(TEST_WORKSPACE, 'test-document.md'),
+      '# Test Document\n\nThis is a test document for all phases testing.\n\n## Key Features\n\n- Feature 1\n- Feature 2\n- Feature 3'
+    );
+    
+    await fs.writeFile(
+      path.join(TEST_WORKSPACE, 'test-code.js'),
+      '/**\n * Example code for testing\n */\nfunction testFunction() {\n  console.log("Hello from SwissKnife");\n  return true;\n}\n\nmodule.exports = { testFunction };'
+    );
+    
+    // Create a configuration file
+    await fs.writeFile(TEST_CONFIG_PATH, JSON.stringify({
+      version: '1.0.0',
+      configSchema: 'complete',
+      // Combined config for all phases
+      ai: {
+        agents: {
+          default: 'test-agent',
+          'test-agent': {
+            model: 'test-model',
+            parameters: { temperature: 0.7 }
+          }
+        },
+        models: {
+          'test-model': {
+            provider: 'mock-provider',
+            capabilities: ['text', 'code', 'chat']
+          }
+        }
+      },
+      storage: {
+        ipfs: {
+          gateway: 'http://localhost:8080/ipfs/',
+          apiUrl: 'http://localhost:5001/api/v0',
+          mock: true
+        }
+      },
+      tasknet: {
+        scheduler: {
+          type: 'fibonacci-heap',
+          options: { priorityLevels: 5 }
+        },
+        decomposition: {
+          enabled: true,
+          maxDepth: 3
+        },
+        synthesis: {
+          strategies: ['sequential', 'parallel'],
+          defaultStrategy: 'sequential'
+        }
+      },
+      cli: {
+        integrations: {
+          enableAllIntegrations: true
+        }
+      },
+      performance: {
+        benchmarking: {
+          enabled: true,
+          outputDir: path.join(TEST_WORKSPACE, 'benchmarks')
+        },
+        optimization: {
+          level: 'balanced'
+        }
+      }
+    }));
+  });
+
+  afterAll(async () => {
+    try {
+      // Clean up test files
+      await fs.unlink(TEST_CONFIG_PATH);
+      await fs.rm(TEST_WORKSPACE, { recursive: true, force: true });
+    } catch (err) {
+      console.error('Error cleaning up test files:', err);
+    }
+  });
+
+  // PHASE 1 TESTS
+  // =============
+  
+  test('[Phase 1] Configuration and command registry', async () => {
+    // Test configuration command
+    const configResult = await runCLI(['config', 'set', 'test.value', 'integration-test']);
+    expect(configResult.code).toBe(0);
+    
+    // Verify configuration was set
+    const getResult = await runCLI(['config', 'get', 'test.value']);
+    expect(getResult.code).toBe(0);
+    expect(getResult.stdout.trim()).toBe('integration-test');
+  });
+
+  // PHASE 2 TESTS
+  // =============
+  
+  test('[Phase 2] AI agent and task system', async () => {
+    // Create a basic task
+    const taskResult = await runCLI(
+      ['task', 'create', '--type', 'echo', '--input', 'Phase 2 integration test'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(taskResult.code).toBe(0);
+    expect(taskResult.stdout).toMatch(/Task ID: [a-zA-Z0-9-]+/);
+    
+    // Test AI agent
+    const agentResult = await runCLI(
+      ['agent', 'run', 'test-agent', '--prompt', 'Short test prompt for Phase 2'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(agentResult.code).toBe(0);
+    expect(agentResult.stdout.length).toBeGreaterThan(0);
+  });
+  
+  // PHASE 3 TESTS
+  // =============
+  
+  test('[Phase 3] TaskNet enhancements', async () => {
+    // Test TaskNet features
+    const tasknetResult = await runCLI(
+      ['tasknet', 'status'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(tasknetResult.code).toBe(0);
+    expect(tasknetResult.stdout).toContain('TaskNet');
+    
+    // Test reasoning feature
+    const reasonResult = await runCLI(
+      ['tasknet', 'reason', '--prompt', 'Simple test reasoning prompt', '--method', 'graph-of-thought'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(reasonResult.code).toBe(0);
+  });
+  
+  // PHASE 4 TESTS
+  // =============
+  
+  test('[Phase 4] Cross-component integration', async () => {
+    // Test file path
+    const testFilePath = path.join(TEST_WORKSPACE, 'test-document.md');
+    
+    // Test workflow with AI and storage integration
+    const workflowResult = await runCLI(
+      ['workflow', 'run', '--input-file', testFilePath, '--agent', 'test-agent'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(workflowResult.code).toBe(0);
+    expect(workflowResult.stdout).toMatch(/workflow|completed|started/i);
+  });
+  
+  // PHASE 5 TESTS
+  // =============
+  
+  test('[Phase 5] Performance optimization and tools', async () => {
+    // Test performance command
+    const perfResult = await runCLI(
+      ['performance', 'analyze', '--target', 'agent'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(perfResult.code).toBe(0);
+    expect(perfResult.stdout).toMatch(/performance|analyze|metrics|result/i);
+    
+    // Test documentation generation
+    const docResult = await runCLI(
+      ['doc', 'generate', '--section', 'api'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(docResult.code).toBe(0);
+    expect(docResult.stdout).toMatch(/documentation|generated|complete/i);
+  });
+  
+  // COMPLETE END-TO-END WORKFLOW
+  // ============================
+  
+  test('Complete end-to-end workflow across all phases', async () => {
+    // Test code file path
+    const testCodePath = path.join(TEST_WORKSPACE, 'test-code.js');
+    
+    // Step 1: Create configuration for the workflow
+    await runCLI(['config', 'set', 'workflow.name', 'complete-test-workflow']);
+    
+    // Step 2: Set up AI agent
+    await runCLI(
+      ['agent', 'configure', 'test-workflow-agent', '--model', 'test-model'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    // Step 3: Create a task using the agent
+    const taskResult = await runCLI(
+      ['agent', 'task', '--agent', 'test-workflow-agent', '--input-file', testCodePath, '--create-task'],
+      { SK_MOCK_MODE: 'true' }
+    );
+    
+    expect(taskResult.code).toBe(0);
+    const taskIdMatch = taskResult.stdout.match(/Task ID: ([a-zA-Z0-9-]+)/);
+    expect(taskIdMatch).toBeTruthy();
+    
+    if (taskIdMatch && taskIdMatch[1]) {
+      const taskId = taskIdMatch[1];
+      
+      // Step 4: Use TaskNet to decompose the task
+      await runCLI(['tasknet', 'decompose', taskId], { SK_MOCK_MODE: 'true' });
+      
+      // Step 5: Get the task result and store in IPFS
+      const resultStoreResult = await runCLI(
+        ['task', 'result', taskId, '--store-ipfs'],
+        { SK_MOCK_MODE: 'true' }
+      );
+      
+      expect(resultStoreResult.code).toBe(0);
+      expect(resultStoreResult.stdout).toMatch(/stored|ipfs|cid/i);
+      
+      // Step 6: Run performance analysis on the workflow
+      const perfResult = await runCLI(
+        ['performance', 'analyze', '--task', taskId],
+        { SK_MOCK_MODE: 'true' }
+      );
+      
+      expect(perfResult.code).toBe(0);
+    }
+  });
+});

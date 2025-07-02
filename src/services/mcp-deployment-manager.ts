@@ -5,21 +5,21 @@
  * with Blue/Green capabilities.
  */
 
-import { ServerRegistry } from './mcp-registry';
+import { ServerRegistry } from './mcp-registry.js';
 import { 
   VersionedServerConfig, 
   DeploymentStatus, 
   DeploymentOptions,
   ServerVersionInfo,
   VersionHistoryEntry
-} from './mcp-types';
+} from './mcp-types.js';
 import { 
   McpServerConfig, 
   getCurrentProjectConfig,
   getGlobalConfig,
   getMcprcConfig
-} from '../utils/config';
-import { logEvent, logError } from '../utils/log';
+} from '../utils/config.js';
+import { logEvent, logError } from '../utils/log.js';
 
 /**
  * MCP Deployment Manager

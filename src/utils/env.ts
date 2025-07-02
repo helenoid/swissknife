@@ -1,8 +1,8 @@
-import { execFileNoThrow } from './execFileNoThrow'
+import { execFileNoThrow } from './execFileNoThrow.js'
 import { memoize } from 'lodash-es'
 import { join } from 'path'
 import { homedir } from 'os'
-import { CONFIG_BASE_DIR, CONFIG_FILE } from '../constants/product'
+import { CONFIG_BASE_DIR, CONFIG_FILE } from '../constants/product.js'
 // Base directory for all Claude Code data files (except config.json for backwards compatibility)
 export const CLAUDE_BASE_DIR =
   process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), CONFIG_BASE_DIR)

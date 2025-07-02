@@ -1,10 +1,14 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 /**
  * Mock configuration manager for tests
  * 
  * Provides a mock implementation of the configuration management system
  */
 
-import { sampleConfigurations } from '../fixtures/config/config';
+import { sampleConfigurations } from '../fixtures/config/config.js';
 
 /**
  * Mock ConfigurationManager for testing

@@ -2,7 +2,7 @@ import { Command, CommandExecutionContext } from '../../command-registry.js';
 import { TaskManager } from '../../tasks/manager.js'; // Assuming TaskManager is available in context
 import { logger } from '../../utils/logger.js';
 // Use a library like yargs-parser for robust argument parsing
-import parse from 'yargs-parser'; 
+import parse from 'yargs-parser.js'; 
 
 export class TaskCreateCommand implements Command {
   readonly name = 'task:create'; // Using ':' for potential namespacing

@@ -1,0 +1,145 @@
+#!/bin/bash
+
+echo "Fixing WorkerPool test imports and types..."
+
+# Fix the WorkerPool test file
+cat > /home/barberb/swissknife/test/unit/workers/pool.test.ts << 'EOF'
+import sinon from 'sinon';
+import { EventEmitter } from 'events';
+import { WorkerPool, WorkerPoolOptions } from '../../../src/workers/worker-pool';
+import { WorkerThread, WorkerStatus, WorkerTask, WorkerResult } from '../../../src/workers/worker-thread';
+
+// Mock Worker implementation for testing
+class MockWorker extends EventEmitter {
+  postMessage: sinon.SinonStub;
+  terminate: sinon.SinonStub;
+  
+  constructor() {
+    super();
+    this.postMessage = sinon.stub();
+    this.terminate = sinon.stub().callsFake(() => {
+      this.emit('exit', 0);
+    });
+  }
+}
+
+// Mock the worker_threads module
+jest.mock('worker_threads', () => ({
+  Worker: jest.fn().mockImplementation(() => new MockWorker()),
+  isMainThread: true
+}));
+
+describe('Worker Pool', () => {
+  let workerPool: WorkerPool;
+  
+  beforeEach(() => {
+    // Reset the singleton for testing
+    (WorkerPool as any).instance = null;
+    workerPool = WorkerPool.getInstance({
+      minWorkers: 2,
+      maxWorkers: 4,
+      taskTimeout: 1000
+    });
+  });
+  
+  afterEach(async () => {
+    workerPool.stop();
+  });
+  
+  it('should initialize with the specified configuration', () => {
+    expect(workerPool).toBeInstanceOf(WorkerPool);
+  });
+  
+  it('should start the worker pool', () => {
+    workerPool.start();
+    
+    expect(workerPool.isRunning()).toBe(true);
+  });
+  
+  it('should execute tasks on worker threads', async () => {
+    workerPool.start();
+    
+    // Register a simple task handler
+    workerPool.registerHandler('test', async (args) => {
+      return { result: args.input * 2 };
+    });
+    
+    // Submit a task
+    const task = await workerPool.submit('test', { input: 5 });
+    
+    expect(task).toBeDefined();
+  });
+  
+  it('should handle multiple concurrent tasks', async () => {
+    workerPool.start();
+    
+    // Register a task handler
+    workerPool.registerHandler('multiply', async (args) => {
+      return { result: args.a * args.b };
+    });
+    
+    // Submit multiple tasks
+    const tasks = [
+      workerPool.submit('multiply', { a: 2, b: 3 }),
+      workerPool.submit('multiply', { a: 4, b: 5 }),
+      workerPool.submit('multiply', { a: 6, b: 7 })
+    ];
+    
+    const results = await Promise.all(tasks);
+    expect(results).toHaveLength(3);
+  });
+  
+  it('should stop the worker pool gracefully', () => {
+    workerPool.start();
+    expect(workerPool.isRunning()).toBe(true);
+    
+    workerPool.stop();
+    expect(workerPool.isRunning()).toBe(false);
+  });
+  
+  it('should handle task timeouts', async () => {
+    workerPool.start();
+    
+    // Register a slow task handler
+    workerPool.registerHandler('slow', async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return { result: 'done' };
+    });
+    
+    // Submit a task with short timeout
+    try {
+      await workerPool.submit('slow', {}, { timeout: 500 });
+      fail('Should have thrown timeout error');
+    } catch (error) {
+      expect(error.message).toContain('timeout');
+    }
+  });
+  
+  it('should handle worker errors gracefully', async () => {
+    workerPool.start();
+    
+    // Register an error-throwing handler
+    workerPool.registerHandler('error', async () => {
+      throw new Error('Test error');
+    });
+    
+    try {
+      await workerPool.submit('error', {});
+      fail('Should have thrown error');
+    } catch (error) {
+      expect(error.message).toBe('Test error');
+    }
+  });
+  
+  it('should maintain worker pool statistics', () => {
+    workerPool.start();
+    
+    const stats = workerPool.getStats();
+    expect(stats).toHaveProperty('activeWorkers');
+    expect(stats).toHaveProperty('queuedTasks');
+    expect(stats).toHaveProperty('completedTasks');
+  });
+});
+EOF
+
+echo "Fixed WorkerPool test file with proper imports and types"

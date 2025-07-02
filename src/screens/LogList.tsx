@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { CACHE_PATHS } from '../utils/log'
-import { LogSelector } from '../components/LogSelector'
-import type { LogOption, LogListProps } from '../types/logs'
-import { loadLogList } from '../utils/log'
-import { logError } from '../utils/log'
+import React, { useEffect, useState } from 'react.js.js.js.js.js'
+import { CACHE_PATHS } from '../utils/log.js.js.js.js.js.js.js.js.js.js'
+import { LogSelector } from '../components/LogSelector.js.js.js.js.js.js.js.js.js.js'
+import type { LogOption, LogListProps } from '../types/logs.js.js.js.js.js.js.js.js.js.js'
+import { loadLogList } from '../utils/log.js.js.js.js.js.js.js.js.js.js'
+import { logError } from '../utils/log.js.js.js.js.js.js.js.js.js.js'
 
 type Props = LogListProps & {
   type: 'messages' | 'errors'

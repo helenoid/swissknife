@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { getHistory } from '../history'
+import { useState } from 'react.js'
+import { getHistory } from '../history.js'
 
 export function useArrowKeyHistory(
   onSetInput: (value: string, mode: 'bash' | 'prompt') => void,

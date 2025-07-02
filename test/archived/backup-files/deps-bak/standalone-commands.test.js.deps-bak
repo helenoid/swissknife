@@ -1,0 +1,267 @@
+/**
+ * Standalone command registry test
+ */
+
+// Simple command class
+class Command {
+  constructor(name, options = {}) {
+    this.name = name;
+    this.description = options.description || '';
+    this.execute = options.execute || (() => {});
+    this.aliases = options.aliases || [];
+    this.category = options.category || 'general';
+    this.isEnabled = options.enabled !== false;
+  }
+  
+  disable() {
+    this.isEnabled = false;
+    return this;
+  }
+  
+  enable() {
+    this.isEnabled = true;
+    return this;
+  }
+  
+  setDescription(description) {
+    this.description = description;
+    return this;
+  }
+}
+
+// Simple command registry
+class CommandRegistry {
+  constructor() {
+    this.commands = new Map();
+    this.aliases = new Map();
+    this.categories = new Set(['general']);
+  }
+  
+  static getInstance() {
+    if (!CommandRegistry.instance) {
+      CommandRegistry.instance = new CommandRegistry();
+    }
+    return CommandRegistry.instance;
+  }
+  
+  register(commandOrName, optionsOrExecute) {
+    const command = commandOrName instanceof Command 
+      ? commandOrName 
+      : this.createCommand(commandOrName, optionsOrExecute);
+    
+    // Store command and any aliases
+    this.commands.set(command.name, command);
+    this.categories.add(command.category);
+    
+    command.aliases.forEach(alias => {
+      this.aliases.set(alias, command.name);
+    });
+    
+    return command;
+  }
+  
+  createCommand(name, optionsOrExecute) {
+    const options = typeof optionsOrExecute === 'function'
+      ? { execute: optionsOrExecute }
+      : optionsOrExecute || {};
+    
+    return new Command(name, options);
+  }
+  
+  get(nameOrAlias) {
+    // Check direct command first
+    if (this.commands.has(nameOrAlias)) {
+      return this.commands.get(nameOrAlias);
+    }
+    
+    // Check aliases
+    const commandName = this.aliases.get(nameOrAlias);
+    if (commandName) {
+      return this.commands.get(commandName);
+    }
+    
+    return null;
+  }
+  
+  getAll() {
+    return Array.from(this.commands.values());
+  }
+  
+  getByCategory(category) {
+    return this.getAll().filter(cmd => cmd.category === category);
+  }
+  
+  getEnabledCommands() {
+    return this.getAll().filter(cmd => cmd.isEnabled);
+  }
+}
+
+// Tests
+describe('Command System', () => {
+  describe('Command', () => {
+    it('should initialize with correct defaults', () => {
+      // Act
+      const cmd = new Command('test');
+      
+      // Assert
+      expect(cmd.name).toBe('test');
+      expect(cmd.description).toBe('');
+      expect(cmd.category).toBe('general');
+      expect(cmd.isEnabled).toBe(true);
+      expect(cmd.aliases).toEqual([]);
+      expect(typeof cmd.execute).toBe('function');
+    });
+    
+    it('should initialize with options', () => {
+      // Arrange
+      const options = {
+        description: 'Test command',
+        category: 'testing',
+        aliases: ['t'],
+        execute: jest.fn(),
+        enabled: false
+      };
+      
+      // Act
+      const cmd = new Command('test', options);
+      
+      // Assert
+      expect(cmd.name).toBe('test');
+      expect(cmd.description).toBe('Test command');
+      expect(cmd.category).toBe('testing');
+      expect(cmd.isEnabled).toBe(false);
+      expect(cmd.aliases).toEqual(['t']);
+      expect(cmd.execute).toBe(options.execute);
+    });
+    
+    it('should enable and disable command', () => {
+      // Arrange
+      const cmd = new Command('test');
+      
+      // Act & Assert - Disable
+      cmd.disable();
+      expect(cmd.isEnabled).toBe(false);
+      
+      // Act & Assert - Enable
+      cmd.enable();
+      expect(cmd.isEnabled).toBe(true);
+    });
+    
+    it('should update description', () => {
+      // Arrange
+      const cmd = new Command('test');
+      
+      // Act
+      cmd.setDescription('New description');
+      
+      // Assert
+      expect(cmd.description).toBe('New description');
+    });
+  });
+  
+  describe('CommandRegistry', () => {
+    let registry;
+    
+    beforeEach(() => {
+      CommandRegistry.instance = undefined;
+      registry = CommandRegistry.getInstance();
+    });
+    
+    it('should be a singleton', () => {
+      // Act
+      const instance1 = CommandRegistry.getInstance();
+      const instance2 = CommandRegistry.getInstance();
+      
+      // Assert
+      expect(instance1).toBe(instance2);
+    });
+    
+    it('should register a command with options', () => {
+      // Act
+      const cmd = registry.register('test', { description: 'Test command' });
+      
+      // Assert
+      expect(cmd).toBeInstanceOf(Command);
+      expect(registry.get('test')).toBe(cmd);
+      expect(cmd.description).toBe('Test command');
+    });
+    
+    it('should register a command with execute function', () => {
+      // Arrange
+      const execute = jest.fn();
+      
+      // Act
+      const cmd = registry.register('test', execute);
+      
+      // Assert
+      expect(cmd).toBeInstanceOf(Command);
+      expect(cmd.execute).toBe(execute);
+    });
+    
+    it('should register command object', () => {
+      // Arrange
+      const cmd = new Command('test', { description: 'Test command' });
+      
+      // Act
+      registry.register(cmd);
+      
+      // Assert
+      expect(registry.get('test')).toBe(cmd);
+    });
+    
+    it('should register and find commands by aliases', () => {
+      // Act
+      const cmd = registry.register('test', { aliases: ['t', 'tst'] });
+      
+      // Assert
+      expect(registry.get('t')).toBe(cmd);
+      expect(registry.get('tst')).toBe(cmd);
+    });
+    
+    it('should return all commands', () => {
+      // Arrange
+      const cmd1 = registry.register('test1');
+      const cmd2 = registry.register('test2');
+      
+      // Act
+      const allCommands = registry.getAll();
+      
+      // Assert
+      expect(allCommands).toHaveLength(2);
+      expect(allCommands).toContain(cmd1);
+      expect(allCommands).toContain(cmd2);
+    });
+    
+    it('should return commands by category', () => {
+      // Arrange
+      const cmd1 = registry.register('test1', { category: 'testing' });
+      const cmd2 = registry.register('test2', { category: 'testing' });
+      const cmd3 = registry.register('test3', { category: 'general' });
+      
+      // Act
+      const testingCommands = registry.getByCategory('testing');
+      
+      // Assert
+      expect(testingCommands).toHaveLength(2);
+      expect(testingCommands).toContain(cmd1);
+      expect(testingCommands).toContain(cmd2);
+      expect(testingCommands).not.toContain(cmd3);
+    });
+    
+    it('should return enabled commands', () => {
+      // Arrange
+      const cmd1 = registry.register('test1');
+      const cmd2 = registry.register('test2').disable();
+      const cmd3 = registry.register('test3');
+      
+      // Act
+      const enabledCommands = registry.getEnabledCommands();
+      
+      // Assert
+      expect(enabledCommands).toHaveLength(2);
+      expect(enabledCommands).toContain(cmd1);
+      expect(enabledCommands).not.toContain(cmd2);
+      expect(enabledCommands).toContain(cmd3);
+    });
+  });
+});

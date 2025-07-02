@@ -1,0 +1,172 @@
+/**
+ * Standalone MCP (Model Context Protocol) Test
+ * 
+ * This test provides a completely independent implementation of MCP server
+ * functionality that can be tested without any external dependencies.
+ */
+
+// Mock MCP Server implementation
+class MCPServer {
+  constructor(options = {}) {
+    this.options = {
+      port: options.port || 3000,
+      host: options.host || 'localhost',
+      ...options
+    };
+    this.running = false;
+    this.handlers = new Map();
+  }
+  
+  registerHandler(path, handler) {
+    this.handlers.set(path, handler);
+    return this;
+  }
+  
+  async start() {
+    if (this.running) {
+      return { port: this.options.port, already: true };
+    }
+    
+    this.running = true;
+    return { port: this.options.port, host: this.options.host };
+  }
+  
+  async stop() {
+    if (!this.running) {
+      return false;
+    }
+    
+    this.running = false;
+    return true;
+  }
+  
+  isRunning() {
+    return this.running;
+  }
+  
+  async handleRequest(path, request) {
+    const handler = this.handlers.get(path);
+    if (!handler) {
+      return { error: `No handler for path: ${path}` };
+    }
+    
+    try {
+      return await handler(request);
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}
+
+// Mock MCP Client implementation
+class MCPClient {
+  constructor(options = {}) {
+    this.options = {
+      serverUrl: options.serverUrl || 'http://localhost:3000',
+      ...options
+    };
+  }
+  
+  async sendRequest(path, data) {
+    // In a real implementation this would make an HTTP request
+    // For testing, we'll just return mock data
+    return {
+      success: true,
+      path,
+      data,
+      timestamp: new Date().toISOString()
+    };
+  }
+  
+  async streamRequest(path, data, onChunk) {
+    // Mock streaming response
+    onChunk({ chunk: 'First chunk' });
+    onChunk({ chunk: 'Second chunk' });
+    onChunk({ chunk: 'Final chunk', done: true });
+    
+    return { success: true };
+  }
+}
+
+// Tests
+describe('Standalone MCP Implementation', () => {
+  let server;
+  let client;
+  
+  beforeEach(() => {
+    server = new MCPServer({ port: 3000 });
+    client = new MCPClient({ serverUrl: 'http://localhost:3000' });
+  });
+  
+  afterEach(async () => {
+    if (server.isRunning()) {
+      await server.stop();
+    }
+  });
+  
+  test('server can be instantiated', () => {
+    expect(server).toBeDefined();
+    expect(server).toBeInstanceOf(MCPServer);
+  });
+  
+  test('server can be started and stopped', async () => {
+    const startResult = await server.start();
+    expect(startResult.port).toBe(3000);
+    expect(server.isRunning()).toBe(true);
+    
+    const stopResult = await server.stop();
+    expect(stopResult).toBe(true);
+    expect(server.isRunning()).toBe(false);
+  });
+  
+  test('server handles repeated start/stop correctly', async () => {
+    await server.start();
+    const secondStart = await server.start();
+    expect(secondStart.already).toBe(true);
+    
+    await server.stop();
+    const secondStop = await server.stop();
+    expect(secondStop).toBe(false);
+  });
+  
+  test('server can register and use handlers', async () => {
+    server.registerHandler('/echo', async (request) => {
+      return { echo: request };
+    });
+    
+    await server.start();
+    const result = await server.handleRequest('/echo', { message: 'hello' });
+    expect(result).toEqual({ echo: { message: 'hello' } });
+  });
+  
+  test('server returns error for non-existent handlers', async () => {
+    await server.start();
+    const result = await server.handleRequest('/nonexistent', {});
+    expect(result.error).toBeDefined();
+    expect(result.error).toContain('No handler');
+  });
+  
+  test('client can be instantiated', () => {
+    expect(client).toBeDefined();
+    expect(client).toBeInstanceOf(MCPClient);
+  });
+  
+  test('client can send requests', async () => {
+    const response = await client.sendRequest('/test', { data: 'test' });
+    expect(response.success).toBe(true);
+    expect(response.path).toBe('/test');
+    expect(response.data).toEqual({ data: 'test' });
+  });
+  
+  test('client can handle streaming responses', async () => {
+    const chunks = [];
+    
+    await client.streamRequest('/stream', { query: 'test' }, (chunk) => {
+      chunks.push(chunk);
+    });
+    
+    expect(chunks.length).toBe(3);
+    expect(chunks[0].chunk).toBe('First chunk');
+    expect(chunks[2].done).toBe(true);
+  });
+});

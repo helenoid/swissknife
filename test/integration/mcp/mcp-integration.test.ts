@@ -64,10 +64,10 @@ const mockSdkClientInstance = {
     })),
     // Add other methods if needed
 };
-jest.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
+jest.mock('@modelcontextprotocol/sdk/client/index', () => ({
     Client: jest.fn().mockImplementation(() => mockSdkClientInstance),
 }));
-jest.mock('@modelcontextprotocol/sdk/client/stdio.js', () => ({
+jest.mock('@modelcontextprotocol/sdk/client/stdio', () => ({
     StdioClientTransport: jest.fn().mockImplementation(() => ({
         connect: jest.fn().mockResolvedValue(undefined),
         disconnect: jest.fn().mockResolvedValue(undefined),
@@ -75,7 +75,7 @@ jest.mock('@modelcontextprotocol/sdk/client/stdio.js', () => ({
         stderr: { on: jest.fn() }, // Mock stderr property
     })),
 }));
-jest.mock('@modelcontextprotocol/sdk/client/sse.js', () => ({
+jest.mock('@modelcontextprotocol/sdk/client/sse', () => ({
     SSEClientTransport: jest.fn().mockImplementation(() => ({
         connect: jest.fn().mockResolvedValue(undefined),
         disconnect: jest.fn().mockResolvedValue(undefined),
@@ -87,7 +87,7 @@ jest.mock('@modelcontextprotocol/sdk/client/sse.js', () => ({
 // Mock Configuration Utilities
 // Keep track of mock config state locally
 let mockProjectConfig: any = { mcpServers: {} };
-jest.mock('../../../src/utils/config.js', () => ({
+jest.mock('../../../src/utils/config', () => ({
     getMcprcPath: jest.fn(() => 'mock/.mcprc'), // Mock path function
     getMcprcConfig: jest.fn(() => mockProjectConfig), // Return local mock state
     // Assume saveCurrentProjectConfig is used by add/remove helpers
@@ -99,29 +99,24 @@ jest.mock('../../../src/utils/config.js', () => ({
 }));
 
 // Mock State Utilities
-jest.mock('../../../src/utils/state.js', () => ({
+jest.mock('../../../src/utils/state', () => ({
   ...jest.requireActual('../../../src/utils/state.js'), // Keep actual if needed, mock specific
   setCwd: jest.fn(),
   getCwd: jest.fn(() => process.cwd()), // Use actual cwd or a fixed test path
 }));
 
 // Mock other dependencies if needed by the service functions
-jest.mock('../../../src/utils/model.js', () => ({
+jest.mock('../../../src/utils/model', () => ({
   getSlowAndCapableModel: jest.fn().mockResolvedValue({ name: 'test-model', provider: 'test' })
 }));
 
 
 // --- Imports (after mocks) ---
 // Add .js extension
-import { startMCPServer } from '../../../src/entrypoints/mcp.js'; // Assuming this is the correct path
 // Assuming disconnectAllClients is NOT exported or needed for reset
-import { addMcpServer, removeMcpServer, getClients, getMCPTools } from '../../../src/services/mcpClient.js'; // Adjust path
 // Import the specific config functions used/mocked
-import { getMcprcConfig, saveCurrentProjectConfig } from '../../../src/utils/config.js';
-import { Tool } from '../../../src/Tool.js'; // Adjust path
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'; // For type usage
+import { Client } from '@modelcontextprotocol/sdk/client/index'; // For type usage
 // Define placeholder type if ToolExecutionContext is not exported
-import type { ToolExecutionContext as RealToolExecutionContext } from '../../../src/types/ai.js'; // Adjust path if needed
 type ToolExecutionContext = Partial<RealToolExecutionContext> & { abortController: AbortController };
 
 
@@ -209,7 +204,7 @@ describe('MCP Client Service Integration', () => {
 
       // Verify SDK Client and Transport were instantiated and connect called
       expect(Client).toHaveBeenCalled();
-      const SdkTransportMock = require('@modelcontextprotocol/sdk/client/stdio.js').StdioClientTransport;
+      const SdkTransportMock = require('@modelcontextprotocol/sdk/client/stdio').StdioClientTransport;
       expect(SdkTransportMock).toHaveBeenCalled();
       expect(mockSdkClientInstance.connect).toHaveBeenCalled();
 

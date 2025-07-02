@@ -1,10 +1,10 @@
-import { getGlobalConfig, getOrCreateUserID } from './config'
+import { getGlobalConfig, getOrCreateUserID } from './config.js'
 import { memoize } from 'lodash-es'
-import { env } from './env'
+import { env } from './env.js'
 import { type StatsigUser } from '@statsig/js-client'
-import { execFileNoThrow } from './execFileNoThrow'
-import { logError, SESSION_ID } from './log'
-import { MACRO } from '../constants/macros'
+import { execFileNoThrow } from './execFileNoThrow.js'
+import { logError, SESSION_ID } from './log.js'
+import { MACRO } from '../constants/macros.js'
 export const getGitEmail = memoize(async (): Promise<string | undefined> => {
   const result = await execFileNoThrow('git', ['config', 'user.email'])
   if (result.code !== 0) {

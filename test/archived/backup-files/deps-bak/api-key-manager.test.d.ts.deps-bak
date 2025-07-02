@@ -1,0 +1,10 @@
+/**
+ * Unit Tests for the ApiKeyManager class (`src/auth/api-key-manager.js`).
+ *
+ * These tests verify the manager's ability to add, retrieve, remove, and list API keys,
+ * handle environment variable integration, manage key rotation/invalidation (if implemented),
+ * interact with encryption utilities, and persist keys via the ConfigurationManager.
+ *
+ * Dependencies (ConfigurationManager, encryption utils) are mocked.
+ */
+export {};

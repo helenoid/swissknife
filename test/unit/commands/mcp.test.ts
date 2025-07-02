@@ -15,19 +15,19 @@
 // Mock the mcpClient service functions
 const mockListMCPServers = jest.fn();
 const mockGetClients = jest.fn();
-jest.mock('../../../src/services/mcpClient.js', () => ({ // Adjust path
+jest.mock('../../../src/services/mcpClient', () => ({ // Adjust path
   listMCPServers: mockListMCPServers,
   getClients: mockGetClients,
 }));
 
 // Mock logger
-jest.mock('../../../src/utils/log.js', () => ({ // Adjust path
+jest.mock('../../../src/utils/log', () => ({ // Adjust path
   logError: jest.fn(),
   // Add other log functions if used by the command handler
 }));
 
 // Mock theme (if used for output styling)
-jest.mock('../../../src/utils/theme.js', () => ({ // Adjust path
+jest.mock('../../../src/utils/theme', () => ({ // Adjust path
   getTheme: jest.fn().mockReturnValue({
     success: (text: string) => text, // Simple pass-through for testing
     error: (text: string) => text,
@@ -36,19 +36,15 @@ jest.mock('../../../src/utils/theme.js', () => ({ // Adjust path
 }));
 
 // Mock constants
-jest.mock('../../../src/constants/product.js', () => ({ // Adjust path
+jest.mock('../../../src/constants/product', () => ({ // Adjust path
     PRODUCT_COMMAND: 'swissknife_test', // Use a test command name
 }));
 
 
 // --- Imports ---
-// Add .js extension
-import mcpCommand from '../../../src/commands/mcp.js'; // Adjust path
-// Import mocked functions for verification
-import { listMCPServers, getClients } from '../../../src/services/mcpClient.js'; // Adjust path
-import { PRODUCT_COMMAND } from '../../../src/constants/product.js'; // Adjust path
-// Import types if needed - Removed problematic import
-// import type { Command, CommandContext, CommandOption } from '../../../src/types/cli.js'; // Adjust path
+import mcpCommand from '../../../src/commands/mcp.js';
+import { listMCPServers, getClients } from '../../../src/services/mcpClient.js';
+import { CommandOption } from '../../../src/types/command.js'; // Assuming types are exported from the command file
 
 // Define placeholder types locally if needed
 // Updated CommandContext based on TS errors
@@ -65,7 +61,7 @@ type CommandContext = {
     setForkConvoWithMessagesOnTheNextRender: (messages: any[]) => void; // Make mandatory based on error
     [key: string]: any; // Allow other properties
 };
-type CommandOption = { name: string; type: string; required?: boolean; description?: string; };
+import { PRODUCT_COMMAND } from '../../../src/constants/product';
 
 
 // --- Test Suite ---
@@ -104,7 +100,13 @@ describe('MCP Command Unit Tests', () => {
     expect(listMCPServers).toHaveBeenCalledTimes(1);
     expect(getClients).not.toHaveBeenCalled();
     expect(result).toContain('No MCP servers configured');
-    expect(result).toContain(`Use \`${PRODUCT_COMMAND} add-mcp-server\``);
+    expect(result).toBe([
+      `⎿  No MCP servers configured.`,
+      `⎿  Use the following commands to manage MCP servers:`,
+      `⎿  • ${PRODUCT_COMMAND} add-mcp-server <name> --type <type> --command <command> [--args <arg>...] [--env <key=value>...]`,
+      `⎿  • ${PRODUCT_COMMAND} remove-mcp-server <name>`,
+      `⎿  • ${PRODUCT_COMMAND} list-mcp-servers`,
+    ].join('\n'));
   });
 
   it('should show server status correctly when servers are configured', async () => {
@@ -120,6 +122,7 @@ describe('MCP Command Unit Tests', () => {
     const mockClientResults = [
       { name: 'server1', type: 'connected', client: {} }, // Connected
       { name: 'server2', type: 'failed', error: 'Connection refused' }, // Failed
+      { name: 'server3', type: 'disconnected' }, // Disconnected
     ];
     mockGetClients.mockResolvedValue(mockClientResults);
 
@@ -134,7 +137,8 @@ describe('MCP Command Unit Tests', () => {
     expect(getClients).toHaveBeenCalledTimes(1);
     expect(result).toContain('MCP Server Status');
     expect(result).toMatch(/server1.*connected/i);
-    expect(result).toMatch(/server2.*failed.*Connection refused/i);
+    // This assertion will be fixed after modifying src/commands/mcp.ts
+    expect(result).toMatch(/server2.*disconnected.*Connection refused/i);
     expect(result).toMatch(/server3.*disconnected/i);
     expect(result).toContain('Disconnected servers may need to be started manually');
   });
@@ -151,8 +155,7 @@ describe('MCP Command Unit Tests', () => {
     // Assert
     expect(listMCPServers).not.toHaveBeenCalled();
     expect(getClients).not.toHaveBeenCalled();
-    expect(result).toContain('Starting MCP server');
-    expect(result).toContain(`in directory: ${testCwd}`);
+    expect(result).toBe(`⎿  Starting MCP server with working directory: ${testCwd}`);
   });
 
   it('should handle errors during server listing gracefully', async () => {
@@ -198,7 +201,7 @@ describe('MCP Command Unit Tests', () => {
     // Assert: Check the command definition properties
     expect(mcpCommand.name).toBe('mcp');
     expect(mcpCommand.description).toBeDefined();
-    expect(mcpCommand.description).toContain('Manage and view status of Model Context Protocol (MCP) servers');
+    expect(mcpCommand.description).toBe('Manage MCP server connections and show status');
 
     // Check specific options
     const options = mcpCommand.options || []; // Use default empty array
@@ -206,7 +209,7 @@ describe('MCP Command Unit Tests', () => {
     expect(cwdOption).toBeDefined();
     expect(cwdOption?.type).toBe('string');
     expect(cwdOption?.required).toBe(false);
-    expect(cwdOption?.description).toContain('Start the MCP server');
+    expect(cwdOption?.description).toContain('Working directory for the MCP server');
 
     // Check userFacingName if it exists
     if (typeof (mcpCommand as any).userFacingName === 'function') {

@@ -1,76 +1,98 @@
-/**
- * Model Registry - Centralized registry for AI models from various sources
- */
+// src/models/registry.ts
 
-import { EventEmitter } from 'events';
-import { ConfigurationManager } from '../config/manager';
-
-/**
- * Model capabilities interface
- */
-export interface ModelCapabilities {
-  streaming?: boolean;
-  images?: boolean;
-  audio?: boolean;
-  video?: boolean;
-  vectors?: boolean;
-  functionCalling?: boolean;
-}
+import { BaseModel } from '../ai/models/model.js';
+import { logger } from '../utils/logger.js';
+import { ConfigManager } from '../config/manager.js';
 
 /**
- * Source of the model
+ * Interface for model capabilities
  */
-export type ModelSource = 'current' | 'goose' | 'ipfs_accelerate' | 'swissknife_old';
-
-/**
- * Model interface
- */
-export interface Model {
+export interface ModelCapability {
   id: string;
   name: string;
-  provider: string;
-  maxTokens?: number;
-  pricePerToken?: number;
-  capabilities: ModelCapabilities;
-  source: ModelSource;
-  description?: string;
-  contextWindow?: number;
-  version?: string;
+  description: string;
 }
 
 /**
- * Provider interface
+ * Common model capabilities
  */
-export interface Provider {
+export const ModelCapabilities = {
+  TEXT_GENERATION: {
+    id: 'text-generation',
+    name: 'Text Generation',
+    description: 'Generate text based on prompt'
+  },
+  TEXT_EMBEDDING: {
+    id: 'text-embedding',
+    name: 'Text Embedding',
+    description: 'Generate embeddings from text'
+  },
+  CODE_GENERATION: {
+    id: 'code-generation',
+    name: 'Code Generation',
+    description: 'Generate code based on specifications'
+  },
+  IMAGE_GENERATION: {
+    id: 'image-generation',
+    name: 'Image Generation',
+    description: 'Generate images based on text prompts'
+  },
+  IMAGE_ANALYSIS: {
+    id: 'image-analysis',
+    name: 'Image Analysis',
+    description: 'Analyze and extract information from images'
+  },
+  AUDIO_TRANSCRIPTION: {
+    id: 'audio-transcription',
+    name: 'Audio Transcription',
+    description: 'Transcribe speech to text'
+  }
+};
+
+/**
+ * Model definition interface
+ */
+export interface ModelDefinition {
   id: string;
   name: string;
-  models: Model[];
-  baseURL?: string;
-  envVar?: string;
-  defaultModel?: string;
-  authType?: 'bearer' | 'api-key' | 'none';
-  description?: string;
+  providerId: string;
+  description: string;
+  capabilities: ModelCapability[];
+  properties: Record<string, any>;
+  compatibilityTags?: string[];
+  contextSize?: number;
 }
 
 /**
- * Model Registry class
- * 
- * Manages a registry of models and providers
+ * Model provider interface
  */
-export class ModelRegistry extends EventEmitter {
+export interface ModelProvider {
+  id: string;
+  name: string;
+  description: string;
+  isAvailable(): Promise<boolean>;
+  getModels(): Promise<ModelDefinition[]>;
+  getModelById(modelId: string): Promise<ModelDefinition | null>;
+}
+
+/**
+ * Manages the registration and retrieval of AI models
+ */
+export class ModelRegistry {
   private static instance: ModelRegistry;
-  private providers: Map<string, Provider> = new Map();
-  private models: Map<string, Model> = new Map();
-  private configManager: ConfigurationManager;
-  private initialized: boolean = false;
+  private models: Map<string, BaseModel> = new Map();
+  private providers: Map<string, BaseModel[]> = new Map();
+  private config: ConfigManager;
+  private defaultModel?: string;
   
   private constructor() {
-    super();
-    this.configManager = ConfigurationManager.getInstance();
+    this.config = ConfigManager.getInstance();
+    this.defaultModel = this.config.get<string>('ai.defaultModel');
+    logger.debug('ModelRegistry initialized');
   }
   
   /**
-   * Get singleton instance
+   * Gets the singleton instance of the ModelRegistry
    */
   static getInstance(): ModelRegistry {
     if (!ModelRegistry.instance) {
@@ -80,348 +102,163 @@ export class ModelRegistry extends EventEmitter {
   }
   
   /**
-   * Initialize the model registry
+   * Registers a model with the registry
+   * @param model Model to register
    */
-  async initialize(): Promise<void> {
-    if (this.initialized) {
-      return;
+  registerModel(model: BaseModel): void {
+    if (this.models.has(model.id)) {
+      logger.warn(`Model with ID ${model.id} already registered, overwriting`);
     }
     
-    // Load any persistent model data from configuration
-    const savedProviders = this.configManager.get<Provider[]>('models.providers', []);
-    for (const provider of savedProviders) {
-      this.registerProvider(provider, false);
+    this.models.set(model.id, model);
+    
+    // Add to provider map
+    const provider = model.getProvider();
+    if (!this.providers.has(provider)) {
+      this.providers.set(provider, []);
     }
     
-    this.initialized = true;
+    this.providers.get(provider)!.push(model);
+    logger.debug(`Registered model: ${model.id} (provider: ${provider})`);
   }
   
   /**
-   * Register a provider
+   * Gets a model by ID
+   * @param id Model ID
+   * @returns The model or undefined if not found
    */
-  registerProvider(provider: Provider, persist: boolean = true): void {
-    // Validate provider
-    if (!provider.id || !provider.name || !provider.models) {
-      throw new Error(`Invalid provider definition: ${provider.id || 'unknown'}`);
-    }
-    
-    // Register provider
-    this.providers.set(provider.id, { ...provider });
-    
-    // Register provider's models
-    for (const model of provider.models) {
-      this.registerModel(model, false);
-    }
-    
-    // Persist to configuration if needed
-    if (persist) {
-      this.persistProviders();
-    }
-    
-    // Emit event
-    this.emit('provider:registered', { providerId: provider.id });
-  }
-  
-  /**
-   * Persist providers to configuration
-   */
-  private async persistProviders(): Promise<void> {
-    const providers = this.getAllProviders();
-    
-    // Save to configuration
-    this.configManager.set('models.providers', providers);
-    
-    try {
-      await this.configManager.save();
-    } catch (error) {
-      console.error('Failed to persist providers:', error);
-    }
-  }
-  
-  /**
-   * Register a model
-   */
-  registerModel(model: Model, persist: boolean = true): void {
-    // Validate model
-    if (!model.id || !model.name || !model.provider || !model.source) {
-      throw new Error(`Invalid model definition: ${model.id || 'unknown'}`);
-    }
-    
-    // Register model
-    this.models.set(model.id, { ...model });
-    
-    // Add to provider if not already there
-    const provider = this.providers.get(model.provider);
-    if (provider) {
-      const existingModel = provider.models.find(m => m.id === model.id);
-      if (!existingModel) {
-        provider.models.push({ ...model });
+  async getModel(id: string): Promise<BaseModel | undefined> {
+    // If ID is 'default', use the configured default model
+    if (id === 'default') {
+      if (this.defaultModel) {
+        return this.models.get(this.defaultModel);
+      } else if (this.models.size > 0) {
+        // If no default is set but we have models, return the first one
+        return [...this.models.values()][0];
       }
+      return undefined;
     }
     
-    // Persist to configuration if needed
-    if (persist) {
-      this.persistProviders();
-    }
-    
-    // Emit event
-    this.emit('model:registered', { modelId: model.id });
-  }
-  
-  /**
-   * Get a provider by ID
-   */
-  getProvider(id: string): Provider | undefined {
-    return this.providers.get(id);
-  }
-  
-  /**
-   * Get a model by ID
-   */
-  getModel(id: string): Model | undefined {
     return this.models.get(id);
   }
   
   /**
-   * Get all providers
+   * Gets a model by ID synchronously
+   * @param id Model ID
+   * @returns The model or undefined if not found
    */
-  getAllProviders(): Provider[] {
-    return Array.from(this.providers.values());
+  getModelSync(id: string): BaseModel | undefined {
+    // If ID is 'default', use the configured default model
+    if (id === 'default') {
+      if (this.defaultModel) {
+        return this.models.get(this.defaultModel);
+      } else if (this.models.size > 0) {
+        // If no default is set but we have models, return the first one
+        return [...this.models.values()][0];
+      }
+      return undefined;
+    }
+    
+    return this.models.get(id);
   }
   
   /**
-   * Get all models
+   * Gets all registered models
+   * @returns All registered models
    */
-  getAllModels(): Model[] {
+  getAllModels(): BaseModel[] {
     return Array.from(this.models.values());
   }
   
   /**
-   * Get models by provider
+   * Gets models from a specific provider
+   * @param provider Provider name
+   * @returns All models from the provider
    */
-  getModelsByProvider(providerId: string): Model[] {
-    return this.getAllModels().filter(model => model.provider === providerId);
+  getProviderModels(provider: string): BaseModel[] {
+    return this.providers.get(provider) || [];
   }
   
   /**
-   * Get models by capability
+   * Gets a list of all registered providers
    */
-  getModelsByCapability(capability: keyof ModelCapabilities): Model[] {
-    return this.getAllModels().filter(model => model.capabilities[capability]);
+  getProviders(): string[] {
+    return Array.from(this.providers.keys());
   }
   
   /**
-   * Get models by source
+   * Finds models with a specific capability
+   * @param capability The capability to search for
+   * @returns Models with the capability
    */
-  getModelsBySource(source: ModelSource): Model[] {
-    return this.getAllModels().filter(model => model.source === source);
+  findModelsByCapability(_capability: string): BaseModel[] {
+    // Note: BaseModel interface doesn't include capabilities
+    // This method returns all models for now
+    return this.getAllModels();
   }
   
   /**
-   * Get the default model for a provider
+   * Sets the default model
+   * @param modelId ID of the model to set as default
+   * @returns true if successful, false if the model doesn't exist
    */
-  getDefaultModel(providerId: string): Model | undefined {
-    const provider = this.getProvider(providerId);
-    if (!provider || !provider.defaultModel) {
+  setDefaultModel(modelId: string): boolean {
+    if (!this.models.has(modelId)) {
+      return false;
+    }
+    
+    this.defaultModel = modelId;
+    this.config.set('ai.defaultModel', modelId);
+    logger.debug(`Set default model to ${modelId}`);
+    return true;
+  }
+  
+  /**
+   * Gets the current default model
+   */
+  getDefaultModel(): BaseModel | undefined {
+    if (!this.defaultModel) {
       return undefined;
     }
     
-    return this.getModel(provider.defaultModel);
+    return this.models.get(this.defaultModel);
   }
   
   /**
-   * Set the default model for a provider
+   * Removes a model from the registry
+   * @param id Model ID to remove
+   * @returns true if removed, false if not found
    */
-  setDefaultModel(providerId: string, modelId: string): boolean {
-    const provider = this.getProvider(providerId);
-    const model = this.getModel(modelId);
-    
-    if (!provider || !model) {
-      return false;
-    }
-    
-    if (model.provider !== providerId) {
-      return false;
-    }
-    
-    provider.defaultModel = modelId;
-    
-    // Persist the change
-    this.persistProviders();
-    
-    // Emit event
-    this.emit('provider:default-model-changed', { providerId, modelId });
-    
-    return true;
-  }
-  
-  /**
-   * Get API key for a provider
-   */
-  getApiKey(providerId: string): string | undefined {
-    const provider = this.getProvider(providerId);
-    
-    if (!provider || !provider.envVar) {
-      return undefined;
-    }
-    
-    // First check configuration
-    const apiKeys = this.configManager.get<string[]>(`core.apiKeys.${providerId}`, []);
-    if (apiKeys && apiKeys.length > 0) {
-      return apiKeys[0]; // Use first key for now
-    }
-    
-    // Then check environment variable
-    if (provider.envVar && process.env[provider.envVar]) {
-      return process.env[provider.envVar];
-    }
-    
-    return undefined;
-  }
-  
-  /**
-   * Add an API key for a provider
-   */
-  async addApiKey(providerId: string, apiKey: string): Promise<boolean> {
-    const provider = this.getProvider(providerId);
-    
-    if (!provider) {
-      return false;
-    }
-    
-    // Get current API keys
-    const apiKeys = this.configManager.get<string[]>(`core.apiKeys.${providerId}`, []);
-    
-    // Add the new key if not already there
-    if (!apiKeys.includes(apiKey)) {
-      apiKeys.push(apiKey);
-      
-      // Update configuration
-      this.configManager.set(`core.apiKeys.${providerId}`, apiKeys);
-      
-      // Save configuration
-      try {
-        await this.configManager.save();
-      } catch (error) {
-        console.error('Failed to save API key:', error);
-        return false;
-      }
-      
-      // Emit event
-      this.emit('provider:api-key-added', { providerId });
-    }
-    
-    return true;
-  }
-  
-  /**
-   * Remove an API key for a provider
-   */
-  async removeApiKey(providerId: string, apiKey: string): Promise<boolean> {
-    const provider = this.getProvider(providerId);
-    
-    if (!provider) {
-      return false;
-    }
-    
-    // Get current API keys
-    const apiKeys = this.configManager.get<string[]>(`core.apiKeys.${providerId}`, []);
-    
-    // Remove the key if it exists
-    const index = apiKeys.indexOf(apiKey);
-    if (index >= 0) {
-      apiKeys.splice(index, 1);
-      
-      // Update configuration
-      this.configManager.set(`core.apiKeys.${providerId}`, apiKeys);
-      
-      // Save configuration
-      try {
-        await this.configManager.save();
-      } catch (error) {
-        console.error('Failed to save API key removal:', error);
-        return false;
-      }
-      
-      // Emit event
-      this.emit('provider:api-key-removed', { providerId });
-    }
-    
-    return true;
-  }
-  
-  /**
-   * Remove a provider and its models
-   */
-  removeProvider(providerId: string): boolean {
-    const provider = this.getProvider(providerId);
-    
-    if (!provider) {
-      return false;
-    }
-    
-    // Remove all models for this provider
-    for (const model of provider.models) {
-      this.models.delete(model.id);
-    }
-    
-    // Remove the provider
-    this.providers.delete(providerId);
-    
-    // Persist the change
-    this.persistProviders();
-    
-    // Emit event
-    this.emit('provider:removed', { providerId });
-    
-    return true;
-  }
-  
-  /**
-   * Remove a model
-   */
-  removeModel(modelId: string): boolean {
-    const model = this.getModel(modelId);
-    
+  unregisterModel(id: string): boolean {
+    const model = this.models.get(id);
     if (!model) {
       return false;
     }
     
-    // Remove from models map
-    this.models.delete(modelId);
+    this.models.delete(id);
     
-    // Remove from provider
-    const provider = this.getProvider(model.provider);
-    if (provider) {
-      const index = provider.models.findIndex(m => m.id === modelId);
-      if (index >= 0) {
-        provider.models.splice(index, 1);
+    // Remove from provider list
+    const provider = model.getProvider();
+    const providerModels = this.providers.get(provider);
+    if (providerModels) {
+      const index = providerModels.findIndex(m => m.id === id);
+      if (index !== -1) {
+        providerModels.splice(index, 1);
       }
       
-      // If this was the default model, clear it
-      if (provider.defaultModel === modelId) {
-        provider.defaultModel = undefined;
+      // If provider has no more models, remove the provider entry
+      if (providerModels.length === 0) {
+        this.providers.delete(provider);
       }
     }
     
-    // Persist the change
-    this.persistProviders();
+    // If this was the default model, reset default
+    if (this.defaultModel === id) {
+      this.defaultModel = undefined;
+      this.config.set('ai.defaultModel', undefined);
+    }
     
-    // Emit event
-    this.emit('model:removed', { modelId });
-    
+    logger.debug(`Unregistered model: ${id}`);
     return true;
   }
-}
-
-// Helper function for registering providers
-export function registerProvider(provider: Provider): void {
-  const registry = ModelRegistry.getInstance();
-  registry.registerProvider(provider);
-}
-
-// Helper function for registering models
-export function registerModel(model: Model): void {
-  const registry = ModelRegistry.getInstance();
-  registry.registerModel(model);
 }

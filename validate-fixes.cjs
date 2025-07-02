@@ -1,0 +1,1 @@
+tools/validators/validate-fixes.cjs

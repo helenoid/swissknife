@@ -1,0 +1,71 @@
+/**
+ * Mock storage implementation for tests
+ */
+
+/**
+ * Create a mock storage system for tests
+ * 
+ * @param {object} options - Configuration options
+ * @returns {object} Mock storage implementation
+ */
+function createMockStorage(options = {}) {
+  const storage = {};
+  const mockCids = ['mock-cid-1', 'mock-cid-2'];
+  
+  return {
+    read: jest.fn().mockImplementation(key => {
+      return Promise.resolve(storage[key] || {});
+    }),
+    
+    write: jest.fn().mockImplementation((key, data) => {
+      storage[key] = data;
+      return Promise.resolve(true);
+    }),
+    
+    delete: jest.fn().mockImplementation(key => {
+      const existed = key in storage;
+      delete storage[key];
+      return Promise.resolve(existed);
+    }),
+    
+    list: jest.fn().mockImplementation(() => {
+      return Promise.resolve(options.returnCidsArray ? mockCids : { cids: mockCids });
+    }),
+    
+    _reset: jest.fn().mockImplementation(() => {
+      Object.keys(storage).forEach(key => {
+        delete storage[key];
+      });
+    }),
+
+    // IPFS-specific mock methods
+    get: jest.fn().mockImplementation(cid => {
+      if (cid === 'mock-cid-get') {
+        return Promise.resolve(Buffer.from('mock content'));
+      }
+      if (!storage[cid]) {
+        return Promise.reject(new Error(`Failed to get content for CID: ${cid}`));
+      }
+      return Promise.resolve(storage[cid]);
+    }),
+
+    add: jest.fn().mockImplementation((content, addOptions = {}) => {
+      const mockCid = options.mockCid || 'mock-cid-123';
+      storage[mockCid] = Buffer.isBuffer(content) ? content : Buffer.from(String(content));
+      return Promise.resolve(mockCid);
+    }),
+
+    // IPFS pinning related mock methods
+    pinContent: jest.fn().mockImplementation(cid => {
+      return Promise.resolve(true);
+    }),
+
+    unpinContent: jest.fn().mockImplementation(cid => {
+      return Promise.resolve(true);
+    })
+}
+
+// Export using CommonJS
+module.exports = {
+  createMockStorage
+};

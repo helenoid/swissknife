@@ -5,7 +5,7 @@
  * to apply all patches at once.
  */
 
-import { initMcpPatches } from './client-integration';
+import { initMcpPatches } from './client-integration.js';
 
 export { initMcpPatches };
 

@@ -4,10 +4,9 @@
  * This test demonstrates how to test the complete model execution pipeline,
  * including model selection, API key management, and result processing.
  */
-const { createTestEnvironment, setupGlobalMocks } = require('../../utils/setup');
-const { sampleModels, sampleProviders, sampleResponses } = require('../../fixtures/models/models');
-const { MockModelExecutionService } = require('../../mocks/services/mock-services');
-const { captureConsoleOutput, wait } = require('../../utils/test-helpers');
+
+const { createTestEnvironment, setupGlobalMocks, resetMocks } = require('../../utils/setup');
+const { captureConsoleOutput } = require('../../utils/test-helpers');
 
 /**
  * This test demonstrates how to test the complete model execution pipeline

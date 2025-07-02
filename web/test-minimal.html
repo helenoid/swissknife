@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwissKnife Minimal Test</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background: #2c3e50; color: white; }
+        .test-area { padding: 20px; }
+        .desktop { background: linear-gradient(45deg, #1e3c72, #2a5298); height: 100vh; position: relative; }
+        .icon { padding: 10px; margin: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; }
+        .icon:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    <div class="test-area">
+        <h1>SwissKnife Minimal Test</h1>
+        <p>Testing basic desktop functionality...</p>
+        <div id="status">Initializing...</div>
+        <div id="log"></div>
+    </div>
+    
+    <div id="desktop" class="desktop">
+        <div class="icon" onclick="testClick()">
+            <div>🖥️</div>
+            <div>Test Icon</div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Starting minimal test...');
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+            console.log(message);
+        }
+        
+        function testClick() {
+            log('Icon clicked - basic interaction works');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM Content Loaded');
+            document.getElementById('status').innerHTML = 'Ready';
+        });
+        
+        window.addEventListener('load', function() {
+            log('Window loaded');
+        });
+        
+        log('Script loaded');
+    </script>
+</body>
+</html>

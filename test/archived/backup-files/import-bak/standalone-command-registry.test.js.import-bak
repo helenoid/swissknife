@@ -1,0 +1,137 @@
+/**
+ * Standalone Command Registry Test
+ * 
+ * This test provides a completely independent implementation of a command registry
+ * that can be tested without any external dependencies.
+ */
+
+// Simple Command Registry implementation
+class CommandRegistry {
+  constructor() {
+    this.commands = new Map();
+  }
+  
+  register(command) {
+    const name = command.name;
+    if (this.commands.has(name)) {
+      console.warn(`Overwriting existing command: ${name}`);
+    }
+    this.commands.set(name, command);
+    return this;
+  }
+  
+  getCommand(name) {
+    return this.commands.get(name);
+  }
+  
+  listCommandNames() {
+    return Array.from(this.commands.keys());
+  }
+  
+  listCommands() {
+    return Array.from(this.commands.values());
+  }
+  
+  async executeCommand(name, args = [], context = {}) {
+    const command = this.getCommand(name);
+    if (!command) {
+      throw new Error(`Command not found: ${name}`);
+    }
+    
+    const parsedArgs = command.parseArguments ? command.parseArguments(args) : args;
+    return await command.execute(parsedArgs, context);
+  }
+}
+
+// Mock Command class for testing
+class MockCommand {
+  constructor(name, description = 'Mock command') {
+    this.name = name;
+    this.description = description;
+  }
+  
+  parseArguments(args) {
+    return { parsed: true, args };
+  }
+  
+  async execute(parsedArgs, context) {
+    return `Executed ${this.name} with ${JSON.stringify(parsedArgs)}`;
+  }
+}
+
+// Tests
+describe('Standalone Command Registry', () => {
+  let registry;
+  
+  beforeEach(() => {
+    registry = new CommandRegistry();
+  });
+  
+  test('registry can be instantiated', () => {
+    expect(registry).toBeDefined();
+    expect(registry).toBeInstanceOf(CommandRegistry);
+  });
+  
+  test('registry can register a command', () => {
+    const command = new MockCommand('test');
+    registry.register(command);
+    expect(registry.getCommand('test')).toBe(command);
+  });
+  
+  test('registry returns undefined for non-existent commands', () => {
+    expect(registry.getCommand('nonexistent')).toBeUndefined();
+  });
+  
+  test('registry lists registered command names', () => {
+    const command1 = new MockCommand('test1');
+    const command2 = new MockCommand('test2');
+    registry.register(command1);
+    registry.register(command2);
+    
+    const names = registry.listCommandNames();
+    expect(names).toContain('test1');
+    expect(names).toContain('test2');
+    expect(names.length).toBe(2);
+  });
+  
+  test('registry lists all registered commands', () => {
+    const command1 = new MockCommand('test1');
+    const command2 = new MockCommand('test2');
+    registry.register(command1);
+    registry.register(command2);
+    
+    const commands = registry.listCommands();
+    expect(commands).toContain(command1);
+    expect(commands).toContain(command2);
+    expect(commands.length).toBe(2);
+  });
+  
+  test('registry overwrites existing commands with warning', () => {
+    console.warn = jest.fn(); // Mock console.warn
+    
+    const command1 = new MockCommand('test', 'First command');
+    const command2 = new MockCommand('test', 'Second command');
+    
+    registry.register(command1);
+    registry.register(command2);
+    
+    const retrieved = registry.getCommand('test');
+    expect(retrieved).toBe(command2);
+    expect(retrieved).not.toBe(command1);
+    expect(console.warn).toHaveBeenCalled();
+  });
+  
+  test('executeCommand runs the command with given arguments', async () => {
+    const command = new MockCommand('test');
+    registry.register(command);
+    
+    const result = await registry.executeCommand('test', ['arg1', 'arg2']);
+    expect(result).toContain('test');
+    expect(result).toContain('arg1');
+    expect(result).toContain('arg2');
+  });
+  
+  test('executeCommand throws error for non-existent command', async () => {
+    await expect(registry.executeCommand('nonexistent')).rejects.toThrow('Command not found');
+  });
+});

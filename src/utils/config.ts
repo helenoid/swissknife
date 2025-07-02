@@ -2,15 +2,16 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { resolve, join } from 'path'
 import { cloneDeep, memoize, pick } from 'lodash-es'
 import { homedir } from 'os'
-import { GLOBAL_CLAUDE_FILE } from './env'
-import { getCwd } from './state'
+import { GLOBAL_CLAUDE_FILE } from './env.js'
+import { getCwd } from './state.js'
 import { randomBytes } from 'crypto'
-import { safeParseJSON } from './json'
-import { checkGate, logEvent } from '../services/statsig'
-import { GATE_USE_EXTERNAL_UPDATER } from '../constants/betas'
-import { ConfigParseError } from './errors'
-import type { ThemeNames } from './theme'
-import { getSessionState, setSessionState } from './sessionState'
+import { safeParseJSON } from './json.js'
+import { checkGate, logEvent } from '../services/statsig.js'
+import { GATE_USE_EXTERNAL_UPDATER } from '../constants/betas.js'
+import { ConfigParseError } from './errors.js'
+import type { ThemeNames } from './theme.js'
+import { getSessionState, setSessionState } from './sessionState.js'
+import type { McpVersionHistory } from '../services/mcp-types.js'
 
 export type McpStdioServerConfig = {
   type?: 'stdio' // Optional for backwards compatibility
@@ -35,6 +36,7 @@ export type ProjectConfig = {
   enableArchitectTool?: boolean
   mcpContextUris: string[]
   mcpServers?: Record<string, McpServerConfig>
+  mcpVersionHistory?: Record<string, McpVersionHistory>
   approvedMcprcServers?: string[]
   rejectedMcprcServers?: string[]
   lastAPIDuration?: number

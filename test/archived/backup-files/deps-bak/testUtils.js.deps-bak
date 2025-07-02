@@ -1,0 +1,102 @@
+// Mock temp directory helpers
+const createTempTestDir = jest.fn().mockImplementation((name) => `/tmp/test-${name}-${Date.now()}`);
+const removeTempTestDir = jest.fn().mockImplementation(async (dir) => Promise.resolve());
+/**
+ * Universal test utilities (JavaScript version)
+ */
+
+const path = require('path');
+const fs = require('fs/promises');
+const os = require('os');
+
+// Test helper functions
+function createMockModel(id, name, provider) {
+  return {
+    id,
+    name,
+    provider,
+    parameters: { temperature: 0.7 },
+    metadata: { version: '1.0' }
+  };
+}
+
+async function createTempTestDir() {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'swissknife-test-'));
+  return tempDir;
+}
+
+async function removeTempTestDir(dirPath) {
+  try {
+    await fs.rm(dirPath, { recursive: true, force: true });
+  } catch (error) {
+    console.warn('Failed to remove temp directory:', error);
+  }
+}
+
+function createMockStorage() {
+  return {
+    store: jest.fn(),
+    retrieve: jest.fn(),
+    delete: jest.fn(),
+    list: jest.fn()
+  };
+}
+
+function createMockLogger() {
+  return {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+  };
+}
+
+// Mock implementations for common classes
+class MockModel {
+  constructor(config) {
+    this.config = config;
+  }
+  
+  async execute(input) {
+    return { output: `Mock output for ${input}` };
+  }
+}
+
+class MockStorage {
+  constructor() {
+    this.data = new Map();
+  }
+  
+  async store(key, value) {
+    this.data.set(key, value);
+  }
+  
+  async retrieve(key) {
+    return this.data.get(key);
+  }
+  
+  async delete(key) {
+    this.data.delete(key);
+  }
+  
+  async list() {
+    return Array.from(this.data.keys());
+  }
+}
+
+const testConfig = {
+  tempDir: os.tmpdir(),
+  timeout: 10000,
+  retries: 3
+};
+
+module.exports = {
+  createMockModel,
+  createTempTestDir,
+  removeTempTestDir,
+  createMockStorage,
+  createMockLogger,
+  MockModel,
+  MockStorage,
+  testConfig
+};

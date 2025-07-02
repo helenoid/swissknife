@@ -1,0 +1,23 @@
+{
+  "ignore_dirs": [
+    "node_modules",
+    "dist",
+    ".git",
+    "coverage",
+    "logs",
+    "scripts",
+    "tools",
+    "test",
+    "benchmark",
+    "build-tools",
+    "cleanup-archive",
+    "emergency-archive",
+    "archived",
+    "goose",
+    "ipfs_accelerate_js",
+    "solution_tests",
+    "deploy",
+    "dist-manual",
+    "docs"
+  ]
+}

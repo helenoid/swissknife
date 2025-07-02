@@ -1,0 +1,106 @@
+
+> swissknife@0.0.53 test
+> jest --config=jest.config.cjs --rootDir=. --tsconfig=tsconfig.test.json test/unit/models/registry-revised.test.ts
+
+  console.log
+    Jest setup completed
+
+      at Object.log (test/setup-jest.js:7:9)
+
+  console.log
+    Jest setup completed with Chai
+
+      at Object.log (test/setup-jest.js:9:9)
+
+  console.log
+    Model registered: Model One (ID: model-1)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+  console.warn
+    Model with ID "non-existent-model" not found in registry.
+
+      48 |     if ('loader' in model) {
+      49 |       // For lazy models, we handle them in getModelAsync
+    > 50 |       console.warn(`Model with ID "${id}" is a lazy model. Use getModelAsync instead.`);
+         |                     ^
+      51 |       return undefined;
+      52 |     }
+      53 |     
+
+      at ModelRegistry.getModelAsync (src/ai/models/registry.ts:50:21)
+      at Object.<anonymous> (test/unit/models/registry-revised.test.ts:48:47)
+
+  console.log
+    Model registered: Model One (ID: model-1)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+  console.log
+    Model registered: Model Two (ID: model-2)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+  console.log
+    Model registered: Model One (ID: model-1)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+  console.log
+    Model registered: Model Two (ID: model-2)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+  console.log
+    Model registered: Model One (ID: model-1)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+  console.log
+    Model registered: Model One Overwritten (ID: model-1)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+  console.log
+    Lazy model registered: lazy-model-1
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:18:21)
+
+  console.log
+    Lazy model registered: lazy-model-2
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:18:21)
+
+  console.log
+    Model registered: Sync Model (ID: sync-model)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+  console.log
+    Lazy model registered: async-only-model
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:18:21)
+
+  console.log
+    Model registered: Generator Model (ID: test-gen-model)
+
+      at ModelRegistry.registerModel (src/ai/models/registry.ts:25:21)
+
+PASS test/unit/models/registry-revised.test.ts (8.051 s)
+  ModelRegistry
+    ✓ should be a singleton (6 ms)
+    ✓ should register and retrieve a model (6 ms)
+    ✓ should return undefined for a non-existent model ID (6 ms)
+    ✓ should register multiple models and allow retrieving them individually (3 ms)
+    ✓ should set the first registered model as default (3 ms)
+    ✓ should overwrite a model if registered with the same ID (4 ms)
+    ✓ should handle lazy-loaded models (2 ms)
+    ✓ should properly cache loaded lazy models (3 ms)
+    ✓ should differentiate sync and async model getters (4 ms)
+    ✓ should support model generation through the registry (3 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       10 passed, 10 total
+Snapshots:   0 total
+Time:        8.819 s
+Ran all test suites matching test/unit/models/registry-revised.test.ts.

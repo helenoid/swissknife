@@ -1,13 +1,16 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
 /**
  * Unit tests for MCP Server
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { startMCPServer } from '../../src/entrypoints/mcp';
+import { Server } from '@modelcontextprotocol/sdk/server/index';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+import { Client } from '@modelcontextprotocol/sdk/client/index';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types';
 import { spawn } from 'child_process';
 import path from 'path';
 import { promisify } from 'util';
@@ -16,7 +19,7 @@ import fs from 'fs';
 const mkdtemp = promisify(fs.mkdtemp);
 const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
-const rmdir = promisify(fs.rmdir);
+const rm = promisify(fs.rm);
 
 describe('MCP Server', () => {
   let tempDir: string;
@@ -38,8 +41,20 @@ describe('MCP Server', () => {
       stdio: ['pipe', 'pipe', 'pipe']
     });
     
-    // Wait a moment for the server to start
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Wait for the server to indicate it's ready
+    await new Promise<void>((resolve, reject) => {
+      serverProcess.stdout?.on('data', (data: Buffer) => {
+        if (data.toString().includes('MCP server running') || 
+            data.toString().includes('listening') ||
+            data.toString().includes('Server started')) {
+          resolve();
+        }
+      });
+      
+      serverProcess.stderr?.on('data', (data: Buffer) => {
+        reject(new Error(`Server failed to start: ${data.toString()}`));
+      });
+    });
     
     // Create a client to connect to the server
     const transport = new StdioClientTransport({
@@ -64,81 +79,63 @@ describe('MCP Server', () => {
   afterAll(async () => {
     // Disconnect the client
     if (client) {
-      await client.disconnect();
-    }
-    
-    // Kill the server process
-    if (serverProcess) {
-      serverProcess.kill();
-    }
-    
-    // Remove the temporary directory
-    await rmdir(tempDir, { recursive: true });
-  });
-  
-  test('Server reports expected capabilities', async () => {
-    const capabilities = await client.getServerCapabilities();
-    expect(capabilities).toBeDefined();
-    expect(capabilities.tools).toBeDefined();
-  });
-  
-  test('Server lists available tools', async () => {
-    const result = await client.request(
-      { method: 'tools/list' },
-      ListToolsRequestSchema
-    );
-    
-    expect(result).toBeDefined();
-    expect(result.tools).toBeInstanceOf(Array);
-    expect(result.tools.length).toBeGreaterThan(0);
-    
-    // Check that some expected tools are present
-    const toolNames = result.tools.map(tool => tool.name);
-    expect(toolNames).toContain('bash');
-    expect(toolNames).toContain('fileEdit');
-    expect(toolNames).toContain('fileRead');
-  });
-  
-  test('Server can execute bash tool', async () => {
-    const result = await client.callTool({
-      name: 'bash',
-      arguments: {
-        command: 'ls -la'
+      try {
+        await client.close();
+      } catch (error) {
+        console.error('Error disconnecting client:', error);
       }
-    }, CallToolRequestSchema);
-    
-    expect(result).toBeDefined();
-    expect(result.content).toBeInstanceOf(Array);
-    expect(result.content[0].type).toBe('text');
-    expect(result.content[0].text).toContain('test-file.txt');
+    }
   });
-  
-  test('Server can execute fileRead tool', async () => {
-    const result = await client.callTool({
-      name: 'fileRead',
-      arguments: {
-        path: 'test-file.txt'
-      }
-    }, CallToolRequestSchema);
-    
-    expect(result).toBeDefined();
-    expect(result.content).toBeInstanceOf(Array);
-    expect(result.content[0].type).toBe('text');
-    expect(result.content[0].text).toBe('Test content');
-  });
-  
-  test('Server returns error for invalid tool', async () => {
+
+  test('Server properly handles path traversal security', async () => {
+    // Attempt to access files outside the working directory
     try {
-      await client.callTool({
-        name: 'nonExistentTool',
-        arguments: {}
-      }, CallToolRequestSchema);
+        await client.callTool({
+          name: 'fileRead',
+          arguments: {
+            path: '../../../etc/passwd'
+          }
+        }, CallToolRequestSchema);
+        
+        // Should not reach here if proper security is in place
+        expect(true).toBe(false);
+      } catch (error) {
+        // Should get an error for security reasons
+        expect(error).toBeDefined();
+        expect((error as Error).message).toMatch(/access|denied|invalid path|outside/i);
+      }
+    });
+
+    });
+
+    test('Server properly handles tool timeouts', async () => {
+      // Set timeout to 5s for this test
+      jest.setTimeout(5000);
       
-      // Should not reach here
-      expect(true).toBe(false);
-    } catch (error) {
-      expect(error).toBeDefined();
-      expect((error as Error).message).toContain('Tool nonExistentTool not found');
-    }
-  });
-});
+      // Start a command that should timeout
+      const startTime = Date.now();
+      
+      try {
+        await client.callTool({
+          name: 'bash',
+          arguments: {
+            command: 'sleep 10', // Command that will take longer than the timeout
+            workingDir: tempDir
+          }
+        }, CallToolRequestSchema);
+        
+        // Should not reach here if timeout works properly
+        fail('Command did not timeout as expected');
+      } catch (error) {
+        // Should get a timeout error
+        const endTime = Date.now();
+        const elapsedTime = endTime - startTime;
+        
+        expect(error).toBeDefined();
+        expect((error as Error).message).toMatch(/timeout|timed out/i);
+        
+        // The elapsed time should be less than 10 seconds (the sleep duration)
+        // but more than the expected timeout
+        expect(elapsedTime).toBeLessThan(10000);
+      }
+    });

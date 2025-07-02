@@ -1,0 +1,153 @@
+// Mock common dependencies
+jest.mock("chalk", () => ({ default: (str) => str, red: (str) => str, green: (str) => str, blue: (str) => str }));
+jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
+jest.mock("fs", () => ({ promises: { readFile: jest.fn(), writeFile: jest.fn(), mkdir: jest.fn() } }));
+/**
+ * Comprehensive Mock Implementations for SwissKnife Tests
+ * 
+ * This file provides standardized mock implementations for all major components,
+ * ensuring consistent behavior across tests.
+ */
+const { EventEmitter } = require('events');
+
+/**
+ * Create a mock stream that can be used for testing stream behavior
+ * @param {Array} chunks Array of data chunks to emit
+ * @param {number} delay Delay between chunks in ms
+ * @param {Error} [error] Optional error to emit
+ * @returns {EventEmitter} A mock stream
+ */
+function createMockStream(chunks = [], delay = 10, error = null) {
+  const stream = new EventEmitter();
+  
+  // Add pipe method to make it more compatible with stream interfaces
+  stream.pipe = jest.fn().mockReturnValue(stream);
+  
+  // Enhanced on method to handle chaining
+  const originalOn = stream.on;
+  stream.on = function(event, handler) {
+    originalOn.call(this, event, handler);
+    return this;
+  };
+
+  // Mock implementation of once
+  stream.once = function(event, handler) {
+    this.on(event, function onceHandler(...args) {
+      stream.removeListener(event, onceHandler);
+      handler.apply(this, args);
+    });
+    return this;
+  };
+
+  // Schedule the emission of chunks with delay
+  if (chunks && chunks.length > 0) {
+    setTimeout(() => {
+      chunks.forEach((chunk, index) => {
+        setTimeout(() => {
+          stream.emit('data', chunk);
+        }, index * delay);
+      });
+      
+      // Emit end after all chunks
+      setTimeout(() => {
+        if (error) {
+          stream.emit('error', error);
+        }
+        stream.emit('end');
+        stream.emit('close');
+      }, chunks.length * delay + 10);
+    }, 5);
+  } else if (error) {
+    // Just emit error if no chunks
+    setTimeout(() => {
+      stream.emit('error', error);
+      stream.emit('close');
+    }, 5);
+  } else {
+    // Empty stream
+    setTimeout(() => {
+      stream.emit('end');
+      stream.emit('close');
+    }, 5);
+  }
+  
+  return stream;
+}
+
+/**
+ * Mock ModelExecutionService implementation
+ */
+const MockModelExecutionService = {
+  executeModel: jest.fn().mockImplementation(async (modelId, prompt, options = {}) => {
+    return {
+      response: `Mock response for "${prompt}" using model ${modelId}`,
+      usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+      timingMs: 100
+    };
+  }),
+  
+  executeModelStream: jest.fn().mockImplementation(async (modelId, prompt, options = {}) => {
+    return createMockStream([
+      { text: 'This ' },
+      { text: 'is ' },
+      { text: 'a ' },
+      { text: 'mock ' },
+      { text: 'response.' }
+    ]);
+  })
+};
+
+/**
+ * Mock MCP Server implementation
+ */
+const MockMCPServer = {
+  start: jest.fn().mockResolvedValue({ port: 3000 }),
+  stop: jest.fn().mockResolvedValue(true),
+  registerTool: jest.fn().mockResolvedValue(true),
+  callTool: jest.fn().mockImplementation(async (request) => {
+    if (request?.name === 'bash' && request?.arguments?.command.includes('sleep')) {
+      // Simulate timeout
+      await new Promise(resolve => setTimeout(resolve, 100));
+      throw new Error('Command timed out');
+    }
+    return { result: 'Mock tool result' };
+  })
+};
+
+/**
+ * Mock File System implementation
+ */
+const MockFileSystem = {
+  readFile: jest.fn().mockImplementation(async (path) => {
+    return Buffer.from('Mock file content');
+  }),
+  writeFile: jest.fn().mockResolvedValue(undefined),
+  exists: jest.fn().mockResolvedValue(true),
+  mkdir: jest.fn().mockResolvedValue(undefined),
+  readdir: jest.fn().mockResolvedValue(['file1', 'file2']),
+};
+
+/**
+ * Mock IPFS implementation
+ */
+const MockIPFS = {
+  add: jest.fn().mockResolvedValue({ cid: 'QmMockCid', path: '/mock/path', size: 123 }),
+  cat: jest.fn().mockImplementation(async (cid) => {
+    return Buffer.from('Mock IPFS content');
+  }),
+  pin: {
+    add: jest.fn().mockResolvedValue([{ cid: 'QmMockCid' }])
+  },
+  files: {
+    write: jest.fn().mockResolvedValue(undefined),
+    read: jest.fn().mockReturnValue(createMockStream([Buffer.from('Mock MFS content')]))
+  }
+};
+
+module.exports = {
+  createMockStream,
+  MockModelExecutionService,
+  MockMCPServer,
+  MockFileSystem,
+  MockIPFS
+};

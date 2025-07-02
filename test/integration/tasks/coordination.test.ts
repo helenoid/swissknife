@@ -1,11 +1,12 @@
 // NOTE: Using relative paths to source .ts files. If 'Cannot find module' errors persist,
 // check Jest/TS configuration (moduleNameMapper, preset, module resolution).
-import { Coordinator } from '../../../../src/tasks/coordination/coordinator';
-import { MerkleClock } from '../../../../src/tasks/coordination/merkle_clock';
-import { normalizeId, calculateHammingDistance, determineResponsibility } from '../../../../src/tasks/coordination/responsibility'; // Added determineResponsibility
-import type { NetworkService } from '../../../../src/network/service'; // Assuming interface/type exists
-import type { TaskExecutor } from '../../../../src/tasks/execution/executor'; // Assuming interface/type exists
-import type { Task } from '../../../../src/tasks/types'; // Assuming Task type exists
+
+import { Coordinator } from '../../../../src/tasks/coordination/coordinator.ts';
+import { NetworkService } from '../../../../src/services/network/network-service.ts'; // Assuming path
+import { TaskExecutor } from '../../../../src/tasks/executor/task-executor.ts'; // Assuming path
+import { MerkleClock } from '../../../../src/tasks/coordination/merkle-clock.ts';
+import { Task } from '../../../../src/types/task.ts';
+import { determineResponsibility } from '../../../../src/tasks/coordination/responsibility.ts';
 
 // --- Mocks ---
 
@@ -66,10 +67,10 @@ describe('Coordinator Integration Tests', () => {
 
     // Mocking internal functions called by Coordinator - adjust based on actual implementation
     // If Coordinator directly uses functions from responsibility.ts:
-    jest.mock('../../../../src/tasks/coordination/responsibility', () => ({
-      ...jest.requireActual('../../../../src/tasks/coordination/responsibility'), // Keep original implementations by default
-      determineResponsibility: jest.fn(), // Mock only determineResponsibility
-    }));
+jest.mock('../../../../src/tasks/coordination/responsibility.ts', () => ({
+  ...jest.requireActual('../../../../src/tasks/coordination/responsibility.ts'), // Keep original implementations by default
+  determineResponsibility: jest.fn(), // Mock only determineResponsibility
+}));
   });
 
   // --- Task Distribution Tests ---
