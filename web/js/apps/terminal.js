@@ -3,7 +3,7 @@
  * Provides a browser-based terminal interface to the SwissKnife toolkit
  */
 
-import { SwissKnifeCLIAdapter } from '../adapters/cli-adapter.js';
+import { EnhancedCLIAdapter } from '../adapters/enhanced-cli-adapter.js';
 
 export class TerminalApp {
   constructor(windowElement, swissknife) {
@@ -13,8 +13,8 @@ export class TerminalApp {
     this.historyIndex = 0;
     this.currentDirectory = '/';
     
-    // Initialize CLI adapter for enhanced commands
-    this.cliAdapter = new SwissKnifeCLIAdapter(swissknife);
+    // Initialize enhanced CLI adapter with shared system integration
+    this.cliAdapter = new EnhancedCLIAdapter(swissknife);
     
     this.init();
   }

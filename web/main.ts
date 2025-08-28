@@ -2152,7 +2152,46 @@ class SwissKnifeDesktop {
 }
 
 // Initialize SwissKnife Desktop when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   console.log('Initializing SwissKnife Web Desktop with Vite...');
+  
+  // Initialize shared system components
+  try {
+    // Dynamic import to handle potential module loading issues
+    const { configManager, aiManager, eventBus, initializeDefaultProviders } = await import('../src/shared/index.js');
+    
+    // Initialize default AI providers
+    initializeDefaultProviders({
+      openai: {
+        name: 'OpenAI',
+        apiUrl: 'https://api.openai.com/v1',
+        models: ['gpt-4', 'gpt-3.5-turbo'],
+        enabled: true
+      },
+      ollama: {
+        name: 'Ollama',
+        apiUrl: 'http://localhost:11434',
+        models: ['llama2', 'codellama'],
+        enabled: true
+      }
+    });
+    
+    // Make shared system available globally for the enhanced CLI adapter
+    (window as any).swissKnifeShared = {
+      configManager,
+      aiManager,
+      eventBus,
+      initialized: true
+    };
+    
+    console.log('✅ SwissKnife shared system initialized successfully');
+  } catch (error) {
+    console.warn('⚠️ Failed to initialize shared system, using fallback:', error);
+    (window as any).swissKnifeShared = {
+      initialized: false,
+      error: error.message
+    };
+  }
+  
   window.desktop = new SwissKnifeDesktop();
 });
