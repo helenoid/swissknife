@@ -2,11 +2,11 @@
 // This file adapts the existing TypeScript SwissKnife core for web usage
 
 // Import core SwissKnife modules (adapted for browser)
-import { AIService } from '../../src/ai/service';
-import { TaskManager } from '../../src/tasks/manager';
-import { StorageEngine } from '../../src/storage/engine';
-import { GraphOfThought } from '../../src/tasks/graph-of-thought';
-import { FibonacciHeapScheduler } from '../../src/tasks/fibonacci-heap-scheduler';
+import { AIService } from '../../../src/ai/service.js';
+import { TaskManager } from '../../../src/tasks/manager.js';
+import { StorageService } from '../../../src/storage/service.js';
+import { GraphOfThought } from '../../../src/tasks/graph-of-thought.js';
+import { FibonacciHeapScheduler } from '../../../src/tasks/fibonacci-heap-scheduler.js';
 
 // Browser-specific implementations
 class BrowserStorageEngine {

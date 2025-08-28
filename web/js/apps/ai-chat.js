@@ -1,6 +1,11 @@
 /**
  * AI Chat App for SwissKnife Web Desktop
+ * Enhanced with shared AI system integration
  */
+
+import { aiManager } from '../../src/shared/ai/index.js';
+import { eventBus } from '../../src/shared/events/index.js';
+import { configManager } from '../../src/shared/config/index.js';
 
 export class AIChatApp {
   constructor(desktop) {
@@ -9,6 +14,35 @@ export class AIChatApp {
     this.currentConversation = null;
     this.conversations = [];
     this.selectedModel = 'gpt-4';
+    
+    // Use shared AI system
+    this.aiManager = aiManager;
+    this.setupSharedSystemIntegration();
+  }
+
+  setupSharedSystemIntegration() {
+    // Listen for AI configuration updates
+    eventBus.on('config:update', (data) => {
+      if (data.component === 'ai') {
+        this.updateAISettings();
+      }
+    });
+
+    // Listen for AI events
+    eventBus.on('ai:model-available', (data) => {
+      this.updateModelList(data.model);
+    });
+  }
+
+  async updateAISettings() {
+    const aiConfig = configManager.getComponentConfig('ai');
+    this.selectedModel = aiConfig.defaultModel || 'gpt-4';
+    
+    // Update UI if window exists
+    const modelSelect = document.querySelector('#model-select');
+    if (modelSelect) {
+      modelSelect.value = this.selectedModel;
+    }
   }
 
   async initialize() {
@@ -117,35 +151,55 @@ export class AIChatApp {
     const typingIndicator = this.addTypingIndicator(window);
 
     try {
-      // Send to SwissKnife AI
-      const response = await this.swissknife.chat({
-        message: message,
+      // Use shared AI system for inference
+      const response = await this.aiManager.inference({
         model: this.selectedModel,
-        conversationId: this.currentConversation?.id
+        prompt: message,
+        temperature: 0.7,
+        max_tokens: 1000
       });
 
       // Remove typing indicator
       typingIndicator.remove();
 
       // Add AI response
-      this.addMessageToChat(window, response.message, 'assistant');
+      this.addMessageToChat(window, response.response, 'assistant');
 
       // Update conversation
-      if (response.conversationId) {
+      if (!this.currentConversation) {
         this.currentConversation = {
-          id: response.conversationId,
+          id: `conv_${Date.now()}`,
           title: this.generateConversationTitle(message),
-          messages: [...(this.currentConversation?.messages || []), 
-                    { role: 'user', content: message },
-                    { role: 'assistant', content: response.message }]
+          messages: []
         };
-        await this.saveConversation(this.currentConversation);
-        this.populateConversationList(window);
       }
+
+      this.currentConversation.messages.push(
+        { role: 'user', content: message },
+        { role: 'assistant', content: response.response }
+      );
+
+      await this.saveConversation(this.currentConversation);
+      this.populateConversationList(window);
+
+      // Emit event for cross-component integration
+      eventBus.emit('ai:inference-complete', {
+        model: this.selectedModel,
+        prompt: message,
+        response: response.response,
+        conversationId: this.currentConversation.id
+      });
 
     } catch (error) {
       typingIndicator.remove();
       this.addMessageToChat(window, `Error: ${error.message}`, 'error');
+      
+      // Emit error event
+      eventBus.emit('ai:inference-error', {
+        model: this.selectedModel,
+        prompt: message,
+        error: error.message
+      });
     }
   }
 

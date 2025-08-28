@@ -10,4 +10,4 @@ export * from './browser';
 export * from './utils';
 
 // Export type definitions
-export * from './types/hardware_abstraction';
+export * from './types/hardware_abstraction.d';
