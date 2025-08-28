@@ -19,6 +19,9 @@ export * from './ai/index.js'
 // Configuration management
 export * from './config/index.js'
 
+// CLI integration
+export * from './cli/index.js'
+
 // Version information
 export const SWISSKNIFE_VERSION = '0.0.53'
 export const SHARED_VERSION = '1.0.0'
@@ -31,34 +34,7 @@ export const COMPONENTS = {
 } as const
 
 // Quick access to commonly used exports
-export {
-  // Events
-  eventBus,
-  events,
-  createComponentEventBus,
-  
-  // Configuration
-  configManager,
-  config,
-  
-  // AI
-  aiManager,
-  initializeDefaultProviders,
-  
-  // Constants
-  APP_IDS,
-  DEFAULT_CONFIG,
-  AI_PROVIDERS,
-  THEMES,
-  
-  // Utils
-  formatFileSize,
-  formatRelativeTime,
-  debounce,
-  throttle,
-  deepClone,
-  mergeDeep
-} from './index.js'
+// Note: These are re-exported from their respective modules to avoid circular imports
 
 // Type re-exports for convenience
 export type {
