@@ -193,12 +193,12 @@ export class TransformersModelServer extends EventEmitter {
     }
 
     // Unload all models
-    for (const modelId of this.loadedModels.keys()) {
+    for (const modelId of Array.from(this.loadedModels.keys())) {
       await this.unloadModel(modelId);
     }
 
     // Cancel active requests
-    for (const request of this.activeRequests.values()) {
+    for (const request of Array.from(this.activeRequests.values())) {
       this.emit('inference:error', {
         id: request.id,
         status: 'error',

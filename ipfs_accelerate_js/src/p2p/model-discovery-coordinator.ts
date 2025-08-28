@@ -5,7 +5,7 @@
 
 import { EventEmitter } from 'events';
 import type { IPFSModelStorage, IPFSModelMetadata, ModelRegistryEntry } from '../storage/ipfs-model-storage.js';
-import type { SimpleP2PManager, PeerInfo } from './simple-p2p.js';
+import type { SimpleP2PManager } from './simple-p2p.js';
 
 export interface P2PModelMessage {
   type: 'model:registry' | 'model:request' | 'model:response' | 'model:announce' | 'model:remove';
@@ -232,7 +232,7 @@ export class P2PModelDiscoveryCoordinator extends EventEmitter {
             data: Array.from(new Uint8Array(modelData)) // Convert to transferable format
           },
           timestamp: Date.now(),
-          senderId: this.p2pManager.getLocalPeerId()
+          senderId: this.p2pManager.getLocalId().id
         };
 
         this.p2pManager.sendMessage(senderId, response);
@@ -251,7 +251,7 @@ export class P2PModelDiscoveryCoordinator extends EventEmitter {
             error: 'Model not available'
           },
           timestamp: Date.now(),
-          senderId: this.p2pManager.getLocalPeerId()
+          senderId: this.p2pManager.getLocalId().id
         };
 
         this.p2pManager.sendMessage(senderId, response);
@@ -270,7 +270,7 @@ export class P2PModelDiscoveryCoordinator extends EventEmitter {
           error: error.message
         },
         timestamp: Date.now(),
-        senderId: this.p2pManager.getLocalPeerId()
+        senderId: this.p2pManager.getLocalId().id
       };
 
       this.p2pManager.sendMessage(senderId, response);
@@ -390,10 +390,10 @@ export class P2PModelDiscoveryCoordinator extends EventEmitter {
         }
       },
       timestamp: Date.now(),
-      senderId: this.p2pManager.getLocalPeerId()
+      senderId: this.p2pManager.getLocalId().id
     };
 
-    this.p2pManager.broadcastMessage(message);
+    this.p2pManager.broadcast(message);
   }
 
   /**
@@ -404,10 +404,10 @@ export class P2PModelDiscoveryCoordinator extends EventEmitter {
       type: 'model:announce',
       payload: metadata,
       timestamp: Date.now(),
-      senderId: this.p2pManager.getLocalPeerId()
+      senderId: this.p2pManager.getLocalId().id
     };
 
-    this.p2pManager.broadcastMessage(message);
+    this.p2pManager.broadcast(message);
     
     console.log(`Announced model ${metadata.modelId} to network`);
   }
@@ -445,7 +445,7 @@ export class P2PModelDiscoveryCoordinator extends EventEmitter {
           requestId
         },
         timestamp: Date.now(),
-        senderId: this.p2pManager.getLocalPeerId()
+        senderId: this.p2pManager.getLocalId().id
       };
 
       this.p2pManager.sendMessage(selectedPeer.peerId, message);
@@ -579,7 +579,7 @@ export class P2PModelDiscoveryCoordinator extends EventEmitter {
   getNetworkModels(): { modelId: string; metadata: IPFSModelMetadata; availablePeers: string[] }[] {
     const networkModels = new Map<string, { metadata: IPFSModelMetadata; peers: string[] }>();
 
-    for (const peer of this.peerCapabilities.values()) {
+    for (const peer of Array.from(this.peerCapabilities.values())) {
       for (const model of peer.availableModels) {
         if (networkModels.has(model.modelId)) {
           networkModels.get(model.modelId)!.peers.push(peer.peerId);

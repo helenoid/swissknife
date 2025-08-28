@@ -394,7 +394,7 @@ export class IPFSModelStorage extends EventEmitter {
    * Sync with P2P network to discover new models
    */
   async syncWithPeers(peerModelRegistries: Map<string, IPFSModelMetadata[]>): Promise<void> {
-    for (const [peerId, peerModels] of peerModelRegistries) {
+    for (const [peerId, peerModels] of Array.from(peerModelRegistries.entries())) {
       for (const peerModel of peerModels) {
         const existingEntry = this.modelRegistry.get(peerModel.modelId);
         
