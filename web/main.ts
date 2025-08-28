@@ -332,6 +332,13 @@ class SwissKnifeDesktop {
       singleton: true
     });
     
+    this.apps.set('p2p-network', {
+      name: 'P2P Network',
+      icon: '🔗',
+      component: 'P2PNetworkApp',
+      singleton: true
+    });
+    
     this.apps.set('settings', {
       name: 'Settings',
       icon: '⚙️',
@@ -652,6 +659,11 @@ class SwissKnifeDesktop {
           
         case 'ipfsexplorerapp':
           this.loadIPFSExplorerApp(contentElement);
+          break;
+          
+        case 'p2pnetworkapp':
+          console.log('🔗 Loading P2P Network app...');
+          this.loadP2PNetworkApp(contentElement);
           break;
           
         case 'cronapp':
@@ -1182,6 +1194,40 @@ class SwissKnifeDesktop {
         <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
       </div>
     `;
+  }
+  
+  async loadP2PNetworkApp(contentElement: HTMLElement) {
+    try {
+      // Load P2P Network app script
+      await this.loadScript('/js/apps/p2p-network.js');
+      
+      // Initialize the P2P Network app
+      if ((window as any).createP2PNetworkApp) {
+        const p2pApp = (window as any).createP2PNetworkApp();
+        p2pApp.init(contentElement);
+      } else {
+        throw new Error('P2P Network app not loaded properly');
+      }
+    } catch (error) {
+      console.error('Failed to load P2P Network app:', error);
+      contentElement.innerHTML = `
+        <div class="app-placeholder">
+          <h2>🔗 P2P Network Manager</h2>
+          <p>P2P networking functionality will be implemented here.</p>
+          <div class="p2p-preview">
+            <h3>Features:</h3>
+            <ul>
+              <li>🌐 Peer Discovery & Connection</li>
+              <li>🧠 Distributed ML Computing</li>
+              <li>📤 Resource Sharing</li>
+              <li>🔄 Task Distribution</li>
+              <li>🤝 Model Collaboration</li>
+            </ul>
+          </div>
+          <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+        </div>
+      `;
+    }
   }
   
   loadCronApp(contentElement: HTMLElement) {
