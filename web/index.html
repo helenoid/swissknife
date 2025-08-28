@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SwissKnife Web Desktop</title>
+    <link rel="icon" href="/favicon.ico">
 </head>
 <body>
     <!-- Desktop Environment -->
@@ -94,7 +95,7 @@
         </div>
         
         <!-- System Menu -->
-        <div id="system-menu" class="system-menu">
+        <div id="system-menu" class="system-menu hidden">
             <div class="menu-section">
                 <div class="menu-title">Applications</div>
                 <div class="menu-item" data-app="terminal">🖥️ Terminal</div>
@@ -176,24 +177,7 @@
         <div class="context-item" onclick="showDesktopProperties()">⚙️ Properties</div>
     </div>
     
-    <!-- Scripts -->
-    <script src="js/core/swissknife-core.js"></script>
-    <script src="js/core/strudel-cdn-loader.js"></script>
-    <script src="js/core/window-manager.js"></script>
-    <script src="js/core/desktop-manager.js"></script>
-    <script src="js/core/ai-engine.js"></script>
-    <script src="js/core/storage-engine.js"></script>
-    <script src="js/core/webnn-engine.js"></script>
-    <script src="js/music-parser.js"></script>
-    <script src="js/apps/terminal.js"></script>
-    <script src="js/apps/vibecode.js"></script>
-    <script src="js/apps/ai-chat.js"></script>
-    <script src="js/apps/file-manager.js"></script>
-    <script src="js/apps/task-manager.js"></script>
-    <script src="js/apps/model-browser.js"></script>
-    <script src="js/apps/ipfs-explorer.js"></script>
-    <script src="js/apps/settings.js"></script>
-    <script src="js/apps/strudel-grandma.js"></script>
-    <script src="js/main.js"></script>
+    <!-- Vite Entry Point -->
+    <script type="module" src="/main.ts"></script>
 </body>
 </html>
