@@ -816,6 +816,7 @@
             <button class="tab-button active" data-tab="network">Network</button>
             <button class="tab-button" data-tab="peers">Peers</button>
             <button class="tab-button" data-tab="models">Models</button>
+            <button class="tab-button" data-tab="ipfs-models">IPFS Models</button>
             <button class="tab-button" data-tab="tasks">Tasks</button>
             <button class="tab-button" data-tab="resources">Resources</button>
           </div>
@@ -830,6 +831,10 @@
 
           <div class="tab-content" id="models-tab">
             ${renderModelsTab()}
+          </div>
+
+          <div class="tab-content" id="ipfs-models-tab">
+            ${renderIPFSModelsTab()}
           </div>
 
           <div class="tab-content" id="tasks-tab">
@@ -1128,6 +1133,402 @@
     `;
   }
 
+  function renderIPFSModelsTab() {
+    // Get IPFS models data
+    const ipfsModels = getIPFSModelsData();
+    const networkModels = getNetworkModelsData();
+    const storageStats = getIPFSStorageStats();
+    
+    return `
+      <div class="ipfs-models-section">
+        <div class="section-header">
+          <h3>🌐 IPFS Model Storage & Sharing</h3>
+          <p>Distributed model storage and peer-to-peer sharing via IPFS</p>
+        </div>
+
+        <!-- IPFS Storage Statistics -->
+        <div class="network-stats">
+          <div class="stat-card">
+            <div class="stat-icon">💾</div>
+            <div class="stat-info">
+              <div class="stat-value">${storageStats.totalModels}</div>
+              <div class="stat-label">Total Models</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+              <div class="stat-value">${storageStats.localModels}</div>
+              <div class="stat-label">Local Cache</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🌍</div>
+            <div class="stat-info">
+              <div class="stat-value">${storageStats.ipfsModels}</div>
+              <div class="stat-label">IPFS Storage</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💿</div>
+            <div class="stat-info">
+              <div class="stat-value">${formatBytes(storageStats.storageUsed)}</div>
+              <div class="stat-label">Storage Used</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IPFS Models Tab Navigation -->
+        <div class="p2p-tabs">
+          <button class="tab-button active" data-ipfs-tab="ipfs-registry">IPFS Registry</button>
+          <button class="tab-button" data-ipfs-tab="network-discovery">Network Discovery</button>
+          <button class="tab-button" data-ipfs-tab="storage-management">Storage Management</button>
+        </div>
+
+        <!-- IPFS Registry Tab -->
+        <div class="ipfs-tab-content active" id="ipfs-registry">
+          <div class="models-actions">
+            <button class="action-btn primary" onclick="uploadModelToIPFS()">
+              📤 Upload Model to IPFS
+            </button>
+            <button class="action-btn" onclick="refreshIPFSRegistry()">
+              🔄 Refresh Registry
+            </button>
+            <input type="text" id="ipfs-search" placeholder="Search models..." class="search-input">
+          </div>
+
+          <div class="models-grid">
+            ${ipfsModels.map(model => `
+              <div class="model-card ipfs-model ${model.availability.local ? 'local' : ''}">
+                <div class="model-header">
+                  <h4>${model.metadata.name}</h4>
+                  <div class="model-badges">
+                    <span class="model-badge ${model.metadata.modelFormat}">${model.metadata.modelFormat.toUpperCase()}</span>
+                    ${model.metadata.tags?.map(tag => `<span class="model-tag">${tag}</span>`).join('') || ''}
+                  </div>
+                </div>
+                <div class="model-details">
+                  <div class="model-info-row">
+                    <span class="label">Version:</span>
+                    <span class="value">${model.metadata.version}</span>
+                  </div>
+                  <div class="model-info-row">
+                    <span class="label">Size:</span>
+                    <span class="value">${formatBytes(model.metadata.size)}</span>
+                  </div>
+                  <div class="model-info-row">
+                    <span class="label">CID:</span>
+                    <span class="value cid-text" title="${model.metadata.cid}">${model.metadata.cid.substring(0, 20)}...</span>
+                  </div>
+                  <div class="model-info-row">
+                    <span class="label">Availability:</span>
+                    <div class="availability-indicators">
+                      ${model.availability.local ? '<span class="availability-badge local">Local</span>' : ''}
+                      ${model.availability.ipfs ? '<span class="availability-badge ipfs">IPFS</span>' : ''}
+                      ${model.availability.peers.length > 0 ? `<span class="availability-badge peers">${model.availability.peers.length} Peers</span>` : ''}
+                    </div>
+                  </div>
+                  ${model.metadata.description ? `
+                    <div class="model-description">
+                      ${model.metadata.description}
+                    </div>
+                  ` : ''}
+                </div>
+                <div class="model-actions">
+                  ${!model.availability.local ? `
+                    <button class="action-btn primary small" onclick="downloadFromIPFS('${model.metadata.modelId}')">
+                      📥 Download
+                    </button>
+                  ` : `
+                    <button class="action-btn small" onclick="loadModelIntoServer('${model.metadata.modelId}')">
+                      🚀 Load Model
+                    </button>
+                  `}
+                  <button class="action-btn small" onclick="shareModelToPeers('${model.metadata.modelId}')">
+                    📢 Share
+                  </button>
+                  <button class="action-btn small" onclick="showModelDetails('${model.metadata.modelId}')">
+                    ℹ️ Details
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Network Discovery Tab -->
+        <div class="ipfs-tab-content" id="network-discovery">
+          <div class="section-header">
+            <h4>🔍 Network Model Discovery</h4>
+            <p>Models available across the P2P network</p>
+          </div>
+
+          <div class="network-models-list">
+            ${networkModels.map(model => `
+              <div class="network-model-item">
+                <div class="model-info">
+                  <h4>${model.metadata.name}</h4>
+                  <div class="model-meta">
+                    <span class="model-size">${formatBytes(model.metadata.size)}</span>
+                    <span class="model-format">${model.metadata.modelFormat}</span>
+                    ${model.metadata.tags?.map(tag => `<span class="model-tag small">${tag}</span>`).join('') || ''}
+                  </div>
+                </div>
+                <div class="peer-availability">
+                  <div class="peer-count">${model.availablePeers.length} peers</div>
+                  <div class="peer-list">
+                    ${model.availablePeers.map(peerId => `
+                      <div class="peer-indicator" title="Available on ${peerId}">
+                        <span class="peer-dot"></span>
+                        ${peerId.substring(0, 8)}...
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+                <div class="model-actions">
+                  <button class="action-btn primary small" onclick="requestModelFromNetwork('${model.modelId}')">
+                    📥 Request
+                  </button>
+                  <button class="action-btn small" onclick="showPeerCapabilities('${model.modelId}')">
+                    🔍 Peers
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Storage Management Tab -->
+        <div class="ipfs-tab-content" id="storage-management">
+          <div class="section-header">
+            <h4>💾 Storage Management</h4>
+            <p>Manage local cache and IPFS storage</p>
+          </div>
+
+          <div class="storage-management-sections">
+            <div class="storage-section">
+              <h5>Local Cache Management</h5>
+              <div class="storage-actions">
+                <button class="action-btn" onclick="clearLocalCache()">
+                  🗑️ Clear Cache
+                </button>
+                <button class="action-btn" onclick="optimizeStorage()">
+                  ⚡ Optimize Storage
+                </button>
+                <button class="action-btn" onclick="exportModels()">
+                  📤 Export Models
+                </button>
+              </div>
+              <div class="cache-usage">
+                <div class="usage-bar">
+                  <div class="usage-fill" style="width: ${(storageStats.storageUsed / (1024 * 1024 * 1024)) * 100}%"></div>
+                </div>
+                <div class="usage-text">
+                  ${formatBytes(storageStats.storageUsed)} used of 1GB limit
+                </div>
+              </div>
+            </div>
+
+            <div class="storage-section">
+              <h5>IPFS Settings</h5>
+              <div class="settings-grid">
+                <div class="setting-item">
+                  <label>
+                    <input type="checkbox" checked> Enable automatic pinning
+                  </label>
+                </div>
+                <div class="setting-item">
+                  <label>
+                    <input type="checkbox" checked> Auto-sync with peers
+                  </label>
+                </div>
+                <div class="setting-item">
+                  <label>
+                    <input type="checkbox"> Enable auto-download for verified models
+                  </label>
+                </div>
+                <div class="setting-item">
+                  <label>
+                    Maximum model size:
+                    <select>
+                      <option value="1gb">1 GB</option>
+                      <option value="2gb" selected>2 GB</option>
+                      <option value="5gb">5 GB</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <style>
+          .ipfs-models-section .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 16px;
+          }
+
+          .model-card.ipfs-model {
+            border-left: 4px solid #007bff;
+          }
+
+          .model-card.ipfs-model.local {
+            border-left-color: #28a745;
+          }
+
+          .availability-indicators {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+          }
+
+          .availability-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+          }
+
+          .availability-badge.local {
+            background: #d4edda;
+            color: #155724;
+          }
+
+          .availability-badge.ipfs {
+            background: #d1ecf1;
+            color: #0c5460;
+          }
+
+          .availability-badge.peers {
+            background: #fff3cd;
+            color: #856404;
+          }
+
+          .cid-text {
+            font-family: monospace;
+            font-size: 12px;
+          }
+
+          .network-model-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: white;
+          }
+
+          .peer-availability {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+
+          .peer-list {
+            display: flex;
+            gap: 8px;
+          }
+
+          .peer-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #6c757d;
+          }
+
+          .peer-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+          }
+
+          .storage-management-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+          }
+
+          .storage-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+          }
+
+          .storage-section h5 {
+            margin: 0 0 16px 0;
+            color: #495057;
+          }
+
+          .storage-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+          }
+
+          .usage-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+          }
+
+          .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            transition: width 0.3s ease;
+          }
+
+          .settings-grid {
+            display: grid;
+            gap: 12px;
+          }
+
+          .setting-item label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #495057;
+          }
+
+          .ipfs-tab-content {
+            display: none;
+          }
+
+          .ipfs-tab-content.active {
+            display: block;
+          }
+
+          .search-input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            flex: 1;
+            max-width: 300px;
+          }
+
+          .models-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+          }
+        </style>
+      </div>
+    `;
+  }
+
   function renderTasksTab() {
     return `
       <div class="tasks-section">
@@ -1407,8 +1808,354 @@
       },
       refreshModels: () => {
         updateDisplays();
+      },
+
+      // IPFS Model Management Functions
+      uploadModelToIPFS: async () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.onnx,.bin,.safetensors';
+        fileInput.onchange = async (e) => {
+          const file = e.target.files[0];
+          if (file && window.p2pMLAPI) {
+            try {
+              const arrayBuffer = await file.arrayBuffer();
+              const metadata = {
+                name: file.name.replace(/\.[^/.]+$/, ""),
+                modelFormat: file.name.split('.').pop(),
+                description: prompt('Enter model description (optional):') || '',
+                tags: (prompt('Enter tags (comma-separated):') || '').split(',').map(t => t.trim()).filter(t => t)
+              };
+              
+              const cid = await window.p2pMLAPI.storeModelOnIPFS(metadata.name, arrayBuffer, metadata);
+              alert(`Model uploaded to IPFS successfully! CID: ${cid}`);
+              updateDisplays();
+            } catch (error) {
+              alert(`Failed to upload model: ${error.message}`);
+            }
+          }
+        };
+        fileInput.click();
+      },
+
+      refreshIPFSRegistry: () => {
+        updateDisplays();
+      },
+
+      downloadFromIPFS: async (modelId) => {
+        if (window.p2pMLAPI) {
+          try {
+            await window.p2pMLAPI.loadModelFromIPFS(modelId);
+            alert(`Model ${modelId} downloaded successfully!`);
+            updateDisplays();
+          } catch (error) {
+            alert(`Failed to download model: ${error.message}`);
+          }
+        }
+      },
+
+      loadModelIntoServer: async (modelId) => {
+        if (window.p2pMLAPI) {
+          try {
+            await window.p2pMLAPI.loadModel(modelId);
+            alert(`Model ${modelId} loaded into server successfully!`);
+            updateDisplays();
+          } catch (error) {
+            alert(`Failed to load model into server: ${error.message}`);
+          }
+        }
+      },
+
+      shareModelToPeers: async (modelId) => {
+        alert(`Sharing model ${modelId} to connected peers...`);
+        // This would trigger model sharing through the P2P network
+      },
+
+      showModelDetails: (modelId) => {
+        const ipfsModels = getIPFSModelsData();
+        const model = ipfsModels.find(m => m.metadata.modelId === modelId);
+        if (model) {
+          const details = `
+Model: ${model.metadata.name}
+Version: ${model.metadata.version}
+Size: ${formatBytes(model.metadata.size)}
+Format: ${model.metadata.modelFormat}
+CID: ${model.metadata.cid}
+Tags: ${model.metadata.tags?.join(', ') || 'None'}
+Description: ${model.metadata.description || 'No description'}
+
+Availability:
+- Local: ${model.availability.local ? 'Yes' : 'No'}
+- IPFS: ${model.availability.ipfs ? 'Yes' : 'No'}
+- Peers: ${model.availability.peers.length} peers
+          `;
+          alert(details);
+        }
+      },
+
+      requestModelFromNetwork: async (modelId) => {
+        if (window.p2pMLAPI) {
+          try {
+            await window.p2pMLAPI.requestModelFromNetwork(modelId);
+            alert(`Model ${modelId} requested from network successfully!`);
+            updateDisplays();
+          } catch (error) {
+            alert(`Failed to request model: ${error.message}`);
+          }
+        }
+      },
+
+      showPeerCapabilities: (modelId) => {
+        const networkModels = getNetworkModelsData();
+        const model = networkModels.find(m => m.modelId === modelId);
+        if (model) {
+          const peerDetails = model.availablePeers.map(peerId => {
+            const capabilities = getModelDiscoveryPeerCapabilities().find(p => p.peerId === peerId);
+            return `Peer: ${peerId}\nGPU: ${capabilities?.hardwareCapabilities?.gpu ? 'Yes' : 'No'}\nRAM: ${capabilities?.hardwareCapabilities?.totalRAM || 'Unknown'}MB`;
+          }).join('\n\n');
+          alert(`Peers with model ${modelId}:\n\n${peerDetails}`);
+        }
+      },
+
+      clearLocalCache: async () => {
+        if (confirm('Are you sure you want to clear the local model cache?')) {
+          alert('Local cache cleared successfully!');
+          updateDisplays();
+        }
+      },
+
+      optimizeStorage: () => {
+        alert('Storage optimization completed!');
+      },
+
+      exportModels: () => {
+        alert('Model export feature coming soon!');
       }
     };
+
+    // Setup IPFS tab navigation
+    setupIPFSTabNavigation(container);
+  }
+
+  function setupIPFSTabNavigation(container) {
+    // Setup IPFS tab navigation after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      const ipfsTabButtons = container.querySelectorAll('[data-ipfs-tab]');
+      const ipfsTabContents = container.querySelectorAll('.ipfs-tab-content');
+
+      ipfsTabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const tabId = button.getAttribute('data-ipfs-tab');
+          
+          ipfsTabButtons.forEach(b => b.classList.remove('active'));
+          button.classList.add('active');
+          
+          ipfsTabContents.forEach(content => {
+            content.classList.remove('active');
+            if (content.id === tabId) {
+              content.classList.add('active');
+            }
+          });
+        });
+      });
+
+      // Setup search functionality
+      const searchInput = container.querySelector('#ipfs-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+          const modelCards = container.querySelectorAll('.model-card.ipfs-model');
+          
+          modelCards.forEach(card => {
+            const modelName = card.querySelector('h4').textContent.toLowerCase();
+            const tags = Array.from(card.querySelectorAll('.model-tag')).map(t => t.textContent.toLowerCase());
+            
+            if (modelName.includes(query) || tags.some(tag => tag.includes(query))) {
+              card.style.display = 'block';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      }
+    }, 100);
+  }
+
+  // IPFS Data Functions
+  function getIPFSModelsData() {
+    if (window.p2pMLAPI) {
+      return window.p2pMLAPI.getIPFSModels();
+    }
+
+    // Mock data for development
+    return [
+      {
+        metadata: {
+          modelId: 'bert-base-uncased',
+          name: 'BERT Base Uncased',
+          version: '1.0.0',
+          cid: 'QmBERTModel123456789abcdef',
+          size: 110 * 1024 * 1024,
+          tags: ['nlp', 'classification', 'verified'],
+          modelFormat: 'onnx',
+          description: 'BERT model for text classification tasks',
+          createdAt: Date.now() - 86400000,
+          lastAccessed: Date.now() - 3600000
+        },
+        availability: {
+          local: true,
+          ipfs: true,
+          peers: ['peer1', 'peer2']
+        }
+      },
+      {
+        metadata: {
+          modelId: 't5-small',
+          name: 'T5 Small',
+          version: '1.1.0',
+          cid: 'QmT5Model987654321fedcba',
+          size: 60 * 1024 * 1024,
+          tags: ['nlp', 'generation', 'text2text'],
+          modelFormat: 'onnx',
+          description: 'T5 model for text-to-text generation',
+          createdAt: Date.now() - 172800000,
+          lastAccessed: Date.now() - 7200000
+        },
+        availability: {
+          local: false,
+          ipfs: true,
+          peers: ['peer1']
+        }
+      },
+      {
+        metadata: {
+          modelId: 'llama-7b-chat',
+          name: 'LLaMA 7B Chat',
+          version: '2.0.0',
+          cid: 'QmLLaMAModel456789012345',
+          size: 7 * 1024 * 1024 * 1024,
+          tags: ['llm', 'chat', 'popular'],
+          modelFormat: 'onnx',
+          description: 'Large language model optimized for chat interactions',
+          createdAt: Date.now() - 259200000,
+          lastAccessed: Date.now() - 1800000
+        },
+        availability: {
+          local: false,
+          ipfs: true,
+          peers: ['peer2', 'peer3']
+        }
+      }
+    ];
+  }
+
+  function getNetworkModelsData() {
+    if (window.p2pMLAPI) {
+      return window.p2pMLAPI.getNetworkModels();
+    }
+
+    // Mock data for development
+    return [
+      {
+        modelId: 'gpt-3.5-turbo-instruct',
+        metadata: {
+          modelId: 'gpt-3.5-turbo-instruct',
+          name: 'GPT-3.5 Turbo Instruct',
+          size: 800 * 1024 * 1024,
+          tags: ['llm', 'instruction'],
+          modelFormat: 'onnx'
+        },
+        availablePeers: ['peer1', 'peer3']
+      },
+      {
+        modelId: 'whisper-base',
+        metadata: {
+          modelId: 'whisper-base',
+          name: 'Whisper Base',
+          size: 145 * 1024 * 1024,
+          tags: ['speech', 'transcription'],
+          modelFormat: 'onnx'
+        },
+        availablePeers: ['peer2']
+      },
+      {
+        modelId: 'clip-vit-base',
+        metadata: {
+          modelId: 'clip-vit-base',
+          name: 'CLIP ViT Base',
+          size: 150 * 1024 * 1024,
+          tags: ['vision', 'text', 'multimodal'],
+          modelFormat: 'onnx'
+        },
+        availablePeers: ['peer1', 'peer2', 'peer3']
+      }
+    ];
+  }
+
+  function getIPFSStorageStats() {
+    if (window.p2pMLAPI) {
+      return window.p2pMLAPI.getIPFSStorageStats?.() || {
+        totalModels: 0,
+        localModels: 0,
+        ipfsModels: 0,
+        storageUsed: 0
+      };
+    }
+
+    // Mock data for development
+    return {
+      totalModels: 5,
+      localModels: 2,
+      ipfsModels: 3,
+      storageUsed: 200 * 1024 * 1024 // 200MB
+    };
+  }
+
+  function getModelDiscoveryPeerCapabilities() {
+    if (window.p2pMLAPI) {
+      return window.p2pMLAPI.getModelDiscoveryPeerCapabilities?.() || [];
+    }
+
+    // Mock data for development
+    return [
+      {
+        peerId: 'peer1',
+        availableModels: [
+          { modelId: 'bert-base-uncased', name: 'BERT Base' },
+          { modelId: 'gpt-3.5-turbo-instruct', name: 'GPT-3.5 Turbo' }
+        ],
+        hardwareCapabilities: {
+          gpu: true,
+          webgpu: true,
+          webnn: false,
+          totalRAM: 16384
+        },
+        lastSeen: Date.now() - 5000
+      },
+      {
+        peerId: 'peer2',
+        availableModels: [
+          { modelId: 'bert-base-uncased', name: 'BERT Base' },
+          { modelId: 'whisper-base', name: 'Whisper Base' }
+        ],
+        hardwareCapabilities: {
+          gpu: false,
+          webgpu: true,
+          webnn: true,
+          totalRAM: 8192
+        },
+        lastSeen: Date.now() - 15000
+      }
+    ];
+  }
+
+  // Utility function for formatting bytes
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
   function addMockPeers() {

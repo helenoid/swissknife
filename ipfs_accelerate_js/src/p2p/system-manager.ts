@@ -1,6 +1,6 @@
 /**
  * P2P ML System Integration Manager
- * Coordinates the model server, P2P network, and inference coordinator
+ * Coordinates the model server, P2P network, inference coordinator, and IPFS model storage
  */
 
 import { EventEmitter } from 'events';
@@ -8,12 +8,17 @@ import { TransformersModelServer, initializeModelServer, type ModelServerConfig 
 import { SimpleP2PManager, type P2PConfig } from './simple-p2p.js';
 import { P2PTaskDistributor } from './task-distribution.js';
 import { P2PModelInferenceCoordinator, type P2PInferenceRequest, type P2PInferenceResponse } from './model-inference-coordinator.js';
+import { IPFSModelStorage, createIPFSModelStorage, type IPFSModelConfig } from '../storage/ipfs-model-storage.js';
+import { P2PModelDiscoveryCoordinator, createP2PModelDiscoveryCoordinator, type ModelDiscoveryConfig } from './model-discovery-coordinator.js';
 
 export interface P2PMLSystemConfig {
   modelServer?: ModelServerConfig;
   p2pNetwork?: Partial<P2PConfig>;
+  ipfsStorage?: IPFSModelConfig;
+  modelDiscovery?: ModelDiscoveryConfig;
   enableDistributedInference?: boolean;
   enableModelSharing?: boolean;
+  enableIPFSStorage?: boolean;
   autoStart?: boolean;
 }
 
@@ -33,10 +38,23 @@ export interface SystemStatus {
     activeInferences: number;
     peerCapabilities: number;
   };
+  ipfsStorage: {
+    enabled: boolean;
+    totalModels: number;
+    localModels: number;
+    ipfsModels: number;
+    storageUsed: number;
+  };
+  modelDiscovery: {
+    enabled: boolean;
+    networkModels: number;
+    connectedPeers: number;
+    lastSyncTime: number;
+  };
 }
 
 /**
- * Main integration manager for the P2P ML system
+ * Main integration manager for the P2P ML system with IPFS storage
  */
 export class P2PMLSystemManager extends EventEmitter {
   private config: P2PMLSystemConfig;
@@ -44,6 +62,8 @@ export class P2PMLSystemManager extends EventEmitter {
   private p2pManager: SimpleP2PManager;
   private taskDistributor: P2PTaskDistributor;
   private inferenceCoordinator: P2PModelInferenceCoordinator | null = null;
+  private ipfsStorage: IPFSModelStorage | null = null;
+  private modelDiscoveryCoordinator: P2PModelDiscoveryCoordinator | null = null;
   private isRunning: boolean = false;
 
   constructor(config: P2PMLSystemConfig = {}) {
@@ -51,11 +71,13 @@ export class P2PMLSystemManager extends EventEmitter {
     this.config = {
       enableDistributedInference: true,
       enableModelSharing: true,
+      enableIPFSStorage: true,
       autoStart: false,
       ...config
     };
 
-    this.initializeComponents();
+    // Initialize synchronously, async components will be initialized in start()
+    this.initializeSyncComponents();
     this.setupEventListeners();
 
     if (this.config.autoStart) {
@@ -64,9 +86,9 @@ export class P2PMLSystemManager extends EventEmitter {
   }
 
   /**
-   * Initialize all system components
+   * Initialize synchronous components
    */
-  private initializeComponents(): void {
+  private initializeSyncComponents(): void {
     // Initialize model server
     this.modelServer = initializeModelServer(this.config.modelServer);
 
@@ -95,6 +117,36 @@ export class P2PMLSystemManager extends EventEmitter {
         this.p2pManager,
         this.taskDistributor
       );
+    }
+  }
+
+  /**
+   * Initialize async components (IPFS storage and model discovery)
+   */
+  private async initializeAsyncComponents(): Promise<void> {
+    // Initialize IPFS storage if enabled
+    if (this.config.enableIPFSStorage) {
+      try {
+        this.ipfsStorage = await createIPFSModelStorage(this.config.ipfsStorage);
+        console.log('IPFS Model Storage initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize IPFS storage:', error);
+        this.config.enableIPFSStorage = false;
+      }
+    }
+
+    // Initialize model discovery coordinator if model sharing and IPFS are enabled
+    if (this.config.enableModelSharing && this.ipfsStorage) {
+      try {
+        this.modelDiscoveryCoordinator = await createP2PModelDiscoveryCoordinator(
+          this.ipfsStorage,
+          this.p2pManager,
+          this.config.modelDiscovery
+        );
+        console.log('P2P Model Discovery Coordinator initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize model discovery coordinator:', error);
+      }
     }
   }
 
@@ -142,6 +194,40 @@ export class P2PMLSystemManager extends EventEmitter {
         this.emit('peer:capabilities_updated', data);
       });
     }
+
+    // IPFS storage events (if enabled)
+    if (this.ipfsStorage) {
+      this.ipfsStorage.on('model:stored', (data) => {
+        this.emit('ipfs:model:stored', data);
+      });
+
+      this.ipfsStorage.on('model:loaded', (data) => {
+        this.emit('ipfs:model:loaded', data);
+      });
+
+      this.ipfsStorage.on('registry:updated', () => {
+        this.emit('ipfs:registry:updated');
+      });
+    }
+
+    // Model discovery coordinator events (if enabled)
+    if (this.modelDiscoveryCoordinator) {
+      this.modelDiscoveryCoordinator.on('model:discovered', (data) => {
+        this.emit('model:discovered', data);
+      });
+
+      this.modelDiscoveryCoordinator.on('model:shared', (data) => {
+        this.emit('model:shared', data);
+      });
+
+      this.modelDiscoveryCoordinator.on('model:received', (data) => {
+        this.emit('model:received', data);
+      });
+
+      this.modelDiscoveryCoordinator.on('peer:capabilities:updated', () => {
+        this.emit('peer:capabilities:updated');
+      });
+    }
   }
 
   /**
@@ -156,6 +242,9 @@ export class P2PMLSystemManager extends EventEmitter {
     console.log('Starting P2P ML System...');
 
     try {
+      // Initialize async components first
+      await this.initializeAsyncComponents();
+
       // Start model server
       console.log('Starting model server...');
       await this.modelServer.start();
@@ -279,9 +368,47 @@ export class P2PMLSystemManager extends EventEmitter {
   /**
    * Get system status
    */
-  getSystemStatus(): SystemStatus {
+  async getSystemStatus(): Promise<SystemStatus> {
     const modelServerStatus = this.modelServer.getStatus();
     const connectedPeers = this.p2pManager.getConnectedPeers();
+    
+    // Get IPFS storage stats
+    let ipfsStats = {
+      enabled: false,
+      totalModels: 0,
+      localModels: 0,
+      ipfsModels: 0,
+      storageUsed: 0
+    };
+
+    if (this.ipfsStorage) {
+      const stats = await this.ipfsStorage.getStorageStats();
+      ipfsStats = {
+        enabled: true,
+        totalModels: stats.totalModels,
+        localModels: stats.localModels,
+        ipfsModels: stats.ipfsModels,
+        storageUsed: stats.localSize
+      };
+    }
+
+    // Get model discovery stats
+    let discoveryStats = {
+      enabled: false,
+      networkModels: 0,
+      connectedPeers: 0,
+      lastSyncTime: 0
+    };
+
+    if (this.modelDiscoveryCoordinator) {
+      const stats = this.modelDiscoveryCoordinator.getDiscoveryStats();
+      discoveryStats = {
+        enabled: true,
+        networkModels: stats.totalNetworkModels,
+        connectedPeers: stats.connectedPeers,
+        lastSyncTime: stats.lastSyncTime
+      };
+    }
     
     return {
       modelServer: {
@@ -298,7 +425,9 @@ export class P2PMLSystemManager extends EventEmitter {
         running: this.inferenceCoordinator !== null,
         activeInferences: this.inferenceCoordinator?.getActiveInferenceRequests().length || 0,
         peerCapabilities: this.inferenceCoordinator?.getPeerCapabilities().size || 0
-      }
+      },
+      ipfsStorage: ipfsStats,
+      modelDiscovery: discoveryStats
     };
   }
 
@@ -370,6 +499,137 @@ export class P2PMLSystemManager extends EventEmitter {
    */
   getInferenceCoordinator(): P2PModelInferenceCoordinator | null {
     return this.inferenceCoordinator;
+  }
+
+  // === IPFS Model Storage Methods ===
+
+  /**
+   * Get IPFS storage instance
+   */
+  getIPFSStorage(): IPFSModelStorage | null {
+    return this.ipfsStorage;
+  }
+
+  /**
+   * Get model discovery coordinator instance
+   */
+  getModelDiscoveryCoordinator(): P2PModelDiscoveryCoordinator | null {
+    return this.modelDiscoveryCoordinator;
+  }
+
+  /**
+   * Store a model on IPFS
+   */
+  async storeModelOnIPFS(
+    modelId: string,
+    modelData: ArrayBuffer,
+    metadata: any = {}
+  ): Promise<string | null> {
+    if (!this.ipfsStorage) {
+      throw new Error('IPFS storage is not enabled');
+    }
+
+    return await this.ipfsStorage.storeModelOnIPFS(modelId, modelData, metadata);
+  }
+
+  /**
+   * Load a model from IPFS or network
+   */
+  async loadModelFromIPFS(modelId: string): Promise<ArrayBuffer | null> {
+    if (!this.ipfsStorage) {
+      throw new Error('IPFS storage is not enabled');
+    }
+
+    return await this.ipfsStorage.loadModelFromIPFS(modelId);
+  }
+
+  /**
+   * Get all models from IPFS registry
+   */
+  getIPFSModels(): any[] {
+    if (!this.ipfsStorage) {
+      return [];
+    }
+
+    return this.ipfsStorage.getAvailableModels();
+  }
+
+  /**
+   * Search IPFS models by criteria
+   */
+  searchIPFSModels(criteria: any): any[] {
+    if (!this.ipfsStorage) {
+      return [];
+    }
+
+    return this.ipfsStorage.searchModels(criteria);
+  }
+
+  /**
+   * Get network-wide available models
+   */
+  getNetworkModels(): any[] {
+    if (!this.modelDiscoveryCoordinator) {
+      return [];
+    }
+
+    return this.modelDiscoveryCoordinator.getNetworkModels();
+  }
+
+  /**
+   * Get peer capabilities for model discovery
+   */
+  getModelDiscoveryPeerCapabilities(): any[] {
+    if (!this.modelDiscoveryCoordinator) {
+      return [];
+    }
+
+    return this.modelDiscoveryCoordinator.getPeerCapabilities();
+  }
+
+  /**
+   * Request a model from the network
+   */
+  async requestModelFromNetwork(modelId: string): Promise<ArrayBuffer | null> {
+    if (!this.modelDiscoveryCoordinator) {
+      throw new Error('Model discovery coordinator is not enabled');
+    }
+
+    return await this.modelDiscoveryCoordinator.requestModelFromNetwork(modelId);
+  }
+
+  /**
+   * Get IPFS storage statistics
+   */
+  async getIPFSStorageStats(): Promise<any> {
+    if (!this.ipfsStorage) {
+      return {
+        totalModels: 0,
+        localModels: 0,
+        ipfsModels: 0,
+        totalSize: 0,
+        localSize: 0
+      };
+    }
+
+    return await this.ipfsStorage.getStorageStats();
+  }
+
+  /**
+   * Get model discovery statistics
+   */
+  getModelDiscoveryStats(): any {
+    if (!this.modelDiscoveryCoordinator) {
+      return {
+        connectedPeers: 0,
+        totalNetworkModels: 0,
+        localModels: 0,
+        sharedModels: 0,
+        lastSyncTime: 0
+      };
+    }
+
+    return this.modelDiscoveryCoordinator.getDiscoveryStats();
   }
 }
 

@@ -1217,8 +1217,11 @@ class SwissKnifeDesktop {
   
   async loadP2PNetworkApp(contentElement: HTMLElement) {
     try {
-      // Load P2P Network app script
-      await this.loadScript('/js/apps/p2p-network.js');
+      // Load P2P Network app script and IPFS bridge
+      await Promise.all([
+        this.loadScript('/js/apps/p2p-network.js'),
+        this.loadScript('/js/p2p-ml-bridge-ipfs.js')
+      ]);
       
       // Initialize the P2P Network app
       if ((window as any).createP2PNetworkApp) {
@@ -1241,6 +1244,8 @@ class SwissKnifeDesktop {
               <li>📤 Resource Sharing</li>
               <li>🔄 Task Distribution</li>
               <li>🤝 Model Collaboration</li>
+              <li>💾 IPFS Model Storage</li>
+              <li>📊 Network Model Discovery</li>
             </ul>
           </div>
           <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
