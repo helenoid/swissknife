@@ -715,51 +715,322 @@ class SwissKnifeDesktop {
           <p>View and manage system devices</p>
         </div>
         
-        <div class="device-list">
-          <div class="device-category">
-            <h3>🖥️ Display adapters</h3>
-            <div class="device-item">
-              <span class="device-icon">📺</span>
-              <span class="device-name">WebGL Renderer</span>
-              <span class="device-status working">Working</span>
+        <div class="device-tabs">
+          <button class="device-tab active" data-tab="devices">Devices</button>
+          <button class="device-tab" data-tab="drivers">Drivers</button>
+          <button class="device-tab" data-tab="performance">Performance</button>
+        </div>
+        
+        <div class="device-content">
+          <!-- Devices Tab -->
+          <div class="device-tab-content active" id="devices-tab">
+            <div class="device-tree">
+              <div class="device-category">
+                <div class="category-header">
+                  <span class="category-icon">🖥️</span>
+                  <span class="category-name">Display adapters</span>
+                  <span class="expand-icon">▼</span>
+                </div>
+                <div class="category-items">
+                  <div class="device-item">
+                    <span class="device-icon">📺</span>
+                    <span class="device-name">Generic Display Adapter</span>
+                    <span class="device-status working">WORKING</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="device-category">
+                <div class="category-header">
+                  <span class="category-icon">🔊</span>
+                  <span class="category-name">Audio devices</span>
+                  <span class="expand-icon">▼</span>
+                </div>
+                <div class="category-items">
+                  <div class="device-item">
+                    <span class="device-icon">🎵</span>
+                    <span class="device-name">Default Audio Device</span>
+                    <span class="device-status working">WORKING</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="device-category">
+                <div class="category-header">
+                  <span class="category-icon">🖱️</span>
+                  <span class="category-name">Input devices</span>
+                  <span class="expand-icon">▼</span>
+                </div>
+                <div class="category-items">
+                  <div class="device-item">
+                    <span class="device-icon">⌨️</span>
+                    <span class="device-name">Standard Keyboard</span>
+                    <span class="device-status working">WORKING</span>
+                  </div>
+                  <div class="device-item">
+                    <span class="device-icon">🖱️</span>
+                    <span class="device-name">Standard Mouse</span>
+                    <span class="device-status working">WORKING</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="device-category">
+                <div class="category-header">
+                  <span class="category-icon">🌐</span>
+                  <span class="category-name">Network adapters</span>
+                  <span class="expand-icon">▼</span>
+                </div>
+                <div class="category-items">
+                  <div class="device-item">
+                    <span class="device-icon">📡</span>
+                    <span class="device-name">Network Adapter</span>
+                    <span class="device-status working">WORKING</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
-          <div class="device-category">
-            <h3>🔊 Audio devices</h3>
-            <div class="device-item">
-              <span class="device-icon">🎵</span>
-              <span class="device-name">Web Audio API</span>
-              <span class="device-status working">Working</span>
+          <!-- Drivers Tab -->
+          <div class="device-tab-content" id="drivers-tab">
+            <div class="drivers-list">
+              <div class="driver-item">
+                <div class="driver-info">
+                  <div class="driver-name">Browser WebGL Driver</div>
+                  <div class="driver-version">Version 1.0.0</div>
+                  <div class="driver-date">Date: ${new Date().toLocaleDateString()}</div>
+                </div>
+                <div class="driver-status working">Up to date</div>
+              </div>
+              
+              <div class="driver-item">
+                <div class="driver-info">
+                  <div class="driver-name">Web Audio API Driver</div>
+                  <div class="driver-version">Version 1.0.0</div>
+                  <div class="driver-date">Date: ${new Date().toLocaleDateString()}</div>
+                </div>
+                <div class="driver-status working">Up to date</div>
+              </div>
             </div>
           </div>
           
-          <div class="device-category">
-            <h3>🖱️ Input devices</h3>
-            <div class="device-item">
-              <span class="device-icon">⌨️</span>
-              <span class="device-name">Standard Keyboard</span>
-              <span class="device-status working">Working</span>
-            </div>
-            <div class="device-item">
-              <span class="device-icon">🖱️</span>
-              <span class="device-name">Standard Mouse</span>
-              <span class="device-status working">Working</span>
+          <!-- Performance Tab -->
+          <div class="device-tab-content" id="performance-tab">
+            <div class="performance-metrics">
+              <div class="metric-card">
+                <div class="metric-title">CPU Usage</div>
+                <div class="metric-value" id="cpu-usage">0%</div>
+                <div class="metric-bar">
+                  <div class="metric-fill" style="width: 0%"></div>
+                </div>
+              </div>
+              
+              <div class="metric-card">
+                <div class="metric-title">Memory Usage</div>
+                <div class="metric-value" id="memory-usage">0 MB</div>
+                <div class="metric-bar">
+                  <div class="metric-fill" style="width: 0%"></div>
+                </div>
+              </div>
+              
+              <div class="metric-card">
+                <div class="metric-title">GPU Memory</div>
+                <div class="metric-value" id="gpu-memory">Unknown</div>
+                <div class="metric-bar">
+                  <div class="metric-fill" style="width: 0%"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     `;
+    
+    // Add tab switching functionality
+    const tabButtons = contentElement.querySelectorAll('.device-tab');
+    const tabContents = contentElement.querySelectorAll('.device-tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabName = (button as HTMLElement).dataset.tab;
+        
+        // Remove active class from all tabs and contents
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked tab and corresponding content
+        button.classList.add('active');
+        const targetContent = contentElement.querySelector(`#${tabName}-tab`);
+        if (targetContent) {
+          targetContent.classList.add('active');
+        }
+      });
+    });
+    
+    // Add category expand/collapse functionality
+    const categoryHeaders = contentElement.querySelectorAll('.category-header');
+    categoryHeaders.forEach(header => {
+      header.addEventListener('click', () => {
+        const category = header.parentElement;
+        const items = category?.querySelector('.category-items') as HTMLElement;
+        const expandIcon = header.querySelector('.expand-icon');
+        
+        if (category?.classList.contains('collapsed')) {
+          category.classList.remove('collapsed');
+          if (items) items.style.display = 'block';
+          if (expandIcon) expandIcon.textContent = '▼';
+        } else {
+          category?.classList.add('collapsed');
+          if (items) items.style.display = 'none';
+          if (expandIcon) expandIcon.textContent = '▶';
+        }
+      });
+    });
+    
+    // Simulate performance metrics
+    const updatePerformanceMetrics = () => {
+      const cpuUsage = Math.floor(Math.random() * 100);
+      const memoryUsage = Math.floor(Math.random() * 8192); // MB
+      
+      const cpuElement = contentElement.querySelector('#cpu-usage');
+      const memoryElement = contentElement.querySelector('#memory-usage');
+      
+      if (cpuElement) {
+        cpuElement.textContent = `${cpuUsage}%`;
+        const cpuBar = cpuElement.parentElement?.querySelector('.metric-fill') as HTMLElement;
+        if (cpuBar) cpuBar.style.width = `${cpuUsage}%`;
+      }
+      
+      if (memoryElement) {
+        memoryElement.textContent = `${memoryUsage} MB`;
+        const memoryBar = memoryElement.parentElement?.querySelector('.metric-fill') as HTMLElement;
+        if (memoryBar) memoryBar.style.width = `${(memoryUsage / 8192) * 100}%`;
+      }
+    };
+    
+    // Update performance metrics every 2 seconds
+    const performanceInterval = setInterval(updatePerformanceMetrics, 2000);
+    updatePerformanceMetrics(); // Initial update
+    
+    // Clean up interval when window is closed
+    const windowElement = contentElement.closest('.window');
+    if (windowElement) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList') {
+            mutation.removedNodes.forEach((node) => {
+              if (node === windowElement) {
+                clearInterval(performanceInterval);
+                observer.disconnect();
+              }
+            });
+          }
+        });
+      });
+      observer.observe(windowElement.parentElement!, { childList: true });
+    }
   }
   
   loadNaviApp(contentElement: HTMLElement) {
+    // Check if the chat app exists before creating iframe
+    const chatAppPath = window.location.origin + '/chat/webapp/app.html';
+    
     contentElement.innerHTML = `
-      <div class="app-placeholder">
-        <img src="/assets/icons/navi-icon.png" style="width: 64px; height: 64px; border-radius: 8px; margin: 0 auto 16px; display: block;">
-        <h2>🤖 NAVI</h2>
-        <p>AI Assistant and Chat Interface</p>
-        <p>NAVI is your intelligent assistant for navigation and support.</p>
-        <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+      <div class="navi-app" style="width: 100%; height: 100%; position: relative;">
+        <div class="navi-loading" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5;">
+          <div style="text-align: center;">
+            <img src="/assets/icons/navi-icon.png" style="width: 64px; height: 64px; border-radius: 8px; margin-bottom: 16px;">
+            <h3>Loading NAVI...</h3>
+            <p>Initializing chat application</p>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Test if chat app is available first
+    fetch(chatAppPath, { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) {
+          // Chat app exists, load it in iframe
+          this.loadNaviIframe(contentElement, chatAppPath);
+        } else {
+          // Chat app not found, show placeholder
+          this.showNaviPlaceholder(contentElement);
+        }
+      })
+      .catch(() => {
+        // Network error or chat app not available
+        this.showNaviPlaceholder(contentElement);
+      });
+  }
+  
+  loadNaviIframe(contentElement: HTMLElement, chatAppPath: string) {
+    const iframe = document.createElement('iframe');
+    iframe.src = chatAppPath;
+    iframe.style.cssText = `
+      width: 100%; 
+      height: 100%; 
+      border: none; 
+      background: white;
+    `;
+    iframe.allow = "camera; microphone; autoplay";
+    iframe.sandbox = "allow-scripts allow-same-origin allow-forms allow-popups allow-modals";
+    iframe.title = "NAVI Chat Application";
+    
+    // Handle iframe load success
+    iframe.addEventListener('load', () => {
+      const loadingDiv = contentElement.querySelector('.navi-loading') as HTMLElement;
+      if (loadingDiv) {
+        loadingDiv.style.display = 'none';
+      }
+    });
+    
+    // Handle iframe load errors
+    iframe.addEventListener('error', () => {
+      this.showNaviPlaceholder(contentElement);
+    });
+    
+    // Add cleanup when window is closed
+    const windowElement = contentElement.closest('.window');
+    if (windowElement) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList') {
+            mutation.removedNodes.forEach((node) => {
+              if (node === windowElement) {
+                // Clean up iframe when window is closed
+                if (iframe.parentNode) {
+                  iframe.src = 'about:blank';
+                  iframe.remove();
+                }
+                observer.disconnect();
+              }
+            });
+          }
+        });
+      });
+      observer.observe(windowElement.parentElement!, { childList: true });
+    }
+    
+    contentElement.querySelector('.navi-app')!.appendChild(iframe);
+  }
+  
+  showNaviPlaceholder(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div class="app-placeholder" style="padding: 20px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+        <img src="/assets/icons/navi-icon.png" style="width: 64px; height: 64px; border-radius: 8px; margin: 0 auto 16px;">
+        <h2>NAVI Chat Application</h2>
+        <p>The NAVI chat application is not currently available.</p>
+        <p>Please ensure the chat application is properly installed in the <code>/chat</code> directory.</p>
+        <div style="margin-top: 20px;">
+          <button onclick="location.reload()" style="margin: 5px; padding: 8px 16px; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Reload Application
+          </button>
+          <button onclick="this.closest('.window').querySelector('.window-control.close').click()" style="margin: 5px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Close
+          </button>
+        </div>
       </div>
     `;
   }
@@ -812,10 +1083,63 @@ class SwissKnifeDesktop {
   
   loadAPIKeysApp(contentElement: HTMLElement) {
     contentElement.innerHTML = `
-      <div class="app-placeholder">
-        <h2>🔑 API Keys</h2>
-        <p>API key management will be implemented here.</p>
-        <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+      <div class="api-keys-app">
+        <div class="app-header">
+          <h2>🔑 API Key Manager</h2>
+          <p>Manage your API keys for various services</p>
+        </div>
+        
+        <div class="api-keys-content">
+          <div class="api-keys-list">
+            <div class="api-key-item">
+              <div class="api-key-service">🤖 OpenAI</div>
+              <div class="api-key-status">
+                <span class="status-indicator ${localStorage.getItem('swissknife_openai_key') ? 'active' : 'inactive'}">
+                  ${localStorage.getItem('swissknife_openai_key') ? 'Configured' : 'Not Set'}
+                </span>
+              </div>
+              <div class="api-key-actions">
+                <button class="btn-small" onclick="this.closest('.api-keys-app').querySelector('#openai-key-input').style.display='block'">
+                  ${localStorage.getItem('swissknife_openai_key') ? 'Update' : 'Set'}
+                </button>
+                ${localStorage.getItem('swissknife_openai_key') ? '<button class="btn-small btn-danger" onclick="localStorage.removeItem(\'swissknife_openai_key\'); location.reload();">Remove</button>' : ''}
+              </div>
+            </div>
+            
+            <div class="api-key-input-group" id="openai-key-input" style="display: none;">
+              <input type="password" id="openai-key" placeholder="Enter your OpenAI API key" value="${localStorage.getItem('swissknife_openai_key') || ''}">
+              <button onclick="localStorage.setItem('swissknife_openai_key', document.getElementById('openai-key').value); location.reload();" class="btn-primary">Save</button>
+              <button onclick="document.getElementById('openai-key-input').style.display='none'" class="btn-secondary">Cancel</button>
+            </div>
+            
+            <div class="api-key-item">
+              <div class="api-key-service">🧠 Anthropic</div>
+              <div class="api-key-status">
+                <span class="status-indicator inactive">Not Set</span>
+              </div>
+              <div class="api-key-actions">
+                <button class="btn-small">Set</button>
+              </div>
+            </div>
+            
+            <div class="api-key-item">
+              <div class="api-key-service">🌐 IPFS</div>
+              <div class="api-key-status">
+                <span class="status-indicator inactive">Not Connected</span>
+              </div>
+              <div class="api-key-actions">
+                <button class="btn-small">Configure</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="api-keys-help">
+            <h3>📖 Help</h3>
+            <p>• API keys are stored locally in your browser</p>
+            <p>• Keys are never transmitted except to their respective services</p>
+            <p>• You can remove keys at any time</p>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -862,12 +1186,280 @@ class SwissKnifeDesktop {
   
   loadCronApp(contentElement: HTMLElement) {
     contentElement.innerHTML = `
-      <div class="app-placeholder">
-        <h2>⏰ AI Cron</h2>
-        <p>AI-powered task scheduler will be implemented here.</p>
-        <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+      <div class="cron-app">
+        <div class="cron-header">
+          <h2>⏰ AI Cron Scheduler</h2>
+          <p>Schedule AI-powered actions and automated tasks</p>
+        </div>
+        
+        <div class="cron-tabs">
+          <button class="cron-tab active" data-tab="active">Active Crons</button>
+          <button class="cron-tab" data-tab="create">Create New</button>
+          <button class="cron-tab" data-tab="history">History</button>
+        </div>
+        
+        <div class="cron-content">
+          <!-- Active Crons Tab -->
+          <div class="cron-tab-content active" id="active-crons">
+            <div class="cron-list" id="cron-list">
+              <div class="cron-item">
+                <div class="cron-icon">🤖</div>
+                <div class="cron-details">
+                  <div class="cron-name">Daily Code Review</div>
+                  <div class="cron-schedule">Every day at 09:00</div>
+                  <div class="cron-description">AI analyzes recent commits and provides suggestions</div>
+                </div>
+                <div class="cron-status active">Active</div>
+                <div class="cron-actions">
+                  <button class="btn-small">Edit</button>
+                  <button class="btn-small btn-danger">Delete</button>
+                </div>
+              </div>
+              
+              <div class="cron-item">
+                <div class="cron-icon">📊</div>
+                <div class="cron-details">
+                  <div class="cron-name">Weekly Performance Report</div>
+                  <div class="cron-schedule">Fridays at 17:00</div>
+                  <div class="cron-description">Generate and send performance analytics</div>
+                </div>
+                <div class="cron-status active">Active</div>
+                <div class="cron-actions">
+                  <button class="btn-small">Edit</button>
+                  <button class="btn-small btn-danger">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Create New Cron Tab -->
+          <div class="cron-tab-content" id="create-cron">
+            <form class="cron-form" id="cron-form">
+              <div class="form-group">
+                <label>Cron Name</label>
+                <input type="text" id="cron-name" placeholder="Enter a descriptive name" required>
+              </div>
+              
+              <div class="form-group">
+                <label>Schedule</label>
+                <div class="schedule-builder">
+                  <select id="schedule-type">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom Cron</option>
+                  </select>
+                  <input type="time" id="schedule-time" value="09:00">
+                  <input type="text" id="cron-expression" placeholder="0 9 * * *" style="display:none;">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label>AI Action Type</label>
+                <select id="action-type">
+                  <option value="analysis">Code Analysis</option>
+                  <option value="summary">Generate Summary</option>
+                  <option value="report">Performance Report</option>
+                  <option value="backup">Automated Backup</option>
+                  <option value="custom">Custom AI Prompt</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Description/Instructions</label>
+                <textarea id="cron-description" rows="3" placeholder="Describe what this cron should do..."></textarea>
+              </div>
+              
+              <div class="form-group" id="ai-prompt-group" style="display:none;">
+                <label>AI Prompt</label>
+                <textarea id="ai-prompt" rows="4" placeholder="Enter the AI prompt to execute..."></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="send-notifications"> Send notifications when executed
+                </label>
+              </div>
+              
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Create Cron</button>
+                <button type="button" class="btn-secondary" onclick="document.getElementById('cron-form').reset()">Reset</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- History Tab -->
+          <div class="cron-tab-content" id="cron-history">
+            <div class="history-list">
+              <div class="history-item">
+                <div class="history-time">2025-06-27 09:00:15</div>
+                <div class="history-name">Daily Code Review</div>
+                <div class="history-status success">Success</div>
+                <div class="history-result">Analyzed 15 files, found 3 suggestions</div>
+              </div>
+              <div class="history-item">
+                <div class="history-time">2025-06-26 17:00:32</div>
+                <div class="history-name">Weekly Performance Report</div>
+                <div class="history-status success">Success</div>
+                <div class="history-result">Report generated and sent</div>
+              </div>
+              <div class="history-item">
+                <div class="history-time">2025-06-26 09:00:12</div>
+                <div class="history-name">Daily Code Review</div>
+                <div class="history-status error">Error</div>
+                <div class="history-result">API rate limit exceeded</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     `;
+    
+    // Initialize cron app functionality
+    this.initializeCronApp(contentElement);
+  }
+  
+  initializeCronApp(contentElement: HTMLElement) {
+    // Tab switching
+    const tabs = contentElement.querySelectorAll('.cron-tab');
+    const tabContents = contentElement.querySelectorAll('.cron-tab-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = (tab as HTMLElement).dataset.tab;
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Update active content
+        tabContents.forEach(content => content.classList.remove('active'));
+        const targetContent = contentElement.querySelector(`#${tabName === 'active' ? 'active-crons' : tabName === 'create' ? 'create-cron' : 'cron-history'}`);
+        if (targetContent) targetContent.classList.add('active');
+      });
+    });
+    
+    // Schedule type handling
+    const scheduleType = contentElement.querySelector('#schedule-type') as HTMLSelectElement;
+    const cronExpression = contentElement.querySelector('#cron-expression') as HTMLInputElement;
+    const scheduleTime = contentElement.querySelector('#schedule-time') as HTMLInputElement;
+    
+    scheduleType?.addEventListener('change', () => {
+      if (scheduleType.value === 'custom') {
+        cronExpression.style.display = 'block';
+        scheduleTime.style.display = 'none';
+      } else {
+        cronExpression.style.display = 'none';
+        scheduleTime.style.display = 'block';
+      }
+    });
+    
+    // Action type handling
+    const actionType = contentElement.querySelector('#action-type') as HTMLSelectElement;
+    const aiPromptGroup = contentElement.querySelector('#ai-prompt-group') as HTMLElement;
+    
+    actionType?.addEventListener('change', () => {
+      if (actionType.value === 'custom') {
+        aiPromptGroup.style.display = 'block';
+      } else {
+        aiPromptGroup.style.display = 'none';
+      }
+    });
+    
+    // Form submission
+    const cronForm = contentElement.querySelector('#cron-form') as HTMLFormElement;
+    cronForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.createNewCron(contentElement);
+    });
+  }
+  
+  createNewCron(contentElement: HTMLElement) {
+    const form = contentElement.querySelector('#cron-form') as HTMLFormElement;
+    
+    const cronData = {
+      id: Date.now().toString(),
+      name: (contentElement.querySelector('#cron-name') as HTMLInputElement)?.value || '',
+      scheduleType: (contentElement.querySelector('#schedule-type') as HTMLSelectElement)?.value || '',
+      time: (contentElement.querySelector('#schedule-time') as HTMLInputElement)?.value || '',
+      cronExpression: (contentElement.querySelector('#cron-expression') as HTMLInputElement)?.value || '',
+      actionType: (contentElement.querySelector('#action-type') as HTMLSelectElement)?.value || '',
+      description: (contentElement.querySelector('#cron-description') as HTMLTextAreaElement)?.value || '',
+      aiPrompt: (contentElement.querySelector('#ai-prompt') as HTMLTextAreaElement)?.value || '',
+      notifications: (contentElement.querySelector('#send-notifications') as HTMLInputElement)?.checked || false,
+      created: new Date().toISOString(),
+      lastRun: null,
+      nextRun: this.calculateNextRun((contentElement.querySelector('#schedule-type') as HTMLSelectElement)?.value || '', (contentElement.querySelector('#schedule-time') as HTMLInputElement)?.value || ''),
+      status: 'active'
+    };
+    
+    // Store in localStorage for persistence
+    let savedCrons = JSON.parse(localStorage.getItem('swissknife-crons') || '[]');
+    savedCrons.push(cronData);
+    localStorage.setItem('swissknife-crons', JSON.stringify(savedCrons));
+    
+    console.log('Creating new cron:', cronData);
+    
+    // Show success notification
+    this.showNotification('AI Cron job created successfully! 🤖⏰', 'success');
+    
+    // Switch to active crons tab
+    const activeTab = contentElement.querySelector('.cron-tab[data-tab="active"]') as HTMLElement;
+    activeTab?.click();
+    
+    // Reset form
+    form?.reset();
+  }
+  
+  calculateNextRun(scheduleType: string, time: string): string {
+    const now = new Date();
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    let nextRun = new Date();
+    nextRun.setHours(hours || 0, minutes || 0, 0, 0);
+    
+    // If the time has already passed today, schedule for tomorrow/next occurrence
+    if (nextRun <= now) {
+      switch (scheduleType) {
+        case 'daily':
+          nextRun.setDate(nextRun.getDate() + 1);
+          break;
+        case 'weekly':
+          nextRun.setDate(nextRun.getDate() + 7);
+          break;
+        case 'monthly':
+          nextRun.setMonth(nextRun.getMonth() + 1);
+          break;
+        default:
+          nextRun.setDate(nextRun.getDate() + 1);
+      }
+    }
+    
+    return nextRun.toISOString();
+  }
+  
+  showNotification(message: string, type: string = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+        <span class="notification-message">${message}</span>
+      </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    // Hide and remove after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
   }
   
   loadMusicStudioPlaceholder(contentElement: HTMLElement) {
@@ -915,6 +1507,10 @@ class SwissKnifeDesktop {
       startLeft = parseInt(windowElement.style.left);
       startTop = parseInt(windowElement.style.top);
       
+      // Set up snapping state
+      this.dragState.isDragging = true;
+      this.dragState.draggedWindow = windowElement;
+      
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       
@@ -927,18 +1523,82 @@ class SwissKnifeDesktop {
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
       
+      // Check if window is currently snapped and should be unsnapped
+      const windowId = windowElement.getAttribute('data-window-id') || windowElement.id;
+      const windowData = this.windows.get(windowId);
+      
+      if (windowData && windowData.isSnapped) {
+        // Unsnap the window when starting to drag
+        this.unSnapWindow(windowElement);
+        
+        // Restore a more reasonable size for dragging
+        const newWidth = Math.min(800, Math.max(400, windowData.preSnapState?.width || 600));
+        const newHeight = Math.min(600, Math.max(300, windowData.preSnapState?.height || 400));
+        
+        // Position window under cursor
+        const newLeft = e.clientX - newWidth / 2;
+        const newTop = Math.max(0, e.clientY - 30); // 30px for titlebar
+        
+        windowElement.style.width = newWidth + 'px';
+        windowElement.style.height = newHeight + 'px';
+        windowElement.style.left = newLeft + 'px';
+        windowElement.style.top = newTop + 'px';
+        
+        // Update start positions for continued dragging
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = newLeft;
+        startTop = newTop;
+        
+        if (windowData) {
+          windowData.x = newLeft;
+          windowData.y = newTop;
+          windowData.width = newWidth;
+          windowData.height = newHeight;
+        }
+        
+        return; // Don't continue with normal drag logic this frame
+      }
+      
       const newLeft = startLeft + deltaX;
-      const newTop = Math.max(0, startTop + deltaY);
+      const newTop = Math.max(0, startTop + deltaY); // Prevent dragging above desktop
       
       windowElement.style.left = newLeft + 'px';
       windowElement.style.top = newTop + 'px';
+      
+      // Update window data
+      if (windowData) {
+        windowData.x = newLeft;
+        windowData.y = newTop;
+      }
     };
     
     const handleMouseUp = () => {
       isDragging = false;
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      
+      // Snapping is handled by the global mouse handlers in setupWindowSnapping
     };
+  }
+  
+  unSnapWindow(windowElement: HTMLElement) {
+    // Remove snapped class
+    windowElement.classList.remove('window-snapped');
+    
+    // Re-enable resize handles
+    const resizeHandles = windowElement.querySelectorAll('.window-resize-handle');
+    resizeHandles.forEach(handle => {
+      (handle as HTMLElement).style.display = '';
+    });
+    
+    // Update window data
+    const windowId = windowElement.getAttribute('data-window-id');
+    const windowData = windowId ? this.windows.get(windowId) : null;
+    if (windowData) {
+      windowData.isSnapped = false;
+      windowData.snapZone = null;
+    }
   }
   
   addResizeHandles(windowElement: HTMLElement) {
@@ -1047,31 +1707,49 @@ class SwissKnifeDesktop {
       second: '2-digit',
       hour12: false 
     });
+    const dateString = now.toLocaleDateString([], {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
     
-    timeElement.textContent = timeString;
+    // Add timezone info
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const shortTimezone = timezone.split('/').pop();
+    
+    timeElement.innerHTML = `
+      <div class="system-time-main">${timeString}</div>
+      <div class="system-time-date">${dateString}</div>
+      <div class="system-time-zone">${shortTimezone}</div>
+    `;
   }
   
   updateSystemStatus() {
+    const hwStatus = this.swissknife?.getHardwareStatus ? this.swissknife.getHardwareStatus() : {
+      webnn: false,
+      webgpu: !!(navigator as any).gpu
+    };
+    
     // Update AI status
     const aiStatus = document.getElementById('ai-status');
     if (aiStatus) {
-      aiStatus.className = 'status-indicator ' + (this.isSwissKnifeReady ? 'active' : 'inactive');
-      aiStatus.title = `AI Engine: ${this.isSwissKnifeReady ? 'Ready' : 'Not Ready'}`;
+      aiStatus.className = 'status-indicator ' + (hwStatus.webnn ? 'active' : 'inactive');
+      aiStatus.title = `AI Engine: ${hwStatus.webnn ? 'WebNN Available' : 'API Only'}`;
     }
     
     // Update IPFS status
     const ipfsStatus = document.getElementById('ipfs-status');
     if (ipfsStatus) {
-      ipfsStatus.className = 'status-indicator inactive';
+      ipfsStatus.className = 'status-indicator inactive'; // TODO: implement IPFS detection
       ipfsStatus.title = 'IPFS: Not connected';
     }
     
     // Update GPU status
     const gpuStatus = document.getElementById('gpu-status');
     if (gpuStatus) {
-      const hasWebGPU = !!(navigator as any).gpu;
-      gpuStatus.className = 'status-indicator ' + (hasWebGPU ? 'active' : 'inactive');
-      gpuStatus.title = `GPU: ${hasWebGPU ? 'WebGPU Available' : 'Not available'}`;
+      gpuStatus.className = 'status-indicator ' + (hwStatus.webgpu ? 'active' : 'inactive');
+      gpuStatus.title = `GPU: ${hwStatus.webgpu ? 'WebGPU Available' : 'Not available'}`;
     }
   }
   
@@ -1080,7 +1758,260 @@ class SwissKnifeDesktop {
   }
   
   setupWindowManagement() {
-    // Basic window management setup
+    // Set up window snapping functionality
+    this.setupWindowSnapping();
+    
+    // Set up window drag boundaries
+    this.setupDragBoundaries();
+    
+    // Set up snap zones
+    this.createSnapZones();
+  }
+  
+  setupWindowSnapping() {
+    // Track dragging state for snapping
+    this.dragState = {
+      isDragging: false,
+      draggedWindow: null,
+      snapZones: [],
+      snapThreshold: 20
+    };
+    
+    // Listen for window drag events
+    document.addEventListener('mousemove', (e) => {
+      if (this.dragState.isDragging) {
+        this.handleWindowDragSnapping(e);
+      }
+    });
+    
+    document.addEventListener('mouseup', (e) => {
+      if (this.dragState.isDragging) {
+        this.handleWindowSnapRelease(e);
+      }
+    });
+  }
+  
+  createSnapZones() {
+    // Define snap zones for different window arrangements
+    const desktop = document.getElementById('desktop');
+    if (!desktop) return;
+    
+    const rect = desktop.getBoundingClientRect();
+    const taskbarHeight = 40;
+    const availableHeight = rect.height - taskbarHeight;
+    
+    // Calculate intelligent sizing based on screen thirds and minimum sizes
+    const minWidth = 400;  // Minimum readable width
+    const minHeight = 300; // Minimum readable height
+    
+    // Use thirds of screen for better content display
+    const oneThirdWidth = Math.max(minWidth, rect.width / 3);
+    const twoThirdsWidth = Math.max(minWidth * 1.5, (rect.width * 2) / 3);
+    const halfWidth = Math.max(minWidth, rect.width / 2);
+    const fullWidth = rect.width;
+    
+    const oneThirdHeight = Math.max(minHeight, availableHeight / 3);
+    const halfHeight = Math.max(minHeight, availableHeight / 2);
+    const twoThirdsHeight = Math.max(minHeight * 1.5, (availableHeight * 2) / 3);
+    const fullHeight = availableHeight;
+    
+    this.dragState.snapZones = [
+      // Full screen (top edge - larger trigger area)
+      {
+        name: 'fullscreen',
+        x: 0, y: 0, width: fullWidth, height: fullHeight,
+        trigger: { x: rect.width * 0.3, y: 0, width: rect.width * 0.4, height: 30 }
+      },
+      // Left third (left edge)
+      {
+        name: 'left-third',
+        x: 0, y: 0, width: oneThirdWidth, height: fullHeight,
+        trigger: { x: 0, y: 100, width: 30, height: availableHeight - 200 }
+      },
+      // Right third (right edge)
+      {
+        name: 'right-third',
+        x: rect.width - oneThirdWidth, y: 0, width: oneThirdWidth, height: fullHeight,
+        trigger: { x: rect.width - 30, y: 100, width: 30, height: availableHeight - 200 }
+      },
+      // Left half (left edge - center area)
+      {
+        name: 'left-half',
+        x: 0, y: 0, width: halfWidth, height: fullHeight,
+        trigger: { x: 0, y: 50, width: 20, height: availableHeight - 100 }
+      },
+      // Right half (right edge - center area)
+      {
+        name: 'right-half',
+        x: halfWidth, y: 0, width: halfWidth, height: fullHeight,
+        trigger: { x: rect.width - 20, y: 50, width: 20, height: availableHeight - 100 }
+      },
+      // Top-left quarter (corner - larger for easier targeting)
+      {
+        name: 'top-left-quarter',
+        x: 0, y: 0, width: halfWidth, height: halfHeight,
+        trigger: { x: 0, y: 0, width: 60, height: 60 }
+      },
+      // Top-right quarter
+      {
+        name: 'top-right-quarter',
+        x: halfWidth, y: 0, width: halfWidth, height: halfHeight,
+        trigger: { x: rect.width - 60, y: 0, width: 60, height: 60 }
+      },
+      // Bottom-left quarter
+      {
+        name: 'bottom-left-quarter',
+        x: 0, y: halfHeight, width: halfWidth, height: halfHeight,
+        trigger: { x: 0, y: availableHeight - 60, width: 60, height: 60 }
+      },
+      // Bottom-right quarter
+      {
+        name: 'bottom-right-quarter',
+        x: halfWidth, y: halfHeight, width: halfWidth, height: halfHeight,
+        trigger: { x: rect.width - 60, y: availableHeight - 60, width: 60, height: 60 }
+      }
+    ];
+  }
+      
+  handleWindowDragSnapping(e: MouseEvent) {
+    if (!this.dragState.draggedWindow) return;
+    
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+    
+    // Prioritize corner snaps, then edge snaps
+    const cornerZones = this.dragState.snapZones.filter(zone =>
+      zone.name.includes('quarter') || zone.name.includes('corner')
+    );
+    const edgeZones = this.dragState.snapZones.filter(zone => 
+      zone.name.includes('half') || zone.name.includes('third')
+    );
+    const specialZones = this.dragState.snapZones.filter(zone => 
+      zone.name.includes('fullscreen') || zone.name.includes('center')
+    );
+    
+    // Check corners first (highest priority)
+    let activeZone = cornerZones.find(zone => this.isInTriggerArea(mouseX, mouseY, zone.trigger));
+    
+    // Then check edges if no corner match
+    if (!activeZone) {
+      activeZone = edgeZones.find(zone => this.isInTriggerArea(mouseX, mouseY, zone.trigger));
+    }
+    
+    // Finally check special zones
+    if (!activeZone) {
+      activeZone = specialZones.find(zone => this.isInTriggerArea(mouseX, mouseY, zone.trigger));
+    }
+    
+    // Show/hide snap preview
+    this.showSnapPreview(activeZone);
+  }
+  
+  isInTriggerArea(mouseX: number, mouseY: number, trigger: any): boolean {
+    return mouseX >= trigger.x && mouseX <= trigger.x + trigger.width &&
+           mouseY >= trigger.y && mouseY <= trigger.y + trigger.height;
+  }
+  
+  showSnapPreview(zone: any) {
+    // Remove existing preview
+    const existingPreview = document.querySelector('.snap-preview');
+    if (existingPreview) {
+      existingPreview.remove();
+    }
+    
+    if (zone) {
+      // Create snap preview
+      const preview = document.createElement('div');
+      preview.className = 'snap-preview';
+      preview.style.cssText = `
+        position: fixed;
+        left: ${zone.x}px;
+        top: ${zone.y}px;
+        width: ${zone.width}px;
+        height: ${zone.height}px;
+        background: rgba(220, 53, 69, 0.3);
+        border: 2px solid rgba(220, 53, 69, 0.8);
+        pointer-events: none;
+        z-index: 10000;
+        border-radius: 8px;
+        backdrop-filter: blur(2px);
+      `;
+      document.body.appendChild(preview);
+      
+      // Store active zone for snap release
+      this.dragState.activeSnapZone = zone;
+    } else {
+      this.dragState.activeSnapZone = null;
+    }
+  }
+  
+  handleWindowSnapRelease(e: MouseEvent) {
+    const window = this.dragState.draggedWindow;
+    const zone = this.dragState.activeSnapZone;
+    
+    // Remove snap preview
+    const preview = document.querySelector('.snap-preview');
+    if (preview) {
+      preview.remove();
+    }
+    
+    // Apply snap if in zone
+    if (window && zone) {
+      this.snapWindowToZone(window, zone);
+    }
+    
+    // Reset drag state
+    this.dragState.isDragging = false;
+    this.dragState.draggedWindow = null;
+    this.dragState.activeSnapZone = null;
+  }
+  
+  snapWindowToZone(windowElement: HTMLElement, zone: any) {
+    // Animate window to snap position
+    windowElement.style.transition = 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+    windowElement.style.left = zone.x + 'px';
+    windowElement.style.top = zone.y + 'px';
+    windowElement.style.width = zone.width + 'px';
+    windowElement.style.height = zone.height + 'px';
+    
+    // Add snapped class for styling
+    windowElement.classList.add('window-snapped');
+    
+    // Disable resize handles when snapped
+    const resizeHandles = windowElement.querySelectorAll('.window-resize-handle');
+    resizeHandles.forEach(handle => {
+      (handle as HTMLElement).style.display = 'none';
+    });
+    
+    // Update window data
+    const windowId = windowElement.getAttribute('data-window-id');
+    const windowData = windowId ? this.windows.get(windowId) : null;
+    if (windowData) {
+      windowData.x = zone.x;
+      windowData.y = zone.y;
+      windowData.width = zone.width;
+      windowData.height = zone.height;
+      windowData.isSnapped = true;
+      windowData.snapZone = zone.name;
+      windowData.preSnapState = {
+        x: windowData.x,
+        y: windowData.y,
+        width: windowData.width,
+        height: windowData.height
+      };
+    }
+    
+    // Remove transition after animation
+    setTimeout(() => {
+      windowElement.style.transition = '';
+    }, 300);
+    
+    console.log(`Window snapped to ${zone.name} (${zone.width}x${zone.height})`);
+  }
+  
+  setupDragBoundaries() {
+    // Ensure windows can't be dragged outside the desktop area
+    // This is handled in the window creation and drag handlers
   }
   
   handleKeyboardShortcuts(e: KeyboardEvent) {
