@@ -1196,6 +1196,25 @@ class SwissKnifeDesktop {
     `;
   }
   
+  // Utility method to dynamically load scripts
+  private async loadScript(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Check if script is already loaded
+      const existingScript = document.querySelector(`script[src="${src}"]`);
+      if (existingScript) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = src;
+      script.type = 'text/javascript';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+  
   async loadP2PNetworkApp(contentElement: HTMLElement) {
     try {
       // Load P2P Network app script
