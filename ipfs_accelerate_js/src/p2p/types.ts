@@ -94,6 +94,10 @@ export type P2PMessageType =
   | 'resource_offer'
   | 'heartbeat'
   | 'system_announcement'
+  | 'p2p_inference_request'
+  | 'p2p_inference_response'
+  | 'peer_capabilities'
+  | 'capability_request'
 
 export interface ModelShare {
   modelId: string

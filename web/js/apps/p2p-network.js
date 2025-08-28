@@ -4,11 +4,18 @@
 (function() {
   'use strict';
 
+  // Import the P2P ML System (when available)
+  let P2PMLSystem = null;
+  let modelServer = null;
+  let inferenceCoordinator = null;
+
   // Application state
   let peers = [];
   let tasks = [];
+  let modelInferences = [];
   let p2pManager = null;
   let connectionStatus = 'disconnected';
+  let systemStatus = null;
 
   // Create P2P Network Manager application
   window.createP2PNetworkApp = function() {
@@ -16,20 +23,73 @@
       name: "P2P Network",
       icon: "🌐",
       init: function(container) {
-        setupP2PManager();
+        initializeP2PMLSystem();
         renderApp(container);
         setupEventHandlers(container);
-        startNetworkDiscovery();
+        startSystemMonitoring();
       },
       destroy: function() {
-        if (p2pManager) {
-          p2pManager.stop();
+        if (P2PMLSystem) {
+          P2PMLSystem.stop();
         }
         // Clean up global functions
         delete window.p2pNetworkApp;
       }
     };
   };
+
+  async function initializeP2PMLSystem() {
+    try {
+      // Try to initialize the P2P ML system if available
+      if (window.initializeP2PMLSystem) {
+        P2PMLSystem = window.initializeP2PMLSystem({
+          enableDistributedInference: true,
+          enableModelSharing: true,
+          autoStart: false,
+          modelServer: {
+            maxConcurrentTasks: 4,
+            enableWebSocket: true,
+            enableP2PIntegration: true
+          }
+        });
+
+        // Setup event listeners
+        P2PMLSystem.on('system:started', () => {
+          connectionStatus = 'connected';
+          updateDisplays();
+        });
+
+        P2PMLSystem.on('peer:connected', (peer) => {
+          addPeer(peer);
+          updateDisplays();
+        });
+
+        P2PMLSystem.on('peer:disconnected', (peer) => {
+          removePeer(peer.id.id);
+          updateDisplays();
+        });
+
+        P2PMLSystem.on('model:loaded', (data) => {
+          updateDisplays();
+        });
+
+        P2PMLSystem.on('p2p:inference:response', (response) => {
+          updateInferenceStatus(response);
+          updateDisplays();
+        });
+
+        console.log('P2P ML System initialized successfully');
+
+      } else {
+        console.log('P2P ML System not available, using mock implementation');
+        setupMockP2PManager();
+      }
+
+    } catch (error) {
+      console.error('Failed to initialize P2P ML System:', error);
+      setupMockP2PManager();
+    }
+  }
 
   function renderApp(container) {
     container.innerHTML = `
@@ -450,6 +510,297 @@
             display: flex;
             gap: 8px;
           }
+          
+          /* Models Tab Styles */
+          .models-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .models-tabs {
+            display: flex;
+            gap: 2px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 4px;
+            margin: 16px 0;
+          }
+          
+          .models-tab-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: #6c757d;
+          }
+          
+          .models-tab-btn:hover {
+            background: #e9ecef;
+            color: #495057;
+          }
+          
+          .models-tab-btn.active {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+          }
+          
+          .models-content {
+            flex: 1;
+            overflow-y: auto;
+          }
+          
+          .models-tab-content {
+            display: none;
+          }
+          
+          .models-tab-content.active {
+            display: block;
+          }
+          
+          .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+          }
+          
+          .model-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s ease;
+          }
+          
+          .model-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+          }
+          
+          .model-card.loaded {
+            border-left: 4px solid #28a745;
+            background: linear-gradient(135deg, #f8fff9, #ffffff);
+          }
+          
+          .model-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+          }
+          
+          .model-name {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 16px;
+          }
+          
+          .model-size {
+            background: #e9ecef;
+            color: #495057;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+          }
+          
+          .model-type {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 8px;
+          }
+          
+          .model-capabilities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 12px;
+          }
+          
+          .capability-tag {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+          }
+          
+          .model-hardware {
+            margin-bottom: 12px;
+          }
+          
+          .hardware-support {
+            display: flex;
+            gap: 4px;
+          }
+          
+          .hw-tag {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 500;
+          }
+          
+          .hw-tag.gpu {
+            background: #d4edda;
+            color: #155724;
+          }
+          
+          .hw-tag.webgpu {
+            background: #cce5ff;
+            color: #0056b3;
+          }
+          
+          .hw-tag.webnn {
+            background: #fff3cd;
+            color: #856404;
+          }
+          
+          .model-actions {
+            display: flex;
+            gap: 8px;
+          }
+          
+          .loaded-models-list {
+            margin-top: 16px;
+          }
+          
+          .loaded-model-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #28a745;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          
+          .model-info {
+            flex: 1;
+          }
+          
+          .model-status {
+            color: #28a745;
+            font-size: 14px;
+            font-weight: 500;
+          }
+          
+          .model-stats {
+            display: flex;
+            gap: 16px;
+            margin: 8px 0;
+          }
+          
+          .inference-list {
+            margin-top: 16px;
+          }
+          
+          .inference-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+          }
+          
+          .inference-item.completed {
+            border-left: 4px solid #28a745;
+          }
+          
+          .inference-item.processing {
+            border-left: 4px solid #ffc107;
+          }
+          
+          .inference-item.error {
+            border-left: 4px solid #dc3545;
+          }
+          
+          .inference-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+          }
+          
+          .inference-id {
+            font-family: monospace;
+            font-size: 12px;
+            color: #6c757d;
+          }
+          
+          .inference-model {
+            font-weight: 500;
+            color: #007bff;
+          }
+          
+          .inference-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+          }
+          
+          .inference-status.completed {
+            background: #d4edda;
+            color: #155724;
+          }
+          
+          .inference-status.processing {
+            background: #fff3cd;
+            color: #856404;
+          }
+          
+          .inference-status.error {
+            background: #f8d7da;
+            color: #721c24;
+          }
+          
+          .inference-details {
+            margin: 8px 0;
+            color: #6c757d;
+            font-size: 14px;
+          }
+          
+          .inference-input {
+            font-style: italic;
+            margin-bottom: 4px;
+          }
+          
+          .executed-by, .execution-time {
+            font-size: 12px;
+          }
+          
+          .inference-result {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+          }
+          
+          .result-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 4px;
+          }
+          
+          .result-content {
+            color: #2c3e50;
+            font-family: monospace;
+            font-size: 13px;
+          }
         </style>
         
         <div class="app-header">
@@ -464,6 +815,7 @@
           <div class="p2p-tabs">
             <button class="tab-button active" data-tab="network">Network</button>
             <button class="tab-button" data-tab="peers">Peers</button>
+            <button class="tab-button" data-tab="models">Models</button>
             <button class="tab-button" data-tab="tasks">Tasks</button>
             <button class="tab-button" data-tab="resources">Resources</button>
           </div>
@@ -474,6 +826,10 @@
 
           <div class="tab-content" id="peers-tab">
             ${renderPeersTab()}
+          </div>
+
+          <div class="tab-content" id="models-tab">
+            ${renderModelsTab()}
           </div>
 
           <div class="tab-content" id="tasks-tab">
@@ -623,6 +979,150 @@
               </div>
             </div>
           `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderModelsTab() {
+    const availableModels = getAvailableModels();
+    const loadedModels = getLoadedModels();
+    const modelInferenceHistory = getModelInferenceHistory();
+
+    return `
+      <div class="models-section">
+        <div class="section-header">
+          <h3>AI Models</h3>
+          <div class="model-actions">
+            <button class="action-btn primary" onclick="window.p2pNetworkApp.loadModel()">
+              <span class="btn-icon">📥</span>
+              Load Model
+            </button>
+            <button class="action-btn" onclick="window.p2pNetworkApp.refreshModels()">
+              <span class="btn-icon">🔄</span>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div class="models-tabs">
+          <button class="models-tab-btn active" data-models-tab="available">Available</button>
+          <button class="models-tab-btn" data-models-tab="loaded">Loaded</button>
+          <button class="models-tab-btn" data-models-tab="inference">Inference</button>
+        </div>
+
+        <div class="models-content">
+          <div class="models-tab-content active" id="available-models">
+            <h4>Available Models</h4>
+            <div class="models-grid">
+              ${availableModels.map(model => `
+                <div class="model-card ${model.loaded ? 'loaded' : ''}">
+                  <div class="model-header">
+                    <div class="model-name">${model.name}</div>
+                    <div class="model-size">${(model.size / 1024).toFixed(1)}GB</div>
+                  </div>
+                  
+                  <div class="model-details">
+                    <div class="model-type">${model.type}</div>
+                    <div class="model-capabilities">
+                      ${model.capabilities.map(cap => `<span class="capability-tag">${cap}</span>`).join('')}
+                    </div>
+                  </div>
+                  
+                  <div class="model-hardware">
+                    <div class="hardware-support">
+                      ${model.hardware.supportsGPU ? '<span class="hw-tag gpu">GPU</span>' : ''}
+                      ${model.hardware.supportsWebGPU ? '<span class="hw-tag webgpu">WebGPU</span>' : ''}
+                      ${model.hardware.supportsWebNN ? '<span class="hw-tag webnn">WebNN</span>' : ''}
+                    </div>
+                  </div>
+                  
+                  <div class="model-actions">
+                    ${model.loaded ? `
+                      <button class="action-btn small" onclick="window.p2pNetworkApp.unloadModel('${model.id}')">
+                        <span class="btn-icon">📤</span>
+                        Unload
+                      </button>
+                      <button class="action-btn small primary" onclick="window.p2pNetworkApp.testInference('${model.id}')">
+                        <span class="btn-icon">🧠</span>
+                        Test
+                      </button>
+                    ` : `
+                      <button class="action-btn small primary" onclick="window.p2pNetworkApp.loadSpecificModel('${model.id}')">
+                        <span class="btn-icon">📥</span>
+                        Load
+                      </button>
+                    `}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="models-tab-content" id="loaded-models">
+            <h4>Loaded Models (${loadedModels.length})</h4>
+            <div class="loaded-models-list">
+              ${loadedModels.map(model => `
+                <div class="loaded-model-item">
+                  <div class="model-info">
+                    <div class="model-name">${model.name}</div>
+                    <div class="model-status">Ready for inference</div>
+                  </div>
+                  <div class="model-stats">
+                    <div class="stat">
+                      <span class="stat-label">Type:</span>
+                      <span class="stat-value">${model.type}</span>
+                    </div>
+                    <div class="stat">
+                      <span class="stat-label">Size:</span>
+                      <span class="stat-value">${(model.size / 1024).toFixed(1)}GB</span>
+                    </div>
+                  </div>
+                  <div class="model-actions">
+                    <button class="action-btn small" onclick="window.p2pNetworkApp.unloadModel('${model.id}')">
+                      <span class="btn-icon">📤</span>
+                      Unload
+                    </button>
+                    <button class="action-btn small primary" onclick="window.p2pNetworkApp.testInference('${model.id}')">
+                      <span class="btn-icon">🧠</span>
+                      Test Inference
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="models-tab-content" id="inference-history">
+            <h4>Inference History</h4>
+            <div class="inference-list">
+              ${modelInferenceHistory.map(inference => `
+                <div class="inference-item ${inference.status}">
+                  <div class="inference-header">
+                    <div class="inference-id">${inference.id}</div>
+                    <div class="inference-model">${inference.modelId}</div>
+                    <div class="inference-status ${inference.status}">
+                      <span class="status-dot"></span>
+                      ${inference.status}
+                    </div>
+                  </div>
+                  
+                  <div class="inference-details">
+                    <div class="inference-input">"${inference.input.substring(0, 100)}..."</div>
+                    ${inference.executedBy ? `<div class="executed-by">Executed by: ${inference.executedBy}</div>` : ''}
+                    ${inference.executionTime ? `<div class="execution-time">Time: ${inference.executionTime}ms</div>` : ''}
+                  </div>
+                  
+                  ${inference.result ? `
+                    <div class="inference-result">
+                      <div class="result-label">Result:</div>
+                      <div class="result-content">"${inference.result.substring(0, 200)}..."</div>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -845,6 +1345,68 @@
       },
       offerResources: () => {
         console.log('Offering resources to network...');
+      },
+      // Model management functions
+      loadModel: async () => {
+        const modelId = prompt('Enter model ID to load:');
+        if (modelId && P2PMLSystem) {
+          try {
+            await P2PMLSystem.loadModel(modelId);
+            updateDisplays();
+          } catch (error) {
+            alert(`Failed to load model: ${error.message}`);
+          }
+        }
+      },
+      loadSpecificModel: async (modelId) => {
+        if (P2PMLSystem) {
+          try {
+            await P2PMLSystem.loadModel(modelId);
+            updateDisplays();
+          } catch (error) {
+            alert(`Failed to load model ${modelId}: ${error.message}`);
+          }
+        }
+      },
+      unloadModel: async (modelId) => {
+        if (P2PMLSystem) {
+          try {
+            await P2PMLSystem.unloadModel(modelId);
+            updateDisplays();
+          } catch (error) {
+            alert(`Failed to unload model ${modelId}: ${error.message}`);
+          }
+        }
+      },
+      testInference: async (modelId) => {
+        const input = prompt('Enter text for inference:');
+        if (input && P2PMLSystem) {
+          try {
+            const inference = {
+              id: `inf-${Date.now()}`,
+              modelId,
+              input,
+              status: 'processing',
+              startTime: new Date()
+            };
+            
+            modelInferences.unshift(inference);
+            updateDisplays();
+            
+            const requestId = await P2PMLSystem.submitInference(modelId, input, {
+              preferLocal: false,
+              priority: 'medium'
+            });
+            
+            console.log(`Submitted inference request: ${requestId}`);
+            
+          } catch (error) {
+            alert(`Failed to submit inference: ${error.message}`);
+          }
+        }
+      },
+      refreshModels: () => {
+        updateDisplays();
       }
     };
   }
@@ -884,6 +1446,211 @@
   function updateDisplay(container) {
     renderApp(container);
     setupEventHandlers(container);
+  }
+
+  // Helper functions for model management
+  function getAvailableModels() {
+    if (P2PMLSystem) {
+      return P2PMLSystem.getAvailableModels();
+    }
+    // Mock data
+    return [
+      {
+        id: 'bert-base-uncased',
+        name: 'BERT Base Uncased',
+        type: 'text-classification',
+        size: 110,
+        loaded: false,
+        capabilities: ['text-classification', 'question-answering', 'embedding'],
+        hardware: { supportsGPU: true, supportsWebGPU: true, supportsWebNN: false }
+      },
+      {
+        id: 't5-small',
+        name: 'T5 Small',
+        type: 'text-generation',
+        size: 242,
+        loaded: true,
+        capabilities: ['text-generation', 'summarization', 'translation'],
+        hardware: { supportsGPU: true, supportsWebGPU: true, supportsWebNN: false }
+      },
+      {
+        id: 'gpt2',
+        name: 'GPT-2',
+        type: 'text-generation',
+        size: 548,
+        loaded: false,
+        capabilities: ['text-generation'],
+        hardware: { supportsGPU: true, supportsWebGPU: true, supportsWebNN: false }
+      }
+    ];
+  }
+
+  function getLoadedModels() {
+    if (P2PMLSystem) {
+      return P2PMLSystem.getLoadedModels();
+    }
+    // Mock data
+    return getAvailableModels().filter(model => model.loaded);
+  }
+
+  function getModelInferenceHistory() {
+    return modelInferences.slice(-10); // Last 10 inferences
+  }
+
+  function addPeer(peer) {
+    const existingIndex = peers.findIndex(p => p.id === peer.id.id);
+    if (existingIndex >= 0) {
+      peers[existingIndex] = {
+        id: peer.id.id,
+        name: `Peer ${peer.id.id.substring(0, 8)}`,
+        status: peer.status,
+        lastSeen: peer.lastSeen,
+        capabilities: peer.capabilities
+      };
+    } else {
+      peers.push({
+        id: peer.id.id,
+        name: `Peer ${peer.id.id.substring(0, 8)}`,
+        status: peer.status,
+        lastSeen: peer.lastSeen,
+        capabilities: peer.capabilities
+      });
+    }
+  }
+
+  function removePeer(peerId) {
+    const index = peers.findIndex(p => p.id === peerId);
+    if (index >= 0) {
+      peers.splice(index, 1);
+    }
+  }
+
+  function updateInferenceStatus(response) {
+    const inference = modelInferences.find(inf => inf.id === response.originalRequestId);
+    if (inference) {
+      inference.status = response.status;
+      inference.result = response.result;
+      inference.executedBy = response.executedBy;
+      inference.executionTime = response.executionTime;
+    }
+  }
+
+  function updateDisplays() {
+    // Re-render the current tab content
+    const activeTab = document.querySelector('.tab-button.active');
+    if (activeTab) {
+      const tabId = activeTab.getAttribute('data-tab');
+      const tabContent = document.getElementById(`${tabId}-tab`);
+      if (tabContent) {
+        switch(tabId) {
+          case 'network':
+            tabContent.innerHTML = renderNetworkTab();
+            break;
+          case 'peers':
+            tabContent.innerHTML = renderPeersTab();
+            break;
+          case 'models':
+            tabContent.innerHTML = renderModelsTab();
+            setupModelsTabHandlers();
+            break;
+          case 'tasks':
+            tabContent.innerHTML = renderTasksTab();
+            break;
+          case 'resources':
+            tabContent.innerHTML = renderResourcesTab();
+            break;
+        }
+      }
+    }
+  }
+
+  function setupModelsTabHandlers() {
+    const modelsTabBtns = document.querySelectorAll('.models-tab-btn');
+    const modelsTabContents = document.querySelectorAll('.models-tab-content');
+
+    modelsTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-models-tab');
+        
+        modelsTabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        modelsTabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === `${tabId}-models` || content.id === `inference-history`) {
+            content.classList.add('active');
+          }
+        });
+      });
+    });
+  }
+
+  function setupMockP2PManager() {
+    p2pManager = {
+      start: () => {
+        connectionStatus = 'connecting';
+        setTimeout(() => {
+          connectionStatus = 'connected';
+          addMockPeers();
+          updateDisplays();
+        }, 2000);
+      },
+      stop: () => {
+        connectionStatus = 'disconnected';
+        peers.length = 0;
+        updateDisplays();
+      },
+      sendMessage: (peerId, message) => {
+        console.log(`Sending message to ${peerId}:`, message);
+      },
+      broadcast: (message) => {
+        console.log('Broadcasting message:', message);
+      }
+    };
+  }
+
+  function addMockPeers() {
+    peers.push(
+      {
+        id: 'peer-001',
+        name: 'ML Node Alpha',
+        status: 'connected',
+        lastSeen: new Date(),
+        capabilities: {
+          gpu: { available: true, type: 'webgpu', memory: 8192 },
+          models: ['bert-base-uncased', 'gpt2']
+        }
+      },
+      {
+        id: 'peer-002', 
+        name: 'Inference Server',
+        status: 'connected',
+        lastSeen: new Date(),
+        capabilities: {
+          gpu: { available: true, type: 'webgpu', memory: 4096 },
+          models: ['t5-small', 'bert-base-uncased']
+        }
+      }
+    );
+  }
+
+  function startSystemMonitoring() {
+    // Monitor system status every 5 seconds
+    setInterval(() => {
+      if (P2PMLSystem && P2PMLSystem.isSystemRunning()) {
+        systemStatus = P2PMLSystem.getSystemStatus();
+        updateDisplays();
+      }
+    }, 5000);
+
+    // Start P2P system after a short delay
+    setTimeout(() => {
+      if (P2PMLSystem) {
+        P2PMLSystem.start().catch(console.error);
+      } else {
+        window.p2pNetworkApp?.startNetworking();
+      }
+    }, 1000);
   }
 
   function formatTimestamp(date) {
