@@ -13,7 +13,7 @@ export class TerminalApp {
     this.swissknife = swissknife;
     this.commandHistory = [];
     this.historyIndex = 0;
-    this.currentDirectory = '/';
+    this.currentDirectory = '/home/swissknife';
     
     // Use the shared CLI adapter for unified command execution
     this.cliAdapter = sharedCLI;
@@ -61,9 +61,9 @@ export class TerminalApp {
     this.window.innerHTML = `
       <div class="terminal-container">
         <div class="terminal-header">
-          <div class="terminal-title">SwissKnife Terminal</div>
+          <div class="terminal-title">🖥️ SwissKnife Terminal - Enhanced with Shared System</div>
           <div class="terminal-controls">
-            <button class="btn-minimize">-</button>
+            <button class="btn-minimize">−</button>
             <button class="btn-maximize">□</button>
             <button class="btn-close">×</button>
           </div>
@@ -72,11 +72,125 @@ export class TerminalApp {
           <div class="terminal-output" id="terminal-output"></div>
           <div class="terminal-input-line">
             <span class="terminal-prompt">swissknife@web:${this.currentDirectory}$ </span>
-            <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false">
+            <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false" autofocus>
           </div>
         </div>
       </div>
     `;
+
+    // Add enhanced terminal styling
+    const style = document.createElement('style');
+    style.textContent = `
+      .terminal-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        font-family: 'Courier New', monospace;
+        background: #1a1a1a;
+        color: #00ff00;
+      }
+      
+      .terminal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: #2d2d2d;
+        border-bottom: 1px solid #444;
+      }
+      
+      .terminal-title {
+        font-size: 14px;
+        color: #fff;
+      }
+      
+      .terminal-controls button {
+        background: none;
+        border: none;
+        color: #fff;
+        padding: 4px 8px;
+        margin-left: 4px;
+        cursor: pointer;
+        border-radius: 3px;
+      }
+      
+      .terminal-controls button:hover {
+        background: #444;
+      }
+      
+      .terminal-body {
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .terminal-output {
+        flex: 1;
+        white-space: pre-wrap;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      
+      .terminal-input-line {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+      }
+      
+      .terminal-prompt {
+        color: #00ff00;
+        font-weight: bold;
+        margin-right: 8px;
+      }
+      
+      .terminal-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #00ff00;
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+      }
+      
+      .terminal-line {
+        margin: 2px 0;
+      }
+      
+      .terminal-command {
+        color: #ffff00;
+      }
+      
+      .terminal-error {
+        color: #ff4444;
+      }
+      
+      .terminal-success {
+        color: #44ff44;
+      }
+      
+      .terminal-info {
+        color: #4488ff;
+      }
+      
+      .terminal-welcome {
+        color: #ff8844;
+        font-weight: bold;
+      }
+      
+      .terminal-category {
+        color: #ff44ff;
+        font-weight: bold;
+      }
+      
+      .terminal-help {
+        color: #44ffff;
+        font-weight: bold;
+      }
+    `;
+    this.window.appendChild(style);
 
     this.output = this.window.querySelector('#terminal-output');
     this.input = this.window.querySelector('#terminal-input');
