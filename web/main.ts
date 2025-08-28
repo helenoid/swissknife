@@ -4,14 +4,14 @@
  * Full port of the original js/main.js with all desktop functionality
  */
 
-// Import CSS for the desktop environment - use proper relative paths
-import './css/aero-enhanced.css';
-import './css/desktop.css';
-import './css/windows.css';
-import './css/terminal.css';
-import './css/apps.css';
-import './css/strudel.css';
-import './css/strudel-grandma.css';
+// Import CSS for the desktop environment from public folder
+import '/css/aero-enhanced.css';
+import '/css/desktop.css';
+import '/css/windows.css';
+import '/css/terminal.css';
+import '/css/apps.css';
+import '/css/strudel.css';
+import '/css/strudel-grandma.css';
 
 // Import SwissKnife core and enhancer - use dynamic imports to avoid module issues
 // These will be loaded at runtime
