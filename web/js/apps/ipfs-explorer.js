@@ -1,174 +1,412 @@
 /**
- * IPFS Explorer App for SwissKnife Web Desktop
- * Enhanced with IPFS accelerate integration
+ * Enhanced IPFS Explorer App for SwissKnife Web Desktop
+ * Advanced IPFS file management with P2P integration, content pinning, and network analytics
  */
-
-import { eventBus } from '../../src/shared/events/index.js';
-import { configManager } from '../../src/shared/config/index.js';
 
 export class IPFSExplorerApp {
   constructor(desktop) {
     this.desktop = desktop;
     this.swissknife = null;
     this.currentPath = '/';
-    this.pinned = new Set();
-    this.nodes = ['QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn'];
+    this.currentHash = null;
+    this.pinnedContent = new Map();
+    this.networkStats = {};
+    this.ipfsNode = null;
+    this.p2pSystem = null;
+    this.currentView = 'explorer'; // 'explorer', 'pinning', 'network', 'analytics'
+    this.contentCache = new Map();
+    this.uploadQueue = [];
     
-    this.setupSharedSystemIntegration();
+    // IPFS gateway configuration
+    this.gateways = [
+      'https://ipfs.io/ipfs/',
+      'https://gateway.ipfs.io/ipfs/',
+      'https://cloudflare-ipfs.com/ipfs/',
+      'https://dweb.link/ipfs/'
+    ];
+    this.currentGateway = this.gateways[0];
+    
+    // Content types and icons
+    this.contentTypes = {
+      'directory': { icon: '📁', color: '#FFB74D' },
+      'image': { icon: '🖼️', color: '#4CAF50' },
+      'video': { icon: '🎥', color: '#F44336' },
+      'audio': { icon: '🎵', color: '#9C27B0' },
+      'document': { icon: '📄', color: '#2196F3' },
+      'archive': { icon: '📦', color: '#FF9800' },
+      'code': { icon: '💻', color: '#795548' },
+      'json': { icon: '📋', color: '#607D8B' },
+      'unknown': { icon: '❓', color: '#9E9E9E' }
+    };
+    
+    this.initializeIntegrations();
   }
 
-  setupSharedSystemIntegration() {
-    // Listen for IPFS configuration updates
-    eventBus.on('config:update', (data) => {
-      if (data.component === 'ipfs') {
-        this.updateIPFSSettings();
+  async initializeIntegrations() {
+    try {
+      this.swissknife = this.desktop.swissknife;
+      
+      // Connect to P2P system for distributed IPFS
+      if (window.p2pMLSystem) {
+        this.p2pSystem = window.p2pMLSystem;
+        this.setupP2PIntegration();
       }
-    });
-
-    // Listen for IPFS events
-    eventBus.on('ipfs:file-added', (data) => {
-      this.refreshCurrentView();
-    });
-
-    eventBus.on('ipfs:pin-complete', (data) => {
-      this.pinned.add(data.hash);
-      this.updatePinStatus(data.hash);
-    });
-  }
-
-  async initialize() {
-    this.swissknife = this.desktop.swissknife;
-    await this.loadIPFSConfiguration();
-  }
-
-  async loadIPFSConfiguration() {
-    const ipfsConfig = configManager.getComponentConfig('ipfs');
-    this.gateway = ipfsConfig.gateway;
-    this.acceleration = ipfsConfig.accelerate;
-    this.nodes = ipfsConfig.nodes || [];
+      
+      // Initialize IPFS node if available
+      await this.initializeIPFSNode();
+      
+      // Load pinned content
+      this.loadPinnedContent();
+      
+      console.log('✅ IPFS Explorer integrations initialized');
+    } catch (error) {
+      console.error('❌ IPFS Explorer integration error:', error);
+    }
   }
 
   createWindow() {
     const content = `
       <div class="ipfs-explorer-container">
-        <div class="ipfs-toolbar">
-          <div class="ipfs-nav">
-            <button class="nav-btn" id="back-btn" title="Back">←</button>
-            <button class="nav-btn" id="forward-btn" title="Forward">→</button>
-            <button class="nav-btn" id="home-btn" title="Home">🏠</button>
-            <button class="nav-btn" id="refresh-btn" title="Refresh">↻</button>
+        <div class="ipfs-header">
+          <div class="header-tabs">
+            <button class="tab-btn ${this.currentView === 'explorer' ? 'active' : ''}" data-view="explorer">
+              🗂️ Explorer
+            </button>
+            <button class="tab-btn ${this.currentView === 'pinning' ? 'active' : ''}" data-view="pinning">
+              📌 Pinning
+            </button>
+            <button class="tab-btn ${this.currentView === 'network' ? 'active' : ''}" data-view="network">
+              🌐 Network
+            </button>
+            <button class="tab-btn ${this.currentView === 'analytics' ? 'active' : ''}" data-view="analytics">
+              📊 Analytics
+            </button>
           </div>
-          <div class="ipfs-path">
-            <input type="text" id="path-input" value="${this.currentPath}" placeholder="Enter IPFS hash or path">
-            <button id="go-btn">Go</button>
-          </div>
-          <div class="ipfs-actions">
-            <button class="action-btn" id="add-btn" title="Add File">📁+</button>
-            <button class="action-btn" id="pin-btn" title="Pin Current">📌</button>
-            <button class="action-btn" id="network-btn" title="Network Status">🌐</button>
-          </div>
-        </div>
-        
-        <div class="ipfs-status-bar">
-          <div class="status-item">
-            <span class="status-label">Gateway:</span>
-            <span class="status-value" id="gateway-status">${this.gateway}</span>
-          </div>
-          <div class="status-item">
-            <span class="status-label">Acceleration:</span>
-            <span class="status-value" id="acceleration-status">${this.acceleration ? 'Enabled' : 'Disabled'}</span>
-          </div>
-          <div class="status-item">
-            <span class="status-label">Peers:</span>
-            <span class="status-value" id="peer-count">0</span>
+          <div class="header-controls">
+            <button class="control-btn" id="add-files" title="Add Files">📁+</button>
+            <button class="control-btn" id="create-folder" title="Create Folder">📁</button>
+            <button class="control-btn" id="ipfs-settings" title="Settings">⚙️</button>
           </div>
         </div>
 
-        <div class="ipfs-main">
-          <div class="ipfs-sidebar">
-            <div class="sidebar-section">
-              <h4>Quick Access</h4>
-              <div class="quick-links">
-                <div class="quick-link" data-path="QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn">📂 Example Files</div>
-                <div class="quick-link" data-path="QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG">📷 Images</div>
-                <div class="quick-link" data-path="QmT5NvUtoM5nWFfrQdVrFtvGfKFmG7AHE8P34isapyhCxX">🎵 Music</div>
+        <div class="ipfs-content">
+          <!-- Explorer View -->
+          <div class="tab-content ${this.currentView === 'explorer' ? 'active' : ''}" data-view="explorer">
+            <div class="explorer-toolbar">
+              <div class="navigation-controls">
+                <button class="nav-btn" id="back-btn" title="Back">←</button>
+                <button class="nav-btn" id="forward-btn" title="Forward">→</button>
+                <button class="nav-btn" id="home-btn" title="Home">🏠</button>
+                <button class="nav-btn" id="refresh-btn" title="Refresh">🔄</button>
+              </div>
+              <div class="path-bar">
+                <input type="text" id="path-input" value="${this.currentPath}" placeholder="Enter IPFS hash or path..." class="path-input">
+                <button class="go-btn" id="go-btn">Go</button>
+              </div>
+              <div class="view-controls">
+                <select id="gateway-select" class="gateway-select">
+                  ${this.gateways.map(gateway => 
+                    `<option value="${gateway}" ${gateway === this.currentGateway ? 'selected' : ''}>${new URL(gateway).hostname}</option>`
+                  ).join('')}
+                </select>
+                <button class="view-btn ${this.viewMode === 'list' ? 'active' : ''}" data-view="list" title="List View">📋</button>
+                <button class="view-btn ${this.viewMode === 'grid' ? 'active' : ''}" data-view="grid" title="Grid View">⊞</button>
               </div>
             </div>
-            
-            <div class="sidebar-section">
-              <h4>Pinned Items</h4>
-              <div class="pinned-list" id="pinned-list">
-                <!-- Pinned items will be populated here -->
+
+            <div class="explorer-main">
+              <div class="explorer-sidebar">
+                <div class="sidebar-section">
+                  <h4>🔗 Quick Access</h4>
+                  <div class="quick-links">
+                    <div class="quick-link" data-hash="QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn">
+                      <span class="link-icon">📂</span>
+                      <span class="link-text">IPFS Welcome</span>
+                    </div>
+                    <div class="quick-link" data-hash="QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG">
+                      <span class="link-icon">🖼️</span>
+                      <span class="link-text">Sample Images</span>
+                    </div>
+                    <div class="quick-link" data-hash="QmT5NvUtoM5nWFfrQdVrFtvGfKFmG7AHE8P34isapyhCxX">
+                      <span class="link-icon">🎵</span>
+                      <span class="link-text">Audio Files</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="sidebar-section">
+                  <h4>📌 Recent Pins</h4>
+                  <div class="recent-pins" id="recent-pins">
+                    <!-- Recent pinned content -->
+                  </div>
+                </div>
+
+                <div class="sidebar-section">
+                  <h4>📊 Network Status</h4>
+                  <div class="network-status">
+                    <div class="status-item">
+                      <span class="status-label">Peers</span>
+                      <span class="status-value" id="peer-count">0</span>
+                    </div>
+                    <div class="status-item">
+                      <span class="status-label">Bandwidth</span>
+                      <span class="status-value" id="bandwidth">0 KB/s</span>
+                    </div>
+                    <div class="status-item">
+                      <span class="status-label">Storage</span>
+                      <span class="status-value" id="storage-used">0 MB</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <div class="sidebar-section">
-              <h4>Local Nodes</h4>
-              <div class="node-list" id="node-list">
-                <!-- IPFS nodes will be populated here -->
+
+              <div class="explorer-content">
+                <div class="content-browser" id="content-browser">
+                  <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading IPFS content...</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          
-          <div class="ipfs-content">
-            <div class="content-header">
-              <div class="breadcrumb" id="breadcrumb">
-                <span class="breadcrumb-item">ipfs:/</span>
+
+          <!-- Pinning Management View -->
+          <div class="tab-content ${this.currentView === 'pinning' ? 'active' : ''}" data-view="pinning">
+            <div class="pinning-overview">
+              <div class="pinning-stats">
+                <div class="stat-card">
+                  <div class="stat-icon">📌</div>
+                  <div class="stat-content">
+                    <div class="stat-value" id="total-pins">0</div>
+                    <div class="stat-label">Total Pins</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">💾</div>
+                  <div class="stat-content">
+                    <div class="stat-value" id="pinned-size">0 MB</div>
+                    <div class="stat-label">Pinned Data</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">🔄</div>
+                  <div class="stat-content">
+                    <div class="stat-value" id="sync-status">Synced</div>
+                    <div class="stat-label">Sync Status</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">⚡</div>
+                  <div class="stat-content">
+                    <div class="stat-value" id="pin-speed">0/s</div>
+                    <div class="stat-label">Pin Rate</div>
+                  </div>
+                </div>
               </div>
-              <div class="view-options">
-                <button class="view-btn active" data-view="list">📋</button>
-                <button class="view-btn" data-view="grid">⊞</button>
-                <button class="view-btn" data-view="details">📊</button>
+
+              <div class="pinning-controls">
+                <button class="pin-btn" id="bulk-pin">📌 Bulk Pin</button>
+                <button class="pin-btn" id="auto-pin">🤖 Auto Pin</button>
+                <button class="pin-btn" id="export-pins">📤 Export List</button>
+                <button class="pin-btn" id="import-pins">📥 Import List</button>
               </div>
             </div>
-            
-            <div class="file-browser" id="file-browser">
-              <div class="loading-message">
-                <div class="spinner"></div>
-                <p>Connecting to IPFS network...</p>
+
+            <div class="pinned-content">
+              <div class="pinning-header">
+                <h3>📌 Pinned Content</h3>
+                <div class="pinning-filters">
+                  <select id="pin-filter" class="filter-select">
+                    <option value="all">All Pins</option>
+                    <option value="local">Local Only</option>
+                    <option value="remote">Remote Pins</option>
+                    <option value="recursive">Recursive</option>
+                  </select>
+                  <input type="text" id="pin-search" placeholder="Search pins..." class="search-input">
+                </div>
+              </div>
+              
+              <div class="pins-list" id="pins-list">
+                <!-- Pinned content will be populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Network Analysis View -->
+          <div class="tab-content ${this.currentView === 'network' ? 'active' : ''}" data-view="network">
+            <div class="network-overview">
+              <h3>🌐 IPFS Network Overview</h3>
+              
+              <div class="network-metrics">
+                <div class="metric-card">
+                  <div class="metric-header">
+                    <span class="metric-icon">🔗</span>
+                    <span class="metric-title">Connected Peers</span>
+                  </div>
+                  <div class="metric-value" id="network-peers">0</div>
+                  <div class="metric-chart" id="peers-chart"></div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-header">
+                    <span class="metric-icon">⬇️</span>
+                    <span class="metric-title">Download Speed</span>
+                  </div>
+                  <div class="metric-value" id="download-speed">0 KB/s</div>
+                  <div class="metric-chart" id="download-chart"></div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-header">
+                    <span class="metric-icon">⬆️</span>
+                    <span class="metric-title">Upload Speed</span>
+                  </div>
+                  <div class="metric-value" id="upload-speed">0 KB/s</div>
+                  <div class="metric-chart" id="upload-chart"></div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-header">
+                    <span class="metric-icon">📶</span>
+                    <span class="metric-title">DHT Size</span>
+                  </div>
+                  <div class="metric-value" id="dht-size">0</div>
+                  <div class="metric-chart" id="dht-chart"></div>
+                </div>
+              </div>
+
+              <div class="network-actions">
+                <button class="network-btn" id="discover-peers">🔍 Discover Peers</button>
+                <button class="network-btn" id="test-connectivity">🧪 Test Connectivity</button>
+                <button class="network-btn" id="optimize-routing">⚡ Optimize Routing</button>
+                <button class="network-btn" id="network-diagnostics">🔧 Diagnostics</button>
+              </div>
+            </div>
+
+            <div class="peer-list">
+              <h4>👥 Connected Peers</h4>
+              <div class="peers-table" id="peers-table">
+                <!-- Peer list will be populated -->
+              </div>
+            </div>
+
+            <div class="gateway-testing">
+              <h4>🌐 Gateway Performance</h4>
+              <div class="gateway-tests" id="gateway-tests">
+                <!-- Gateway test results -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Analytics View -->
+          <div class="tab-content ${this.currentView === 'analytics' ? 'active' : ''}" data-view="analytics">
+            <div class="analytics-overview">
+              <h3>📊 IPFS Usage Analytics</h3>
+              
+              <div class="analytics-summary">
+                <div class="summary-card">
+                  <div class="summary-icon">📈</div>
+                  <div class="summary-content">
+                    <div class="summary-value">1.2 GB</div>
+                    <div class="summary-label">Data Retrieved</div>
+                  </div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-icon">📤</div>
+                  <div class="summary-content">
+                    <div class="summary-value">456 MB</div>
+                    <div class="summary-label">Data Shared</div>
+                  </div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-icon">🔄</div>
+                  <div class="summary-content">
+                    <div class="summary-value">89%</div>
+                    <div class="summary-label">Cache Hit Rate</div>
+                  </div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-icon">⚡</div>
+                  <div class="summary-content">
+                    <div class="summary-value">245ms</div>
+                    <div class="summary-label">Avg Latency</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="analytics-charts">
+                <div class="chart-container">
+                  <h4>📈 Bandwidth Usage (24h)</h4>
+                  <canvas id="bandwidth-chart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                  <h4>📊 Content Types</h4>
+                  <canvas id="content-types-chart"></canvas>
+                </div>
+              </div>
+
+              <div class="usage-insights">
+                <h4>💡 Usage Insights</h4>
+                <div class="insights-list" id="insights-list">
+                  <!-- Usage insights will be populated -->
+                </div>
               </div>
             </div>
           </div>
         </div>
-        
-        <div class="ipfs-upload-overlay" id="upload-overlay" style="display: none;">
-          <div class="upload-modal">
-            <h3>Add Files to IPFS</h3>
-            <div class="upload-area" id="upload-area">
-              <p>Drag and drop files here or</p>
-              <input type="file" id="file-input" multiple>
-              <button class="btn-primary" onclick="document.getElementById('file-input').click()">Choose Files</button>
+
+        <!-- File Upload Modal -->
+        <div class="modal" id="upload-modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>📁 Upload to IPFS</h3>
+              <button class="modal-close" id="close-upload-modal">❌</button>
             </div>
-            <div class="upload-options">
-              <label>
-                <input type="checkbox" id="recursive-add"> Add directories recursively
-              </label>
-              <label>
-                <input type="checkbox" id="pin-on-add" checked> Pin files after adding
-              </label>
+            <div class="modal-body">
+              <div class="upload-area" id="upload-area">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">
+                  <p>Drag and drop files here</p>
+                  <p>or</p>
+                  <button class="upload-btn" id="select-files">Choose Files</button>
+                </div>
+                <input type="file" id="file-input" multiple style="display: none;">
+              </div>
+              
+              <div class="upload-options">
+                <label class="option-item">
+                  <input type="checkbox" id="pin-after-upload" checked>
+                  <span>Pin files after upload</span>
+                </label>
+                <label class="option-item">
+                  <input type="checkbox" id="encrypt-upload">
+                  <span>Encrypt files</span>
+                </label>
+                <label class="option-item">
+                  <input type="checkbox" id="share-p2p">
+                  <span>Share with P2P network</span>
+                </label>
+              </div>
+              
+              <div class="upload-queue" id="upload-queue" style="display: none;">
+                <h4>📋 Upload Queue</h4>
+                <div class="queue-list" id="queue-list">
+                  <!-- Upload queue items -->
+                </div>
+              </div>
             </div>
-            <div class="upload-actions">
+            <div class="modal-footer">
               <button class="btn-secondary" id="cancel-upload">Cancel</button>
-              <button class="btn-primary" id="start-upload">Upload</button>
+              <button class="btn-primary" id="start-upload" disabled>Upload to IPFS</button>
             </div>
           </div>
         </div>
       </div>
     `;
 
-    const window = this.desktop.createWindow({
-      title: 'IPFS Explorer',
-      content: content,
-      width: 900,
-      height: 650,
-      resizable: true
-    });
-
-    this.addStyles(window);
-    this.setupEventListeners(window);
-    this.initializeIPFSConnection(window);
-    
-    return window;
+    return content;
   }
 
   addStyles(window) {
@@ -761,4 +999,787 @@ export class IPFSExplorerApp {
       </div>
     `;
   }
+
+  // Enhanced methods for the improved IPFS Explorer
+
+  async initialize() {
+    await this.initializeIntegrations();
+    this.setupEventListeners();
+    await this.loadInitialData();
+  }
+
+  setupEventListeners() {
+    // Tab switching
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('tab-btn')) {
+        const view = e.target.dataset.view;
+        this.switchView(view);
+      }
+    });
+
+    // File upload and management
+    document.addEventListener('click', (e) => {
+      const buttonHandlers = {
+        'add-files': () => this.showUploadModal(),
+        'create-folder': () => this.createFolder(),
+        'ipfs-settings': () => this.showSettings(),
+        
+        // Navigation
+        'back-btn': () => this.navigateBack(),
+        'forward-btn': () => this.navigateForward(),
+        'home-btn': () => this.navigateHome(),
+        'refresh-btn': () => this.refreshContent(),
+        'go-btn': () => this.navigateToPath(),
+        
+        // Pinning controls
+        'bulk-pin': () => this.showBulkPinDialog(),
+        'auto-pin': () => this.toggleAutoPinning(),
+        'export-pins': () => this.exportPinList(),
+        'import-pins': () => this.importPinList(),
+        
+        // Network controls
+        'discover-peers': () => this.discoverPeers(),
+        'test-connectivity': () => this.testConnectivity(),
+        'optimize-routing': () => this.optimizeRouting(),
+        'network-diagnostics': () => this.runNetworkDiagnostics(),
+        
+        // Upload modal
+        'select-files': () => this.selectFiles(),
+        'start-upload': () => this.startUpload(),
+        'cancel-upload': () => this.hideUploadModal(),
+        'close-upload-modal': () => this.hideUploadModal()
+      };
+
+      if (buttonHandlers[e.target.id]) {
+        e.preventDefault();
+        buttonHandlers[e.target.id]();
+      }
+
+      // Quick links
+      if (e.target.classList.contains('quick-link')) {
+        const hash = e.target.dataset.hash;
+        if (hash) {
+          this.navigateToHash(hash);
+        }
+      }
+    });
+
+    // File selection for upload
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) {
+      fileInput.addEventListener('change', (e) => {
+        this.handleFileSelection(e.target.files);
+      });
+    }
+
+    // Path input navigation
+    const pathInput = document.getElementById('path-input');
+    if (pathInput) {
+      pathInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          this.navigateToPath();
+        }
+      });
+    }
+
+    // Gateway selection
+    const gatewaySelect = document.getElementById('gateway-select');
+    if (gatewaySelect) {
+      gatewaySelect.addEventListener('change', (e) => {
+        this.currentGateway = e.target.value;
+        this.saveSettings();
+      });
+    }
+  }
+
+  switchView(view) {
+    this.currentView = view;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    // Update content
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.toggle('active', content.dataset.view === view);
+    });
+    
+    // Load view-specific data
+    this.loadViewData(view);
+  }
+
+  async loadViewData(view) {
+    switch (view) {
+      case 'explorer':
+        await this.loadExplorerContent();
+        break;
+      case 'pinning':
+        await this.loadPinningData();
+        break;
+      case 'network':
+        await this.loadNetworkData();
+        break;
+      case 'analytics':
+        await this.loadAnalyticsData();
+        break;
+    }
+  }
+
+  async loadInitialData() {
+    await this.loadExplorerContent();
+    this.updateNetworkStatus();
+    this.loadRecentPins();
+  }
+
+  async loadExplorerContent() {
+    const browser = document.getElementById('content-browser');
+    if (!browser) return;
+    
+    browser.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><div class="loading-text">Loading content...</div></div>';
+    
+    try {
+      if (this.currentHash) {
+        const content = await this.fetchIPFSContent(this.currentHash);
+        this.displayContent(content);
+      } else {
+        this.displayWelcomeContent();
+      }
+    } catch (error) {
+      this.showContentError(error.message);
+    }
+  }
+
+  async fetchIPFSContent(hash) {
+    // Mock IPFS content fetching
+    // In production, this would interface with actual IPFS APIs
+    return [
+      { name: 'readme.md', type: 'document', size: 1024, hash: 'QmXxYyZz...' },
+      { name: 'images', type: 'directory', size: 0, hash: 'QmAaBbCc...' },
+      { name: 'data.json', type: 'json', size: 512, hash: 'QmDdEeFf...' }
+    ];
+  }
+
+  displayContent(items) {
+    const browser = document.getElementById('content-browser');
+    if (!browser) return;
+    
+    if (items.length === 0) {
+      browser.innerHTML = '<div class="empty-folder"><div class="empty-icon">📂</div><div class="empty-text">This folder is empty</div></div>';
+      return;
+    }
+    
+    const listView = `
+      <div class="content-list">
+        ${items.map(item => this.renderContentItem(item)).join('')}
+      </div>
+    `;
+    
+    browser.innerHTML = listView;
+  }
+
+  renderContentItem(item) {
+    const typeInfo = this.contentTypes[item.type] || this.contentTypes.unknown;
+    const sizeText = item.type === 'directory' ? `${item.children || 0} items` : this.formatBytes(item.size);
+    
+    return `
+      <div class="content-item" data-hash="${item.hash}" data-type="${item.type}">
+        <div class="item-icon" style="color: ${typeInfo.color}">${typeInfo.icon}</div>
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-details">${sizeText} • ${item.hash.slice(0, 12)}...</div>
+        </div>
+        <div class="item-actions">
+          <button class="item-btn" onclick="ipfsExplorer.previewItem('${item.hash}')" title="Preview">👁️</button>
+          <button class="item-btn" onclick="ipfsExplorer.pinItem('${item.hash}')" title="Pin">📌</button>
+          <button class="item-btn" onclick="ipfsExplorer.shareItem('${item.hash}')" title="Share">🔗</button>
+          <button class="item-btn" onclick="ipfsExplorer.downloadItem('${item.hash}', '${item.name}')" title="Download">📥</button>
+        </div>
+      </div>
+    `;
+  }
+
+  displayWelcomeContent() {
+    const browser = document.getElementById('content-browser');
+    if (!browser) return;
+    
+    browser.innerHTML = `
+      <div class="welcome-content">
+        <div class="welcome-header">
+          <h2>🌐 Welcome to IPFS Explorer</h2>
+          <p>Explore the distributed web with advanced IPFS management</p>
+        </div>
+        
+        <div class="welcome-actions">
+          <div class="action-card" onclick="ipfsExplorer.navigateToHash('QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn')">
+            <div class="action-icon">📂</div>
+            <div class="action-title">Explore Sample Content</div>
+            <div class="action-description">Browse example files and folders on IPFS</div>
+          </div>
+          
+          <div class="action-card" onclick="ipfsExplorer.showUploadModal()">
+            <div class="action-icon">📁+</div>
+            <div class="action-title">Upload Files</div>
+            <div class="action-description">Add your files to the IPFS network</div>
+          </div>
+          
+          <div class="action-card" onclick="ipfsExplorer.switchView('network')">
+            <div class="action-icon">🌐</div>
+            <div class="action-title">Network Status</div>
+            <div class="action-description">View network peers and performance</div>
+          </div>
+          
+          <div class="action-card" onclick="ipfsExplorer.switchView('analytics')">
+            <div class="action-icon">📊</div>
+            <div class="action-title">View Analytics</div>
+            <div class="action-description">Analyze your IPFS usage patterns</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  showContentError(message) {
+    const browser = document.getElementById('content-browser');
+    if (!browser) return;
+    
+    browser.innerHTML = `
+      <div class="error-state">
+        <div class="error-icon">❌</div>
+        <div class="error-text">${message}</div>
+        <button class="retry-btn" onclick="ipfsExplorer.loadExplorerContent()">Try Again</button>
+      </div>
+    `;
+  }
+
+  async loadPinningData() {
+    await this.updatePinningStats();
+    this.displayPinnedContent();
+  }
+
+  async updatePinningStats() {
+    const stats = {
+      'total-pins': this.pinnedContent.size,
+      'pinned-size': this.calculatePinnedSize(),
+      'sync-status': 'Synced',
+      'pin-speed': '5/s'
+    };
+    
+    Object.entries(stats).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
+  }
+
+  calculatePinnedSize() {
+    let totalSize = 0;
+    this.pinnedContent.forEach(pin => {
+      totalSize += pin.size || 0;
+    });
+    return this.formatBytes(totalSize);
+  }
+
+  displayPinnedContent() {
+    const container = document.getElementById('pins-list');
+    if (!container) return;
+    
+    const pins = Array.from(this.pinnedContent.values());
+    
+    if (pins.length === 0) {
+      container.innerHTML = '<div class="no-pins">No pinned content. Pin some files to keep them available!</div>';
+      return;
+    }
+    
+    container.innerHTML = pins.map(pin => `
+      <div class="pin-item">
+        <div class="pin-icon">${this.getContentIcon(pin.type)}</div>
+        <div class="pin-info">
+          <div class="pin-name">${pin.name}</div>
+          <div class="pin-hash">${pin.hash}</div>
+          <div class="pin-meta">${this.formatBytes(pin.size)} • ${new Date(pin.pinnedAt).toLocaleDateString()}</div>
+        </div>
+        <div class="pin-status">
+          <span class="status-badge status-${pin.status}">${pin.status}</span>
+        </div>
+        <div class="pin-actions">
+          <button class="pin-btn small" onclick="ipfsExplorer.viewPinDetails('${pin.hash}')">🔍</button>
+          <button class="pin-btn small" onclick="ipfsExplorer.unpinContent('${pin.hash}')">📌❌</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async loadNetworkData() {
+    await this.updateNetworkMetrics();
+    this.displayPeerList();
+    this.testGatewayPerformance();
+  }
+
+  async updateNetworkMetrics() {
+    // Mock network metrics
+    const metrics = {
+      'network-peers': Math.floor(Math.random() * 50) + 10,
+      'download-speed': `${(Math.random() * 100).toFixed(1)} KB/s`,
+      'upload-speed': `${(Math.random() * 50).toFixed(1)} KB/s`,
+      'dht-size': Math.floor(Math.random() * 10000) + 5000
+    };
+    
+    Object.entries(metrics).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
+    
+    this.updateNetworkCharts();
+  }
+
+  updateNetworkCharts() {
+    // Simple mini-charts for network metrics
+    const charts = ['peers-chart', 'download-chart', 'upload-chart', 'dht-chart'];
+    
+    charts.forEach(chartId => {
+      const element = document.getElementById(chartId);
+      if (element) {
+        const value = Math.random() * 100;
+        element.innerHTML = `
+          <div class="mini-chart-bar" style="width: ${value}%; background: ${this.getBarColor(value)}"></div>
+        `;
+      }
+    });
+  }
+
+  displayPeerList() {
+    const table = document.getElementById('peers-table');
+    if (!table) return;
+    
+    // Mock peer data
+    const peers = [
+      { id: '12D3KooWGRREjJc...', location: 'US', latency: '45ms', bandwidth: '2.3 MB/s' },
+      { id: '12D3KooWHZTFpb1...', location: 'EU', latency: '78ms', bandwidth: '1.8 MB/s' },
+      { id: '12D3KooWJKLMpqr...', location: 'AS', latency: '125ms', bandwidth: '1.2 MB/s' }
+    ];
+    
+    table.innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Peer ID</th>
+            <th>Location</th>
+            <th>Latency</th>
+            <th>Bandwidth</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${peers.map(peer => `
+            <tr>
+              <td><code>${peer.id}</code></td>
+              <td>${peer.location}</td>
+              <td>${peer.latency}</td>
+              <td>${peer.bandwidth}</td>
+              <td>
+                <button class="peer-btn small" onclick="ipfsExplorer.pingPeer('${peer.id}')">📡</button>
+                <button class="peer-btn small" onclick="ipfsExplorer.viewPeerDetails('${peer.id}')">🔍</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async loadAnalyticsData() {
+    this.updateAnalyticsSummary();
+    this.renderBandwidthChart();
+    this.renderContentTypesChart();
+    this.generateUsageInsights();
+  }
+
+  updateAnalyticsSummary() {
+    // Mock analytics data
+    const summary = {
+      dataRetrieved: '1.2 GB',
+      dataShared: '456 MB',
+      cacheHitRate: '89%',
+      avgLatency: '245ms'
+    };
+    
+    // Update summary cards (already rendered in HTML)
+  }
+
+  renderBandwidthChart() {
+    const canvas = document.getElementById('bandwidth-chart');
+    if (!canvas) return;
+    
+    // Simple chart placeholder
+    canvas.style.background = 'linear-gradient(45deg, #e3f2fd, #1976d2)';
+    canvas.style.height = '200px';
+    
+    // In production, use Chart.js or similar library
+  }
+
+  renderContentTypesChart() {
+    const canvas = document.getElementById('content-types-chart');
+    if (!canvas) return;
+    
+    // Simple chart placeholder
+    canvas.style.background = 'linear-gradient(45deg, #fff3e0, #f57c00)';
+    canvas.style.height = '200px';
+  }
+
+  generateUsageInsights() {
+    const container = document.getElementById('insights-list');
+    if (!container) return;
+    
+    const insights = [
+      '📈 Your IPFS usage has increased 23% this week',
+      '🏃 Most content is retrieved within 200ms average',
+      '📌 Consider pinning frequently accessed content for better performance',
+      '🌐 Your node is well-connected with 45+ peers'
+    ];
+    
+    container.innerHTML = insights.map(insight => `
+      <div class="insight-item">
+        <span class="insight-text">${insight}</span>
+      </div>
+    `).join('');
+  }
+
+  // Navigation methods
+  navigateToHash(hash) {
+    this.currentHash = hash;
+    this.currentPath = `/ipfs/${hash}`;
+    
+    const pathInput = document.getElementById('path-input');
+    if (pathInput) {
+      pathInput.value = this.currentPath;
+    }
+    
+    this.loadExplorerContent();
+  }
+
+  navigateToPath() {
+    const pathInput = document.getElementById('path-input');
+    if (!pathInput) return;
+    
+    const path = pathInput.value.trim();
+    if (path.startsWith('/ipfs/') || path.startsWith('Qm') || path.startsWith('bafy')) {
+      this.currentPath = path.startsWith('/') ? path : `/ipfs/${path}`;
+      this.currentHash = path.replace('/ipfs/', '');
+      this.loadExplorerContent();
+    }
+  }
+
+  navigateBack() {
+    // Implementation for back navigation
+    console.log('Navigate back');
+  }
+
+  navigateForward() {
+    // Implementation for forward navigation
+    console.log('Navigate forward');
+  }
+
+  navigateHome() {
+    this.currentPath = '/';
+    this.currentHash = null;
+    this.loadExplorerContent();
+  }
+
+  refreshContent() {
+    this.loadExplorerContent();
+  }
+
+  // File management methods
+  showUploadModal() {
+    const modal = document.getElementById('upload-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  }
+
+  hideUploadModal() {
+    const modal = document.getElementById('upload-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+    this.clearUploadQueue();
+  }
+
+  selectFiles() {
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  handleFileSelection(files) {
+    this.uploadQueue = Array.from(files);
+    this.displayUploadQueue();
+    
+    const startBtn = document.getElementById('start-upload');
+    if (startBtn) {
+      startBtn.disabled = this.uploadQueue.length === 0;
+    }
+  }
+
+  displayUploadQueue() {
+    const queueContainer = document.getElementById('upload-queue');
+    const queueList = document.getElementById('queue-list');
+    
+    if (!queueContainer || !queueList) return;
+    
+    if (this.uploadQueue.length === 0) {
+      queueContainer.style.display = 'none';
+      return;
+    }
+    
+    queueContainer.style.display = 'block';
+    queueList.innerHTML = this.uploadQueue.map((file, index) => `
+      <div class="queue-item">
+        <div class="file-icon">${this.getFileIcon(file.name)}</div>
+        <div class="file-info">
+          <div class="file-name">${file.name}</div>
+          <div class="file-size">${this.formatBytes(file.size)}</div>
+        </div>
+        <button class="remove-btn" onclick="ipfsExplorer.removeFromQueue(${index})">❌</button>
+      </div>
+    `).join('');
+  }
+
+  removeFromQueue(index) {
+    this.uploadQueue.splice(index, 1);
+    this.displayUploadQueue();
+    
+    const startBtn = document.getElementById('start-upload');
+    if (startBtn) {
+      startBtn.disabled = this.uploadQueue.length === 0;
+    }
+  }
+
+  clearUploadQueue() {
+    this.uploadQueue = [];
+    this.displayUploadQueue();
+  }
+
+  async startUpload() {
+    if (this.uploadQueue.length === 0) return;
+    
+    this.showNotification('Starting IPFS upload...', 'info');
+    
+    try {
+      // Mock upload process
+      for (const file of this.uploadQueue) {
+        await this.uploadFileToIPFS(file);
+      }
+      
+      this.showNotification(`Successfully uploaded ${this.uploadQueue.length} files to IPFS`, 'success');
+      this.hideUploadModal();
+      this.loadExplorerContent();
+    } catch (error) {
+      this.showNotification(`Upload failed: ${error.message}`, 'error');
+    }
+  }
+
+  async uploadFileToIPFS(file) {
+    // Mock IPFS upload
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const hash = 'Qm' + Math.random().toString(36).substring(2, 46);
+        
+        // Add to pinned content if option is selected
+        const pinAfterUpload = document.getElementById('pin-after-upload');
+        if (pinAfterUpload?.checked) {
+          this.pinnedContent.set(hash, {
+            hash,
+            name: file.name,
+            size: file.size,
+            type: this.getFileType(file.name),
+            pinnedAt: Date.now(),
+            status: 'pinned'
+          });
+        }
+        
+        resolve(hash);
+      }, 1000);
+    });
+  }
+
+  // Utility methods
+  getContentIcon(type) {
+    return this.contentTypes[type]?.icon || this.contentTypes.unknown.icon;
+  }
+
+  getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const typeMap = {
+      'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+      'mp4': '🎥', 'avi': '🎥', 'mov': '🎥',
+      'mp3': '🎵', 'wav': '🎵', 'flac': '🎵',
+      'pdf': '📄', 'doc': '📄', 'txt': '📄',
+      'zip': '📦', 'rar': '📦', 'tar': '📦',
+      'js': '💻', 'html': '💻', 'css': '💻', 'py': '💻',
+      'json': '📋'
+    };
+    return typeMap[ext] || '📄';
+  }
+
+  getFileType(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const typeMap = {
+      'jpg': 'image', 'jpeg': 'image', 'png': 'image', 'gif': 'image',
+      'mp4': 'video', 'avi': 'video', 'mov': 'video',
+      'mp3': 'audio', 'wav': 'audio', 'flac': 'audio',
+      'pdf': 'document', 'doc': 'document', 'txt': 'document',
+      'zip': 'archive', 'rar': 'archive', 'tar': 'archive',
+      'js': 'code', 'html': 'code', 'css': 'code', 'py': 'code',
+      'json': 'json'
+    };
+    return typeMap[ext] || 'unknown';
+  }
+
+  formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  getBarColor(percentage) {
+    if (percentage < 50) return '#4CAF50';
+    if (percentage < 80) return '#FF9800';
+    return '#F44336';
+  }
+
+  // IPFS node management
+  async initializeIPFSNode() {
+    try {
+      // Initialize IPFS node connection
+      console.log('Initializing IPFS node connection...');
+      
+      // Mock IPFS node initialization
+      this.ipfsNode = {
+        id: '12D3KooWExample...',
+        version: '0.14.0',
+        connected: true
+      };
+      
+      console.log('✅ IPFS node connected');
+    } catch (error) {
+      console.error('❌ IPFS node connection failed:', error);
+    }
+  }
+
+  setupP2PIntegration() {
+    if (!this.p2pSystem) return;
+    
+    this.p2pSystem.on('ipfs:content-request', (request) => {
+      this.handleP2PContentRequest(request);
+    });
+    
+    this.p2pSystem.on('ipfs:pin-request', (request) => {
+      this.handleP2PPinRequest(request);
+    });
+  }
+
+  handleP2PContentRequest(request) {
+    console.log('P2P content request:', request);
+  }
+
+  handleP2PPinRequest(request) {
+    console.log('P2P pin request:', request);
+  }
+
+  updateNetworkStatus() {
+    // Update network status indicators
+    const peerCount = document.getElementById('peer-count');
+    const bandwidth = document.getElementById('bandwidth');
+    const storageUsed = document.getElementById('storage-used');
+    
+    if (peerCount) peerCount.textContent = Math.floor(Math.random() * 50) + 10;
+    if (bandwidth) bandwidth.textContent = `${(Math.random() * 100).toFixed(1)} KB/s`;
+    if (storageUsed) storageUsed.textContent = `${(Math.random() * 1000).toFixed(0)} MB`;
+  }
+
+  loadPinnedContent() {
+    try {
+      const saved = localStorage.getItem('ipfs-pinned-content');
+      if (saved) {
+        const data = JSON.parse(saved);
+        this.pinnedContent = new Map(data);
+      }
+    } catch (error) {
+      console.error('Error loading pinned content:', error);
+    }
+  }
+
+  savePinnedContent() {
+    try {
+      const data = Array.from(this.pinnedContent.entries());
+      localStorage.setItem('ipfs-pinned-content', JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving pinned content:', error);
+    }
+  }
+
+  loadRecentPins() {
+    const container = document.getElementById('recent-pins');
+    if (!container) return;
+    
+    const recentPins = Array.from(this.pinnedContent.values()).slice(0, 3);
+    
+    if (recentPins.length === 0) {
+      container.innerHTML = '<div class="no-recent-pins">No recent pins</div>';
+      return;
+    }
+    
+    container.innerHTML = recentPins.map(pin => `
+      <div class="recent-pin-item">
+        <span class="pin-icon">${this.getContentIcon(pin.type)}</span>
+        <span class="pin-name">${pin.name}</span>
+      </div>
+    `).join('');
+  }
+
+  saveSettings() {
+    const settings = {
+      currentGateway: this.currentGateway,
+      currentView: this.currentView
+    };
+    
+    localStorage.setItem('ipfs-explorer-settings', JSON.stringify(settings));
+  }
+
+  loadSettings() {
+    try {
+      const saved = localStorage.getItem('ipfs-explorer-settings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        this.currentGateway = settings.currentGateway || this.gateways[0];
+        this.currentView = settings.currentView || 'explorer';
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  }
+
+  showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  onDestroy() {
+    if (this.p2pSystem) {
+      this.p2pSystem.off('ipfs:content-request');
+      this.p2pSystem.off('ipfs:pin-request');
+    }
+  }
+}
 }
