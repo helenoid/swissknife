@@ -1,6 +1,6 @@
 /**
- * Model Browser App for SwissKnife Web Desktop
- * Browse, download, and manage AI models for local inference
+ * Enhanced Model Browser App for SwissKnife Web Desktop
+ * Advanced AI model management with P2P sharing, IPFS integration, and real-time monitoring
  */
 
 export class ModelBrowserApp {
@@ -9,15 +9,256 @@ export class ModelBrowserApp {
     this.swissknife = null;
     this.models = [];
     this.installedModels = [];
+    this.sharedModels = [];
     this.selectedModel = null;
     this.currentFilter = 'all';
     this.searchQuery = '';
+    this.sortBy = 'popularity';
+    this.p2pSystem = null;
+    this.ipfsStorage = null;
+    this.downloadQueue = [];
+    this.modelMetrics = new Map();
+    
+    // Model categories and providers
+    this.modelCategories = {
+      'text-generation': { name: 'Text Generation', icon: '📝', description: 'Generate and complete text' },
+      'text-embedding': { name: 'Text Embedding', icon: '🔤', description: 'Convert text to vectors' },
+      'image-generation': { name: 'Image Generation', icon: '🖼️', description: 'Generate images from text' },
+      'image-classification': { name: 'Image Classification', icon: '🏷️', description: 'Classify and analyze images' },
+      'speech-to-text': { name: 'Speech to Text', icon: '🎤', description: 'Convert speech to text' },
+      'text-to-speech': { name: 'Text to Speech', icon: '🔊', description: 'Convert text to speech' },
+      'translation': { name: 'Translation', icon: '🌍', description: 'Translate between languages' },
+      'code-generation': { name: 'Code Generation', icon: '💻', description: 'Generate and complete code' },
+      'question-answering': { name: 'Question Answering', icon: '❓', description: 'Answer questions from context' },
+      'summarization': { name: 'Summarization', icon: '📋', description: 'Summarize long texts' }
+    };
+    
+    this.modelProviders = {
+      'huggingface': { name: 'Hugging Face', icon: '🤗', url: 'https://huggingface.co' },
+      'openai': { name: 'OpenAI', icon: '🧠', url: 'https://openai.com' },
+      'anthropic': { name: 'Anthropic', icon: '🤖', url: 'https://anthropic.com' },
+      'google': { name: 'Google', icon: '🌟', url: 'https://ai.google' },
+      'meta': { name: 'Meta', icon: '📘', url: 'https://ai.meta.com' },
+      'microsoft': { name: 'Microsoft', icon: '🪟', url: 'https://azure.microsoft.com' },
+      'local': { name: 'Local Models', icon: '🏠', url: null },
+      'p2p': { name: 'P2P Shared', icon: '🌐', url: null }
+    };
+    
+    this.initializeIntegrations();
   }
 
-  async initialize() {
-    this.swissknife = this.desktop.swissknife;
-    await this.loadModels();
-    await this.loadInstalledModels();
+  async initializeIntegrations() {
+    // Connect to P2P system if available
+    if (window.p2pMLSystem) {
+      this.p2pSystem = window.p2pMLSystem;
+      this.setupP2PIntegration();
+    }
+    
+    // Connect to IPFS storage if available
+    if (window.ipfsModelStorage) {
+      this.ipfsStorage = window.ipfsModelStorage;
+      this.setupIPFSIntegration();
+    }
+    
+    // Load model data
+    await this.loadAvailableModels();
+  }
+
+  setupP2PIntegration() {
+    if (!this.p2pSystem) return;
+    
+    // Listen for shared models from peers
+    this.p2pSystem.on('model:shared', (modelData) => {
+      this.handleSharedModel(modelData);
+    });
+    
+    // Listen for model requests
+    this.p2pSystem.on('model:request', (request) => {
+      this.handleModelRequest(request);
+    });
+    
+    // Update shared models list
+    this.loadSharedModels();
+  }
+
+  setupIPFSIntegration() {
+    if (!this.ipfsStorage) return;
+    
+    // Listen for IPFS model updates
+    this.ipfsStorage.on('model:added', (modelCID) => {
+      this.handleIPFSModelAdded(modelCID);
+    });
+    
+    // Load models from IPFS network
+    this.loadIPFSModels();
+  }
+
+  async loadAvailableModels() {
+    try {
+      // Load curated model list
+      this.models = [
+        // Text Generation Models
+        {
+          id: 'gpt-3.5-turbo',
+          name: 'GPT-3.5 Turbo',
+          provider: 'openai',
+          category: 'text-generation',
+          description: 'Fast and capable language model for most text tasks',
+          size: 'API-based',
+          parameters: '175B',
+          license: 'Commercial',
+          tags: ['conversation', 'coding', 'writing'],
+          popularity: 95,
+          performance: { speed: 9, quality: 8, efficiency: 9 },
+          requirements: { gpu: false, ram: '0GB', storage: '0GB' },
+          apiOnly: true
+        },
+        {
+          id: 'llama-2-7b',
+          name: 'LLaMA 2 7B',
+          provider: 'meta',
+          category: 'text-generation',
+          description: 'Open-source language model optimized for chat and instruction following',
+          size: '13.5GB',
+          parameters: '7B',
+          license: 'Custom License',
+          tags: ['open-source', 'chat', 'instruct'],
+          popularity: 88,
+          performance: { speed: 7, quality: 8, efficiency: 7 },
+          requirements: { gpu: true, ram: '16GB', storage: '14GB' },
+          downloadUrl: 'https://huggingface.co/meta-llama/Llama-2-7b-chat-hf'
+        },
+        {
+          id: 'bert-base-uncased',
+          name: 'BERT Base Uncased',
+          provider: 'huggingface',
+          category: 'text-embedding',
+          description: 'Bidirectional transformer for understanding text context',
+          size: '440MB',
+          parameters: '110M',
+          license: 'Apache 2.0',
+          tags: ['embedding', 'classification', 'understanding'],
+          popularity: 92,
+          performance: { speed: 8, quality: 9, efficiency: 8 },
+          requirements: { gpu: false, ram: '2GB', storage: '500MB' },
+          downloadUrl: 'https://huggingface.co/bert-base-uncased'
+        },
+        {
+          id: 'stable-diffusion-v1-5',
+          name: 'Stable Diffusion v1.5',
+          provider: 'huggingface',
+          category: 'image-generation',
+          description: 'High-quality text-to-image generation model',
+          size: '4.27GB',
+          parameters: '860M',
+          license: 'CreativeML Open RAIL-M',
+          tags: ['image', 'generation', 'art'],
+          popularity: 94,
+          performance: { speed: 6, quality: 9, efficiency: 6 },
+          requirements: { gpu: true, ram: '8GB', storage: '5GB' },
+          downloadUrl: 'https://huggingface.co/runwayml/stable-diffusion-v1-5'
+        },
+        {
+          id: 'whisper-large-v3',
+          name: 'Whisper Large v3',
+          provider: 'openai',
+          category: 'speech-to-text',
+          description: 'State-of-the-art speech recognition in 99+ languages',
+          size: '2.9GB',
+          parameters: '1.55B',
+          license: 'MIT',
+          tags: ['speech', 'transcription', 'multilingual'],
+          popularity: 89,
+          performance: { speed: 7, quality: 9, efficiency: 7 },
+          requirements: { gpu: true, ram: '4GB', storage: '3GB' },
+          downloadUrl: 'https://huggingface.co/openai/whisper-large-v3'
+        }
+      ];
+      
+      // Add more models from different sources
+      await this.loadHuggingFaceModels();
+      await this.loadLocalModels();
+      
+    } catch (error) {
+      console.error('Error loading models:', error);
+    }
+  }
+
+  async loadHuggingFaceModels() {
+    try {
+      // In a real implementation, this would fetch from Hugging Face API
+      const additionalModels = [
+        {
+          id: 'distilbert-base-uncased',
+          name: 'DistilBERT Base',
+          provider: 'huggingface',
+          category: 'text-embedding',
+          description: 'Faster, smaller version of BERT with 97% of performance',
+          size: '268MB',
+          parameters: '66M',
+          license: 'Apache 2.0',
+          tags: ['embedding', 'efficient', 'fast'],
+          popularity: 85,
+          performance: { speed: 9, quality: 8, efficiency: 9 },
+          requirements: { gpu: false, ram: '1GB', storage: '300MB' },
+          downloadUrl: 'https://huggingface.co/distilbert-base-uncased'
+        },
+        {
+          id: 'code-llama-7b',
+          name: 'Code Llama 7B',
+          provider: 'meta',
+          category: 'code-generation',
+          description: 'Specialized version of LLaMA for code generation',
+          size: '13.5GB',
+          parameters: '7B',
+          license: 'Custom License',
+          tags: ['code', 'programming', 'completion'],
+          popularity: 87,
+          performance: { speed: 7, quality: 9, efficiency: 7 },
+          requirements: { gpu: true, ram: '16GB', storage: '14GB' },
+          downloadUrl: 'https://huggingface.co/codellama/CodeLlama-7b-hf'
+        }
+      ];
+      
+      this.models = [...this.models, ...additionalModels];
+    } catch (error) {
+      console.warn('Error loading Hugging Face models:', error);
+    }
+  }
+
+  async loadLocalModels() {
+    try {
+      // Load locally installed models
+      const localModels = JSON.parse(localStorage.getItem('installed-models') || '[]');
+      this.installedModels = localModels.map(model => ({
+        ...model,
+        isInstalled: true,
+        provider: 'local'
+      }));
+    } catch (error) {
+      console.warn('Error loading local models:', error);
+    }
+  }
+
+  async loadSharedModels() {
+    if (!this.p2pSystem) return;
+    
+    try {
+      const peers = await this.p2pSystem.getConnectedPeers();
+      this.sharedModels = [];
+      
+      for (const peer of peers) {
+        const peerModels = await this.p2pSystem.getSharedModels(peer.id);
+        this.sharedModels = [...this.sharedModels, ...peerModels.map(model => ({
+          ...model,
+          provider: 'p2p',
+          sharedBy: peer.id,
+          peerName: peer.name || peer.id
+        }))];
+      }
+    } catch (error) {
+      console.warn('Error loading shared models:', error);
+    }
   }
 
   createWindow() {
