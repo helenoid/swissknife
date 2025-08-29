@@ -10,15 +10,24 @@ import { P2PTaskDistributor } from './task-distribution.js';
 import { P2PModelInferenceCoordinator, type P2PInferenceRequest, type P2PInferenceResponse } from './model-inference-coordinator.js';
 import { IPFSModelStorage, createIPFSModelStorage, type IPFSModelConfig } from '../storage/ipfs-model-storage.js';
 import { P2PModelDiscoveryCoordinator, createP2PModelDiscoveryCoordinator, type ModelDiscoveryConfig } from './model-discovery-coordinator.js';
+import { ModelEncryptionManager, createSecureModelManager, type SecurityPolicy } from '../security/model-encryption.js';
+import { NetworkOptimizationManager, type LoadBalancingConfig, type OptimizationPolicy } from '../security/network-optimization.js';
 
 export interface P2PMLSystemConfig {
   modelServer?: ModelServerConfig;
   p2pNetwork?: Partial<P2PConfig>;
   ipfsStorage?: IPFSModelConfig;
   modelDiscovery?: ModelDiscoveryConfig;
+  security?: Partial<SecurityPolicy>;
+  networkOptimization?: {
+    loadBalancing?: Partial<LoadBalancingConfig>;
+    optimization?: Partial<OptimizationPolicy>;
+  };
   enableDistributedInference?: boolean;
   enableModelSharing?: boolean;
   enableIPFSStorage?: boolean;
+  enableSecurity?: boolean;
+  enableNetworkOptimization?: boolean;
   autoStart?: boolean;
 }
 
@@ -51,6 +60,19 @@ export interface SystemStatus {
     connectedPeers: number;
     lastSyncTime: number;
   };
+  security: {
+    enabled: boolean;
+    encryptionActive: boolean;
+    authenticatedPeers: number;
+    securityPolicy: SecurityPolicy;
+  };
+  networkOptimization: {
+    enabled: boolean;
+    totalPeers: number;
+    averageLatency: number;
+    reliabilityScore: number;
+    overallHealth: string;
+  };
 }
 
 /**
@@ -64,6 +86,8 @@ export class P2PMLSystemManager extends EventEmitter {
   private inferenceCoordinator: P2PModelInferenceCoordinator | null = null;
   private ipfsStorage: IPFSModelStorage | null = null;
   private modelDiscoveryCoordinator: P2PModelDiscoveryCoordinator | null = null;
+  private securityManager: ModelEncryptionManager | null = null;
+  private networkOptimizer: NetworkOptimizationManager | null = null;
   private isRunning: boolean = false;
 
   constructor(config: P2PMLSystemConfig = {}) {
@@ -72,6 +96,8 @@ export class P2PMLSystemManager extends EventEmitter {
       enableDistributedInference: true,
       enableModelSharing: true,
       enableIPFSStorage: true,
+      enableSecurity: true,
+      enableNetworkOptimization: true,
       autoStart: false,
       ...config
     };

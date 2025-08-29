@@ -317,6 +317,30 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered strudel app');
         
+        this.apps.set('p2p-network', {
+            name: 'P2P Network Manager',
+            icon: '🔗',
+            component: 'P2PNetworkApp',
+            singleton: true
+        });
+        console.log('✅ Registered p2p-network app');
+        
+        this.apps.set('neural-network-designer', {
+            name: 'Neural Network Designer',
+            icon: '🧠',
+            component: 'NeuralNetworkDesignerApp',
+            singleton: false
+        });
+        console.log('✅ Registered neural-network-designer app');
+        
+        this.apps.set('training-manager', {
+            name: 'Training Manager',
+            icon: '🎯',
+            component: 'TrainingManagerApp',
+            singleton: true
+        });
+        console.log('✅ Registered training-manager app');
+        
         console.log('📱 Total apps registered:', this.apps.size);
         console.log('📱 Apps list:', Array.from(this.apps.keys()));
     }
@@ -671,6 +695,77 @@ class SwissKnifeDesktop {
                         }
                     }
                     break;
+
+                case 'p2pnetworkapp':
+                    console.log('🔗 Loading P2P Network Manager...');
+                    // Import and create P2P Network app
+                    try {
+                        await this.loadScript('./js/apps/p2p-network.js');
+                        if (window.createP2PNetworkApp) {
+                            appInstance = window.createP2PNetworkApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('P2P Network app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load P2P Network app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🔗 P2P Network Manager</h2>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+
+                case 'neuralnetworkdesignerapp':
+                    console.log('🧠 Loading Neural Network Designer...');
+                    // Import and create Neural Network Designer app
+                    try {
+                        await this.loadScript('./js/apps/neural-network-designer.js');
+                        if (window.createNeuralNetworkDesignerApp) {
+                            appInstance = window.createNeuralNetworkDesignerApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('Neural Network Designer app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load Neural Network Designer app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🧠 Neural Network Designer</h2>
+                                <p>Visual neural network design interface.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+
+                case 'trainingmanagerapp':
+                    console.log('🎯 Loading Training Manager...');
+                    // Import and create Training Manager app
+                    try {
+                        await this.loadScript('./js/apps/training-manager.js');
+                        if (window.createTrainingManagerApp) {
+                            appInstance = window.createTrainingManagerApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('Training Manager app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load Training Manager app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎯 Training Manager</h2>
+                                <p>AI model training with IPFS versioning and P2P coordination.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
                     
                 default:
                     throw new Error(`Unknown app component: ${componentName}`);
@@ -694,6 +789,16 @@ class SwissKnifeDesktop {
                 </div>
             `;
         }
+    }
+    
+    async loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+            document.head.appendChild(script);
+        });
     }
     
     loadCronApp(contentElement) {
