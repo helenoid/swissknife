@@ -1,8 +1,4 @@
 // SwissKnife Web Desktop - Main Application (Simplified for Testing)
-import '../css/desktop.css';
-import '../css/windows.css';
-import '../css/terminal.css';
-import '../css/apps.css';
 
 console.log('SwissKnife Web Desktop starting...');
 
@@ -54,11 +50,27 @@ class SwissKnifeDesktop {
     }
     
     initializeApps() {
-        // Define available applications
+        console.log('🔧 Initializing apps...');
+        
+        // Core applications
         this.apps.set('terminal', {
-            name: 'Terminal',
-            icon: '💻',
+            name: 'SwissKnife Terminal',
+            icon: '🖥️',
             component: 'TerminalApp',
+            singleton: false
+        });
+        
+        this.apps.set('vibecode', {
+            name: 'VibeCode Editor',
+            icon: '🎯',
+            component: 'VibeCodeApp',
+            singleton: false
+        });
+        
+        this.apps.set('strudel-ai-daw', {
+            name: 'Strudel AI DAW',
+            icon: '🎵',
+            component: 'StrudelAIDAWApp',
             singleton: false
         });
         
@@ -76,11 +88,32 @@ class SwissKnifeDesktop {
             singleton: true
         });
         
-        this.apps.set('vibecode', {
-            name: 'VibeCode',
+        this.apps.set('task-manager', {
+            name: 'Task Manager',
             icon: '⚡',
-            component: 'VibeCodeApp',
-            singleton: false
+            component: 'TaskManagerApp',
+            singleton: true
+        });
+        
+        this.apps.set('model-browser', {
+            name: 'AI Model Browser',
+            icon: '🧠',
+            component: 'ModelBrowserApp',
+            singleton: true
+        });
+        
+        this.apps.set('ipfs-explorer', {
+            name: 'IPFS Explorer',
+            icon: '🌐',
+            component: 'IPFSExplorerApp',
+            singleton: true
+        });
+        
+        this.apps.set('device-manager', {
+            name: 'Device Manager',
+            icon: '🔧',
+            component: 'DeviceManagerApp',
+            singleton: true
         });
         
         this.apps.set('settings', {
@@ -89,15 +122,120 @@ class SwissKnifeDesktop {
             component: 'SettingsApp',
             singleton: true
         });
+
+        this.apps.set('mcp-control', {
+            name: 'MCP Control',
+            icon: '🔌',
+            component: 'MCPControlApp',
+            singleton: true
+        });
+
+        this.apps.set('api-keys', {
+            name: 'API Keys',
+            icon: '🔑',
+            component: 'APIKeysApp',
+            singleton: true
+        });
+
+        this.apps.set('cron', {
+            name: 'AI Cron Scheduler',
+            icon: '⏰',
+            component: 'CronApp',
+            singleton: true
+        });
+
+        this.apps.set('navi', {
+            name: 'NAVI',
+            icon: '<img src="/assets/icons/navi-icon.png" style="width: 24px; height: 24px; border-radius: 4px;">',
+            component: 'NaviApp',
+            singleton: true
+        });
+
+        this.apps.set('strudel', {
+            name: '🎵 Music Studio',
+            icon: '🎵',
+            component: 'GrandmaStrudelDAW',
+            singleton: false
+        });
+        
+        this.apps.set('p2p-network', {
+            name: 'P2P Network Manager',
+            icon: '🔗',
+            component: 'P2PNetworkApp',
+            singleton: true
+        });
+        
+        this.apps.set('neural-network-designer', {
+            name: 'Neural Network Designer',
+            icon: '🧠',
+            component: 'NeuralNetworkDesignerApp',
+            singleton: false
+        });
+        
+        this.apps.set('training-manager', {
+            name: 'Training Manager',
+            icon: '🎯',
+            component: 'TrainingManagerApp',
+            singleton: true
+        });
+        
+        // Essential utility apps
+        this.apps.set('calculator', {
+            name: 'Calculator',
+            icon: '🧮',
+            component: 'CalculatorApp',
+            singleton: true
+        });
+        
+        this.apps.set('clock', {
+            name: 'Clock & Timers',
+            icon: '🕐',
+            component: 'ClockApp',
+            singleton: true
+        });
+        
+        this.apps.set('image-viewer', {
+            name: 'Image Viewer',
+            icon: '🖼️',
+            component: 'ImageViewerApp',
+            singleton: false
+        });
+        
+        this.apps.set('notes', {
+            name: 'Notes',
+            icon: '📝',
+            component: 'NotesApp',
+            singleton: false
+        });
+        
+        this.apps.set('system-monitor', {
+            name: 'System Monitor',
+            icon: '📊',
+            component: 'SystemMonitorApp',
+            singleton: true
+        });
+        
+        console.log('📱 Total apps registered:', this.apps.size);
+        console.log('📱 Apps list:', Array.from(this.apps.keys()));
     }
     
     setupEventListeners() {
-        // Desktop icon clicks
-        document.querySelectorAll('.icon').forEach(icon => {
-            icon.addEventListener('dblclick', (e) => {
+        console.log('🎯 Setting up event listeners...');
+        
+        // Desktop icon clicks - changed to single click
+        const desktopIcons = document.querySelectorAll('.icon');
+        console.log('🖱️ Found desktop icons:', desktopIcons.length);
+        
+        desktopIcons.forEach((icon, index) => {
+            const appId = icon.dataset.app;
+            console.log(`🔗 Setting up icon ${index + 1}: ${appId}`);
+            
+            icon.addEventListener('click', (e) => {
                 e.preventDefault();
-                const appId = icon.dataset.app;
-                this.launchApp(appId);
+                console.log(`🖱️ Desktop icon clicked: ${appId}`);
+                if (appId) {
+                    this.launchApp(appId);
+                }
             });
         });
         
@@ -106,19 +244,50 @@ class SwissKnifeDesktop {
         const systemMenu = document.getElementById('system-menu');
         
         if (systemMenuBtn && systemMenu) {
+            // Ensure menu starts hidden
+            systemMenu.classList.add('hidden');
+            
             systemMenuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                systemMenu.classList.toggle('hidden');
+                if (systemMenu.classList.contains('hidden')) {
+                    systemMenu.classList.remove('hidden');
+                } else {
+                    systemMenu.classList.add('hidden');
+                }
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!systemMenu.contains(e.target) && !systemMenuBtn.contains(e.target)) {
+                    systemMenu.classList.add('hidden');
+                }
+            });
+            
+            // Menu item clicks
+            const menuItems = document.querySelectorAll('.menu-item[data-app]');
+            console.log('📋 Found menu items:', menuItems.length);
+            
+            menuItems.forEach((item, index) => {
+                const appId = item.dataset.app;
+                console.log(`📋 Setting up menu item ${index + 1}: ${appId}`);
+                
+                item.addEventListener('click', () => {
+                    console.log(`📋 Menu item clicked: ${appId}`);
+                    if (appId) {
+                        this.launchApp(appId);
+                    }
+                    systemMenu.classList.add('hidden');
+                });
             });
         }
         
-        // Close menu when clicking outside
-        document.addEventListener('click', () => {
-            const systemMenu = document.getElementById('system-menu');
-            if (systemMenu) {
-                systemMenu.classList.add('hidden');
-            }
-        });
+        // Set up global functions for HTML onclick handlers
+        window.showDesktopProperties = () => this.showDesktopProperties();
+        window.openTerminalHere = () => this.openTerminalHere();
+        window.createNewFile = () => this.createNewFile();
+        window.createNewFolder = () => this.createNewFolder();
+        window.refreshDesktop = () => this.refreshDesktop();
+        window.showAbout = () => this.showAbout();
     }
     
     async launchApp(appId) {
@@ -270,6 +439,54 @@ class SwissKnifeDesktop {
     startSystemMonitoring() {
         // Basic system monitoring
         console.log('System monitoring started');
+    }
+    
+    // Add missing methods for HTML onclick handlers
+    showDesktopProperties() {
+        this.launchApp('settings');
+    }
+    
+    openTerminalHere() {
+        this.launchApp('terminal');
+    }
+    
+    createNewFile() {
+        console.log('Create new file requested');
+    }
+    
+    createNewFolder() {
+        console.log('Create new folder requested');
+    }
+    
+    refreshDesktop() {
+        location.reload();
+    }
+    
+    showAbout() {
+        // Show about dialog
+        this.createWindow({
+            title: 'About SwissKnife Web Desktop',
+            icon: '🇨🇭',
+            appId: 'about',
+            width: 400,
+            height: 300,
+            x: 200,
+            y: 200
+        }).then(window => {
+            const contentElement = document.getElementById(`${window.id}-content`);
+            if (contentElement) {
+                contentElement.innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h2>🇨🇭 SwissKnife Web Desktop</h2>
+                        <p>Version 1.0.0</p>
+                        <p>A modern AI-powered desktop environment for the browser</p>
+                        <p>Built with Swiss precision 🏔️</p>
+                        <p><strong>Total Apps:</strong> ${this.apps.size}</p>
+                        <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                    </div>
+                `;
+            }
+        });
     }
 }
 
