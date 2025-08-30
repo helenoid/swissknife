@@ -1651,5 +1651,8 @@ class MCPControlApp {
 // Create global instance
 const mcpControlApp = new MCPControlApp();
 
-// Export for window manager
+// Export for window manager and module imports
 window.MCPControlApp = MCPControlApp;
+window.mcpControlApp = mcpControlApp;
+
+export { MCPControlApp };

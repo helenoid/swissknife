@@ -995,5 +995,8 @@ const oauthSystem = new OAuthLoginSystem();
 // Load saved configurations
 oauthSystem.loadProviderConfigs();
 
-// Export for window manager
+// Export for window manager and module imports
 window.OAuthLoginSystem = OAuthLoginSystem;
+window.oauthSystem = oauthSystem;
+
+export { OAuthLoginSystem };

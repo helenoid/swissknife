@@ -951,5 +951,8 @@ class GitHubApp {
 // Create global instance
 const githubApp = new GitHubApp();
 
-// Export for window manager
+// Export for window manager and module imports
 window.GitHubApp = GitHubApp;
+window.githubApp = githubApp;
+
+export { GitHubApp };
