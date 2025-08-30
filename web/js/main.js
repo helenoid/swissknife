@@ -6,6 +6,8 @@ import '../css/terminal.css';
 import '../css/apps.css';
 import '../css/strudel.css';
 import '../css/strudel-grandma.css';
+import '../css/vibecode-enhanced.css';
+import '../css/strudel-ai-daw.css';
 import SwissKnife from './swissknife-browser.js';
 import DesktopEnhancer from './desktop-enhancer.js';
 
@@ -224,11 +226,20 @@ class SwissKnifeDesktop {
         console.log('✅ Registered terminal app');
         
         this.apps.set('vibecode', {
-            name: 'VibeCode Editor',
-            icon: '📝',
+            name: 'VibeCode - AI Streamlit Editor',
+            icon: '🎯',
             component: 'VibeCodeApp',
             singleton: false
         });
+        console.log('✅ Registered enhanced VibeCode app');
+        
+        this.apps.set('strudel-ai-daw', {
+            name: 'Strudel AI DAW',
+            icon: '🎵',
+            component: 'StrudelAIDAW',
+            singleton: false
+        });
+        console.log('✅ Registered Strudel AI DAW app');
         
         this.apps.set('ai-chat', {
             name: 'AI Chat',
@@ -600,13 +611,26 @@ class SwissKnifeDesktop {
                     break;
                     
                 case 'vibecodeapp':
-                    // Placeholder for VibeCode
-                    contentElement.innerHTML = `
-                        <div class="app-placeholder">
-                            <h2>💻 VibeCode</h2>
-                            <p>WebNN/WebGPU powered code editor will be implemented here.</p>
-                            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                        </div>
+                    console.log('🎯 Loading Enhanced VibeCode app...');
+                    // Import and instantiate Enhanced VibeCode app
+                    const VibeCodeModule = await import('./apps/vibecode.js');
+                    const VibeCodeApp = VibeCodeModule.VibeCodeApp;
+                    appInstance = new VibeCodeApp(this);
+                    await appInstance.initialize();
+                    const vibeWindow = appInstance.createWindow();
+                    contentElement.appendChild(vibeWindow.querySelector('.vibecode-container'));
+                    break;
+                    
+                case 'strudelaaidaw':
+                    console.log('🎵 Loading Strudel AI DAW app...');
+                    // Import and instantiate Strudel AI DAW app
+                    const StrudelAIModule = await import('./apps/strudel-ai-daw.js');
+                    const StrudelAIDAW = StrudelAIModule.StrudelAIDAW;
+                    appInstance = new StrudelAIDAW(this);
+                    await appInstance.initialize();
+                    const dawWindow = appInstance.createWindow();
+                    contentElement.appendChild(dawWindow.querySelector('.strudel-ai-daw'));
+                    break;
                     `;
                     break;
                     
