@@ -84,7 +84,29 @@ class OAuthLoginSystem {
                 </div>
                 
                 <div class="oauth-content">
-                    <div class="oauth-sidebar">
+                    <div class="modern-login-container">
+                        <div class="login-welcome">
+                            <div class="welcome-icon">🔐</div>
+                            <h1>Welcome to SwissKnife</h1>
+                            <p>Choose your preferred sign-in method to get started</p>
+                        </div>
+                        
+                        <div class="modern-providers">
+                            ${this.renderModernProviders()}
+                        </div>
+                        
+                        <div class="login-divider">
+                            <span>or</span>
+                        </div>
+                        
+                        <div class="advanced-options">
+                            <button onclick="oauthSystem.showAdvancedView()" class="btn-link">
+                                ⚙️ Advanced Configuration & Management
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="oauth-sidebar ${this.activeTokens.size === 0 ? 'hidden' : ''}">
                         <div class="provider-list">
                             <h4>🔌 OAuth Providers</h4>
                             ${this.renderProviderList()}
@@ -96,14 +118,7 @@ class OAuthLoginSystem {
                         </div>
                     </div>
                     
-                    <div class="oauth-main">
-                        <div class="login-providers">
-                            <h3>🚀 Quick Login</h3>
-                            <div class="providers-grid">
-                                ${this.renderLoginProviders()}
-                            </div>
-                        </div>
-                        
+                    <div class="oauth-main advanced-view hidden">
                         <div class="session-management">
                             <h3>📊 Session Management</h3>
                             ${this.renderSessionManagement()}
@@ -164,6 +179,62 @@ class OAuthLoginSystem {
                         <button onclick="oauthSystem.revokeToken('${providerId}')" class="btn-sm btn-danger">🗑️</button>
                     </div>
                 </div>
+            `;
+        }).join('');
+    }
+
+    renderModernProviders() {
+        return Array.from(this.providers.values()).map(provider => {
+            const hasActiveToken = this.activeTokens.has(provider.id);
+            
+            if (!provider.enabled) {
+                return `
+                    <button class="modern-provider-btn disabled" onclick="oauthSystem.configureProvider('${provider.id}')">
+                        <div class="provider-logo">
+                            <span class="provider-icon" style="color: ${provider.color}">${provider.icon}</span>
+                        </div>
+                        <div class="provider-info">
+                            <span class="provider-name">Continue with ${provider.name}</span>
+                            <span class="provider-subtitle">Configuration required</span>
+                        </div>
+                        <div class="provider-action">
+                            <span class="setup-badge">Setup</span>
+                        </div>
+                    </button>
+                `;
+            }
+            
+            if (hasActiveToken) {
+                const tokenData = this.activeTokens.get(provider.id);
+                return `
+                    <button class="modern-provider-btn connected" onclick="oauthSystem.showUserProfile('${provider.id}')">
+                        <div class="provider-logo">
+                            <span class="provider-icon" style="color: ${provider.color}">${provider.icon}</span>
+                        </div>
+                        <div class="provider-info">
+                            <span class="provider-name">Signed in as ${tokenData.user?.email || tokenData.user?.login || 'User'}</span>
+                            <span class="provider-subtitle">Connected to ${provider.name}</span>
+                        </div>
+                        <div class="provider-action">
+                            <span class="connected-badge">✓</span>
+                        </div>
+                    </button>
+                `;
+            }
+            
+            return `
+                <button class="modern-provider-btn" onclick="oauthSystem.login('${provider.id}')">
+                    <div class="provider-logo">
+                        <span class="provider-icon" style="color: ${provider.color}">${provider.icon}</span>
+                    </div>
+                    <div class="provider-info">
+                        <span class="provider-name">Continue with ${provider.name}</span>
+                        <span class="provider-subtitle">Sign in to your ${provider.name} account</span>
+                    </div>
+                    <div class="provider-action">
+                        <span class="arrow">→</span>
+                    </div>
+                </button>
             `;
         }).join('');
     }
@@ -986,6 +1057,32 @@ class OAuthLoginSystem {
         // Show a modal to select which provider to configure
         // For now, just open Google config as default
         this.configureProvider('google');
+    }
+
+    showAdvancedView() {
+        const advancedView = document.querySelector('.advanced-view');
+        const modernContainer = document.querySelector('.modern-login-container');
+        const sidebar = document.querySelector('.oauth-sidebar');
+        
+        if (advancedView && modernContainer) {
+            advancedView.classList.toggle('hidden');
+            modernContainer.classList.toggle('hidden');
+            if (sidebar) {
+                sidebar.classList.toggle('hidden');
+            }
+        }
+    }
+
+    showUserProfile(providerId) {
+        const tokenData = this.activeTokens.get(providerId);
+        const provider = this.providers.get(providerId);
+        
+        if (tokenData && provider) {
+            const user = tokenData.user;
+            const expiresAt = new Date(tokenData.expiresAt).toLocaleString();
+            
+            alert(`Connected to ${provider.name}\n\nUser: ${user.email || user.login || 'Unknown'}\nExpires: ${expiresAt}\n\nClick OK to continue or use advanced view to manage this session.`);
+        }
     }
 }
 
