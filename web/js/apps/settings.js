@@ -1,5 +1,6 @@
 /**
- * Settings App for SwissKnife Web Desktop
+ * Enhanced Settings App for SwissKnife Web Desktop
+ * Advanced configuration management with P2P network settings, ML optimization, and real-time monitoring
  */
 
 export class SettingsApp {
@@ -8,16 +9,183 @@ export class SettingsApp {
     this.swissknife = null;
     this.settings = {};
     this.unsavedChanges = false;
+    this.currentSection = 'general';
+    this.p2pSystem = null;
+    this.monitoringInterval = null;
+    this.systemMetrics = {
+      cpu: 0,
+      memory: 0,
+      gpu: 0,
+      network: 0,
+      p2pConnections: 0,
+      activeModels: 0
+    };
+    
+    // Default settings structure
+    this.defaultSettings = {
+      general: {
+        username: 'SwissKnife User',
+        language: 'en',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        autoSave: true,
+        notifications: true,
+        telemetry: false
+      },
+      ai: {
+        defaultProvider: 'openai',
+        maxConcurrentTasks: 4,
+        enableGPU: true,
+        enableWebGPU: true,
+        enableWebNN: false,
+        modelCacheSize: 2048, // MB
+        inferenceTimeout: 30000, // ms
+        enableDistributedInference: true,
+        preferredModels: {
+          textGeneration: 'gpt-4',
+          textEmbedding: 'text-embedding-ada-002',
+          imageGeneration: 'dall-e-3',
+          codeGeneration: 'gpt-4'
+        }
+      },
+      p2p: {
+        enableP2P: true,
+        autoConnect: true,
+        maxPeers: 50,
+        enableRelay: true,
+        enableDHT: true,
+        enableModelSharing: true,
+        enableTaskDistribution: true,
+        securityLevel: 'high',
+        allowIncomingConnections: true,
+        bandwidthLimit: 0, // 0 = unlimited
+        nodeId: null // Generated automatically
+      },
+      storage: {
+        enableIPFS: true,
+        ipfsGateway: 'https://ipfs.io',
+        localCacheSize: 5120, // MB
+        enableCompression: true,
+        autoCleanup: true,
+        cleanupInterval: 24, // hours
+        enableVersioning: true,
+        syncSettings: true
+      },
+      appearance: {
+        theme: 'dark',
+        accentColor: '#4a90e2',
+        fontFamily: 'Segoe UI',
+        fontSize: 14,
+        enableAnimations: true,
+        enableBlur: true,
+        enableParticles: false,
+        wallpaper: 'default',
+        compactMode: false
+      },
+      security: {
+        enableEncryption: true,
+        encryptionStrength: 'AES-256-GCM',
+        autoLockTimeout: 15, // minutes
+        requireBiometric: false,
+        enableAuditLog: true,
+        enableSecureSharing: true,
+        allowRemoteAccess: false,
+        securityLevel: 'standard'
+      },
+      performance: {
+        enableOptimization: true,
+        maxMemoryUsage: 8192, // MB
+        enableCaching: true,
+        cacheStrategy: 'lru',
+        enablePrefetching: true,
+        networkOptimization: true,
+        enableBackgroundTasks: true,
+        powerSavingMode: false
+      },
+      developer: {
+        enableDebugMode: false,
+        enableConsoleLogging: false,
+        enablePerformanceMetrics: true,
+        enableNetworkMonitoring: true,
+        enableAPITesting: false,
+        developerTools: false
+      }
+    };
+    
+    this.initializeSettings();
+  }
+
+  async initializeSettings() {
+    // Initialize with default settings
+    this.settings = JSON.parse(JSON.stringify(this.defaultSettings));
+    
+    // Connect to P2P system if available
+    if (window.p2pMLSystem) {
+      this.p2pSystem = window.p2pMLSystem;
+      this.setupP2PIntegration();
+    }
+    
+    // Start system monitoring
+    this.startSystemMonitoring();
   }
 
   async initialize() {
     this.swissknife = this.desktop.swissknife;
     await this.loadSettings();
+    this.applySettings();
+  }
+
+  setupP2PIntegration() {
+    if (!this.p2pSystem) return;
+    
+    // Listen for P2P events
+    this.p2pSystem.on('peer:connected', () => {
+      this.updateSystemMetrics();
+    });
+    
+    this.p2pSystem.on('peer:disconnected', () => {
+      this.updateSystemMetrics();
+    });
+    
+    this.p2pSystem.on('settings:sync', (remoteSettings) => {
+      this.handleRemoteSettings(remoteSettings);
+    });
+  }
+
+  startSystemMonitoring() {
+    this.monitoringInterval = setInterval(() => {
+      this.updateSystemMetrics();
+    }, 2000);
+  }
+
+  async updateSystemMetrics() {
+    try {
+      // Get performance metrics
+      if (performance.memory) {
+        this.systemMetrics.memory = Math.round((performance.memory.usedJSHeapSize / 1024 / 1024) * 100) / 100;
+      }
+      
+      // Get P2P connection count
+      if (this.p2pSystem) {
+        const peers = await this.p2pSystem.getConnectedPeers();
+        this.systemMetrics.p2pConnections = peers.length;
+      }
+      
+      // Get GPU info if available
+      if (navigator.gpu) {
+        this.systemMetrics.gpu = 1; // GPU available
+      }
+      
+      // Update UI if monitoring panel is visible
+      this.updateMonitoringPanel();
+      
+    } catch (error) {
+      console.warn('Error updating system metrics:', error);
+    }
   }
 
   createWindow() {
     const content = `
-      <div class="settings-container">
+      <div class="settings-container enhanced">
         <div class="settings-sidebar">
           <div class="settings-nav">
             <div class="nav-item active" data-section="general">
@@ -28,9 +196,13 @@ export class SettingsApp {
               <span class="nav-icon">🤖</span>
               <span class="nav-label">AI & Models</span>
             </div>
+            <div class="nav-item" data-section="p2p">
+              <span class="nav-icon">🌐</span>
+              <span class="nav-label">P2P Network</span>
+            </div>
             <div class="nav-item" data-section="storage">
               <span class="nav-icon">💾</span>
-              <span class="nav-label">Storage</span>
+              <span class="nav-label">Storage & IPFS</span>
             </div>
             <div class="nav-item" data-section="appearance">
               <span class="nav-icon">🎨</span>
@@ -40,14 +212,173 @@ export class SettingsApp {
               <span class="nav-icon">🔒</span>
               <span class="nav-label">Security</span>
             </div>
-            <div class="nav-item" data-section="advanced">
+            <div class="nav-item" data-section="performance">
+              <span class="nav-icon">⚡</span>
+              <span class="nav-label">Performance</span>
+            </div>
+            <div class="nav-item" data-section="developer">
               <span class="nav-icon">🔧</span>
-              <span class="nav-label">Advanced</span>
+              <span class="nav-label">Developer</span>
+            </div>
+            <div class="nav-item" data-section="monitoring">
+              <span class="nav-icon">📊</span>
+              <span class="nav-label">System Monitor</span>
             </div>
             <div class="nav-item" data-section="about">
               <span class="nav-icon">ℹ️</span>
               <span class="nav-label">About</span>
             </div>
+          </div>
+          
+          <div class="settings-quick-status">
+            <h4>🚀 System Status</h4>
+            <div class="status-grid">
+              <div class="status-item">
+                <span class="status-label">P2P Peers:</span>
+                <span class="status-value" id="peer-count">${this.systemMetrics.p2pConnections}</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">Memory:</span>
+                <span class="status-value" id="memory-usage">${this.systemMetrics.memory}MB</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">GPU:</span>
+                <span class="status-value" id="gpu-status">${this.systemMetrics.gpu ? '✅' : '❌'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-main">
+          <div class="settings-header">
+            <h2 id="section-title">General Settings</h2>
+            <div class="settings-actions">
+              <button id="reset-section" class="btn-secondary">🔄 Reset Section</button>
+              <button id="export-settings" class="btn-secondary">📤 Export</button>
+              <button id="import-settings" class="btn-secondary">📥 Import</button>
+              <button id="save-settings" class="btn-primary" ${this.unsavedChanges ? '' : 'disabled'}>💾 Save Changes</button>
+            </div>
+          </div>
+          
+          <div class="settings-content" id="settings-content">
+            ${this.renderGeneralSettings()}
+          </div>
+          
+          ${this.unsavedChanges ? `
+            <div class="unsaved-changes-banner">
+              <span>⚠️ You have unsaved changes</span>
+              <div class="banner-actions">
+                <button onclick="settingsApp.saveAllSettings()" class="btn-primary">Save All</button>
+                <button onclick="settingsApp.discardChanges()" class="btn-secondary">Discard</button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+
+    const window = this.desktop.createWindow({
+      title: 'SwissKnife Settings',
+      content: content,
+      width: 1100,
+      height: 750,
+      resizable: true
+    });
+
+    this.setupEventListeners(window);
+    return window;
+  }
+
+  renderGeneralSettings() {
+    return `
+      <div class="settings-section">
+        <div class="section-header">
+          <h3>🏠 General Preferences</h3>
+          <p>Configure basic application settings and user preferences</p>
+        </div>
+        
+        <div class="settings-grid">
+          <div class="setting-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" value="${this.settings.general.username}" 
+                   onchange="settingsApp.updateSetting('general', 'username', this.value)">
+            <span class="setting-description">Your display name in the application</span>
+          </div>
+          
+          <div class="setting-group">
+            <label for="language">Language</label>
+            <select id="language" onchange="settingsApp.updateSetting('general', 'language', this.value)">
+              <option value="en" ${this.settings.general.language === 'en' ? 'selected' : ''}>English</option>
+              <option value="es" ${this.settings.general.language === 'es' ? 'selected' : ''}>Español</option>
+              <option value="fr" ${this.settings.general.language === 'fr' ? 'selected' : ''}>Français</option>
+              <option value="de" ${this.settings.general.language === 'de' ? 'selected' : ''}>Deutsch</option>
+              <option value="zh" ${this.settings.general.language === 'zh' ? 'selected' : ''}>中文</option>
+            </select>
+            <span class="setting-description">Application interface language</span>
+          </div>
+          
+          <div class="setting-group">
+            <label for="timezone">Timezone</label>
+            <select id="timezone" onchange="settingsApp.updateSetting('general', 'timezone', this.value)">
+              ${this.renderTimezoneOptions()}
+            </select>
+            <span class="setting-description">Your local timezone for timestamps</span>
+          </div>
+          
+          <div class="setting-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="auto-save" ${this.settings.general.autoSave ? 'checked' : ''}
+                     onchange="settingsApp.updateSetting('general', 'autoSave', this.checked)">
+              <span class="checkmark"></span>
+              Enable Auto-Save
+            </label>
+            <span class="setting-description">Automatically save your work periodically</span>
+          </div>
+          
+          <div class="setting-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="notifications" ${this.settings.general.notifications ? 'checked' : ''}
+                     onchange="settingsApp.updateSetting('general', 'notifications', this.checked)">
+              <span class="checkmark"></span>
+              Enable Notifications
+            </label>
+            <span class="setting-description">Show system and application notifications</span>
+          </div>
+          
+          <div class="setting-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="telemetry" ${this.settings.general.telemetry ? 'checked' : ''}
+                     onchange="settingsApp.updateSetting('general', 'telemetry', this.checked)">
+              <span class="checkmark"></span>
+              Anonymous Telemetry
+            </label>
+            <span class="setting-description">Help improve SwissKnife by sharing anonymous usage data</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderTimezoneOptions() {
+    const timezones = [
+      'UTC',
+      'America/New_York',
+      'America/Chicago', 
+      'America/Denver',
+      'America/Los_Angeles',
+      'Europe/London',
+      'Europe/Paris',
+      'Europe/Berlin',
+      'Asia/Tokyo',
+      'Asia/Shanghai',
+      'Australia/Sydney'
+    ];
+    
+    return timezones.map(tz => 
+      `<option value="${tz}" ${this.settings.general.timezone === tz ? 'selected' : ''}>${tz}</option>`
+    ).join('');
+  }
+  }
           </div>
         </div>
         

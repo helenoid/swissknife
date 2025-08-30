@@ -10,6 +10,7 @@ import '/css/desktop.css';
 import '/css/windows.css';
 import '/css/terminal.css';
 import '/css/apps.css';
+import '/css/model-browser.css';
 import '/css/strudel.css';
 import '/css/strudel-grandma.css';
 
@@ -201,7 +202,74 @@ class SwissKnifeDesktop {
     }
   }
   
+  // Initialize AI Infrastructure (IPFS Accelerate Bridge + AI Router)
+  async initializeAIInfrastructure() {
+    try {
+      console.log('🧠 Initializing AI Infrastructure...');
+      
+      // Load AI infrastructure scripts
+      await Promise.all([
+        this.loadScript('/js/ipfs-accelerate-bridge.js'),
+        this.loadScript('/js/ai-model-router.js')
+      ]);
+      
+      console.log('✅ AI Infrastructure scripts loaded successfully');
+      
+      // Wait for global objects to be available
+      let retries = 0;
+      const maxRetries = 10;
+      
+      while (retries < maxRetries) {
+        if ((window as any).ipfsAccelerateBridge && (window as any).aiModelRouter) {
+          console.log('✅ AI Infrastructure initialized successfully');
+          
+          // Set up integration between components
+          this.setupAIIntegration();
+          break;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        retries++;
+      }
+      
+      if (retries >= maxRetries) {
+        console.warn('⚠️ AI Infrastructure initialization timeout - some features may be limited');
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize AI Infrastructure:', error);
+      console.log('🔄 Continuing with limited AI functionality...');
+    }
+  }
+  
+  setupAIIntegration() {
+    // Connect AI components for better integration
+    const bridge = (window as any).ipfsAccelerateBridge;
+    const router = (window as any).aiModelRouter;
+    
+    if (bridge && router) {
+      // Bridge events to router for automatic endpoint discovery
+      bridge.on('bridge:initialized', () => {
+        console.log('🔗 IPFS Accelerate Bridge connected to AI Router');
+        router.discoverEndpoints();
+      });
+      
+      // Setup model loading coordination
+      bridge.on('model:loaded', (data: any) => {
+        console.log(`🧠 Model ${data.modelId} loaded - updating router endpoints`);
+        router.discoverEndpoints();
+      });
+      
+      // Global availability for apps
+      (window as any).transformersModelServer = bridge.modelServer;
+      console.log('🌐 Transformers Model Server available globally');
+    }
+  }
+  
   initializeDesktop() {
+    // Initialize AI infrastructure
+    this.initializeAIInfrastructure();
+    
     // Initialize system time
     this.updateSystemTime();
     setInterval(() => this.updateSystemTime(), 1000);
@@ -329,6 +397,13 @@ class SwissKnifeDesktop {
       name: 'IPFS Explorer',
       icon: '🌐',
       component: 'IPFSExplorerApp',
+      singleton: true
+    });
+    
+    this.apps.set('p2p-network', {
+      name: 'P2P Network',
+      icon: '🔗',
+      component: 'P2PNetworkApp',
       singleton: true
     });
     
@@ -652,6 +727,11 @@ class SwissKnifeDesktop {
           
         case 'ipfsexplorerapp':
           this.loadIPFSExplorerApp(contentElement);
+          break;
+          
+        case 'p2pnetworkapp':
+          console.log('🔗 Loading P2P Network app...');
+          this.loadP2PNetworkApp(contentElement);
           break;
           
         case 'cronapp':
@@ -1182,6 +1262,64 @@ class SwissKnifeDesktop {
         <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
       </div>
     `;
+  }
+  
+  // Utility method to dynamically load scripts
+  private async loadScript(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Check if script is already loaded
+      const existingScript = document.querySelector(`script[src="${src}"]`);
+      if (existingScript) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = src;
+      script.type = 'text/javascript';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+  
+  async loadP2PNetworkApp(contentElement: HTMLElement) {
+    try {
+      // Load P2P Network app script and IPFS bridge
+      await Promise.all([
+        this.loadScript('/js/apps/p2p-network.js'),
+        this.loadScript('/js/p2p-ml-bridge-ipfs.js')
+      ]);
+      
+      // Initialize the P2P Network app
+      if ((window as any).createP2PNetworkApp) {
+        const p2pApp = (window as any).createP2PNetworkApp();
+        p2pApp.init(contentElement);
+      } else {
+        throw new Error('P2P Network app not loaded properly');
+      }
+    } catch (error) {
+      console.error('Failed to load P2P Network app:', error);
+      contentElement.innerHTML = `
+        <div class="app-placeholder">
+          <h2>🔗 P2P Network Manager</h2>
+          <p>P2P networking functionality will be implemented here.</p>
+          <div class="p2p-preview">
+            <h3>Features:</h3>
+            <ul>
+              <li>🌐 Peer Discovery & Connection</li>
+              <li>🧠 Distributed ML Computing</li>
+              <li>📤 Resource Sharing</li>
+              <li>🔄 Task Distribution</li>
+              <li>🤝 Model Collaboration</li>
+              <li>💾 IPFS Model Storage</li>
+              <li>📊 Network Model Discovery</li>
+            </ul>
+          </div>
+          <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+        </div>
+      `;
+    }
   }
   
   loadCronApp(contentElement: HTMLElement) {

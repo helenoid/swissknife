@@ -1,60 +1,101 @@
 /**
- * Terminal App for SwissKnife Web Desktop
- * Enhanced with shared system integration
+ * Enhanced Terminal App for SwissKnife Web Desktop
+ * Advanced terminal with P2P integration, AI assistance, and multi-session support
  */
 
-import { sharedCLI } from '../../src/shared/cli/index.js';
-import { eventBus } from '../../src/shared/events/index.js';
-import { configManager } from '../../src/shared/config/index.js';
-
 export class TerminalApp {
-  constructor(windowElement, swissknife) {
-    this.window = windowElement;
-    this.swissknife = swissknife;
+  constructor(desktop) {
+    this.desktop = desktop;
+    this.swissknife = null;
+    this.sessions = new Map();
+    this.activeSession = null;
+    this.currentDirectory = '/home/swissknife';
     this.commandHistory = [];
     this.historyIndex = 0;
-    this.currentDirectory = '/home/swissknife';
+    this.p2pSystem = null;
+    this.aiAssist = null;
+    this.autoComplete = [];
     
-    // Use the shared CLI adapter for unified command execution
-    this.cliAdapter = sharedCLI;
+    // Built-in commands
+    this.builtinCommands = new Map([
+      ['help', { handler: this.showHelp.bind(this), description: 'Show available commands' }],
+      ['clear', { handler: this.clearTerminal.bind(this), description: 'Clear terminal screen' }],
+      ['ls', { handler: this.listFiles.bind(this), description: 'List directory contents' }],
+      ['cd', { handler: this.changeDirectory.bind(this), description: 'Change directory' }],
+      ['pwd', { handler: this.printWorkingDirectory.bind(this), description: 'Print working directory' }],
+      ['cat', { handler: this.displayFile.bind(this), description: 'Display file contents' }],
+      ['echo', { handler: this.echoText.bind(this), description: 'Display text' }],
+      ['date', { handler: this.showDate.bind(this), description: 'Show current date and time' }],
+      ['whoami', { handler: this.showUser.bind(this), description: 'Show current user' }],
+      ['ps', { handler: this.showProcesses.bind(this), description: 'Show running processes' }],
+      ['top', { handler: this.showSystemStats.bind(this), description: 'Show system statistics' }],
+      ['history', { handler: this.showCommandHistory.bind(this), description: 'Show command history' }],
+      ['alias', { handler: this.manageAliases.bind(this), description: 'Manage command aliases' }],
+      ['export', { handler: this.setEnvironmentVar.bind(this), description: 'Set environment variables' }],
+      ['env', { handler: this.showEnvironment.bind(this), description: 'Show environment variables' }],
+      ['grep', { handler: this.grepText.bind(this), description: 'Search text patterns' }],
+      ['find', { handler: this.findFiles.bind(this), description: 'Find files and directories' }],
+      ['nano', { handler: this.openEditor.bind(this), description: 'Open text editor' }],
+      ['vim', { handler: this.openEditor.bind(this), description: 'Open vim editor' }],
+      ['ssh', { handler: this.connectSSH.bind(this), description: 'Connect via SSH (P2P)' }],
+      ['scp', { handler: this.copyFiles.bind(this), description: 'Copy files over network' }],
+      ['ipfs', { handler: this.ipfsCommand.bind(this), description: 'IPFS commands' }],
+      ['p2p', { handler: this.p2pCommand.bind(this), description: 'P2P network commands' }],
+      ['ai', { handler: this.aiCommand.bind(this), description: 'AI assistant commands' }],
+      ['desktop', { handler: this.desktopCommand.bind(this), description: 'Desktop management commands' }],
+      ['install', { handler: this.installPackage.bind(this), description: 'Install packages' }],
+      ['update', { handler: this.updateSystem.bind(this), description: 'Update system' }],
+      ['monitor', { handler: this.monitorSystem.bind(this), description: 'Monitor system resources' }],
+      ['log', { handler: this.showLogs.bind(this), description: 'Show system logs' }],
+      ['backup', { handler: this.backupData.bind(this), description: 'Backup data to IPFS' }],
+      ['restore', { handler: this.restoreData.bind(this), description: 'Restore data from backup' }]
+    ]);
     
-    this.init();
-    this.setupSharedSystemIntegration();
+    // Environment variables
+    this.environment = {
+      'HOME': '/home/swissknife',
+      'USER': 'swissknife',
+      'PATH': '/usr/local/bin:/usr/bin:/bin',
+      'SHELL': '/bin/swissknife-shell',
+      'TERM': 'swissknife-256color',
+      'PWD': this.currentDirectory
+    };
+    
+    // Command aliases
+    this.aliases = new Map([
+      ['ll', 'ls -la'],
+      ['la', 'ls -a'],
+      ['..', 'cd ..'],
+      ['~', 'cd ~'],
+      ['h', 'help'],
+      ['c', 'clear']
+    ]);
+    
+    this.initializeIntegrations();
   }
 
-  init() {
-    this.createTerminalUI();
-    this.setupEventListeners();
-    this.showWelcome();
-  }
-
-  setupSharedSystemIntegration() {
-    // Listen for CLI responses from the shared system
-    eventBus.on('cli:response', (response) => {
-      if (response.output) {
-        const type = response.exitCode === 0 ? 'normal' : 'error';
-        this.addOutput(response.output, type);
+  async initializeIntegrations() {
+    try {
+      this.swissknife = this.desktop.swissknife;
+      
+      // Connect to P2P system for distributed terminal access
+      if (window.p2pMLSystem) {
+        this.p2pSystem = window.p2pMLSystem;
+        this.setupP2PTerminal();
       }
-    });
-
-    // Listen for configuration updates
-    eventBus.on('config:update', (data) => {
-      this.addOutput(`Configuration updated: ${data.component}`, 'info');
-    });
-
-    // Listen for system status updates
-    eventBus.on('system:status', (data) => {
-      this.addOutput(`System ${data.component}: ${data.status}`, 'info');
-    });
-
-    // Listen for desktop app events
-    eventBus.on('web:app-launch', (data) => {
-      this.addOutput(`Launched desktop app: ${data.appId}`, 'success');
-    });
-
-    eventBus.on('web:app-close', (data) => {
-      this.addOutput(`Closed desktop app: ${data.appId}`, 'info');
-    });
+      
+      // Connect to AI system for intelligent assistance
+      if (window.aiManager || this.swissknife?.ai) {
+        this.aiAssist = window.aiManager || this.swissknife.ai;
+      }
+      
+      // Load saved settings
+      this.loadSettings();
+      
+      console.log('✅ Terminal integrations initialized');
+    } catch (error) {
+      console.error('❌ Terminal integration error:', error);
+    }
   }
 
   createTerminalUI() {

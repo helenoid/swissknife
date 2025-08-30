@@ -186,48 +186,66 @@ body, html {
 .system-menu-button {
     width: 36px;
     height: 36px;
-    background: #ff0000;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
     cursor: pointer;
-    backdrop-filter: blur(10px);
     transition: all 0.2s ease;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    user-select: none;
 }
 
-.system-menu-button::before {
-    content: '';
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: white;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+/* Swiss Flag Square Button */
+.swiss-flag-square {
+    background: #ff0000;
+    border: 2px solid #990000;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.system-menu-button::after {
-    content: '';
-    position: absolute;
-    width: 24px;
-    height: 4px;
-    background: white;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.system-menu-button:hover {
-    background: #cc0000;
-    border-color: rgba(255, 255, 255, 0.5);
+.swiss-flag-square:hover {
+    background: #ff3333;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
     transform: translateY(-1px);
 }
 
-.swiss-logo {
-    font-size: 16px;
+.swiss-flag-square:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    background: #cc0000;
+}
+
+.swiss-flag-icon {
+    position: relative;
+    width: 24px;
+    height: 24px;
+}
+
+.flag-cross-horizontal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 4px;
+    background: white;
+    border-radius: 1px;
+}
+
+.flag-cross-vertical {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 20px;
+    background: white;
+    border-radius: 1px;
+}
+
+/* Add glow effect on active */
+.swiss-flag-square.active {
+    box-shadow: 0 0 12px rgba(255, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .taskbar-apps {
@@ -690,71 +708,7 @@ body, html {
     }
 }
 
-/* Swiss Flag Square Button */
-.swiss-flag-square {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: #ff0000;
-    border: 2px solid #990000;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-}
 
-.swiss-flag-square:hover {
-    background: #ff3333;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
-    transform: translateY(-1px);
-}
-
-.swiss-flag-square:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    background: #cc0000;
-}
-
-.swiss-flag-icon {
-    position: relative;
-    width: 24px;
-    height: 24px;
-}
-
-.flag-cross-horizontal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 4px;
-    background: white;
-    border-radius: 1px;
-}
-
-.flag-cross-vertical {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 4px;
-    height: 20px;
-    background: white;
-    border-radius: 1px;
-}
-
-/* Enhanced system menu button styling */
-.system-menu-button {
-    user-select: none;
-}
-
-/* Add glow effect on active */
-.swiss-flag-square.active {
-    box-shadow: 0 0 12px rgba(255, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.3);
-}
 
 /* Utility Classes */
 .hidden {

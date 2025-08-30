@@ -42,6 +42,10 @@
                 <div class="icon-image">🌐</div>
                 <div class="icon-label">IPFS</div>
             </div>
+            <div class="icon" data-app="p2p-network" title="P2P Network">
+                <div class="icon-image">🔗</div>
+                <div class="icon-label">P2P Network</div>
+            </div>
             <div class="icon" data-app="device-manager" title="Device Manager">
                 <div class="icon-image">🔧</div>
                 <div class="icon-label">Devices</div>
@@ -69,6 +73,26 @@
             <div class="icon" data-app="strudel" title="🎵 Music Studio">
                 <div class="icon-image">🎵</div>
                 <div class="icon-label">Music Studio</div>
+            </div>
+            <div class="icon" data-app="calculator" title="Calculator">
+                <div class="icon-image">🧮</div>
+                <div class="icon-label">Calculator</div>
+            </div>
+            <div class="icon" data-app="system-monitor" title="System Monitor">
+                <div class="icon-image">📊</div>
+                <div class="icon-label">System Monitor</div>
+            </div>
+            <div class="icon" data-app="notes" title="Notes">
+                <div class="icon-image">📝</div>
+                <div class="icon-label">Notes</div>
+            </div>
+            <div class="icon" data-app="image-viewer" title="Image Viewer">
+                <div class="icon-image">🖼️</div>
+                <div class="icon-label">Image Viewer</div>
+            </div>
+            <div class="icon" data-app="clock" title="Clock & Timers">
+                <div class="icon-image">🕐</div>
+                <div class="icon-label">Clock</div>
             </div>
         </div>
         
@@ -108,6 +132,7 @@
                 <div class="menu-item" data-app="task-manager">⚡ Task Manager</div>
                 <div class="menu-item" data-app="model-browser">🧠 Model Browser</div>
                 <div class="menu-item" data-app="ipfs-explorer">🌐 IPFS Explorer</div>
+                <div class="menu-item" data-app="p2p-network">🔗 P2P Network</div>
                 <div class="menu-item" data-app="device-manager">🔧 Device Manager</div>
             </div>
             <div class="menu-separator"></div>
@@ -176,6 +201,9 @@
         <div class="context-item" onclick="refreshDesktop()">🔄 Refresh</div>
         <div class="context-item" onclick="showDesktopProperties()">⚙️ Properties</div>
     </div>
+    
+    <!-- P2P ML System Bridge -->
+    <script src="/js/p2p-ml-bridge.js"></script>
     
     <!-- Vite Entry Point -->
     <script type="module" src="/main.ts"></script>

@@ -1,0 +1,971 @@
+/**
+ * Enhanced Task Manager App for SwissKnife Web Desktop
+ * Real-time system monitoring, process management, and P2P task coordination
+ */
+
+export class TaskManagerApp {
+  constructor(desktop) {
+    this.desktop = desktop;
+    this.swissknife = null;
+    this.processes = [];
+    this.systemMetrics = {
+      cpu: 0,
+      memory: 0,
+      gpu: 0,
+      network: 0,
+      storage: 0
+    };
+    this.performanceHistory = [];
+    this.monitoringInterval = null;
+    this.p2pSystem = null;
+    this.distributedTasks = new Map();
+    this.currentView = 'processes'; // 'processes', 'performance', 'network', 'p2p'
+    
+    // Performance monitoring configuration
+    this.monitoringConfig = {
+      interval: 1000, // 1 second
+      historyLength: 300, // 5 minutes of data
+      alertThresholds: {
+        cpu: 90,
+        memory: 85,
+        gpu: 95,
+        networkLatency: 1000
+      }
+    };
+    
+    this.initializeIntegrations();
+  }
+
+  async initializeIntegrations() {
+    try {
+      this.swissknife = this.desktop.swissknife;
+      
+      // Connect to P2P system if available
+      if (window.p2pMLSystem) {
+        this.p2pSystem = window.p2pMLSystem;
+        this.setupP2PMonitoring();
+      }
+      
+      // Start performance monitoring
+      this.startPerformanceMonitoring();
+      
+      console.log('✅ Task Manager integrations initialized');
+    } catch (error) {
+      console.error('❌ Task Manager integration error:', error);
+    }
+  }
+
+  createWindow() {
+    const content = `
+      <div class="task-manager-container">
+        <div class="task-manager-header">
+          <div class="header-tabs">
+            <button class="tab-btn ${this.currentView === 'processes' ? 'active' : ''}" data-view="processes">
+              ⚡ Processes
+            </button>
+            <button class="tab-btn ${this.currentView === 'performance' ? 'active' : ''}" data-view="performance">
+              📊 Performance
+            </button>
+            <button class="tab-btn ${this.currentView === 'network' ? 'active' : ''}" data-view="network">
+              🌐 Network
+            </button>
+            <button class="tab-btn ${this.currentView === 'p2p' ? 'active' : ''}" data-view="p2p">
+              🔗 P2P Tasks
+            </button>
+          </div>
+          <div class="header-controls">
+            <button class="control-btn" id="pause-monitoring" title="Pause Monitoring">⏸️</button>
+            <button class="control-btn" id="export-data" title="Export Data">📤</button>
+            <button class="control-btn" id="settings-btn" title="Settings">⚙️</button>
+          </div>
+        </div>
+
+        <div class="task-manager-content">
+          <!-- Processes View -->
+          <div class="tab-content ${this.currentView === 'processes' ? 'active' : ''}" data-view="processes">
+            <div class="processes-toolbar">
+              <div class="search-section">
+                <input type="text" id="process-search" placeholder="Search processes..." class="search-input">
+                <select id="process-filter" class="filter-select">
+                  <option value="all">All Processes</option>
+                  <option value="high-cpu">High CPU</option>
+                  <option value="high-memory">High Memory</option>
+                  <option value="web">Web Processes</option>
+                  <option value="system">System Processes</option>
+                </select>
+              </div>
+              <div class="action-section">
+                <button class="action-btn" id="refresh-processes">🔄 Refresh</button>
+                <button class="action-btn danger" id="kill-selected" disabled>⚠️ End Task</button>
+              </div>
+            </div>
+            
+            <div class="processes-table-container">
+              <table class="processes-table">
+                <thead>
+                  <tr>
+                    <th><input type="checkbox" id="select-all-processes"></th>
+                    <th class="sortable" data-sort="name">Process Name 📝</th>
+                    <th class="sortable" data-sort="pid">PID 🆔</th>
+                    <th class="sortable" data-sort="cpu">CPU % 🔥</th>
+                    <th class="sortable" data-sort="memory">Memory 🧠</th>
+                    <th class="sortable" data-sort="status">Status 📊</th>
+                    <th>Actions ⚡</th>
+                  </tr>
+                </thead>
+                <tbody id="processes-list">
+                  <!-- Processes will be populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Performance View -->
+          <div class="tab-content ${this.currentView === 'performance' ? 'active' : ''}" data-view="performance">
+            <div class="performance-overview">
+              <div class="metric-card cpu-card">
+                <div class="metric-header">
+                  <span class="metric-icon">🔥</span>
+                  <span class="metric-title">CPU Usage</span>
+                </div>
+                <div class="metric-value" id="cpu-usage">0%</div>
+                <div class="metric-chart" id="cpu-chart"></div>
+                <div class="metric-details">
+                  <span>Cores: <span id="cpu-cores">-</span></span>
+                  <span>Speed: <span id="cpu-speed">-</span></span>
+                </div>
+              </div>
+
+              <div class="metric-card memory-card">
+                <div class="metric-header">
+                  <span class="metric-icon">🧠</span>
+                  <span class="metric-title">Memory Usage</span>
+                </div>
+                <div class="metric-value" id="memory-usage">0%</div>
+                <div class="metric-chart" id="memory-chart"></div>
+                <div class="metric-details">
+                  <span>Used: <span id="memory-used">-</span></span>
+                  <span>Total: <span id="memory-total">-</span></span>
+                </div>
+              </div>
+
+              <div class="metric-card gpu-card">
+                <div class="metric-header">
+                  <span class="metric-icon">🎮</span>
+                  <span class="metric-title">GPU Usage</span>
+                </div>
+                <div class="metric-value" id="gpu-usage">0%</div>
+                <div class="metric-chart" id="gpu-chart"></div>
+                <div class="metric-details">
+                  <span>Type: <span id="gpu-type">-</span></span>
+                  <span>Memory: <span id="gpu-memory">-</span></span>
+                </div>
+              </div>
+
+              <div class="metric-card network-card">
+                <div class="metric-header">
+                  <span class="metric-icon">🌐</span>
+                  <span class="metric-title">Network</span>
+                </div>
+                <div class="metric-value" id="network-speed">0 MB/s</div>
+                <div class="metric-chart" id="network-chart"></div>
+                <div class="metric-details">
+                  <span>Down: <span id="network-down">-</span></span>
+                  <span>Up: <span id="network-up">-</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="performance-details">
+              <div class="details-section">
+                <h3>📈 Performance History</h3>
+                <div class="history-chart" id="performance-history-chart"></div>
+              </div>
+              
+              <div class="details-section">
+                <h3>⚠️ System Alerts</h3>
+                <div class="alerts-list" id="system-alerts"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Network View -->
+          <div class="tab-content ${this.currentView === 'network' ? 'active' : ''}" data-view="network">
+            <div class="network-overview">
+              <div class="network-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Active Connections</span>
+                  <span class="stat-value" id="active-connections">0</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Bandwidth Usage</span>
+                  <span class="stat-value" id="bandwidth-usage">0 MB/s</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Latency</span>
+                  <span class="stat-value" id="network-latency">0ms</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Packet Loss</span>
+                  <span class="stat-value" id="packet-loss">0%</span>
+                </div>
+              </div>
+              
+              <div class="network-chart-container">
+                <canvas id="network-traffic-chart"></canvas>
+              </div>
+            </div>
+
+            <div class="network-connections">
+              <h3>🔗 Active Network Connections</h3>
+              <table class="connections-table">
+                <thead>
+                  <tr>
+                    <th>Protocol</th>
+                    <th>Local Address</th>
+                    <th>Remote Address</th>
+                    <th>State</th>
+                    <th>Process</th>
+                    <th>Bandwidth</th>
+                  </tr>
+                </thead>
+                <tbody id="connections-list">
+                  <!-- Network connections will be populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- P2P Tasks View -->
+          <div class="tab-content ${this.currentView === 'p2p' ? 'active' : ''}" data-view="p2p">
+            <div class="p2p-overview">
+              <div class="p2p-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Connected Peers</span>
+                  <span class="stat-value" id="connected-peers">0</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Active Tasks</span>
+                  <span class="stat-value" id="active-p2p-tasks">0</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Completed Tasks</span>
+                  <span class="stat-value" id="completed-p2p-tasks">0</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Network Load</span>
+                  <span class="stat-value" id="network-load">0%</span>
+                </div>
+              </div>
+              
+              <div class="p2p-controls">
+                <button class="p2p-btn" id="enable-task-sharing">🔄 Enable Task Sharing</button>
+                <button class="p2p-btn" id="broadcast-availability">📡 Broadcast Availability</button>
+                <button class="p2p-btn" id="optimize-network">⚡ Optimize Network</button>
+              </div>
+            </div>
+
+            <div class="p2p-tasks">
+              <h3>🎯 Distributed Tasks</h3>
+              <div class="tasks-toolbar">
+                <select id="task-filter" class="filter-select">
+                  <option value="all">All Tasks</option>
+                  <option value="running">Running</option>
+                  <option value="completed">Completed</option>
+                  <option value="failed">Failed</option>
+                  <option value="local">Local</option>
+                  <option value="remote">Remote</option>
+                </select>
+                <button class="refresh-btn" id="refresh-p2p-tasks">🔄 Refresh</button>
+              </div>
+              
+              <div class="tasks-list" id="p2p-tasks-list">
+                <!-- P2P tasks will be populated -->
+              </div>
+            </div>
+
+            <div class="peer-network">
+              <h3>🌐 Peer Network</h3>
+              <div class="peer-grid" id="peer-network-grid">
+                <!-- Peer network visualization -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return content;
+  }
+
+  async initialize() {
+    await this.initializeIntegrations();
+    this.setupEventListeners();
+    this.loadInitialData();
+  }
+
+  setupEventListeners() {
+    // Tab switching
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('tab-btn')) {
+        const view = e.target.dataset.view;
+        this.switchView(view);
+      }
+    });
+
+    // Process management
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'refresh-processes') {
+        this.refreshProcesses();
+      } else if (e.target.id === 'kill-selected') {
+        this.killSelectedProcesses();
+      }
+    });
+
+    // Performance controls
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'pause-monitoring') {
+        this.toggleMonitoring();
+      } else if (e.target.id === 'export-data') {
+        this.exportPerformanceData();
+      }
+    });
+
+    // P2P controls
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'enable-task-sharing') {
+        this.toggleTaskSharing();
+      } else if (e.target.id === 'broadcast-availability') {
+        this.broadcastAvailability();
+      } else if (e.target.id === 'optimize-network') {
+        this.optimizeNetwork();
+      }
+    });
+
+    // Search and filtering
+    const searchInput = document.getElementById('process-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.filterProcesses(e.target.value);
+      });
+    }
+
+    const processFilter = document.getElementById('process-filter');
+    if (processFilter) {
+      processFilter.addEventListener('change', (e) => {
+        this.applyProcessFilter(e.target.value);
+      });
+    }
+  }
+
+  switchView(view) {
+    this.currentView = view;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    // Update content
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.toggle('active', content.dataset.view === view);
+    });
+    
+    // Load view-specific data
+    this.loadViewData(view);
+  }
+
+  async loadViewData(view) {
+    switch (view) {
+      case 'processes':
+        await this.loadProcesses();
+        break;
+      case 'performance':
+        await this.loadPerformanceData();
+        break;
+      case 'network':
+        await this.loadNetworkData();
+        break;
+      case 'p2p':
+        await this.loadP2PData();
+        break;
+    }
+  }
+
+  async loadInitialData() {
+    await this.loadSystemInfo();
+    await this.loadViewData(this.currentView);
+  }
+
+  async loadSystemInfo() {
+    try {
+      // Get system information
+      const systemInfo = await this.getSystemInfo();
+      this.updateSystemInfo(systemInfo);
+    } catch (error) {
+      console.error('Error loading system info:', error);
+    }
+  }
+
+  async getSystemInfo() {
+    // Simulate system information gathering
+    const info = {
+      cpu: {
+        cores: navigator.hardwareConcurrency || 4,
+        speed: '2.4 GHz', // Mock data
+        usage: Math.random() * 100
+      },
+      memory: {
+        total: 8 * 1024 * 1024 * 1024, // 8GB in bytes
+        used: Math.random() * 6 * 1024 * 1024 * 1024,
+        available: 2 * 1024 * 1024 * 1024
+      },
+      gpu: {
+        type: this.getGPUInfo(),
+        memory: '4GB', // Mock data
+        usage: Math.random() * 100
+      },
+      network: {
+        speed: Math.random() * 100,
+        latency: Math.random() * 50 + 10,
+        connections: Math.floor(Math.random() * 20) + 5
+      }
+    };
+    
+    return info;
+  }
+
+  getGPUInfo() {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    
+    if (gl) {
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      if (debugInfo) {
+        return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+      }
+    }
+    
+    return 'Unknown GPU';
+  }
+
+  updateSystemInfo(info) {
+    // Update CPU information
+    const cpuCores = document.getElementById('cpu-cores');
+    const cpuSpeed = document.getElementById('cpu-speed');
+    const cpuUsage = document.getElementById('cpu-usage');
+    
+    if (cpuCores) cpuCores.textContent = info.cpu.cores;
+    if (cpuSpeed) cpuSpeed.textContent = info.cpu.speed;
+    if (cpuUsage) cpuUsage.textContent = `${info.cpu.usage.toFixed(1)}%`;
+    
+    // Update Memory information
+    const memoryUsed = document.getElementById('memory-used');
+    const memoryTotal = document.getElementById('memory-total');
+    const memoryUsage = document.getElementById('memory-usage');
+    
+    if (memoryUsed) memoryUsed.textContent = this.formatBytes(info.memory.used);
+    if (memoryTotal) memoryTotal.textContent = this.formatBytes(info.memory.total);
+    if (memoryUsage) {
+      const percentage = (info.memory.used / info.memory.total) * 100;
+      memoryUsage.textContent = `${percentage.toFixed(1)}%`;
+    }
+    
+    // Update GPU information
+    const gpuType = document.getElementById('gpu-type');
+    const gpuMemory = document.getElementById('gpu-memory');
+    const gpuUsage = document.getElementById('gpu-usage');
+    
+    if (gpuType) gpuType.textContent = info.gpu.type;
+    if (gpuMemory) gpuMemory.textContent = info.gpu.memory;
+    if (gpuUsage) gpuUsage.textContent = `${info.gpu.usage.toFixed(1)}%`;
+    
+    // Store for monitoring
+    this.systemMetrics = {
+      cpu: info.cpu.usage,
+      memory: (info.memory.used / info.memory.total) * 100,
+      gpu: info.gpu.usage,
+      network: info.network.speed,
+      storage: 0 // Will be calculated separately
+    };
+  }
+
+  formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  async loadProcesses() {
+    try {
+      const processes = await this.getRunningProcesses();
+      this.displayProcesses(processes);
+    } catch (error) {
+      console.error('Error loading processes:', error);
+      this.displayProcessError();
+    }
+  }
+
+  async getRunningProcesses() {
+    // Simulate process data (in a real implementation, this would interface with system APIs)
+    const mockProcesses = [
+      { pid: 1, name: 'SwissKnife Desktop', cpu: 2.1, memory: 45.2, status: 'running' },
+      { pid: 2, name: 'Web Browser', cpu: 8.7, memory: 156.8, status: 'running' },
+      { pid: 3, name: 'AI Model Server', cpu: 15.3, memory: 289.6, status: 'running' },
+      { pid: 4, name: 'P2P Network Manager', cpu: 3.2, memory: 67.4, status: 'running' },
+      { pid: 5, name: 'IPFS Node', cpu: 1.8, memory: 23.1, status: 'running' },
+      { pid: 6, name: 'Terminal Session', cpu: 0.5, memory: 12.3, status: 'running' },
+      { pid: 7, name: 'File System Monitor', cpu: 0.2, memory: 8.9, status: 'sleeping' },
+      { pid: 8, name: 'System Monitor', cpu: 1.1, memory: 15.7, status: 'running' }
+    ];
+    
+    return mockProcesses;
+  }
+
+  displayProcesses(processes) {
+    const tbody = document.getElementById('processes-list');
+    if (!tbody) return;
+    
+    tbody.innerHTML = processes.map(process => `
+      <tr data-pid="${process.pid}">
+        <td><input type="checkbox" class="process-checkbox" value="${process.pid}"></td>
+        <td class="process-name">${process.name}</td>
+        <td class="process-pid">${process.pid}</td>
+        <td class="process-cpu">${process.cpu.toFixed(1)}%</td>
+        <td class="process-memory">${process.memory.toFixed(1)} MB</td>
+        <td class="process-status">
+          <span class="status-badge status-${process.status}">${process.status}</span>
+        </td>
+        <td class="process-actions">
+          <button class="action-btn small" onclick="taskManager.viewProcessDetails(${process.pid})" title="Details">🔍</button>
+          <button class="action-btn small danger" onclick="taskManager.killProcess(${process.pid})" title="End Task">❌</button>
+        </td>
+      </tr>
+    `).join('');
+    
+    this.processes = processes;
+  }
+
+  displayProcessError() {
+    const tbody = document.getElementById('processes-list');
+    if (!tbody) return;
+    
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="error-message">
+          ⚠️ Unable to load process information. This feature requires system-level access.
+        </td>
+      </tr>
+    `;
+  }
+
+  async loadPerformanceData() {
+    // Update real-time metrics
+    await this.updatePerformanceMetrics();
+    
+    // Update charts
+    this.updatePerformanceCharts();
+    
+    // Update alerts
+    this.updateSystemAlerts();
+  }
+
+  async updatePerformanceMetrics() {
+    const systemInfo = await this.getSystemInfo();
+    this.updateSystemInfo(systemInfo);
+    
+    // Add to performance history
+    this.performanceHistory.push({
+      timestamp: Date.now(),
+      cpu: this.systemMetrics.cpu,
+      memory: this.systemMetrics.memory,
+      gpu: this.systemMetrics.gpu,
+      network: this.systemMetrics.network
+    });
+    
+    // Keep only recent history
+    if (this.performanceHistory.length > this.monitoringConfig.historyLength) {
+      this.performanceHistory.shift();
+    }
+  }
+
+  updatePerformanceCharts() {
+    // Simple ASCII-style charts for now
+    this.updateMiniChart('cpu-chart', this.systemMetrics.cpu, 100);
+    this.updateMiniChart('memory-chart', this.systemMetrics.memory, 100);
+    this.updateMiniChart('gpu-chart', this.systemMetrics.gpu, 100);
+    this.updateMiniChart('network-chart', this.systemMetrics.network, 100);
+  }
+
+  updateMiniChart(elementId, value, max) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const percentage = (value / max) * 100;
+    const barWidth = Math.min(percentage, 100);
+    
+    element.innerHTML = `
+      <div class="mini-chart-bar" style="width: ${barWidth}%; background: ${this.getBarColor(percentage)}"></div>
+      <div class="mini-chart-text">${value.toFixed(1)}</div>
+    `;
+  }
+
+  getBarColor(percentage) {
+    if (percentage < 50) return '#4CAF50'; // Green
+    if (percentage < 80) return '#FF9800'; // Orange
+    return '#F44336'; // Red
+  }
+
+  updateSystemAlerts() {
+    const alertsContainer = document.getElementById('system-alerts');
+    if (!alertsContainer) return;
+    
+    const alerts = this.generateSystemAlerts();
+    
+    if (alerts.length === 0) {
+      alertsContainer.innerHTML = '<div class="no-alerts">✅ No system alerts</div>';
+      return;
+    }
+    
+    alertsContainer.innerHTML = alerts.map(alert => `
+      <div class="alert alert-${alert.level}">
+        <span class="alert-icon">${alert.icon}</span>
+        <span class="alert-message">${alert.message}</span>
+        <span class="alert-time">${new Date(alert.timestamp).toLocaleTimeString()}</span>
+      </div>
+    `).join('');
+  }
+
+  generateSystemAlerts() {
+    const alerts = [];
+    const thresholds = this.monitoringConfig.alertThresholds;
+    
+    if (this.systemMetrics.cpu > thresholds.cpu) {
+      alerts.push({
+        level: 'warning',
+        icon: '🔥',
+        message: `High CPU usage: ${this.systemMetrics.cpu.toFixed(1)}%`,
+        timestamp: Date.now()
+      });
+    }
+    
+    if (this.systemMetrics.memory > thresholds.memory) {
+      alerts.push({
+        level: 'warning',
+        icon: '🧠',
+        message: `High memory usage: ${this.systemMetrics.memory.toFixed(1)}%`,
+        timestamp: Date.now()
+      });
+    }
+    
+    if (this.systemMetrics.gpu > thresholds.gpu) {
+      alerts.push({
+        level: 'critical',
+        icon: '🎮',
+        message: `Critical GPU usage: ${this.systemMetrics.gpu.toFixed(1)}%`,
+        timestamp: Date.now()
+      });
+    }
+    
+    return alerts;
+  }
+
+  async loadNetworkData() {
+    try {
+      const networkInfo = await this.getNetworkInfo();
+      this.displayNetworkInfo(networkInfo);
+    } catch (error) {
+      console.error('Error loading network data:', error);
+    }
+  }
+
+  async getNetworkInfo() {
+    // Mock network data
+    return {
+      activeConnections: Math.floor(Math.random() * 50) + 10,
+      bandwidthUsage: Math.random() * 100,
+      latency: Math.random() * 100 + 10,
+      packetLoss: Math.random() * 5,
+      connections: [
+        { protocol: 'TCP', local: '192.168.1.100:3000', remote: 'api.openai.com:443', state: 'ESTABLISHED', process: 'AI Chat' },
+        { protocol: 'WebRTC', local: '192.168.1.100:54321', remote: 'peer.example.com:12345', state: 'CONNECTED', process: 'P2P Network' },
+        { protocol: 'HTTP/2', local: '192.168.1.100:8080', remote: 'ipfs.io:443', state: 'ESTABLISHED', process: 'IPFS Node' }
+      ]
+    };
+  }
+
+  displayNetworkInfo(networkInfo) {
+    // Update network stats
+    const elements = {
+      'active-connections': networkInfo.activeConnections,
+      'bandwidth-usage': `${networkInfo.bandwidthUsage.toFixed(1)} MB/s`,
+      'network-latency': `${networkInfo.latency.toFixed(0)}ms`,
+      'packet-loss': `${networkInfo.packetLoss.toFixed(2)}%`
+    };
+    
+    Object.entries(elements).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
+    
+    // Update connections table
+    const connectionsTable = document.getElementById('connections-list');
+    if (connectionsTable) {
+      connectionsTable.innerHTML = networkInfo.connections.map(conn => `
+        <tr>
+          <td>${conn.protocol}</td>
+          <td>${conn.local}</td>
+          <td>${conn.remote}</td>
+          <td><span class="status-badge status-${conn.state.toLowerCase()}">${conn.state}</span></td>
+          <td>${conn.process}</td>
+          <td>${(Math.random() * 10).toFixed(1)} MB/s</td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  async loadP2PData() {
+    if (!this.p2pSystem) {
+      this.displayP2PNotAvailable();
+      return;
+    }
+    
+    try {
+      const p2pInfo = await this.getP2PInfo();
+      this.displayP2PInfo(p2pInfo);
+    } catch (error) {
+      console.error('Error loading P2P data:', error);
+    }
+  }
+
+  displayP2PNotAvailable() {
+    const container = document.querySelector('[data-view="p2p"]');
+    if (!container) return;
+    
+    container.innerHTML = `
+      <div class="not-available">
+        <h3>🔗 P2P Network Not Available</h3>
+        <p>The P2P network system is not currently active. Enable P2P networking in Settings to use this feature.</p>
+        <button class="enable-p2p-btn" onclick="desktop.launchApp('settings')">Enable P2P Network</button>
+      </div>
+    `;
+  }
+
+  async getP2PInfo() {
+    if (!this.p2pSystem) return null;
+    
+    return {
+      connectedPeers: this.p2pSystem.peers?.size || 0,
+      activeTasks: this.distributedTasks.size,
+      completedTasks: 0, // Would track from history
+      networkLoad: Math.random() * 100,
+      tasks: Array.from(this.distributedTasks.values())
+    };
+  }
+
+  displayP2PInfo(p2pInfo) {
+    // Update P2P stats
+    const elements = {
+      'connected-peers': p2pInfo.connectedPeers,
+      'active-p2p-tasks': p2pInfo.activeTasks,
+      'completed-p2p-tasks': p2pInfo.completedTasks,
+      'network-load': `${p2pInfo.networkLoad.toFixed(1)}%`
+    };
+    
+    Object.entries(elements).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
+    
+    // Update tasks list
+    this.updateP2PTasksList(p2pInfo.tasks);
+    
+    // Update peer network visualization
+    this.updatePeerNetworkVisualization();
+  }
+
+  updateP2PTasksList(tasks) {
+    const tasksList = document.getElementById('p2p-tasks-list');
+    if (!tasksList) return;
+    
+    if (tasks.length === 0) {
+      tasksList.innerHTML = '<div class="no-tasks">No distributed tasks active</div>';
+      return;
+    }
+    
+    tasksList.innerHTML = tasks.map(task => `
+      <div class="task-item">
+        <div class="task-header">
+          <span class="task-name">${task.name}</span>
+          <span class="task-status status-${task.status}">${task.status}</span>
+        </div>
+        <div class="task-details">
+          <span>Peer: ${task.peerId}</span>
+          <span>Progress: ${task.progress}%</span>
+          <span>ETA: ${task.eta}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  updatePeerNetworkVisualization() {
+    const grid = document.getElementById('peer-network-grid');
+    if (!grid || !this.p2pSystem) return;
+    
+    const peers = Array.from(this.p2pSystem.peers?.values() || []);
+    
+    grid.innerHTML = peers.map(peer => `
+      <div class="peer-node">
+        <div class="peer-icon">👤</div>
+        <div class="peer-id">${peer.id.slice(0, 8)}...</div>
+        <div class="peer-status ${peer.connected ? 'connected' : 'disconnected'}"></div>
+      </div>
+    `).join('');
+  }
+
+  setupP2PMonitoring() {
+    if (!this.p2pSystem) return;
+    
+    // Listen for P2P events
+    this.p2pSystem.on('peer:connected', (peer) => {
+      console.log('Peer connected:', peer.id);
+      this.updateP2PStats();
+    });
+    
+    this.p2pSystem.on('peer:disconnected', (peer) => {
+      console.log('Peer disconnected:', peer.id);
+      this.updateP2PStats();
+    });
+    
+    this.p2pSystem.on('task:started', (task) => {
+      this.distributedTasks.set(task.id, task);
+      this.updateP2PStats();
+    });
+    
+    this.p2pSystem.on('task:completed', (task) => {
+      this.distributedTasks.delete(task.id);
+      this.updateP2PStats();
+    });
+  }
+
+  updateP2PStats() {
+    if (this.currentView === 'p2p') {
+      this.loadP2PData();
+    }
+  }
+
+  startPerformanceMonitoring() {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+    }
+    
+    this.monitoringInterval = setInterval(async () => {
+      await this.updatePerformanceMetrics();
+      
+      if (this.currentView === 'performance') {
+        this.updatePerformanceCharts();
+        this.updateSystemAlerts();
+      }
+    }, this.monitoringConfig.interval);
+  }
+
+  stopPerformanceMonitoring() {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = null;
+    }
+  }
+
+  toggleMonitoring() {
+    const btn = document.getElementById('pause-monitoring');
+    if (!btn) return;
+    
+    if (this.monitoringInterval) {
+      this.stopPerformanceMonitoring();
+      btn.innerHTML = '▶️';
+      btn.title = 'Resume Monitoring';
+    } else {
+      this.startPerformanceMonitoring();
+      btn.innerHTML = '⏸️';
+      btn.title = 'Pause Monitoring';
+    }
+  }
+
+  exportPerformanceData() {
+    const data = {
+      systemMetrics: this.systemMetrics,
+      performanceHistory: this.performanceHistory,
+      timestamp: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `swissknife-performance-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async killProcess(pid) {
+    if (!confirm(`Are you sure you want to end process ${pid}?`)) {
+      return;
+    }
+    
+    try {
+      // In a real implementation, this would send a kill signal
+      console.log(`Killing process ${pid}`);
+      
+      // Remove from local list
+      this.processes = this.processes.filter(p => p.pid !== pid);
+      this.displayProcesses(this.processes);
+      
+      // Show notification
+      this.showNotification(`Process ${pid} terminated`, 'success');
+    } catch (error) {
+      console.error('Error killing process:', error);
+      this.showNotification('Failed to terminate process', 'error');
+    }
+  }
+
+  viewProcessDetails(pid) {
+    const process = this.processes.find(p => p.pid === pid);
+    if (!process) return;
+    
+    alert(`Process Details:\nPID: ${process.pid}\nName: ${process.name}\nCPU: ${process.cpu}%\nMemory: ${process.memory} MB\nStatus: ${process.status}`);
+  }
+
+  showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  // App lifecycle methods
+  onDestroy() {
+    this.stopPerformanceMonitoring();
+    if (this.p2pSystem) {
+      this.p2pSystem.off('peer:connected');
+      this.p2pSystem.off('peer:disconnected');
+      this.p2pSystem.off('task:started');
+      this.p2pSystem.off('task:completed');
+    }
+  }
+}
+
+// Export for global access
+if (typeof window !== 'undefined') {
+  window.TaskManagerApp = TaskManagerApp;
+  window.createTaskManagerApp = (desktop) => new TaskManagerApp(desktop);
+}
