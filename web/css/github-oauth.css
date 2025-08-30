@@ -1,0 +1,937 @@
+/* GitHub App Styles */
+.github-app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.github-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #334155;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.github-header .header-left h2 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.user-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.github-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.github-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.github-sidebar {
+    width: 250px;
+    background: rgba(15, 23, 42, 0.8);
+    border-right: 1px solid #334155;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.nav-menu .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+    background: rgba(59, 130, 246, 0.2);
+    border-left: 3px solid #3b82f6;
+}
+
+.nav-count {
+    margin-left: auto;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.quick-stats {
+    margin-top: 24px;
+}
+
+.quick-stats h4 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-value.connected {
+    color: #10b981;
+}
+
+.stat-value.disconnected {
+    color: #ef4444;
+}
+
+.github-main {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.view-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.view-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.view-actions input, .view-actions select {
+    padding: 8px 12px;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    background: rgba(30, 41, 59, 0.8);
+    color: #e2e8f0;
+}
+
+/* Repository Cards */
+.repositories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 16px;
+}
+
+.repository-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #475569;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.repository-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: #64748b;
+}
+
+.repo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.repo-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    color: #3b82f6;
+}
+
+.repo-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.private-badge {
+    background: #dc2626;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.public-badge {
+    background: #059669;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.repo-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.repo-description {
+    color: #cbd5e1;
+    font-size: 14px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.repo-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.language-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.repo-updated {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* Issue and PR Cards */
+.issues-list, .pulls-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.issue-card, .pull-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #475569;
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.issue-card:hover, .pull-card:hover {
+    border-color: #64748b;
+    background: rgba(30, 41, 59, 0.8);
+}
+
+.issue-header, .pull-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.issue-info h4, .pull-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    color: #e2e8f0;
+}
+
+.issue-meta, .pull-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.issue-state, .pull-state {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.state-open {
+    background: #059669;
+    color: white;
+}
+
+.state-closed {
+    background: #dc2626;
+    color: white;
+}
+
+.state-merged {
+    background: #7c3aed;
+    color: white;
+}
+
+.issue-labels {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.label {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    color: white;
+    font-weight: 500;
+}
+
+.issue-assignees {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.assignee-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+.pull-branches {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.branch {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.arrow {
+    color: #94a3b8;
+}
+
+.pull-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #94a3b8;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    margin: 0 0 8px 0;
+    color: #e2e8f0;
+}
+
+/* Authentication Screen */
+.github-auth {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+}
+
+.auth-container {
+    max-width: 500px;
+    width: 100%;
+    padding: 32px;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid #475569;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.auth-header h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+}
+
+.auth-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.auth-method {
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #374151;
+    border-radius: 12px;
+}
+
+.auth-method h3 {
+    margin: 0 0 8px 0;
+    color: #3b82f6;
+}
+
+.auth-divider {
+    text-align: center;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.auth-help {
+    margin-top: 24px;
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 8px;
+}
+
+.auth-help h4 {
+    margin: 0 0 12px 0;
+    color: #e2e8f0;
+}
+
+.auth-help ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #94a3b8;
+}
+
+.auth-help li {
+    margin-bottom: 4px;
+}
+
+.auth-help code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* OAuth Login App Styles */
+.oauth-login-system {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #7c3aed 0%, #3730a3 100%);
+    color: #e2e8f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.oauth-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #6d28d9;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.oauth-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.oauth-sidebar {
+    width: 280px;
+    background: rgba(15, 23, 42, 0.9);
+    border-right: 1px solid #6d28d9;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.provider-list h4 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #c4b5fd;
+}
+
+.provider-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #475569;
+}
+
+.provider-item.enabled {
+    border-color: #10b981;
+}
+
+.provider-item.disabled {
+    opacity: 0.6;
+}
+
+.provider-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.provider-icon {
+    font-size: 16px;
+}
+
+.provider-status {
+    font-size: 12px;
+}
+
+.provider-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.active-sessions h4 {
+    margin: 24px 0 16px 0;
+    font-size: 14px;
+    color: #c4b5fd;
+}
+
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #10b981;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.session-details {
+    font-size: 12px;
+}
+
+.session-provider {
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.session-user {
+    color: #94a3b8;
+}
+
+.session-expires {
+    color: #fbbf24;
+}
+
+.oauth-main {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.login-provider-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #475569;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.login-provider-card.enabled:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: #8b5cf6;
+}
+
+.login-provider-card.disabled {
+    opacity: 0.5;
+}
+
+.provider-header {
+    margin-bottom: 16px;
+}
+
+.provider-icon.large {
+    font-size: 32px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.provider-header h4 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: inline-block;
+}
+
+.status-badge.connected {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid #10b981;
+}
+
+.status-badge.disconnected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+}
+
+.session-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #475569;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon {
+    font-size: 24px;
+    color: #8b5cf6;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin: 0;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.session-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.auth-logs-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: rgba(30, 41, 59, 0.4);
+}
+
+.log-entry.login_success {
+    border-left: 3px solid #10b981;
+}
+
+.log-entry.login_failed {
+    border-left: 3px solid #ef4444;
+}
+
+.log-entry.logout {
+    border-left: 3px solid #f59e0b;
+}
+
+.log-icon {
+    font-size: 16px;
+}
+
+.log-content {
+    flex: 1;
+}
+
+.log-message {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.log-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.no-sessions, .no-logs {
+    text-align: center;
+    padding: 24px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Button Styles for GitHub and OAuth Apps */
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-sm.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-sm.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-sm.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-sm.btn-secondary:hover {
+    background: #4b5563;
+}
+
+.btn-sm.btn-success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-sm.btn-success:hover {
+    background: #059669;
+}
+
+.btn-sm.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-sm.btn-danger:hover {
+    background: #dc2626;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    background: rgba(30, 41, 59, 0.8);
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.form-group small a {
+    color: #60a5fa;
+    text-decoration: none;
+}
+
+.form-group small a:hover {
+    text-decoration: underline;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.checkmark {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #475569;
+    border-radius: 3px;
+    background: rgba(30, 41, 59, 0.8);
+    position: relative;
+}
+
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    left: 2px;
+    top: -2px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Enhanced MCP Control styles */
+.remote-server {
+    border-left: 3px solid #06b6d4;
+}
+
+.local-server {
+    border-left: 3px solid #10b981;
+}
+
+.server-type {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    margin-left: 8px;
+}
+
+.scan-results {
+    margin-top: 16px;
+    padding: 16px;
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 8px;
+}
+
+.found-server {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin: 8px 0;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid #10b981;
+    border-radius: 6px;
+}
+
+.scanning {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.no-results {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.scan-error {
+    text-align: center;
+    color: #ef4444;
+    font-style: italic;
+}
+
+.auth-details.hidden {
+    display: none;
+}
+
+.server-capabilities {
+    margin-top: 12px;
+}
+
+.capabilities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.capability-tag {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+}

@@ -1,21 +1,26 @@
-// Enhanced MCP Server Control App with Real-Time Monitoring and Auto-Discovery
+// Enhanced MCP Server Control App with Real-Time Monitoring and External Connections
 class MCPControlApp {
     constructor() {
         this.name = 'MCP Control';
         this.icon = '🔌';
         this.servers = new Map();
+        this.connections = new Map(); // Active WebSocket connections
         this.refreshInterval = null;
         this.discoveryInterval = null;
         this.serverTemplates = new Map();
         this.connectionHistory = [];
         this.performanceMetrics = new Map();
         this.autoDiscovery = true;
+        this.remoteServers = new Map(); // Remote MCP servers
         
         // Initialize common server templates
         this.initializeServerTemplates();
         
         // Start auto-discovery
         this.startAutoDiscovery();
+        
+        // Load saved servers and connections
+        this.loadSavedData();
     }
 
     initializeServerTemplates() {
@@ -117,7 +122,10 @@ class MCPControlApp {
                         <h2>🔌 MCP Server Control Center</h2>
                         <div class="server-status">
                             <span class="status-indicator">
-                                🟢 ${this.getActiveServerCount()} servers active
+                                🟢 ${this.getActiveServerCount()} local servers
+                            </span>
+                            <span class="status-indicator">
+                                🌐 ${this.connections.size} remote connections
                             </span>
                             <span class="discovery-status">
                                 ${this.autoDiscovery ? '🔍 Auto-discovery ON' : '🔍 Auto-discovery OFF'}
@@ -128,6 +136,7 @@ class MCPControlApp {
                         <button onclick="mcpControlApp.refreshServers()" class="btn-primary">🔄 Refresh</button>
                         <button onclick="mcpControlApp.showServerTemplates()" class="btn-secondary">📋 Templates</button>
                         <button onclick="mcpControlApp.showAddServer()" class="btn-secondary">➕ Add Server</button>
+                        <button onclick="mcpControlApp.showAddRemote()" class="btn-secondary">🌐 Add Remote</button>
                         <button onclick="mcpControlApp.showDiscovery()" class="btn-secondary">🔍 Discovery</button>
                         <button onclick="mcpControlApp.showMetrics()" class="btn-secondary">📊 Metrics</button>
                     </div>
@@ -141,7 +150,17 @@ class MCPControlApp {
                                 <div class="category-item active" data-category="all">
                                     <span class="category-icon">🔍</span>
                                     <span class="category-name">All Servers</span>
+                                    <span class="category-count">${this.servers.size + this.remoteServers.size}</span>
+                                </div>
+                                <div class="category-item" data-category="local">
+                                    <span class="category-icon">💻</span>
+                                    <span class="category-name">Local</span>
                                     <span class="category-count">${this.servers.size}</span>
+                                </div>
+                                <div class="category-item" data-category="remote">
+                                    <span class="category-icon">🌐</span>
+                                    <span class="category-name">Remote</span>
+                                    <span class="category-count">${this.remoteServers.size}</span>
                                 </div>
                                 <div class="category-item" data-category="core">
                                     <span class="category-icon">⚙️</span>
@@ -174,8 +193,12 @@ class MCPControlApp {
                         <div class="quick-stats">
                             <h4>📊 Quick Stats</h4>
                             <div class="stat-item">
-                                <span>Active Servers:</span>
+                                <span>Active Local:</span>
                                 <span class="stat-value">${this.getActiveServerCount()}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span>Remote Connections:</span>
+                                <span class="stat-value">${this.connections.size}</span>
                             </div>
                             <div class="stat-item">
                                 <span>Total Connections:</span>
@@ -207,8 +230,14 @@ class MCPControlApp {
                                 <select id="status-filter" onchange="mcpControlApp.filterServers()">
                                     <option value="">All Status</option>
                                     <option value="running">Running</option>
+                                    <option value="connected">Connected</option>
                                     <option value="stopped">Stopped</option>
                                     <option value="error">Error</option>
+                                </select>
+                                <select id="type-filter" onchange="mcpControlApp.filterServers()">
+                                    <option value="">All Types</option>
+                                    <option value="local">Local</option>
+                                    <option value="remote">Remote</option>
                                 </select>
                             </div>
                         </div>
@@ -225,7 +254,9 @@ class MCPControlApp {
     }
 
     renderServerList() {
-        if (this.servers.size === 0) {
+        const allServers = new Map([...this.servers, ...this.remoteServers]);
+        
+        if (allServers.size === 0) {
             return `
                 <div class="no-servers">
                     <div class="no-servers-icon">🔌</div>
@@ -236,41 +267,42 @@ class MCPControlApp {
                             📋 Browse Templates
                         </button>
                         <button onclick="mcpControlApp.showAddServer()" class="btn-secondary">
-                            ➕ Add Custom Server
+                            ➕ Add Local Server
+                        </button>
+                        <button onclick="mcpControlApp.showAddRemote()" class="btn-secondary">
+                            🌐 Add Remote Server
                         </button>
                     </div>
                 </div>
             `;
         }
         
-        return Array.from(this.servers.entries()).map(([name, server]) => {
+        return Array.from(allServers.entries()).map(([name, server]) => {
             const metrics = this.performanceMetrics.get(name) || {};
             const statusIcon = this.getStatusIcon(server.status);
             const statusClass = server.status || 'stopped';
+            const isRemote = this.remoteServers.has(name);
             
             return `
-                <div class="server-card ${statusClass}">
+                <div class="server-card ${statusClass} ${isRemote ? 'remote-server' : 'local-server'}">
                     <div class="server-header">
                         <div class="server-info">
                             <div class="server-title">
-                                <span class="server-icon">${server.icon || '🔌'}</span>
+                                <span class="server-icon">${server.icon || (isRemote ? '🌐' : '🔌')}</span>
                                 <h4>${server.displayName || name}</h4>
                                 <span class="server-category">${server.category || 'custom'}</span>
+                                <span class="server-type">${isRemote ? 'REMOTE' : 'LOCAL'}</span>
                             </div>
                             <div class="server-description">${server.description || 'No description'}</div>
                             <div class="server-command">
-                                <code>${server.command} ${(server.args || []).join(' ')}</code>
+                                ${isRemote ? 
+                                    `<code>🌐 ${server.url}</code>` :
+                                    `<code>${server.command} ${(server.args || []).join(' ')}</code>`
+                                }
                             </div>
                         </div>
                         <div class="server-actions">
-                            ${server.status === 'running' ? 
-                                `<button onclick="mcpControlApp.stopServer('${name}')" class="btn-danger">⏹️ Stop</button>` :
-                                `<button onclick="mcpControlApp.startServer('${name}')" class="btn-primary">▶️ Start</button>`
-                            }
-                            <button onclick="mcpControlApp.restartServer('${name}')" class="btn-secondary">🔄 Restart</button>
-                            <button onclick="mcpControlApp.editServer('${name}')" class="btn-secondary">✏️ Edit</button>
-                            <button onclick="mcpControlApp.testConnection('${name}')" class="btn-secondary">🧪 Test</button>
-                            <button onclick="mcpControlApp.removeServer('${name}')" class="btn-danger">🗑️ Remove</button>
+                            ${isRemote ? this.renderRemoteActions(name, server) : this.renderLocalActions(name, server)}
                         </div>
                     </div>
                     
@@ -282,36 +314,51 @@ class MCPControlApp {
                                     ${statusIcon} ${(server.status || 'stopped').toUpperCase()}
                                 </span>
                             </div>
-                            <div class="detail-item">
-                                <strong>PID:</strong>
-                                <span>${server.pid || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Uptime:</strong>
-                                <span>${this.formatUptime(server.startTime)}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Auto-start:</strong>
-                                <span>${server.autoStart ? '✅ Enabled' : '❌ Disabled'}</span>
-                            </div>
+                            ${isRemote ? `
+                                <div class="detail-item">
+                                    <strong>URL:</strong>
+                                    <span>${server.url}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Protocol:</strong>
+                                    <span>${server.protocol || 'WebSocket'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Connected:</strong>
+                                    <span>${server.connectedAt ? new Date(server.connectedAt).toLocaleTimeString() : 'Never'}</span>
+                                </div>
+                            ` : `
+                                <div class="detail-item">
+                                    <strong>PID:</strong>
+                                    <span>${server.pid || 'N/A'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Uptime:</strong>
+                                    <span>${this.formatUptime(server.startTime)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Auto-start:</strong>
+                                    <span>${server.autoStart ? '✅ Enabled' : '❌ Disabled'}</span>
+                                </div>
+                            `}
                             <div class="detail-item">
                                 <strong>Last Check:</strong>
                                 <span>${server.lastCheck ? new Date(server.lastCheck).toLocaleTimeString() : 'Never'}</span>
                             </div>
                             <div class="detail-item">
-                                <strong>Connections:</strong>
-                                <span>${metrics.connections || 0}</span>
+                                <strong>Messages:</strong>
+                                <span>${metrics.messages || 0}</span>
                             </div>
                         </div>
                         
-                        ${server.status === 'running' && metrics ? `
+                        ${server.status === 'running' || server.status === 'connected' ? `
                             <div class="performance-metrics">
                                 <div class="metric-item">
-                                    <span class="metric-label">CPU Usage:</span>
+                                    <span class="metric-label">${isRemote ? 'Latency:' : 'CPU Usage:'}</span>
                                     <div class="metric-bar">
-                                        <div class="metric-fill" style="width: ${metrics.cpu || 0}%"></div>
+                                        <div class="metric-fill" style="width: ${isRemote ? Math.min((metrics.latency || 0) / 10, 100) : (metrics.cpu || 0)}%"></div>
                                     </div>
-                                    <span class="metric-value">${metrics.cpu || 0}%</span>
+                                    <span class="metric-value">${isRemote ? (metrics.latency || 0) + 'ms' : (metrics.cpu || 0) + '%'}</span>
                                 </div>
                                 <div class="metric-item">
                                     <span class="metric-label">Memory:</span>
@@ -327,6 +374,15 @@ class MCPControlApp {
                             <div class="error-info">
                                 <strong>Last Error:</strong>
                                 <div class="error-message">${server.lastError}</div>
+                            </div>
+                        ` : ''}
+                        
+                        ${server.capabilities && server.capabilities.length > 0 ? `
+                            <div class="server-capabilities">
+                                <strong>Capabilities:</strong>
+                                <div class="capabilities-list">
+                                    ${server.capabilities.map(cap => `<span class="capability-tag">${cap}</span>`).join('')}
+                                </div>
                             </div>
                         ` : ''}
                     </div>
@@ -473,7 +529,7 @@ class MCPControlApp {
             <div id="add-server-modal" class="modal hidden">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3>Add MCP Server</h3>
+                        <h3>Add Local MCP Server</h3>
                         <button onclick="mcpControlApp.hideAddServer()" class="modal-close">✕</button>
                     </div>
                     <div class="modal-body">
@@ -525,6 +581,74 @@ class MCPControlApp {
                 </div>
             </div>
 
+            <!-- Add Remote Server Modal -->
+            <div id="add-remote-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>🌐 Add Remote MCP Server</h3>
+                        <button onclick="mcpControlApp.hideAddRemote()" class="modal-close">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="add-remote-form">
+                            <div class="form-group">
+                                <label for="remote-name">Server Name:</label>
+                                <input type="text" id="remote-name" placeholder="remote-mcp-server" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="remote-url">Server URL:</label>
+                                <input type="text" id="remote-url" placeholder="ws://localhost:8765 or https://api.example.com/mcp" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="remote-protocol">Protocol:</label>
+                                <select id="remote-protocol">
+                                    <option value="websocket">WebSocket</option>
+                                    <option value="http">HTTP</option>
+                                    <option value="https">HTTPS</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="remote-auth">Authentication:</label>
+                                <select id="remote-auth">
+                                    <option value="none">None</option>
+                                    <option value="bearer">Bearer Token</option>
+                                    <option value="api-key">API Key</option>
+                                    <option value="oauth">OAuth</option>
+                                </select>
+                            </div>
+                            <div class="form-group auth-details hidden" id="auth-details">
+                                <label for="auth-token">Token/Key:</label>
+                                <input type="password" id="auth-token" placeholder="Enter authentication token">
+                            </div>
+                            <div class="form-group">
+                                <label for="remote-description">Description:</label>
+                                <input type="text" id="remote-description" placeholder="Brief description of the remote server">
+                            </div>
+                            <div class="form-group">
+                                <label for="remote-category">Category:</label>
+                                <select id="remote-category">
+                                    <option value="integration">Integration</option>
+                                    <option value="cloud">Cloud</option>
+                                    <option value="database">Database</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="remote-autoconnect">
+                                    <span class="checkmark"></span>
+                                    Auto-connect on startup
+                                </label>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button onclick="mcpControlApp.testRemoteConnection()" class="btn-secondary">🧪 Test Connection</button>
+                        <button onclick="mcpControlApp.addRemoteServer()" class="btn-primary">Add Remote Server</button>
+                        <button onclick="mcpControlApp.hideAddRemote()" class="btn-secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Server Templates Modal -->
             <div id="templates-modal" class="modal hidden">
                 <div class="modal-content large">
@@ -562,6 +686,14 @@ class MCPControlApp {
                             <h4>Discovered Servers</h4>
                             <div id="discovered-list">
                                 ${this.renderDiscoveredServers()}
+                            </div>
+                        </div>
+                        
+                        <div class="network-discovery">
+                            <h4>🌐 Network Discovery</h4>
+                            <button onclick="mcpControlApp.scanNetwork()" class="btn-primary">🔍 Scan Network</button>
+                            <div id="network-scan-results" class="scan-results">
+                                <!-- Network scan results will appear here -->
                             </div>
                         </div>
                     </div>
@@ -674,6 +806,527 @@ class MCPControlApp {
         const hours = Math.floor(totalUptime / (1000 * 60 * 60));
         return `${hours}h`;
     }
+
+    // Remote server management methods
+    renderRemoteActions(name, server) {
+        return `
+            ${server.status === 'connected' ? 
+                `<button onclick="mcpControlApp.disconnectRemote('${name}')" class="btn-danger">🔌 Disconnect</button>` :
+                `<button onclick="mcpControlApp.connectRemote('${name}')" class="btn-primary">🔗 Connect</button>`
+            }
+            <button onclick="mcpControlApp.testRemoteConnection('${name}')" class="btn-secondary">🧪 Test</button>
+            <button onclick="mcpControlApp.editRemoteServer('${name}')" class="btn-secondary">✏️ Edit</button>
+            <button onclick="mcpControlApp.removeRemoteServer('${name}')" class="btn-danger">🗑️ Remove</button>
+        `;
+    }
+
+    renderLocalActions(name, server) {
+        return `
+            ${server.status === 'running' ? 
+                `<button onclick="mcpControlApp.stopServer('${name}')" class="btn-danger">⏹️ Stop</button>` :
+                `<button onclick="mcpControlApp.startServer('${name}')" class="btn-primary">▶️ Start</button>`
+            }
+            <button onclick="mcpControlApp.restartServer('${name}')" class="btn-secondary">🔄 Restart</button>
+            <button onclick="mcpControlApp.editServer('${name}')" class="btn-secondary">✏️ Edit</button>
+            <button onclick="mcpControlApp.testConnection('${name}')" class="btn-secondary">🧪 Test</button>
+            <button onclick="mcpControlApp.removeServer('${name}')" class="btn-danger">🗑️ Remove</button>
+        `;
+    }
+
+    loadSavedData() {
+        try {
+            // Load saved local servers
+            const savedServers = JSON.parse(localStorage.getItem('mcp-servers') || '[]');
+            savedServers.forEach(server => {
+                this.servers.set(server.name, { ...server, status: 'stopped' });
+            });
+
+            // Load saved remote servers
+            const savedRemoteServers = JSON.parse(localStorage.getItem('mcp-remote-servers') || '[]');
+            savedRemoteServers.forEach(server => {
+                this.remoteServers.set(server.name, { ...server, status: 'disconnected' });
+            });
+
+            // Load connection history
+            this.connectionHistory = JSON.parse(localStorage.getItem('mcp-connection-history') || '[]');
+        } catch (error) {
+            console.warn('Failed to load saved MCP data:', error);
+        }
+    }
+
+    saveSavedData() {
+        try {
+            localStorage.setItem('mcp-servers', JSON.stringify(Array.from(this.servers.values())));
+            localStorage.setItem('mcp-remote-servers', JSON.stringify(Array.from(this.remoteServers.values())));
+            localStorage.setItem('mcp-connection-history', JSON.stringify(this.connectionHistory));
+        } catch (error) {
+            console.warn('Failed to save MCP data:', error);
+        }
+    }
+
+    showAddRemote() {
+        const modal = document.getElementById('add-remote-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            
+            // Setup auth field toggle
+            const authSelect = document.getElementById('remote-auth');
+            const authDetails = document.getElementById('auth-details');
+            
+            if (authSelect && authDetails) {
+                authSelect.addEventListener('change', (e) => {
+                    if (e.target.value === 'none') {
+                        authDetails.classList.add('hidden');
+                    } else {
+                        authDetails.classList.remove('hidden');
+                    }
+                });
+            }
+        }
+    }
+
+    hideAddRemote() {
+        const modal = document.getElementById('add-remote-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        document.getElementById('add-remote-form').reset();
+    }
+
+    async addRemoteServer() {
+        const name = document.getElementById('remote-name').value;
+        const url = document.getElementById('remote-url').value;
+        const protocol = document.getElementById('remote-protocol').value;
+        const auth = document.getElementById('remote-auth').value;
+        const token = document.getElementById('auth-token').value;
+        const description = document.getElementById('remote-description').value;
+        const category = document.getElementById('remote-category').value;
+        const autoConnect = document.getElementById('remote-autoconnect').checked;
+
+        if (!name || !url) {
+            alert('Please provide server name and URL');
+            return;
+        }
+
+        try {
+            const server = {
+                name,
+                url,
+                protocol,
+                auth: auth !== 'none' ? { type: auth, token } : null,
+                description,
+                category,
+                autoConnect,
+                status: 'disconnected',
+                type: 'remote',
+                connectedAt: null,
+                lastCheck: null
+            };
+
+            this.remoteServers.set(name, server);
+            this.saveSavedData();
+            this.addConnectionEvent(`Remote server "${name}" added`, 'server_added');
+            this.refreshUI();
+            this.hideAddRemote();
+            
+            console.log('Added remote MCP server:', server);
+            this.showNotification(`Remote server "${name}" added successfully`, 'success');
+
+            // Auto-connect if enabled
+            if (autoConnect) {
+                await this.connectRemote(name);
+            }
+        } catch (error) {
+            console.error('Error adding remote server:', error);
+            this.showNotification('Error adding remote server: ' + error.message, 'error');
+        }
+    }
+
+    async connectRemote(name) {
+        const server = this.remoteServers.get(name);
+        if (!server) return;
+
+        try {
+            server.status = 'connecting';
+            this.refreshUI();
+
+            // Create WebSocket or HTTP connection based on protocol
+            let connection;
+            
+            if (server.protocol === 'websocket' || server.url.startsWith('ws')) {
+                connection = await this.createWebSocketConnection(server);
+            } else {
+                connection = await this.createHTTPConnection(server);
+            }
+
+            this.connections.set(name, connection);
+            server.status = 'connected';
+            server.connectedAt = Date.now();
+            server.lastCheck = Date.now();
+
+            this.addConnectionEvent(`Connected to remote server "${name}"`, 'connection_established');
+            this.showNotification(`Connected to "${name}"`, 'success');
+
+            // Query server capabilities
+            await this.queryServerCapabilities(name);
+
+        } catch (error) {
+            server.status = 'error';
+            server.lastError = error.message;
+            this.addConnectionEvent(`Failed to connect to "${name}": ${error.message}`, 'server_error');
+            this.showNotification(`Failed to connect to "${name}": ${error.message}`, 'error');
+        }
+
+        this.refreshUI();
+    }
+
+    async createWebSocketConnection(server) {
+        return new Promise((resolve, reject) => {
+            const ws = new WebSocket(server.url);
+            
+            ws.onopen = () => {
+                console.log(`WebSocket connected to ${server.url}`);
+                
+                // Send authentication if required
+                if (server.auth) {
+                    const authMessage = {
+                        jsonrpc: '2.0',
+                        method: 'auth',
+                        params: {
+                            type: server.auth.type,
+                            token: server.auth.token
+                        }
+                    };
+                    ws.send(JSON.stringify(authMessage));
+                }
+                
+                resolve(ws);
+            };
+
+            ws.onerror = (error) => {
+                console.error(`WebSocket error for ${server.url}:`, error);
+                reject(new Error('WebSocket connection failed'));
+            };
+
+            ws.onclose = () => {
+                console.log(`WebSocket disconnected from ${server.url}`);
+                this.handleConnectionClosed(server.name);
+            };
+
+            ws.onmessage = (event) => {
+                this.handleServerMessage(server.name, JSON.parse(event.data));
+            };
+
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                if (ws.readyState !== WebSocket.OPEN) {
+                    ws.close();
+                    reject(new Error('Connection timeout'));
+                }
+            }, 10000);
+        });
+    }
+
+    async createHTTPConnection(server) {
+        // For HTTP connections, we'll create a connection object that handles requests
+        const connection = {
+            type: 'http',
+            url: server.url,
+            auth: server.auth,
+            async send(message) {
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+
+                if (server.auth) {
+                    switch (server.auth.type) {
+                        case 'bearer':
+                            headers['Authorization'] = `Bearer ${server.auth.token}`;
+                            break;
+                        case 'api-key':
+                            headers['X-API-Key'] = server.auth.token;
+                            break;
+                    }
+                }
+
+                const response = await fetch(server.url, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(message)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            }
+        };
+
+        // Test the connection
+        const testMessage = {
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'initialize',
+            params: {
+                protocolVersion: '2024-11-05',
+                capabilities: {},
+                clientInfo: {
+                    name: 'SwissKnife MCP Client',
+                    version: '1.0.0'
+                }
+            }
+        };
+
+        await connection.send(testMessage);
+        return connection;
+    }
+
+    async queryServerCapabilities(name) {
+        const connection = this.connections.get(name);
+        const server = this.remoteServers.get(name) || this.servers.get(name);
+        
+        if (!connection || !server) return;
+
+        try {
+            const message = {
+                jsonrpc: '2.0',
+                id: Date.now(),
+                method: 'initialize',
+                params: {
+                    protocolVersion: '2024-11-05',
+                    capabilities: {},
+                    clientInfo: {
+                        name: 'SwissKnife MCP Client',
+                        version: '1.0.0'
+                    }
+                }
+            };
+
+            let response;
+            if (connection.send) {
+                response = await connection.send(message);
+            } else if (connection.readyState === WebSocket.OPEN) {
+                connection.send(JSON.stringify(message));
+                // For WebSocket, we'll handle the response in the message handler
+                return;
+            }
+
+            if (response && response.result) {
+                server.capabilities = Object.keys(response.result.capabilities || {});
+                this.refreshUI();
+            }
+        } catch (error) {
+            console.warn(`Failed to query capabilities for ${name}:`, error);
+        }
+    }
+
+    handleServerMessage(serverName, message) {
+        const server = this.remoteServers.get(serverName) || this.servers.get(serverName);
+        if (!server) return;
+
+        // Update metrics
+        const metrics = this.performanceMetrics.get(serverName) || { messages: 0 };
+        metrics.messages = (metrics.messages || 0) + 1;
+        this.performanceMetrics.set(serverName, metrics);
+
+        // Handle specific message types
+        if (message.method === 'initialize' && message.result) {
+            server.capabilities = Object.keys(message.result.capabilities || {});
+        }
+
+        console.log(`Message from ${serverName}:`, message);
+    }
+
+    handleConnectionClosed(serverName) {
+        const server = this.remoteServers.get(serverName);
+        if (server) {
+            server.status = 'disconnected';
+            this.connections.delete(serverName);
+            this.addConnectionEvent(`Disconnected from "${serverName}"`, 'connection_lost');
+            this.refreshUI();
+        }
+    }
+
+    async disconnectRemote(name) {
+        const connection = this.connections.get(name);
+        const server = this.remoteServers.get(name);
+
+        if (connection) {
+            if (connection.close) {
+                connection.close();
+            }
+            this.connections.delete(name);
+        }
+
+        if (server) {
+            server.status = 'disconnected';
+            this.addConnectionEvent(`Disconnected from "${name}"`, 'connection_lost');
+        }
+
+        this.refreshUI();
+    }
+
+    async testRemoteConnection(nameOrUseForm) {
+        let server;
+        
+        if (typeof nameOrUseForm === 'string') {
+            // Testing existing server
+            server = this.remoteServers.get(nameOrUseForm);
+        } else {
+            // Testing from form
+            server = {
+                url: document.getElementById('remote-url').value,
+                protocol: document.getElementById('remote-protocol').value,
+                auth: document.getElementById('remote-auth').value !== 'none' ? {
+                    type: document.getElementById('remote-auth').value,
+                    token: document.getElementById('auth-token').value
+                } : null
+            };
+        }
+
+        if (!server || !server.url) {
+            this.showNotification('Please provide a valid server URL', 'error');
+            return;
+        }
+
+        try {
+            const connection = server.protocol === 'websocket' || server.url.startsWith('ws') ?
+                await this.createWebSocketConnection(server) :
+                await this.createHTTPConnection(server);
+
+            this.showNotification('Connection test successful!', 'success');
+            
+            // Close test connection
+            if (connection.close) {
+                connection.close();
+            }
+        } catch (error) {
+            this.showNotification(`Connection test failed: ${error.message}`, 'error');
+        }
+    }
+
+    async scanNetwork() {
+        const resultsDiv = document.getElementById('network-scan-results');
+        if (!resultsDiv) return;
+
+        resultsDiv.innerHTML = '<div class="scanning">🔍 Scanning network for MCP servers...</div>';
+
+        try {
+            // Common MCP server ports and endpoints to scan
+            const commonPorts = [8765, 8766, 8767, 3000, 3001, 8000, 8080];
+            const localhost = 'localhost';
+            const foundServers = [];
+
+            for (const port of commonPorts) {
+                try {
+                    const wsUrl = `ws://${localhost}:${port}`;
+                    const httpUrl = `http://${localhost}:${port}`;
+                    
+                    // Quick test for WebSocket
+                    const wsTest = this.quickConnectionTest(wsUrl, 'websocket');
+                    const httpTest = this.quickConnectionTest(httpUrl, 'http');
+                    
+                    const results = await Promise.allSettled([wsTest, httpTest]);
+                    
+                    results.forEach((result, index) => {
+                        if (result.status === 'fulfilled') {
+                            foundServers.push({
+                                url: index === 0 ? wsUrl : httpUrl,
+                                type: index === 0 ? 'WebSocket' : 'HTTP',
+                                port: port
+                            });
+                        }
+                    });
+                } catch (error) {
+                    // Continue scanning
+                }
+            }
+
+            if (foundServers.length > 0) {
+                resultsDiv.innerHTML = `
+                    <h5>🎉 Found ${foundServers.length} potential MCP servers:</h5>
+                    ${foundServers.map(server => `
+                        <div class="found-server">
+                            <span class="server-info">${server.type}: ${server.url}</span>
+                            <button onclick="mcpControlApp.addFoundServer('${server.url}', '${server.type.toLowerCase()}')" class="btn-sm btn-primary">➕ Add</button>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                resultsDiv.innerHTML = '<div class="no-results">No MCP servers found on local network</div>';
+            }
+        } catch (error) {
+            resultsDiv.innerHTML = `<div class="scan-error">Scan failed: ${error.message}</div>`;
+        }
+    }
+
+    async quickConnectionTest(url, type) {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Timeout')), 2000);
+
+            if (type === 'websocket') {
+                const ws = new WebSocket(url);
+                ws.onopen = () => {
+                    clearTimeout(timeout);
+                    ws.close();
+                    resolve(true);
+                };
+                ws.onerror = () => {
+                    clearTimeout(timeout);
+                    reject(new Error('Connection failed'));
+                };
+            } else {
+                fetch(url, { 
+                    method: 'GET',
+                    signal: AbortSignal.timeout(2000)
+                })
+                .then(() => {
+                    clearTimeout(timeout);
+                    resolve(true);
+                })
+                .catch(() => {
+                    clearTimeout(timeout);
+                    reject(new Error('Connection failed'));
+                });
+            }
+        });
+    }
+
+    addFoundServer(url, type) {
+        document.getElementById('remote-url').value = url;
+        document.getElementById('remote-protocol').value = type === 'websocket' ? 'websocket' : 'http';
+        
+        // Close discovery modal and open add remote modal
+        this.hideDiscovery();
+        this.showAddRemote();
+    }
+
+    addConnectionEvent(description, type) {
+        this.connectionHistory.push({
+            timestamp: Date.now(),
+            description,
+            type
+        });
+
+        // Keep only last 100 events
+        if (this.connectionHistory.length > 100) {
+            this.connectionHistory = this.connectionHistory.slice(-100);
+        }
+
+        this.saveSavedData();
+    }
+
+    refreshUI() {
+        // Re-render the server list if we're in the MCP Control app
+        const container = document.getElementById('mcp-server-list');
+        if (container) {
+            container.innerHTML = this.renderServerList();
+        }
+    }
+
+    async checkServerStatuses() {
+        // Check local servers (existing implementation)
         // In a real implementation, this would check actual server processes
         // For now, simulate some servers
         const mockServers = [
@@ -690,59 +1343,168 @@ class MCPControlApp {
                 existing.port = server.port;
             }
         }
-    }
 
-    renderServerList() {
-        const container = document.getElementById('mcp-server-list');
-        if (!container) return;
-
-        if (this.servers.size === 0) {
-            container.innerHTML = `
-                <div class="no-servers">
-                    <h3>No MCP servers configured</h3>
-                    <p>Add your first MCP server to get started.</p>
-                    <button onclick="mcpControlApp.showAddServer()" class="btn-primary">➕ Add Server</button>
-                </div>
-            `;
-            return;
+        // Check remote server connections
+        for (const [name, server] of this.remoteServers) {
+            const connection = this.connections.get(name);
+            if (connection) {
+                try {
+                    // Ping remote server to check health
+                    if (connection.readyState === WebSocket.OPEN) {
+                        server.status = 'connected';
+                    } else if (connection.readyState === WebSocket.CLOSED) {
+                        server.status = 'disconnected';
+                        this.connections.delete(name);
+                    }
+                } catch (error) {
+                    server.status = 'error';
+                    server.lastError = error.message;
+                }
+            }
+            server.lastCheck = Date.now();
         }
-
-        const serversHtml = Array.from(this.servers.entries()).map(([name, server]) => `
-            <div class="server-card ${server.status}">
-                <div class="server-header">
-                    <div class="server-info">
-                        <h4>${name}</h4>
-                        <span class="server-status status-${server.status}">${server.status.toUpperCase()}</span>
-                    </div>
-                    <div class="server-actions">
-                        ${server.status === 'running' ? 
-                            `<button onclick="mcpControlApp.stopServer('${name}')" class="btn-danger">⏹️ Stop</button>` :
-                            `<button onclick="mcpControlApp.startServer('${name}')" class="btn-success">▶️ Start</button>`
-                        }
-                        <button onclick="mcpControlApp.editServer('${name}')" class="btn-secondary">✏️ Edit</button>
-                        <button onclick="mcpControlApp.removeServer('${name}')" class="btn-danger">🗑️ Remove</button>
-                    </div>
-                </div>
-                <div class="server-details">
-                    <div class="detail-row">
-                        <strong>Command:</strong> <code>${server.command}</code>
-                    </div>
-                    ${server.port ? `<div class="detail-row"><strong>Port:</strong> ${server.port}</div>` : ''}
-                    ${server.pid ? `<div class="detail-row"><strong>PID:</strong> ${server.pid}</div>` : ''}
-                    <div class="detail-row">
-                        <strong>Last Check:</strong> ${new Date().toLocaleTimeString()}
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        container.innerHTML = serversHtml;
     }
 
-    renderError(message) {
-        const container = document.getElementById('mcp-server-list');
-        if (container) {
-            container.innerHTML = `<div class="error">${message}</div>`;
+    filterServers() {
+        // Implementation would filter the server list based on search and filter criteria
+        console.log('Filtering servers...');
+    }
+
+    toggleAutoDiscovery(enabled) {
+        this.autoDiscovery = enabled;
+        if (enabled) {
+            this.startAutoDiscovery();
+        } else if (this.discoveryInterval) {
+            clearInterval(this.discoveryInterval);
+            this.discoveryInterval = null;
+        }
+    }
+
+    showServerTemplates() {
+        const modal = document.getElementById('templates-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    hideServerTemplates() {
+        const modal = document.getElementById('templates-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    showDiscovery() {
+        const modal = document.getElementById('discovery-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    hideDiscovery() {
+        const modal = document.getElementById('discovery-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    showMetrics() {
+        const modal = document.getElementById('metrics-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    hideMetrics() {
+        const modal = document.getElementById('metrics-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    useTemplate(templateId) {
+        const template = this.serverTemplates.get(templateId);
+        if (template) {
+            // Fill the add server form with template data
+            document.getElementById('server-name').value = template.name.toLowerCase().replace(/\s+/g, '-');
+            document.getElementById('server-command').value = template.command;
+            document.getElementById('server-args').value = JSON.stringify(template.args);
+            document.getElementById('server-env').value = JSON.stringify(template.env);
+            document.getElementById('server-description').value = template.description;
+            document.getElementById('server-category').value = template.category;
+            document.getElementById('server-autostart').checked = template.autoStart;
+            
+            this.hideServerTemplates();
+            this.showAddServer();
+        }
+    }
+
+    editServer(name) {
+        const server = this.servers.get(name);
+        if (server) {
+            // Fill form with existing server data for editing
+            document.getElementById('server-name').value = name;
+            document.getElementById('server-command').value = server.command;
+            document.getElementById('server-args').value = JSON.stringify(server.args || []);
+            document.getElementById('server-env').value = JSON.stringify(server.env || {});
+            document.getElementById('server-description').value = server.description || '';
+            document.getElementById('server-category').value = server.category || 'custom';
+            document.getElementById('server-autostart').checked = server.autoStart || false;
+            
+            this.showAddServer();
+        }
+    }
+
+    editRemoteServer(name) {
+        const server = this.remoteServers.get(name);
+        if (server) {
+            // Fill form with existing remote server data for editing
+            document.getElementById('remote-name').value = name;
+            document.getElementById('remote-url').value = server.url;
+            document.getElementById('remote-protocol').value = server.protocol;
+            document.getElementById('remote-auth').value = server.auth ? server.auth.type : 'none';
+            document.getElementById('auth-token').value = server.auth ? server.auth.token : '';
+            document.getElementById('remote-description').value = server.description || '';
+            document.getElementById('remote-category').value = server.category || 'integration';
+            document.getElementById('remote-autoconnect').checked = server.autoConnect || false;
+            
+            this.showAddRemote();
+        }
+    }
+
+    removeRemoteServer(name) {
+        if (confirm(`Are you sure you want to remove remote server "${name}"?`)) {
+            // Disconnect if connected
+            this.disconnectRemote(name);
+            
+            this.remoteServers.delete(name);
+            this.saveSavedData();
+            this.addConnectionEvent(`Remote server "${name}" removed`, 'server_removed');
+            this.refreshUI();
+            this.showNotification(`Remote server "${name}" removed`, 'info');
+        }
+    }
+
+    restartServer(name) {
+        const server = this.servers.get(name);
+        if (server && server.status === 'running') {
+            this.stopServer(name).then(() => {
+                setTimeout(() => {
+                    this.startServer(name);
+                }, 2000);
+            });
+        }
+    }
+
+    testConnection(name) {
+        const server = this.servers.get(name);
+        if (server) {
+            // Simulate connection test for local servers
+            this.showNotification(`Testing connection to "${name}"...`, 'info');
+            setTimeout(() => {
+                this.showNotification(`Connection test ${Math.random() > 0.3 ? 'successful' : 'failed'} for "${name}"`, 
+                    Math.random() > 0.3 ? 'success' : 'error');
+            }, 2000);
         }
     }
 
@@ -763,13 +1525,13 @@ class MCPControlApp {
     }
 
     async addServer() {
-        const form = document.getElementById('add-server-form');
-        const formData = new FormData(form);
-        
         const name = document.getElementById('server-name').value;
         const command = document.getElementById('server-command').value;
         const args = document.getElementById('server-args').value;
         const env = document.getElementById('server-env').value;
+        const description = document.getElementById('server-description').value;
+        const category = document.getElementById('server-category').value;
+        const autoStart = document.getElementById('server-autostart').checked;
 
         if (!name || !command) {
             alert('Please provide server name and command');
@@ -782,19 +1544,26 @@ class MCPControlApp {
                 command,
                 args: args ? JSON.parse(args) : [],
                 env: env ? JSON.parse(env) : {},
+                description,
+                category,
+                autoStart,
                 status: 'stopped',
                 pid: null,
-                port: null
+                port: null,
+                type: 'local'
             };
 
             this.servers.set(name, server);
-            this.saveServers();
-            this.renderServerList();
+            this.saveSavedData();
+            this.addConnectionEvent(`Local server "${name}" added`, 'server_added');
+            this.refreshUI();
             this.hideAddServer();
             
             console.log('Added MCP server:', server);
+            this.showNotification(`Server "${name}" added successfully`, 'success');
         } catch (error) {
-            alert('Error adding server: ' + error.message);
+            console.error('Error adding server:', error);
+            this.showNotification('Error adding server: ' + error.message, 'error');
         }
     }
 
@@ -806,19 +1575,23 @@ class MCPControlApp {
             // In a real implementation, this would start the actual process
             // For now, simulate starting
             server.status = 'starting';
-            this.renderServerList();
+            this.refreshUI();
             
             setTimeout(() => {
                 server.status = 'running';
                 server.pid = Math.floor(Math.random() * 10000) + 1000;
                 server.port = server.port || 8765;
-                this.renderServerList();
+                server.startTime = Date.now();
+                this.addConnectionEvent(`Server "${name}" started`, 'server_started');
+                this.refreshUI();
                 this.showNotification(`Server "${name}" started successfully`, 'success');
             }, 2000);
             
         } catch (error) {
             server.status = 'error';
-            this.renderServerList();
+            server.lastError = error.message;
+            this.addConnectionEvent(`Failed to start "${name}": ${error.message}`, 'server_error');
+            this.refreshUI();
             this.showNotification(`Failed to start server "${name}": ${error.message}`, 'error');
         }
     }
@@ -829,12 +1602,14 @@ class MCPControlApp {
 
         try {
             server.status = 'stopping';
-            this.renderServerList();
+            this.refreshUI();
             
             setTimeout(() => {
                 server.status = 'stopped';
                 server.pid = null;
-                this.renderServerList();
+                server.startTime = null;
+                this.addConnectionEvent(`Server "${name}" stopped`, 'server_stopped');
+                this.refreshUI();
                 this.showNotification(`Server "${name}" stopped`, 'info');
             }, 1000);
             
@@ -851,20 +1626,16 @@ class MCPControlApp {
             }
             
             this.servers.delete(name);
-            this.saveServers();
-            this.renderServerList();
+            this.saveSavedData();
+            this.addConnectionEvent(`Server "${name}" removed`, 'server_removed');
+            this.refreshUI();
             this.showNotification(`Server "${name}" removed`, 'info');
         }
     }
 
     async refreshServers() {
         await this.checkServerStatuses();
-        this.renderServerList();
-    }
-
-    saveServers() {
-        const servers = Array.from(this.servers.values());
-        localStorage.setItem('mcp-servers', JSON.stringify(servers));
+        this.refreshUI();
     }
 
     showNotification(message, type = 'info') {

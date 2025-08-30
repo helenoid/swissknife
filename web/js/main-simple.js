@@ -137,6 +137,20 @@ class SwissKnifeDesktop {
             singleton: true
         });
 
+        this.apps.set('github', {
+            name: 'GitHub',
+            icon: '🐙',
+            component: 'GitHubApp',
+            singleton: true
+        });
+
+        this.apps.set('oauth-login', {
+            name: 'OAuth Login',
+            icon: '🔐',
+            component: 'OAuthLoginApp',
+            singleton: true
+        });
+
         this.apps.set('cron', {
             name: 'AI Cron Scheduler',
             icon: '⏰',
@@ -386,12 +400,308 @@ class SwissKnifeDesktop {
     async loadAppComponent(window, componentName) {
         const contentElement = document.getElementById(`${window.id}-content`);
         
-        // Placeholder implementation
+        try {
+            switch (componentName) {
+                case 'TerminalApp':
+                    await this.createTerminalApp(contentElement);
+                    break;
+                    
+                case 'VibeCodeApp':
+                    await this.createVibeCodeApp(contentElement);
+                    break;
+                    
+                case 'StrudelAIDAWApp':
+                    await this.createStrudelAIDAWApp(contentElement);
+                    break;
+                    
+                case 'AIChatApp':
+                    await this.createAIChatApp(contentElement);
+                    break;
+                    
+                case 'FileManagerApp':
+                    await this.createFileManagerApp(contentElement);
+                    break;
+                    
+                case 'TaskManagerApp':
+                    await this.createTaskManagerApp(contentElement);
+                    break;
+                    
+                case 'ModelBrowserApp':
+                    await this.createModelBrowserApp(contentElement);
+                    break;
+                    
+                case 'IPFSExplorerApp':
+                    await this.createIPFSExplorerApp(contentElement);
+                    break;
+                    
+                case 'DeviceManagerApp':
+                    await this.createDeviceManagerApp(contentElement);
+                    break;
+                    
+                case 'SettingsApp':
+                    await this.createSettingsApp(contentElement);
+                    break;
+                    
+                case 'MCPControlApp':
+                    await this.createMCPControlApp(contentElement);
+                    break;
+                    
+                case 'APIKeysApp':
+                    await this.createAPIKeysApp(contentElement);
+                    break;
+                    
+                case 'GitHubApp':
+                    await this.createGitHubApp(contentElement);
+                    break;
+                    
+                case 'OAuthLoginApp':
+                    await this.createOAuthLoginApp(contentElement);
+                    break;
+                    
+                case 'CronApp':
+                    await this.createCronApp(contentElement);
+                    break;
+                    
+                case 'NaviApp':
+                    await this.createNaviApp(contentElement);
+                    break;
+                    
+                case 'CalculatorApp':
+                    await this.createCalculatorApp(contentElement);
+                    break;
+                    
+                case 'ClockApp':
+                    await this.createClockApp(contentElement);
+                    break;
+                    
+                case 'ImageViewerApp':
+                    await this.createImageViewerApp(contentElement);
+                    break;
+                    
+                case 'NotesApp':
+                    await this.createNotesApp(contentElement);
+                    break;
+                    
+                case 'SystemMonitorApp':
+                    await this.createSystemMonitorApp(contentElement);
+                    break;
+                    
+                default:
+                    this.createPlaceholderApp(contentElement, componentName);
+            }
+        } catch (error) {
+            console.error(`Failed to load app component ${componentName}:`, error);
+            this.createErrorApp(contentElement, componentName, error);
+        }
+    }
+
+    // App creation methods
+    async createTerminalApp(contentElement) {
+        const { TerminalApp } = await import('./apps/terminal.js');
+        const terminal = new TerminalApp(contentElement, this);
+        return terminal;
+    }
+
+    async createVibeCodeApp(contentElement) {
+        const { VibeCodeApp } = await import('./apps/vibecode.js');
+        const vibeCode = new VibeCodeApp(this);
+        await vibeCode.initialize();
+        const html = await vibeCode.render();
+        contentElement.innerHTML = html;
+        return vibeCode;
+    }
+
+    async createStrudelAIDAWApp(contentElement) {
+        const { StrudelAIDAWApp } = await import('./apps/strudel-ai-daw.js');
+        const strudelAI = new StrudelAIDAWApp(this);
+        await strudelAI.initialize();
+        const html = await strudelAI.render();
+        contentElement.innerHTML = html;
+        return strudelAI;
+    }
+
+    async createAIChatApp(contentElement) {
+        const { AIChatApp } = await import('./apps/ai-chat.js');
+        const aiChat = new AIChatApp(this);
+        await aiChat.initialize();
+        const html = await aiChat.render();
+        contentElement.innerHTML = html;
+        return aiChat;
+    }
+
+    async createFileManagerApp(contentElement) {
+        const { FileManagerApp } = await import('./apps/file-manager.js');
+        const fileManager = new FileManagerApp(this);
+        await fileManager.initialize();
+        const html = await fileManager.render();
+        contentElement.innerHTML = html;
+        return fileManager;
+    }
+
+    async createTaskManagerApp(contentElement) {
+        const { TaskManagerApp } = await import('./apps/task-manager.js');
+        const taskManager = new TaskManagerApp(this);
+        await taskManager.initialize();
+        const html = await taskManager.render();
+        contentElement.innerHTML = html;
+        return taskManager;
+    }
+
+    async createModelBrowserApp(contentElement) {
+        const { ModelBrowserApp } = await import('./apps/model-browser.js');
+        const modelBrowser = new ModelBrowserApp(this);
+        await modelBrowser.initialize();
+        const html = await modelBrowser.render();
+        contentElement.innerHTML = html;
+        return modelBrowser;
+    }
+
+    async createIPFSExplorerApp(contentElement) {
+        const { IPFSExplorerApp } = await import('./apps/ipfs-explorer.js');
+        const ipfsExplorer = new IPFSExplorerApp(this);
+        await ipfsExplorer.initialize();
+        const html = await ipfsExplorer.render();
+        contentElement.innerHTML = html;
+        return ipfsExplorer;
+    }
+
+    async createDeviceManagerApp(contentElement) {
+        const { DeviceManagerApp } = await import('./apps/device-manager.js');
+        const deviceManager = new DeviceManagerApp(this);
+        await deviceManager.initialize();
+        const html = await deviceManager.render();
+        contentElement.innerHTML = html;
+        return deviceManager;
+    }
+
+    async createSettingsApp(contentElement) {
+        const { SettingsApp } = await import('./apps/settings.js');
+        const settings = new SettingsApp(this);
+        await settings.initialize();
+        const html = await settings.render();
+        contentElement.innerHTML = html;
+        return settings;
+    }
+
+    async createMCPControlApp(contentElement) {
+        const { MCPControlApp } = await import('./apps/mcp-control.js');
+        const mcpControl = new MCPControlApp();
+        const html = await mcpControl.render();
+        contentElement.innerHTML = html;
+        // Store global reference for other apps to use
+        window.mcpControlApp = mcpControl;
+        return mcpControl;
+    }
+
+    async createAPIKeysApp(contentElement) {
+        const { APIKeysApp } = await import('./apps/api-keys.js');
+        const apiKeys = new APIKeysApp(this);
+        await apiKeys.initialize();
+        const html = await apiKeys.render();
+        contentElement.innerHTML = html;
+        return apiKeys;
+    }
+
+    async createGitHubApp(contentElement) {
+        const { GitHubApp } = await import('./apps/github.js');
+        const github = new GitHubApp();
+        const html = await github.render();
+        contentElement.innerHTML = html;
+        // Store global reference for OAuth integration
+        window.githubApp = github;
+        return github;
+    }
+
+    async createOAuthLoginApp(contentElement) {
+        const { OAuthLoginSystem } = await import('./apps/oauth-login.js');
+        const oauth = new OAuthLoginSystem();
+        const html = await oauth.render();
+        contentElement.innerHTML = html;
+        // Store global reference for other apps to use
+        window.oauthSystem = oauth;
+        return oauth;
+    }
+
+    async createCronApp(contentElement) {
+        const { CronApp } = await import('./apps/cron.js');
+        const cron = new CronApp(this);
+        await cron.initialize();
+        const html = await cron.render();
+        contentElement.innerHTML = html;
+        return cron;
+    }
+
+    async createNaviApp(contentElement) {
+        const { NaviApp } = await import('./apps/navi.js');
+        const navi = new NaviApp(this);
+        await navi.initialize();
+        const html = await navi.render();
+        contentElement.innerHTML = html;
+        return navi;
+    }
+
+    async createCalculatorApp(contentElement) {
+        const { CalculatorApp } = await import('./apps/calculator.js');
+        const calculator = new CalculatorApp(this);
+        await calculator.initialize();
+        const html = await calculator.render();
+        contentElement.innerHTML = html;
+        return calculator;
+    }
+
+    async createClockApp(contentElement) {
+        const { ClockApp } = await import('./apps/clock.js');
+        const clock = new ClockApp(this);
+        await clock.initialize();
+        const html = await clock.render();
+        contentElement.innerHTML = html;
+        return clock;
+    }
+
+    async createImageViewerApp(contentElement) {
+        const { ImageViewerApp } = await import('./apps/image-viewer.js');
+        const imageViewer = new ImageViewerApp(this);
+        await imageViewer.initialize();
+        const html = await imageViewer.render();
+        contentElement.innerHTML = html;
+        return imageViewer;
+    }
+
+    async createNotesApp(contentElement) {
+        const { NotesApp } = await import('./apps/notes.js');
+        const notes = new NotesApp(this);
+        await notes.initialize();
+        const html = await notes.render();
+        contentElement.innerHTML = html;
+        return notes;
+    }
+
+    async createSystemMonitorApp(contentElement) {
+        const { SystemMonitorApp } = await import('./apps/system-monitor.js');
+        const systemMonitor = new SystemMonitorApp(this);
+        await systemMonitor.initialize();
+        const html = await systemMonitor.render();
+        contentElement.innerHTML = html;
+        return systemMonitor;
+    }
+
+    createPlaceholderApp(contentElement, componentName) {
         contentElement.innerHTML = `
             <div class="app-placeholder">
-                <h2>${window.appId === 'terminal' ? '💻' : '🚀'} ${componentName}</h2>
+                <h2>🚀 ${componentName}</h2>
                 <p>SwissKnife app loading...</p>
                 <p>Component: ${componentName}</p>
+                <button onclick="this.closest('.window').remove()">Close</button>
+            </div>
+        `;
+    }
+
+    createErrorApp(contentElement, componentName, error) {
+        contentElement.innerHTML = `
+            <div class="app-error">
+                <h2>❌ App Load Error</h2>
+                <p>Failed to load ${componentName}</p>
+                <p>Error: ${error.message}</p>
                 <button onclick="this.closest('.window').remove()">Close</button>
             </div>
         `;
