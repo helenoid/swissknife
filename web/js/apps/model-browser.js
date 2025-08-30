@@ -19,6 +19,11 @@ export class ModelBrowserApp {
     this.downloadQueue = [];
     this.modelMetrics = new Map();
     
+    // Integration with new AI infrastructure
+    this.ipfsAccelerateBridge = null;
+    this.aiModelRouter = null;
+    this.modelServer = null;
+    
     // Model categories and providers
     this.modelCategories = {
       'text-generation': { name: 'Text Generation', icon: '📝', description: 'Generate and complete text' },
@@ -48,6 +53,19 @@ export class ModelBrowserApp {
   }
 
   async initializeIntegrations() {
+    // Connect to IPFS Accelerate Bridge
+    if (window.ipfsAccelerateBridge) {
+      this.ipfsAccelerateBridge = window.ipfsAccelerateBridge;
+      this.modelServer = window.ipfsAccelerateBridge.modelServer;
+      this.setupTransformersIntegration();
+    }
+    
+    // Connect to AI Model Router
+    if (window.aiModelRouter) {
+      this.aiModelRouter = window.aiModelRouter;
+      this.setupRouterIntegration();
+    }
+    
     // Connect to P2P system if available
     if (window.p2pMLSystem) {
       this.p2pSystem = window.p2pMLSystem;
@@ -62,6 +80,42 @@ export class ModelBrowserApp {
     
     // Load model data
     await this.loadAvailableModels();
+  }
+
+  setupTransformersIntegration() {
+    if (!this.ipfsAccelerateBridge) return;
+    
+    // Listen for model events
+    this.ipfsAccelerateBridge.on('model:loaded', (data) => {
+      this.handleModelLoaded(data);
+      this.updateDisplay();
+    });
+    
+    this.ipfsAccelerateBridge.on('model:unloaded', (data) => {
+      this.handleModelUnloaded(data);
+      this.updateDisplay();
+    });
+    
+    this.ipfsAccelerateBridge.on('model:loading:progress', (data) => {
+      this.handleLoadingProgress(data);
+    });
+    
+    this.ipfsAccelerateBridge.on('inference:completed', (data) => {
+      this.updateModelMetrics(data.modelId, data);
+    });
+  }
+
+  setupRouterIntegration() {
+    if (!this.aiModelRouter) return;
+    
+    // Listen for router events
+    this.aiModelRouter.on('router:initialized', (data) => {
+      this.updateEndpointsList();
+    });
+    
+    this.aiModelRouter.on('request:completed', (data) => {
+      this.updateRoutingStats();
+    });
   }
 
   setupP2PIntegration() {
@@ -95,8 +149,14 @@ export class ModelBrowserApp {
 
   async loadAvailableModels() {
     try {
+      // Load models from IPFS Accelerate Bridge
+      if (this.ipfsAccelerateBridge) {
+        const transformersModels = this.ipfsAccelerateBridge.getSupportedModels();
+        this.models.push(...transformersModels);
+      }
+      
       // Load curated model list
-      this.models = [
+      const curatedModels = [
         // Text Generation Models
         {
           id: 'gpt-3.5-turbo',
@@ -832,5 +892,361 @@ console.log(result);</code></pre>
       return (num / 1000).toFixed(1) + 'K';
     }
     return num.toString();
+  }
+
+  // Enhanced Model Management Methods
+  async loadModel(modelId) {
+    try {
+      if (this.modelServer) {
+        console.log(`Loading model via IPFS Accelerate: ${modelId}`);
+        const result = await this.modelServer.loadModel(modelId);
+        
+        if (result.success) {
+          this.updateDisplay();
+          this.showNotification(`Model ${modelId} loaded successfully`, 'success');
+          return result;
+        }
+      }
+      
+      // Fallback to traditional model loading
+      return await this.loadModelTraditional(modelId);
+      
+    } catch (error) {
+      console.error(`Error loading model ${modelId}:`, error);
+      this.showNotification(`Failed to load model: ${error.message}`, 'error');
+      throw error;
+    }
+  }
+
+  async unloadModel(modelId) {
+    try {
+      if (this.modelServer) {
+        console.log(`Unloading model via IPFS Accelerate: ${modelId}`);
+        const result = await this.modelServer.unloadModel(modelId);
+        
+        if (result.success) {
+          this.updateDisplay();
+          this.showNotification(`Model ${modelId} unloaded successfully`, 'success');
+          return result;
+        }
+      }
+      
+      console.log(`Model ${modelId} unloaded (traditional)`);
+      this.updateDisplay();
+      
+    } catch (error) {
+      console.error(`Error unloading model ${modelId}:`, error);
+      this.showNotification(`Failed to unload model: ${error.message}`, 'error');
+    }
+  }
+
+  async testModel(modelId) {
+    try {
+      if (!this.modelServer) {
+        throw new Error('Model server not available');
+      }
+      
+      // Load model if not already loaded
+      const loadedModels = this.modelServer.getLoadedModels();
+      if (!loadedModels.includes(modelId)) {
+        await this.loadModel(modelId);
+      }
+      
+      // Run a test inference
+      const testInput = this.getTestInputForModel(modelId);
+      console.log(`Testing model ${modelId} with input:`, testInput);
+      
+      const result = await this.modelServer.inference(modelId, testInput);
+      
+      this.showTestResults(modelId, testInput, result);
+      this.showNotification(`Model ${modelId} test completed`, 'success');
+      
+      return result;
+      
+    } catch (error) {
+      console.error(`Error testing model ${modelId}:`, error);
+      this.showNotification(`Model test failed: ${error.message}`, 'error');
+      throw error;
+    }
+  }
+
+  getTestInputForModel(modelId) {
+    const modelInfo = this.ipfsAccelerateBridge?.supportedModels[modelId];
+    
+    if (!modelInfo) {
+      return "Hello, this is a test message.";
+    }
+    
+    switch (modelInfo.type) {
+      case 'text-generation':
+        return "Generate a creative story about";
+      case 'text-encoding':
+      case 'text-embedding':
+        return "The quick brown fox jumps over the lazy dog.";
+      case 'question-answering':
+        return "What is artificial intelligence?";
+      case 'text-classification':
+        return "This is a positive review of the product.";
+      default:
+        return "Hello, this is a test message.";
+    }
+  }
+
+  showTestResults(modelId, input, result) {
+    const resultsContainer = document.getElementById('test-results');
+    if (!resultsContainer) {
+      // Create a temporary modal for test results
+      this.showTestResultsModal(modelId, input, result);
+      return;
+    }
+    
+    resultsContainer.innerHTML = `
+      <div class="test-result">
+        <h4>Test Results for ${modelId}</h4>
+        <div class="test-input">
+          <strong>Input:</strong> ${input}
+        </div>
+        <div class="test-output">
+          <strong>Output:</strong>
+          <pre>${JSON.stringify(result.result, null, 2)}</pre>
+        </div>
+        <div class="test-metadata">
+          <strong>Processing Time:</strong> ${result.metadata?.processingTime || 'N/A'}ms<br>
+          <strong>Hardware Used:</strong> ${result.metadata?.hardwareUsed || 'N/A'}
+        </div>
+      </div>
+    `;
+  }
+
+  showTestResultsModal(modelId, input, result) {
+    const modal = document.createElement('div');
+    modal.className = 'test-results-modal';
+    modal.innerHTML = `
+      <div class="modal-overlay">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Model Test Results</h3>
+            <button class="close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="test-result">
+              <h4>${modelId}</h4>
+              <div class="test-section">
+                <label>Input:</label>
+                <div class="test-input">${input}</div>
+              </div>
+              <div class="test-section">
+                <label>Output:</label>
+                <div class="test-output">
+                  <pre>${JSON.stringify(result.result, null, 2)}</pre>
+                </div>
+              </div>
+              <div class="test-section">
+                <label>Metadata:</label>
+                <div class="test-metadata">
+                  <div>Processing Time: ${result.metadata?.processingTime || 'N/A'}ms</div>
+                  <div>Hardware Used: ${result.metadata?.hardwareUsed || 'N/A'}</div>
+                  <div>Inference ID: ${result.inferenceId || 'N/A'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  }
+
+  async routeInference(capability, input, options = {}) {
+    try {
+      if (!this.aiModelRouter) {
+        throw new Error('AI Model Router not available');
+      }
+      
+      const result = await this.aiModelRouter.routeRequest({
+        capability,
+        input,
+        options
+      });
+      
+      this.showNotification(`Inference routed successfully via ${result.metadata.endpoint}`, 'success');
+      return result;
+      
+    } catch (error) {
+      console.error('Error routing inference:', error);
+      this.showNotification(`Inference routing failed: ${error.message}`, 'error');
+      throw error;
+    }
+  }
+
+  // Event handlers for new integrations
+  handleModelLoaded(data) {
+    console.log(`Model loaded: ${data.modelId}`);
+    this.updateModelStatus(data.modelId, 'loaded');
+  }
+
+  handleModelUnloaded(data) {
+    console.log(`Model unloaded: ${data.modelId}`);
+    this.updateModelStatus(data.modelId, 'unloaded');
+  }
+
+  handleLoadingProgress(data) {
+    console.log(`Loading progress for ${data.modelId}: ${data.progress}%`);
+    this.updateLoadingProgress(data.modelId, data.progress, data.message);
+  }
+
+  updateModelStatus(modelId, status) {
+    const modelElements = document.querySelectorAll(`[data-model-id="${modelId}"]`);
+    modelElements.forEach(element => {
+      const statusElement = element.querySelector('.model-status');
+      if (statusElement) {
+        statusElement.innerHTML = status === 'loaded' 
+          ? '<span class="loaded-badge">Loaded</span>'
+          : '<span class="unloaded-badge">Unloaded</span>';
+      }
+    });
+  }
+
+  updateLoadingProgress(modelId, progress, message) {
+    const modelElements = document.querySelectorAll(`[data-model-id="${modelId}"]`);
+    modelElements.forEach(element => {
+      let progressElement = element.querySelector('.loading-progress');
+      if (!progressElement) {
+        progressElement = document.createElement('div');
+        progressElement.className = 'loading-progress';
+        element.appendChild(progressElement);
+      }
+      
+      progressElement.innerHTML = `
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+        <div class="progress-message">${message}</div>
+      `;
+      
+      if (progress >= 100) {
+        setTimeout(() => {
+          progressElement.remove();
+        }, 2000);
+      }
+    });
+  }
+
+  updateModelMetrics(modelId, data) {
+    const metrics = this.modelMetrics.get(modelId) || {
+      totalInferences: 0,
+      totalTime: 0,
+      averageTime: 0
+    };
+    
+    metrics.totalInferences++;
+    metrics.totalTime += data.metadata?.processingTime || 0;
+    metrics.averageTime = metrics.totalTime / metrics.totalInferences;
+    
+    this.modelMetrics.set(modelId, metrics);
+  }
+
+  updateEndpointsList() {
+    if (this.aiModelRouter) {
+      const endpoints = this.aiModelRouter.getAvailableEndpoints();
+      console.log('Available AI endpoints:', endpoints);
+      
+      // Update UI to show available endpoints
+      this.displayEndpointsStatus(endpoints);
+    }
+  }
+
+  updateRoutingStats() {
+    if (this.aiModelRouter) {
+      const stats = this.aiModelRouter.getRoutingStats();
+      console.log('Routing statistics:', stats);
+      
+      // Update UI to show routing statistics
+      this.displayRoutingStats(stats);
+    }
+  }
+
+  displayEndpointsStatus(endpoints) {
+    const statusContainer = document.getElementById('endpoints-status');
+    if (!statusContainer) return;
+    
+    statusContainer.innerHTML = `
+      <h4>Available AI Endpoints (${endpoints.length})</h4>
+      <div class="endpoints-list">
+        ${endpoints.map(endpoint => `
+          <div class="endpoint-item ${endpoint.status}">
+            <div class="endpoint-info">
+              <strong>${endpoint.name}</strong> (${endpoint.type})
+              <span class="endpoint-status ${endpoint.status}">${endpoint.status}</span>
+            </div>
+            <div class="endpoint-metrics">
+              Latency: ${endpoint.metrics.latency}ms | 
+              Reliability: ${Math.round(endpoint.metrics.reliability * 100)}%
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  displayRoutingStats(stats) {
+    const statsContainer = document.getElementById('routing-stats');
+    if (!statsContainer) return;
+    
+    statsContainer.innerHTML = `
+      <h4>Routing Statistics</h4>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <label>Total Requests:</label>
+          <span>${stats.totalRequests}</span>
+        </div>
+        <div class="stat-item">
+          <label>Success Rate:</label>
+          <span>${Math.round(stats.successRate * 100)}%</span>
+        </div>
+        <div class="stat-item">
+          <label>Average Response Time:</label>
+          <span>${stats.avgResponseTime}ms</span>
+        </div>
+      </div>
+    `;
+  }
+
+  showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <span class="notification-icon">
+          ${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}
+        </span>
+        <span class="notification-message">${message}</span>
+      </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  // Enhanced display update
+  updateDisplay() {
+    // Call the original renderModelList if it exists
+    if (typeof this.renderModelList === 'function') {
+      const container = document.querySelector('.model-browser-app');
+      if (container) {
+        this.renderModelList(container);
+      }
+    }
+    
+    // Update endpoints and stats
+    this.updateEndpointsList();
+    this.updateRoutingStats();
   }
 }

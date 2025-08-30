@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwissKnife AI Infrastructure Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .test-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .test-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .console-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 2px solid #333;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-green { background: #4CAF50; }
+        .status-red { background: #f44336; }
+        .status-yellow { background: #ff9800; }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 SwissKnife AI Infrastructure Test</h1>
+        
+        <div class="test-section">
+            <h2>🚀 Quick Tests</h2>
+            <button class="test-button" onclick="runQuickTest()">Run Quick Test</button>
+            <button class="test-button" onclick="runFullTest()">Run Full Test Suite</button>
+            <button class="test-button" onclick="testModelLoading()">Test Model Loading</button>
+            <button class="test-button" onclick="testInference()">Test Inference</button>
+            <button class="test-button" onclick="clearConsole()">Clear Console</button>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-card">
+                <h3>🔧 IPFS Accelerate Bridge</h3>
+                <div id="bridge-status">
+                    <div class="metric">
+                        <span>Status:</span>
+                        <span><span class="status-indicator status-yellow"></span>Checking...</span>
+                    </div>
+                    <div class="metric">
+                        <span>Loaded Models:</span>
+                        <span id="loaded-models">-</span>
+                    </div>
+                    <div class="metric">
+                        <span>WebGPU:</span>
+                        <span id="webgpu-support">-</span>
+                    </div>
+                    <div class="metric">
+                        <span>WebNN:</span>
+                        <span id="webnn-support">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>🌐 AI Model Router</h3>
+                <div id="router-status">
+                    <div class="metric">
+                        <span>Status:</span>
+                        <span><span class="status-indicator status-yellow"></span>Checking...</span>
+                    </div>
+                    <div class="metric">
+                        <span>Available Endpoints:</span>
+                        <span id="available-endpoints">-</span>
+                    </div>
+                    <div class="metric">
+                        <span>Total Requests:</span>
+                        <span id="total-requests">-</span>
+                    </div>
+                    <div class="metric">
+                        <span>Success Rate:</span>
+                        <span id="success-rate">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Console Output</h2>
+            <div id="console-output" class="console-output">
+                <div style="color: #00ff00;">SwissKnife AI Infrastructure Test Console</div>
+                <div style="color: #888;">Loading AI systems...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Manual Tests</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <button class="test-button" onclick="testHardwareDetection()">Test Hardware Detection</button>
+                <button class="test-button" onclick="testModelDiscovery()">Test Model Discovery</button>
+                <button class="test-button" onclick="testEndpointRouting()">Test Endpoint Routing</button>
+                <button class="test-button" onclick="testP2PIntegration()">Test P2P Integration</button>
+                <button class="test-button" onclick="showSystemMetrics()">Show System Metrics</button>
+                <button class="test-button" onclick="benchmarkPerformance()">Benchmark Performance</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load AI Infrastructure -->
+    <script src="/js/ipfs-accelerate-bridge.js"></script>
+    <script src="/js/ai-model-router.js"></script>
+    <script src="/js/test/ai-infrastructure-test.js"></script>
+
+    <script>
+        let consoleElement;
+        let statusUpdateInterval;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            consoleElement = document.getElementById('console-output');
+            
+            // Override console.log to also display in our console
+            const originalLog = console.log;
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+                logToPage(args.join(' '));
+            };
+
+            // Start status monitoring
+            setTimeout(() => {
+                updateSystemStatus();
+                statusUpdateInterval = setInterval(updateSystemStatus, 5000);
+            }, 1000);
+
+            logToPage('🚀 AI Infrastructure Test Page Loaded');
+            logToPage('Waiting for AI systems to initialize...');
+        });
+
+        function logToPage(message) {
+            if (consoleElement) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
+                consoleElement.appendChild(logEntry);
+                consoleElement.scrollTop = consoleElement.scrollHeight;
+            }
+        }
+
+        function clearConsole() {
+            if (consoleElement) {
+                consoleElement.innerHTML = '<div style="color: #00ff00;">Console cleared</div>';
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            
+            if (type === 'error') {
+                notification.style.borderLeftColor = '#f44336';
+            } else if (type === 'warning') {
+                notification.style.borderLeftColor = '#ff9800';
+            }
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+
+        function updateSystemStatus() {
+            // Update IPFS Accelerate Bridge status
+            if (window.ipfsAccelerateBridge) {
+                const bridge = window.ipfsAccelerateBridge;
+                const isInitialized = bridge.isInitialized;
+                
+                updateStatusIndicator('bridge-status', isInitialized);
+                document.getElementById('loaded-models').textContent = bridge.modelServer ? bridge.modelServer.getLoadedModels().length : '0';
+                document.getElementById('webgpu-support').textContent = bridge.hardwareCapabilities?.webgpu ? '✅' : '❌';
+                document.getElementById('webnn-support').textContent = bridge.hardwareCapabilities?.webnn ? '✅' : '❌';
+            }
+
+            // Update AI Model Router status
+            if (window.aiModelRouter) {
+                const router = window.aiModelRouter;
+                const isInitialized = router.isInitialized;
+                
+                updateStatusIndicator('router-status', isInitialized);
+                
+                if (isInitialized) {
+                    const endpoints = router.getAvailableEndpoints();
+                    const stats = router.getRoutingStats();
+                    
+                    document.getElementById('available-endpoints').textContent = endpoints.length;
+                    document.getElementById('total-requests').textContent = stats.totalRequests;
+                    document.getElementById('success-rate').textContent = Math.round(stats.successRate * 100) + '%';
+                }
+            }
+        }
+
+        function updateStatusIndicator(containerId, isHealthy) {
+            const container = document.getElementById(containerId);
+            const indicator = container.querySelector('.status-indicator');
+            const statusText = indicator.nextSibling;
+            
+            if (isHealthy) {
+                indicator.className = 'status-indicator status-green';
+                statusText.textContent = 'Online';
+            } else {
+                indicator.className = 'status-indicator status-red';
+                statusText.textContent = 'Offline';
+            }
+        }
+
+        // Test functions
+        async function runQuickTest() {
+            logToPage('🧪 Running quick test...');
+            
+            if (window.ipfsAccelerateBridge && window.ipfsAccelerateBridge.isInitialized) {
+                logToPage('✅ IPFS Accelerate Bridge: OK');
+            } else {
+                logToPage('❌ IPFS Accelerate Bridge: NOT AVAILABLE');
+            }
+            
+            if (window.aiModelRouter && window.aiModelRouter.isInitialized) {
+                logToPage('✅ AI Model Router: OK');
+            } else {
+                logToPage('❌ AI Model Router: NOT AVAILABLE');
+            }
+            
+            showNotification('Quick test completed!');
+        }
+
+        async function runFullTest() {
+            if (window.AIInfrastructureTest) {
+                logToPage('🧪 Starting full test suite...');
+                const test = new window.AIInfrastructureTest();
+                await test.runAllTests();
+                showNotification('Full test suite completed!');
+            } else {
+                logToPage('❌ Test suite not available');
+                showNotification('Test suite not loaded', 'error');
+            }
+        }
+
+        async function testModelLoading() {
+            if (!window.ipfsAccelerateBridge) {
+                logToPage('❌ IPFS Accelerate Bridge not available');
+                return;
+            }
+
+            try {
+                logToPage('🔄 Loading test model...');
+                const result = await window.ipfsAccelerateBridge.modelServer.loadModel('bert-base-uncased');
+                
+                if (result.success) {
+                    logToPage('✅ Model loaded successfully');
+                    showNotification('Model loaded successfully!');
+                } else {
+                    logToPage('❌ Model loading failed');
+                    showNotification('Model loading failed', 'error');
+                }
+            } catch (error) {
+                logToPage(`❌ Error: ${error.message}`);
+                showNotification('Model loading error', 'error');
+            }
+        }
+
+        async function testInference() {
+            if (!window.ipfsAccelerateBridge) {
+                logToPage('❌ IPFS Accelerate Bridge not available');
+                return;
+            }
+
+            try {
+                logToPage('🔄 Running inference test...');
+                const result = await window.ipfsAccelerateBridge.modelServer.inference(
+                    'bert-base-uncased',
+                    'This is a test sentence for inference.'
+                );
+                
+                if (result.success) {
+                    logToPage(`✅ Inference completed in ${result.metadata?.processingTime}ms`);
+                    showNotification('Inference test passed!');
+                } else {
+                    logToPage('❌ Inference failed');
+                    showNotification('Inference test failed', 'error');
+                }
+            } catch (error) {
+                logToPage(`❌ Inference error: ${error.message}`);
+                showNotification('Inference error', 'error');
+            }
+        }
+
+        function testHardwareDetection() {
+            if (window.ipfsAccelerateBridge) {
+                const caps = window.ipfsAccelerateBridge.hardwareCapabilities;
+                logToPage('🔧 Hardware Capabilities:');
+                logToPage(`  WebGPU: ${caps.webgpu ? '✅' : '❌'}`);
+                logToPage(`  WebNN: ${caps.webnn ? '✅' : '❌'}`);
+                logToPage(`  WebAssembly: ${caps.webassembly ? '✅' : '❌'}`);
+                logToPage(`  Worker Support: ${caps.dedicatedWorker ? '✅' : '❌'}`);
+                logToPage(`  SharedArrayBuffer: ${caps.sharedArrayBuffer ? '✅' : '❌'}`);
+            } else {
+                logToPage('❌ Bridge not available for hardware detection');
+            }
+        }
+
+        function testModelDiscovery() {
+            if (window.ipfsAccelerateBridge) {
+                const models = window.ipfsAccelerateBridge.getSupportedModels();
+                logToPage(`🧠 Discovered ${models.length} supported models:`);
+                models.forEach(model => {
+                    logToPage(`  - ${model.name} (${model.id}) - ${model.isLoaded ? 'Loaded' : 'Available'}`);
+                });
+            } else {
+                logToPage('❌ Bridge not available for model discovery');
+            }
+        }
+
+        function testEndpointRouting() {
+            if (window.aiModelRouter) {
+                const endpoints = window.aiModelRouter.getAvailableEndpoints();
+                logToPage(`🌐 Found ${endpoints.length} routing endpoints:`);
+                endpoints.forEach(endpoint => {
+                    logToPage(`  - ${endpoint.name} (${endpoint.type}) - ${endpoint.status}`);
+                    logToPage(`    Latency: ${endpoint.metrics.latency}ms, Reliability: ${Math.round(endpoint.metrics.reliability * 100)}%`);
+                });
+            } else {
+                logToPage('❌ Router not available for endpoint testing');
+            }
+        }
+
+        function testP2PIntegration() {
+            logToPage('🤝 Testing P2P Integration...');
+            
+            if (window.p2pMLSystem) {
+                logToPage('✅ P2P ML System available');
+                logToPage(`  Status: ${window.p2pMLSystem.isRunning ? 'Running' : 'Stopped'}`);
+            } else {
+                logToPage('⚠️ P2P ML System not available (expected in test environment)');
+            }
+        }
+
+        function showSystemMetrics() {
+            logToPage('📊 System Metrics:');
+            
+            if (window.ipfsAccelerateBridge) {
+                const metrics = window.ipfsAccelerateBridge.getSystemMetrics();
+                logToPage('  IPFS Accelerate Bridge:');
+                logToPage(`    Loaded Models: ${metrics.loadedModels}`);
+                logToPage(`    Total Inferences: ${metrics.totalInferences}`);
+                logToPage(`    Memory Usage: ${metrics.memory?.used || 'N/A'} MB`);
+            }
+            
+            if (window.aiModelRouter) {
+                const stats = window.aiModelRouter.getRoutingStats();
+                logToPage('  AI Model Router:');
+                logToPage(`    Total Requests: ${stats.totalRequests}`);
+                logToPage(`    Success Rate: ${Math.round(stats.successRate * 100)}%`);
+                logToPage(`    Avg Response Time: ${stats.avgResponseTime}ms`);
+            }
+        }
+
+        async function benchmarkPerformance() {
+            logToPage('⚡ Running performance benchmark...');
+            
+            if (!window.ipfsAccelerateBridge) {
+                logToPage('❌ Bridge not available for benchmarking');
+                return;
+            }
+
+            try {
+                const startTime = performance.now();
+                
+                // Load model if not loaded
+                await window.ipfsAccelerateBridge.modelServer.loadModel('bert-base-uncased');
+                
+                // Run multiple inferences
+                const iterations = 5;
+                logToPage(`Running ${iterations} inference iterations...`);
+                
+                const times = [];
+                for (let i = 0; i < iterations; i++) {
+                    const iterStart = performance.now();
+                    await window.ipfsAccelerateBridge.modelServer.inference(
+                        'bert-base-uncased',
+                        `Benchmark test sentence ${i + 1} for performance measurement.`
+                    );
+                    const iterTime = performance.now() - iterStart;
+                    times.push(iterTime);
+                    logToPage(`  Iteration ${i + 1}: ${Math.round(iterTime)}ms`);
+                }
+                
+                const totalTime = performance.now() - startTime;
+                const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+                const minTime = Math.min(...times);
+                const maxTime = Math.max(...times);
+                
+                logToPage('📈 Benchmark Results:');
+                logToPage(`  Total Time: ${Math.round(totalTime)}ms`);
+                logToPage(`  Average Time: ${Math.round(avgTime)}ms`);
+                logToPage(`  Min Time: ${Math.round(minTime)}ms`);
+                logToPage(`  Max Time: ${Math.round(maxTime)}ms`);
+                
+                showNotification('Benchmark completed!');
+                
+            } catch (error) {
+                logToPage(`❌ Benchmark error: ${error.message}`);
+                showNotification('Benchmark failed', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

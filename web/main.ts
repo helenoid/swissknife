@@ -10,6 +10,7 @@ import '/css/desktop.css';
 import '/css/windows.css';
 import '/css/terminal.css';
 import '/css/apps.css';
+import '/css/model-browser.css';
 import '/css/strudel.css';
 import '/css/strudel-grandma.css';
 
@@ -201,7 +202,74 @@ class SwissKnifeDesktop {
     }
   }
   
+  // Initialize AI Infrastructure (IPFS Accelerate Bridge + AI Router)
+  async initializeAIInfrastructure() {
+    try {
+      console.log('🧠 Initializing AI Infrastructure...');
+      
+      // Load AI infrastructure scripts
+      await Promise.all([
+        this.loadScript('/js/ipfs-accelerate-bridge.js'),
+        this.loadScript('/js/ai-model-router.js')
+      ]);
+      
+      console.log('✅ AI Infrastructure scripts loaded successfully');
+      
+      // Wait for global objects to be available
+      let retries = 0;
+      const maxRetries = 10;
+      
+      while (retries < maxRetries) {
+        if ((window as any).ipfsAccelerateBridge && (window as any).aiModelRouter) {
+          console.log('✅ AI Infrastructure initialized successfully');
+          
+          // Set up integration between components
+          this.setupAIIntegration();
+          break;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        retries++;
+      }
+      
+      if (retries >= maxRetries) {
+        console.warn('⚠️ AI Infrastructure initialization timeout - some features may be limited');
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize AI Infrastructure:', error);
+      console.log('🔄 Continuing with limited AI functionality...');
+    }
+  }
+  
+  setupAIIntegration() {
+    // Connect AI components for better integration
+    const bridge = (window as any).ipfsAccelerateBridge;
+    const router = (window as any).aiModelRouter;
+    
+    if (bridge && router) {
+      // Bridge events to router for automatic endpoint discovery
+      bridge.on('bridge:initialized', () => {
+        console.log('🔗 IPFS Accelerate Bridge connected to AI Router');
+        router.discoverEndpoints();
+      });
+      
+      // Setup model loading coordination
+      bridge.on('model:loaded', (data: any) => {
+        console.log(`🧠 Model ${data.modelId} loaded - updating router endpoints`);
+        router.discoverEndpoints();
+      });
+      
+      // Global availability for apps
+      (window as any).transformersModelServer = bridge.modelServer;
+      console.log('🌐 Transformers Model Server available globally');
+    }
+  }
+  
   initializeDesktop() {
+    // Initialize AI infrastructure
+    this.initializeAIInfrastructure();
+    
     // Initialize system time
     this.updateSystemTime();
     setInterval(() => this.updateSystemTime(), 1000);
