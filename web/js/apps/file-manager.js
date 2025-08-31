@@ -950,6 +950,107 @@ export class FileManagerApp {
           opacity: 0.7;
         }
 
+        /* Empty folder state */
+        .empty-folder {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 300px;
+          opacity: 0.6;
+        }
+
+        .empty-icon {
+          font-size: 48px;
+          margin-bottom: 16px;
+        }
+
+        .empty-text {
+          font-size: 16px;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+
+        .empty-subtext {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+
+        /* File list items */
+        .file-item {
+          padding: 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          user-select: none;
+        }
+
+        .file-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .file-item.selected {
+          background: linear-gradient(135deg, #4ade80, #22c55e);
+          color: white;
+        }
+
+        .file-item.grid-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          min-height: 80px;
+        }
+
+        .file-item.list-item {
+          display: grid;
+          grid-template-columns: 32px 1fr 80px 60px 120px 80px;
+          gap: 12px;
+          align-items: center;
+          padding: 12px 8px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .file-icon {
+          font-size: 24px;
+          margin-bottom: 4px;
+        }
+
+        .file-name {
+          font-size: 11px;
+          font-weight: 500;
+          max-width: 100px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .file-size, .file-type, .file-modified, .file-location {
+          font-size: 10px;
+          opacity: 0.8;
+        }
+
+        .list-item .file-icon {
+          font-size: 20px;
+          margin-bottom: 0;
+        }
+
+        .list-item .file-name {
+          max-width: none;
+          font-size: 12px;
+        }
+
+        .breadcrumb-item {
+          cursor: pointer;
+          padding: 2px 4px;
+          border-radius: 3px;
+          transition: background 0.2s ease;
+        }
+
+        .breadcrumb-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
           .file-toolbar {
@@ -1081,50 +1182,276 @@ export class FileManagerApp {
 
   async loadFiles() {
     try {
-      // Load files from SwissKnife storage
-      const result = await this.swissknife.storage.list({
-        path: this.currentPath,
-        recursive: false
-      });
-      
-      this.files = result.files || [];
+      // Load files from SwissKnife storage if available
+      if (this.swissknife && this.swissknife.storage) {
+        const result = await this.swissknife.storage.list({
+          path: this.currentPath,
+          recursive: false
+        });
+        this.files = result.files || [];
+      } else {
+        // Use mock data when storage is not available
+        this.files = this.getMockFiles();
+      }
     } catch (error) {
       console.error('Failed to load files:', error);
       this.files = this.getMockFiles(); // Fallback to mock data
     }
   }
 
+  renderBreadcrumb() {
+    const pathParts = this.currentPath.split('/').filter(part => part !== '');
+    let breadcrumb = '<span class="breadcrumb-item" data-path="/">📁</span>';
+    
+    let currentPath = '';
+    pathParts.forEach(part => {
+      currentPath += '/' + part;
+      breadcrumb += ` / <span class="breadcrumb-item" data-path="${currentPath}">${part}</span>`;
+    });
+    
+    return breadcrumb;
+  }
+
+  getFilteredFiles() {
+    let filteredFiles = [...this.files];
+    
+    // Apply search filter
+    if (this.searchQuery) {
+      filteredFiles = filteredFiles.filter(file => 
+        file.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply hidden files filter
+    if (!this.showHidden) {
+      filteredFiles = filteredFiles.filter(file => !file.name.startsWith('.'));
+    }
+    
+    // Apply sorting
+    filteredFiles.sort((a, b) => {
+      let aValue = a[this.sortBy];
+      let bValue = b[this.sortBy];
+      
+      if (this.sortBy === 'modified') {
+        aValue = new Date(a.modified);
+        bValue = new Date(b.modified);
+      }
+      
+      if (this.sortBy === 'size') {
+        aValue = a.size || 0;
+        bValue = b.size || 0;
+      }
+      
+      if (this.sortBy === 'name' || this.sortBy === 'type') {
+        aValue = (aValue || '').toLowerCase();
+        bValue = (bValue || '').toLowerCase();
+      }
+      
+      if (this.sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+    
+    return filteredFiles;
+  }
+
+  renderFileList() {
+    const filteredFiles = this.getFilteredFiles();
+    
+    if (filteredFiles.length === 0) {
+      return `
+        <div class="empty-folder">
+          <div class="empty-icon">📂</div>
+          <div class="empty-text">This folder is empty</div>
+          <div class="empty-subtext">Drag files here or use the upload button</div>
+        </div>
+      `;
+    }
+    
+    return filteredFiles.map((file, index) => {
+      const icon = this.getFileIcon(file);
+      const size = file.type === 'folder' || file.type === 'directory' ? '' : this.formatFileSize(file.size || 0);
+      const modified = this.formatDate(file.modified);
+      const selected = this.selectedFiles.has(index) ? 'selected' : '';
+      
+      if (this.viewMode === 'grid') {
+        return `
+          <div class="file-item grid-item ${selected}" data-index="${index}" data-path="${file.path || file.name}">
+            <div class="file-icon">${icon}</div>
+            <div class="file-name" title="${file.name}">${file.name}</div>
+            <div class="file-size">${size}</div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="file-item list-item ${selected}" data-index="${index}" data-path="${file.path || file.name}">
+            <div class="file-icon">${icon}</div>
+            <div class="file-name">${file.name}</div>
+            <div class="file-size">${size}</div>
+            <div class="file-type">${file.type || this.getFileExtension(file.name)}</div>
+            <div class="file-modified">${modified}</div>
+            <div class="file-location">${file.location || 'local'}</div>
+          </div>
+        `;
+      }
+    }).join('');
+  }
+
+  getFileIcon(file) {
+    if (!file) return '📄';
+    
+    if (file.type === 'folder' || file.type === 'directory') {
+      return '📁';
+    }
+    
+    const extension = this.getFileExtension(file.name).toLowerCase();
+    
+    // Image files
+    if (this.fileHandlers.image.includes(extension)) {
+      return '🖼️';
+    }
+    
+    // Video files
+    if (this.fileHandlers.video.includes(extension)) {
+      return '🎬';
+    }
+    
+    // Audio files
+    if (this.fileHandlers.audio.includes(extension)) {
+      return '🎵';
+    }
+    
+    // Document files
+    if (this.fileHandlers.document.includes(extension)) {
+      return '📄';
+    }
+    
+    // Code files
+    if (this.fileHandlers.code.includes(extension)) {
+      return '📝';
+    }
+    
+    // Archive files
+    if (this.fileHandlers.archive.includes(extension)) {
+      return '📦';
+    }
+    
+    // Default file icon
+    return '📄';
+  }
+
+  getFileExtension(filename) {
+    if (!filename || typeof filename !== 'string') return '';
+    return filename.split('.').pop() || '';
+  }
+
+  formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  formatDate(date) {
+    if (!date) return 'Unknown';
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'Invalid Date';
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  }
+
   getMockFiles() {
     return [
       {
-        name: 'documents',
-        type: 'directory',
+        name: 'Documents',
+        type: 'folder',
         size: 0,
-        modified: new Date('2024-01-15'),
-        path: '/documents'
+        modified: Date.now() - 86400000,
+        created: Date.now() - 2592000000,
+        permissions: 'rwx',
+        location: 'local',
+        path: '/Documents'
+      },
+      {
+        name: 'Pictures',
+        type: 'folder',
+        size: 0,
+        modified: Date.now() - 172800000,
+        created: Date.now() - 2592000000,
+        permissions: 'rwx',
+        location: 'local',
+        path: '/Pictures'
+      },
+      {
+        name: 'AI Models',
+        type: 'folder',
+        size: 0,
+        modified: Date.now() - 3600000,
+        created: Date.now() - 1296000000,
+        permissions: 'rwx',
+        location: 'ipfs',
+        path: '/AI Models'
       },
       {
         name: 'project-notes.md',
         type: 'file',
-        size: 2048,
-        modified: new Date('2024-01-20'),
-        path: '/project-notes.md',
-        hash: 'QmX1Y2Z3...'
+        size: 15420,
+        modified: Date.now() - 1800000,
+        created: Date.now() - 86400000,
+        permissions: 'rw-',
+        location: 'local',
+        extension: 'md',
+        path: '/project-notes.md'
       },
       {
-        name: 'config.json',
+        name: 'neural-network-v2.js',
         type: 'file',
-        size: 512,
-        modified: new Date('2024-01-18'),
-        path: '/config.json',
-        hash: 'QmA1B2C3...'
+        size: 245678,
+        modified: Date.now() - 7200000,
+        created: Date.now() - 259200000,
+        permissions: 'rw-',
+        location: 'local',
+        extension: 'js',
+        path: '/neural-network-v2.js'
       },
       {
-        name: 'downloads',
-        type: 'directory',
-        size: 0,
-        modified: new Date('2024-01-10'),
-        path: '/downloads'
+        name: 'training-data.json',
+        type: 'file',
+        size: 12587456,
+        modified: Date.now() - 14400000,
+        created: Date.now() - 432000000,
+        permissions: 'rw-',
+        location: 'ipfs',
+        extension: 'json',
+        path: '/training-data.json'
+      },
+      {
+        name: 'desktop-screenshot.png',
+        type: 'file',
+        size: 2048576,
+        modified: Date.now() - 28800000,
+        created: Date.now() - 172800000,
+        permissions: 'rw-',
+        location: 'local',
+        extension: 'png',
+        path: '/desktop-screenshot.png'
+      },
+      {
+        name: 'shared-model-bert.zip',
+        type: 'file',
+        size: 438912345,
+        modified: Date.now() - 86400000,
+        created: Date.now() - 604800000,
+        permissions: 'r--',
+        location: 'p2p',
+        extension: 'zip',
+        path: '/shared-model-bert.zip'
       }
     ];
   }
