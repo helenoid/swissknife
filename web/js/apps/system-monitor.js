@@ -1381,6 +1381,13 @@ export class SystemMonitorApp {
       this.updateInterval = null;
     }
   }
+
+  // Initialize method required by the desktop framework
+  initialize(container) {
+    const windowData = this.createWindow();
+    container.innerHTML = windowData.content;
+    this.setupEventHandlers(container);
+  }
 }
 
 // Register the app
