@@ -982,6 +982,20 @@ export class FileManagerApp {
       y: 75
     };
   }
+
+  async render() {
+    const windowData = this.createWindow();
+    
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      const container = document.querySelector('.file-manager-container');
+      if (container) {
+        this.setupEventHandlers(container);
+      }
+    }, 0);
+    
+    return windowData.content;
+  }
   setupEventListeners(window) {
     const backBtn = window.querySelector('#back-btn');
     const forwardBtn = window.querySelector('#forward-btn');
