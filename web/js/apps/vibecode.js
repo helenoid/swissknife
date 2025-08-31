@@ -24,6 +24,21 @@ export class VibeCodeApp {
     await this.loadRecentFiles();
   }
 
+  async loadRecentFiles() {
+    try {
+      // Load recent files from storage
+      const stored = localStorage.getItem('vibecode-recent-files');
+      if (stored) {
+        this.recentFiles = JSON.parse(stored);
+      } else {
+        this.recentFiles = [];
+      }
+    } catch (error) {
+      console.warn('Failed to load recent files:', error);
+      this.recentFiles = [];
+    }
+  }
+
   createWindow() {
     const content = `
       <div class="vibecode-container">
@@ -546,7 +561,7 @@ Example: 'Create a stock price dashboard that shows real-time data with interact
   }
 
   insertInlineCode(window) {
-    const selection = window.getSelection();
+    const selection = document.getSelection();
     if (selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const code = document.createElement('code');
@@ -554,7 +569,14 @@ Example: 'Create a stock price dashboard that shows real-time data with interact
       code.style.padding = '2px 4px';
       code.style.borderRadius = '3px';
       code.style.fontFamily = 'monospace';
-      range.surroundContents(code);
+      try {
+        range.surroundContents(code);
+      } catch (e) {
+        // If surroundContents fails, insert the code element
+        const content = range.extractContents();
+        code.appendChild(content);
+        range.insertNode(code);
+      }
     }
   }
 
@@ -570,7 +592,7 @@ Example: 'Create a stock price dashboard that shows real-time data with interact
     code.textContent = 'Enter your code here...';
     pre.appendChild(code);
     
-    const selection = window.getSelection();
+    const selection = document.getSelection();
     if (selection.rangeCount > 0) {
       selection.getRangeAt(0).insertNode(pre);
     }
@@ -1461,12 +1483,131 @@ st.write("Hello, World!")
     }
   }
 
+  populateRecentFiles(window) {
+    const recentFilesContainer = window.querySelector('#recent-files');
+    if (!recentFilesContainer) return;
+
+    recentFilesContainer.innerHTML = '';
+    
+    if (this.recentFiles.length === 0) {
+      recentFilesContainer.innerHTML = '<div class="no-recent-files">No recent files</div>';
+      return;
+    }
+
+    this.recentFiles.forEach(file => {
+      const fileItem = document.createElement('div');
+      fileItem.className = 'recent-file-item';
+      fileItem.innerHTML = `
+        <span class="file-icon">📄</span>
+        <span class="file-name">${file.name}</span>
+        <span class="file-path">${file.path}</span>
+      `;
+      fileItem.addEventListener('click', () => this.openRecentFile(window, file));
+      recentFilesContainer.appendChild(fileItem);
+    });
+  }
+
+  openRecentFile(window, file) {
+    // Load file content
+    const codeEditor = window.querySelector('#code-editor');
+    if (codeEditor && file.content) {
+      codeEditor.value = file.content;
+      this.updateLineNumbers(window);
+      this.currentFile = file;
+      this.desktop.showNotification(`Opened ${file.name}`, 'success');
+    }
+  }
+
   // Placeholder methods for remaining functionality
-  newFile(window) { /* Implementation */ }
-  openFile(window) { /* Implementation */ }
-  saveFile(window) { /* Implementation */ }
-  saveAsFile(window) { /* Implementation */ }
-  populateRecentFiles(window) { /* Implementation */ }
+  newFile(window) { 
+    const codeEditor = window.querySelector('#code-editor');
+    if (codeEditor) {
+      codeEditor.value = `import streamlit as st
+
+st.title("New Streamlit App")
+st.write("Hello, World!")
+`;
+      this.updateLineNumbers(window);
+      this.currentFile = null;
+      this.desktop.showNotification('New file created', 'success');
+    }
+  }
+  openFile(window) { 
+    // Create file input for opening files
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.py,.txt,.md';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const codeEditor = window.querySelector('#code-editor');
+          if (codeEditor) {
+            codeEditor.value = e.target.result;
+            this.updateLineNumbers(window);
+            this.currentFile = { name: file.name, content: e.target.result };
+            this.addToRecentFiles(this.currentFile);
+            this.desktop.showNotification(`Opened ${file.name}`, 'success');
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  }
+  saveFile(window) { 
+    const codeEditor = window.querySelector('#code-editor');
+    if (codeEditor && this.currentFile) {
+      this.currentFile.content = codeEditor.value;
+      this.saveToStorage();
+      this.desktop.showNotification(`Saved ${this.currentFile.name}`, 'success');
+    } else {
+      this.saveAsFile(window);
+    }
+  }
+  saveAsFile(window) { 
+    const codeEditor = window.querySelector('#code-editor');
+    if (codeEditor) {
+      const fileName = prompt('Enter file name:', 'app.py');
+      if (fileName) {
+        const content = codeEditor.value;
+        const file = { name: fileName, content: content, path: fileName };
+        this.currentFile = file;
+        this.addToRecentFiles(file);
+        this.saveToStorage();
+        
+        // Create download
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        this.desktop.showNotification(`Saved as ${fileName}`, 'success');
+      }
+    }
+  }
+
+  addToRecentFiles(file) {
+    // Remove if already exists
+    this.recentFiles = this.recentFiles.filter(f => f.name !== file.name);
+    // Add to beginning
+    this.recentFiles.unshift(file);
+    // Keep only 10 recent files
+    this.recentFiles = this.recentFiles.slice(0, 10);
+    this.saveToStorage();
+  }
+
+  saveToStorage() {
+    try {
+      localStorage.setItem('vibecode-recent-files', JSON.stringify(this.recentFiles));
+    } catch (error) {
+      console.warn('Failed to save to storage:', error);
+    }
+  }
   insertComponent(window, componentType) { /* Implementation */ }
   setupEnhancementPanel(window) { /* Implementation */ }
   showEnhancementPanel(window) { /* Implementation */ }

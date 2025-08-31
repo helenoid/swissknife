@@ -1294,11 +1294,14 @@ export class CalculatorApp {
   }
 
   // Initialize method required by the desktop framework
-  initialize(container) {
-    const windowContent = this.createWindow();
-    container.innerHTML = windowContent.content;
-    this.setupEventHandlers(container);
-    this.setupKeyboardHandlers();
+  initialize(windowContent) {
+    if (windowContent && windowContent.innerHTML) {
+      this.setupEventHandlers(windowContent);
+      this.updateDisplay();
+      if (this.mode === 'programmer') {
+        this.updateProgrammerDisplays();
+      }
+    }
     return this;
   }
 }
