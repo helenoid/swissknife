@@ -393,6 +393,23 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered system-monitor app');
         
+        // Register additional missing apps that appear in the UI
+        this.apps.set('github', {
+            name: 'GitHub',
+            icon: '🐙',
+            component: 'GitHubApp',
+            singleton: true
+        });
+        console.log('✅ Registered github app');
+        
+        this.apps.set('oauth-login', {
+            name: 'OAuth Login',
+            icon: '🔐',
+            component: 'OAuthLoginApp',
+            singleton: true
+        });
+        console.log('✅ Registered oauth-login app');
+        
         console.log('📱 Total apps registered:', this.apps.size);
         console.log('📱 Apps list:', Array.from(this.apps.keys()));
     }
@@ -763,21 +780,25 @@ class SwissKnifeDesktop {
                     break;
 
                 case 'p2pnetworkapp':
-                    console.log('🔗 Loading P2P Network Manager...');
-                    // Import and create P2P Network app
+                    console.log('🔗 Loading P2P Network app...');
                     try {
-                        await this.loadScript('./js/apps/p2p-network.js');
+                        // Try to import the P2P Network app module
+                        const P2PNetworkModule = await import('./apps/p2p-network.js');
+                        console.log('📦 Imported P2P Network module:', P2PNetworkModule);
+                        
+                        // Check if the app creator function exists
                         if (window.createP2PNetworkApp) {
                             appInstance = window.createP2PNetworkApp();
                             appInstance.init(contentElement);
                         } else {
-                            throw new Error('P2P Network app not found');
+                            throw new Error('P2P Network app not loaded properly');
                         }
                     } catch (error) {
                         console.error('Failed to load P2P Network app:', error);
                         contentElement.innerHTML = `
                             <div class="app-placeholder">
                                 <h2>🔗 P2P Network Manager</h2>
+                                <p>P2P networking and distributed machine learning coordination.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
@@ -941,6 +962,54 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>📊 System Monitor</h2>
                                 <p>Real-time system performance monitoring.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'githubapp':
+                    console.log('🐙 Loading GitHub app...');
+                    // Import and instantiate GitHub app
+                    try {
+                        await this.loadScript('./js/apps/github.js');
+                        if (window.createGitHubApp) {
+                            appInstance = window.createGitHubApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('GitHub app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load GitHub app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🐙 GitHub</h2>
+                                <p>GitHub integration and repository management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'oauthloginapp':
+                    console.log('🔐 Loading OAuth Login app...');
+                    // Import and instantiate OAuth Login app
+                    try {
+                        await this.loadScript('./js/apps/oauth-login.js');
+                        if (window.createOAuthLoginApp) {
+                            appInstance = window.createOAuthLoginApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('OAuth Login app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load OAuth Login app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🔐 OAuth Login</h2>
+                                <p>OAuth authentication and login management.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
