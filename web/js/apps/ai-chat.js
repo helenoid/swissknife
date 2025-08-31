@@ -1193,16 +1193,6 @@ if (!document.querySelector('#ai-chat-styles')) {
 if (typeof window !== 'undefined') {
   window.createAIChatApp = (desktop) => new AIChatApp(desktop);
 }
-      width: 800,
-      height: 600,
-      resizable: true
-    });
-
-    this.setupEventListeners(window);
-    this.populateConversationList(window);
-    
-    return window;
-  }
 
   setupEventListeners(window) {
     const chatInput = window.querySelector('#chat-input');
