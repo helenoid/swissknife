@@ -690,8 +690,6 @@ class SwissKnifeDesktop {
                     const dawWindow = appInstance.createWindow();
                     contentElement.appendChild(dawWindow.querySelector('.strudel-ai-daw'));
                     break;
-                    `;
-                    break;
                     
                 case 'settingsapp':
                     // Placeholder for Settings
