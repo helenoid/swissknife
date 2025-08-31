@@ -860,8 +860,8 @@ class SwissKnifeDesktop {
                         const CalculatorApp = CalculatorModule.CalculatorApp;
                         appInstance = new CalculatorApp(this);
                         await appInstance.initialize();
-                        const calculatorWindow = appInstance.createWindow();
-                        contentElement.appendChild(calculatorWindow);
+                        const calculatorContent = await appInstance.render();
+                        contentElement.innerHTML = calculatorContent;
                     } catch (error) {
                         console.error('Failed to load Calculator app:', error);
                         contentElement.innerHTML = `
@@ -883,8 +883,8 @@ class SwissKnifeDesktop {
                         const ClockApp = ClockModule.ClockApp;
                         appInstance = new ClockApp(this);
                         await appInstance.initialize();
-                        const clockWindow = appInstance.createWindow();
-                        contentElement.appendChild(clockWindow);
+                        const clockContent = await appInstance.render();
+                        contentElement.innerHTML = clockContent;
                     } catch (error) {
                         console.error('Failed to load Clock app:', error);
                         contentElement.innerHTML = `
@@ -929,8 +929,8 @@ class SwissKnifeDesktop {
                         const NotesApp = NotesModule.NotesApp;
                         appInstance = new NotesApp(this);
                         await appInstance.initialize();
-                        const notesWindow = appInstance.createWindow();
-                        contentElement.appendChild(notesWindow);
+                        const notesContent = await appInstance.render();
+                        contentElement.innerHTML = notesContent;
                     } catch (error) {
                         console.error('Failed to load Notes app:', error);
                         contentElement.innerHTML = `
@@ -952,8 +952,8 @@ class SwissKnifeDesktop {
                         const SystemMonitorApp = SystemMonitorModule.SystemMonitorApp;
                         appInstance = new SystemMonitorApp(this);
                         await appInstance.initialize();
-                        const monitorWindow = appInstance.createWindow();
-                        contentElement.appendChild(monitorWindow);
+                        const monitorContent = await appInstance.render();
+                        contentElement.innerHTML = monitorContent;
                     } catch (error) {
                         console.error('Failed to load System Monitor app:', error);
                         contentElement.innerHTML = `
