@@ -1689,29 +1689,6 @@ export class FileManagerApp {
     }
   }
 
-  getFileIcon(filename) {
-    const ext = filename.split('.').pop().toLowerCase();
-    const iconMap = {
-      'txt': '📄',
-      'md': '📝',
-      'json': '⚙️',
-      'js': '📜',
-      'ts': '📘',
-      'html': '🌐',
-      'css': '🎨',
-      'img': '🖼️',
-      'jpg': '🖼️',
-      'jpeg': '🖼️',
-      'png': '🖼️',
-      'gif': '🖼️',
-      'pdf': '📕',
-      'zip': '📦',
-      'tar': '📦',
-      'gz': '📦'
-    };
-    return iconMap[ext] || '📄';
-  }
-
   formatFileSize(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
