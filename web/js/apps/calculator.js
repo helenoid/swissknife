@@ -62,7 +62,7 @@ export class CalculatorApp {
     };
   }
 
-  createWindow() {
+  createWindowConfig() {
     const content = `
       <div class="calculator-container">
         <!-- Mode Selector -->
@@ -1295,18 +1295,44 @@ export class CalculatorApp {
 
   // Initialize method required by the desktop framework
   initialize(windowContent) {
-    if (windowContent && windowContent.innerHTML) {
-      this.setupEventHandlers(windowContent);
+    // Store the window content element for later use
+    this.windowContent = windowContent;
+    return this;
+  }
+
+  // Create DOM element instead of window config object
+  createWindow() {
+    const containerDiv = document.createElement('div');
+    containerDiv.className = 'calculator-app-container';
+    containerDiv.style.cssText = 'width: 100%; height: 100%; overflow: hidden;';
+    
+    const windowConfig = this.createWindowConfig();
+    containerDiv.innerHTML = windowConfig.content;
+    
+    // Setup event handlers after DOM is created
+    setTimeout(() => {
+      this.setupEventHandlers(containerDiv);
       this.updateDisplay();
       if (this.mode === 'programmer') {
         this.updateProgrammerDisplays();
       }
-    }
-    return this;
+    }, 0);
+    
+    return containerDiv;
   }
-}
 
-// Register the app
-if (typeof window !== 'undefined') {
-  window.createCalculatorApp = (desktop) => new CalculatorApp(desktop);
+  // Method to get window configuration (kept for compatibility)
+  createWindowConfig() {
+    return {
+      title: 'Calculator',
+      content: `<div class="calculator-app-container" style="width: 100%; height: 100%; overflow: hidden;">
+        <!-- Calculator will be rendered here -->
+      </div>`,
+      width: 400,
+      height: 600,
+      x: 200,
+      y: 100,
+      resizable: false
+    };
+  }
 }
