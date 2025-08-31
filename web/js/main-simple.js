@@ -497,9 +497,22 @@ class SwissKnifeDesktop {
 
     // App creation methods
     async createTerminalApp(contentElement) {
-        const { TerminalApp } = await import('./apps/terminal.js');
-        const terminal = new TerminalApp(contentElement, this);
-        return terminal;
+        try {
+            console.log('🔧 Creating terminal app...');
+            const { TerminalApp } = await import('./apps/terminal.js');
+            console.log('✅ Terminal module imported successfully');
+            
+            const terminal = new TerminalApp(this);
+            console.log('✅ Terminal instance created');
+            
+            await terminal.initialize(contentElement);
+            console.log('✅ Terminal initialized successfully');
+            
+            return terminal;
+        } catch (error) {
+            console.error('❌ Terminal creation error:', error);
+            throw error;
+        }
     }
 
     async createVibeCodeApp(contentElement) {
