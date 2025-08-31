@@ -39,8 +39,8 @@ export class VibeCodeApp {
     }
   }
 
-  createWindow() {
-    const content = `
+  async render() {
+    return `
       <div class="vibecode-container">
         <div class="vibecode-toolbar">
           <div class="toolbar-section">
@@ -353,21 +353,6 @@ Example: 'Create a stock price dashboard that shows real-time data with interact
         </div>
       </div>
     `;
-
-    const window = this.desktop.createWindow({
-      title: 'VibeCode - AI-Powered Streamlit Editor',
-      content: content,
-      width: 1400,
-      height: 900,
-      resizable: true
-    });
-
-    this.setupEventListeners(window);
-    this.initializeEditor(window);
-    this.populateRecentFiles(window);
-    this.loadDefaultRequirements(window);
-    
-    return window;
   }
 
   setupEventListeners(window) {
