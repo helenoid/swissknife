@@ -1097,6 +1097,182 @@ export class FileManagerApp {
     
     return windowData.content;
   }
+
+  setupEventHandlers(container) {
+    // Set up comprehensive event handlers for the file manager
+    console.log('🔧 Setting up File Manager event handlers...');
+    
+    try {
+      // Navigation controls
+      const backBtn = container.querySelector('#back-btn');
+      const forwardBtn = container.querySelector('#forward-btn');
+      const upBtn = container.querySelector('#up-btn');
+      const refreshBtn = container.querySelector('#refresh-btn');
+      
+      if (backBtn) backBtn.addEventListener('click', () => this.navigateBack(container));
+      if (forwardBtn) forwardBtn.addEventListener('click', () => this.navigateForward(container));
+      if (upBtn) upBtn.addEventListener('click', () => this.navigateUp(container));
+      if (refreshBtn) refreshBtn.addEventListener('click', () => this.refresh(container));
+      
+      // Path input
+      const pathInput = container.querySelector('#path-input');
+      if (pathInput) {
+        pathInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            this.navigateToPath(container, pathInput.value);
+          }
+        });
+      }
+      
+      // Search functionality
+      const searchInput = container.querySelector('#search-input');
+      const searchBtn = container.querySelector('#search-btn');
+      if (searchInput && searchBtn) {
+        const handleSearch = () => {
+          this.searchQuery = searchInput.value;
+          this.updateFileList(container);
+        };
+        searchInput.addEventListener('input', handleSearch);
+        searchBtn.addEventListener('click', handleSearch);
+      }
+      
+      // File operations
+      const newFolderBtn = container.querySelector('#new-folder-btn');
+      const uploadBtn = container.querySelector('#upload-btn');
+      const downloadBtn = container.querySelector('#download-btn');
+      const shareBtn = container.querySelector('#share-btn');
+      const fileInput = container.querySelector('#file-input');
+      
+      if (newFolderBtn) newFolderBtn.addEventListener('click', () => this.createNewFolder(container));
+      if (uploadBtn && fileInput) uploadBtn.addEventListener('click', () => fileInput.click());
+      if (downloadBtn) downloadBtn.addEventListener('click', () => this.downloadSelected(container));
+      if (shareBtn) shareBtn.addEventListener('click', () => this.shareSelected(container));
+      
+      if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files.length > 0) {
+            this.uploadFiles(container, Array.from(e.target.files));
+          }
+        });
+      }
+      
+      // View mode controls
+      const gridViewBtn = container.querySelector('#grid-view-btn');
+      const listViewBtn = container.querySelector('#list-view-btn');
+      if (gridViewBtn) gridViewBtn.addEventListener('click', () => this.setViewMode(container, 'grid'));
+      if (listViewBtn) listViewBtn.addEventListener('click', () => this.setViewMode(container, 'list'));
+      
+      // Sort controls
+      const sortBy = container.querySelector('#sort-by');
+      if (sortBy) {
+        sortBy.addEventListener('change', (e) => {
+          this.sortBy = e.target.value;
+          this.updateFileList(container);
+        });
+      }
+      
+      // Show hidden files toggle
+      const showHidden = container.querySelector('#show-hidden');
+      if (showHidden) {
+        showHidden.addEventListener('change', (e) => {
+          this.showHidden = e.target.checked;
+          this.updateFileList(container);
+        });
+      }
+      
+      // Quick access items
+      container.querySelectorAll('.quick-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const path = item.dataset.path;
+          if (path) this.navigateToPath(container, path);
+        });
+      });
+      
+      // File list interactions
+      const fileList = container.querySelector('#file-list');
+      if (fileList) {
+        fileList.addEventListener('click', (e) => this.handleFileClick(container, e));
+        fileList.addEventListener('dblclick', (e) => this.handleFileDoubleClick(container, e));
+        fileList.addEventListener('contextmenu', (e) => this.showContextMenu(container, e));
+        
+        // Drag and drop support
+        fileList.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          fileList.classList.add('drag-over');
+        });
+        
+        fileList.addEventListener('dragleave', () => {
+          fileList.classList.remove('drag-over');
+        });
+        
+        fileList.addEventListener('drop', (e) => {
+          e.preventDefault();
+          fileList.classList.remove('drag-over');
+          const files = Array.from(e.dataTransfer.files);
+          if (files.length > 0) {
+            this.uploadFiles(container, files);
+          }
+        });
+      }
+      
+      // Context menu
+      const contextMenu = container.querySelector('#context-menu');
+      if (contextMenu) {
+        contextMenu.addEventListener('click', (e) => this.handleContextMenuClick(container, e));
+        
+        // Hide context menu on outside click
+        document.addEventListener('click', (e) => {
+          if (!contextMenu.contains(e.target)) {
+            contextMenu.style.display = 'none';
+          }
+        });
+      }
+      
+      // Breadcrumb navigation
+      const breadcrumb = container.querySelector('#path-breadcrumb');
+      if (breadcrumb) {
+        breadcrumb.addEventListener('click', (e) => {
+          const breadcrumbItem = e.target.closest('.breadcrumb-item');
+          if (breadcrumbItem && breadcrumbItem.dataset.path) {
+            this.navigateToPath(container, breadcrumbItem.dataset.path);
+          }
+        });
+      }
+      
+      // Storage provider clicks
+      container.querySelectorAll('.storage-provider').forEach(provider => {
+        provider.addEventListener('click', () => {
+          const providerType = provider.dataset.provider;
+          this.switchStorageProvider(container, providerType);
+        });
+      });
+      
+      // Operation buttons in sidebar
+      const cutBtn = container.querySelector('#cut-btn');
+      const copyBtn = container.querySelector('#copy-btn');
+      const pasteBtn = container.querySelector('#paste-btn');
+      const deleteBtn = container.querySelector('#delete-btn');
+      
+      if (cutBtn) cutBtn.addEventListener('click', () => this.cutSelected(container));
+      if (copyBtn) copyBtn.addEventListener('click', () => this.copySelected(container));
+      if (pasteBtn) pasteBtn.addEventListener('click', () => this.pasteFiles(container));
+      if (deleteBtn) deleteBtn.addEventListener('click', () => this.deleteSelected(container));
+      
+      // AI tools
+      const autoOrganizeBtn = container.querySelector('#auto-organize-btn');
+      const duplicateFinderBtn = container.querySelector('#duplicate-finder-btn');
+      const smartTagsBtn = container.querySelector('#smart-tags-btn');
+      
+      if (autoOrganizeBtn) autoOrganizeBtn.addEventListener('click', () => this.autoOrganize(container));
+      if (duplicateFinderBtn) duplicateFinderBtn.addEventListener('click', () => this.findDuplicates(container));
+      if (smartTagsBtn) smartTagsBtn.addEventListener('click', () => this.generateSmartTags(container));
+      
+      console.log('✅ File Manager event handlers set up successfully');
+      
+    } catch (error) {
+      console.error('❌ Error setting up File Manager event handlers:', error);
+    }
+  }
   setupEventListeners(window) {
     const backBtn = window.querySelector('#back-btn');
     const forwardBtn = window.querySelector('#forward-btn');
@@ -1343,8 +1519,18 @@ export class FileManagerApp {
   }
 
   getFileExtension(filename) {
-    if (!filename || typeof filename !== 'string') return '';
-    return filename.split('.').pop() || '';
+    // Add comprehensive null/undefined/type checking
+    if (!filename || typeof filename !== 'string' || filename.length === 0) {
+      return '';
+    }
+    
+    try {
+      const parts = filename.split('.');
+      return parts.length > 1 ? parts.pop() || '' : '';
+    } catch (error) {
+      console.warn('Error getting file extension for:', filename, error);
+      return '';
+    }
   }
 
   formatFileSize(bytes) {
@@ -1815,5 +2001,152 @@ export class FileManagerApp {
     } catch (error) {
       this.desktop.showNotification('Failed to create folder: ' + error.message, 'error');
     }
+  }
+
+  // Missing methods referenced in event handlers
+  shareSelected(container) {
+    console.log('🔗 Sharing selected files via P2P...');
+    // TODO: Implement P2P sharing functionality
+    this.showNotification('P2P sharing feature coming soon!', 'info');
+  }
+
+  cutSelected(container) {
+    if (this.selectedFiles.size === 0) return;
+    
+    this.clipboard = {
+      operation: 'cut',
+      files: Array.from(this.selectedFiles).map(index => this.files[index])
+    };
+    
+    console.log('✂️ Cut files to clipboard');
+    this.updateOperationButtons(container);
+  }
+
+  copySelected(container) {
+    if (this.selectedFiles.size === 0) return;
+    
+    this.clipboard = {
+      operation: 'copy', 
+      files: Array.from(this.selectedFiles).map(index => this.files[index])
+    };
+    
+    console.log('📋 Copied files to clipboard');
+    this.updateOperationButtons(container);
+  }
+
+  async pasteFiles(container) {
+    if (!this.clipboard) return;
+    
+    try {
+      for (const file of this.clipboard.files) {
+        const newPath = this.currentPath + '/' + file.name;
+        
+        if (this.clipboard.operation === 'copy') {
+          // Copy file to new location
+          await this.copyFile(file.path, newPath);
+        } else if (this.clipboard.operation === 'cut') {
+          // Move file to new location
+          await this.moveFile(file.path, newPath);
+        }
+      }
+      
+      if (this.clipboard.operation === 'cut') {
+        this.clipboard = null; // Clear clipboard after cut operation
+      }
+      
+      await this.loadFiles();
+      this.updateFileList(container);
+      this.updateOperationButtons(container);
+      
+    } catch (error) {
+      this.showNotification('Paste operation failed: ' + error.message, 'error');
+    }
+  }
+
+  async deleteSelected(container) {
+    if (this.selectedFiles.size === 0) return;
+    
+    const confirmed = confirm(`Are you sure you want to delete ${this.selectedFiles.size} item(s)?`);
+    if (!confirmed) return;
+    
+    try {
+      for (const index of this.selectedFiles) {
+        const file = this.files[index];
+        await this.deleteFile(file.path);
+      }
+      
+      this.selectedFiles.clear();
+      await this.loadFiles();
+      this.updateFileList(container);
+      this.updateOperationButtons(container);
+      
+    } catch (error) {
+      this.showNotification('Delete operation failed: ' + error.message, 'error');
+    }
+  }
+
+  switchStorageProvider(container, providerType) {
+    console.log('🔄 Switching to storage provider:', providerType);
+    // TODO: Implement storage provider switching
+    this.showNotification(`Switching to ${providerType} storage...`, 'info');
+  }
+
+  autoOrganize(container) {
+    console.log('🤖 Auto-organizing files...');
+    // TODO: Implement AI-powered auto-organization
+    this.showNotification('AI auto-organization feature coming soon!', 'info');
+  }
+
+  findDuplicates(container) {
+    console.log('🔍 Finding duplicate files...');
+    // TODO: Implement duplicate file detection
+    this.showNotification('Duplicate finder feature coming soon!', 'info');
+  }
+
+  generateSmartTags(container) {
+    console.log('🏷️ Generating smart tags...');
+    // TODO: Implement AI-powered smart tagging
+    this.showNotification('Smart tagging feature coming soon!', 'info');
+  }
+
+  updateOperationButtons(container) {
+    // Update the state of operation buttons based on selection and clipboard
+    const cutBtn = container.querySelector('#cut-btn');
+    const copyBtn = container.querySelector('#copy-btn');
+    const pasteBtn = container.querySelector('#paste-btn');
+    const deleteBtn = container.querySelector('#delete-btn');
+    
+    const hasSelection = this.selectedFiles.size > 0;
+    const hasClipboard = this.clipboard !== null;
+    
+    if (cutBtn) cutBtn.disabled = !hasSelection;
+    if (copyBtn) copyBtn.disabled = !hasSelection;
+    if (pasteBtn) pasteBtn.disabled = !hasClipboard;
+    if (deleteBtn) deleteBtn.disabled = !hasSelection;
+  }
+
+  showNotification(message, type = 'info') {
+    // Use desktop notification system if available, otherwise console
+    if (this.desktop && this.desktop.showNotification) {
+      this.desktop.showNotification(message, type);
+    } else {
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+  }
+
+  // File system operations (mocked for now)
+  async copyFile(sourcePath, targetPath) {
+    console.log(`📋 Copying file from ${sourcePath} to ${targetPath}`);
+    // TODO: Implement actual file copy
+  }
+
+  async moveFile(sourcePath, targetPath) {
+    console.log(`✂️ Moving file from ${sourcePath} to ${targetPath}`);
+    // TODO: Implement actual file move
+  }
+
+  async deleteFile(filePath) {
+    console.log(`🗑️ Deleting file: ${filePath}`);
+    // TODO: Implement actual file deletion
   }
 }
