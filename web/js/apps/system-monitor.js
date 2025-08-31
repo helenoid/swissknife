@@ -1383,10 +1383,22 @@ export class SystemMonitorApp {
   }
 
   // Initialize method required by the desktop framework
-  initialize(container) {
+  async initialize() {
+    // App is ready for rendering
+  }
+
+  async render() {
     const windowData = this.createWindow();
-    container.innerHTML = windowData.content;
-    this.setupEventHandlers(container);
+    
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      const container = document.querySelector('.system-monitor-container');
+      if (container) {
+        this.setupEventHandlers(container);
+      }
+    }, 0);
+    
+    return windowData.content;
   }
 }
 
