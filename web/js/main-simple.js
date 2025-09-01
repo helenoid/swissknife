@@ -109,6 +109,13 @@ class SwissKnifeDesktop {
             singleton: true
         });
         
+        this.apps.set('openrouter', {
+            name: '🔄 OpenRouter Hub',
+            icon: '🔄',
+            component: 'OpenRouterApp',
+            singleton: true
+        });
+        
         this.apps.set('ipfs-explorer', {
             name: 'IPFS Explorer',
             icon: '🌐',
@@ -441,6 +448,10 @@ class SwissKnifeDesktop {
                     await this.createHuggingFaceApp(contentElement);
                     break;
                     
+                case 'OpenRouterApp':
+                    await this.createOpenRouterApp(contentElement);
+                    break;
+                    
                 case 'IPFSExplorerApp':
                     await this.createIPFSExplorerApp(contentElement);
                     break;
@@ -604,6 +615,33 @@ class SwissKnifeDesktop {
                 <div class="app-placeholder">
                     <h2>🤗 Hugging Face Hub</h2>
                     <p>Professional AI Model Hub, Dataset Management & Inference Platform</p>
+                    <p>Failed to load: ${error.message}</p>
+                    <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                </div>
+            `;
+        }
+    }
+
+    async createOpenRouterApp(contentElement) {
+        try {
+            const { OpenRouterApp } = await import('./apps/openrouter.js');
+            const openRouter = new OpenRouterApp();
+            await openRouter.initialize();
+            const html = openRouter.render();
+            contentElement.innerHTML = html;
+            
+            // Setup event handlers
+            if (openRouter.setupEventListeners) {
+                openRouter.setupEventListeners();
+            }
+            
+            return openRouter;
+        } catch (error) {
+            console.error('Failed to load OpenRouter app:', error);
+            contentElement.innerHTML = `
+                <div class="app-placeholder">
+                    <h2>🔄 OpenRouter Hub</h2>
+                    <p>Universal LLM Access Hub - Multiple AI Providers Through Single Interface</p>
                     <p>Failed to load: ${error.message}</p>
                     <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                 </div>
