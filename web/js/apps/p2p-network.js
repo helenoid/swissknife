@@ -1,5 +1,5 @@
 // P2P Network Manager Application for SwissKnife Virtual Desktop
-// Enhanced with Collaborative P2P Features - Phase 2 Implementation
+// Enhanced with Phase 4: Web Workers & Audio Workers Infrastructure
 
 (function() {
   'use strict';
@@ -13,6 +13,12 @@
   let collaborativeP2PManager = null;
   let workspaceManager = null;
   let realTimeSyncEngine = null;
+
+  // Phase 4: Worker Manager Integration
+  let workerManager = null;
+  let workerStats = new Map();
+  let distributedTasks = [];
+  let workerCapabilities = [];
 
   // Application state
   let peers = [];
@@ -29,21 +35,46 @@
   let peerPresence = new Map();
   let activeSessions = [];
 
+  // Phase 4: Worker state
+  let workerPoolActive = false;
+  let backgroundTasks = [];
+  let performanceMetrics = {
+    tasksCompleted: 0,
+    averageTaskTime: 0,
+    totalComputeTime: 0,
+    gpuUtilization: 0
+  };
+
   // Create P2P Network Manager application
   window.createP2PNetworkApp = function() {
     return {
       name: "P2P Network",
       icon: "🌐",
-      init: function(container) {
-        initializeP2PMLSystem();
+      async initialize() {
+        console.log('🌐 P2P Network App initializing...');
+      },
+      async render() {
+        return createP2PNetworkUI();
+      },
+      async init(container) {
+        await initializeP2PMLSystem();
         renderApp(container);
         setupEventHandlers(container);
         startSystemMonitoring();
+        
+        // Phase 4: Initialize Worker Manager
+        await initializeWorkerManager();
       },
-      destroy: function() {
+      async destroy() {
         if (P2PMLSystem) {
           P2PMLSystem.stop();
         }
+        
+        // Phase 4: Shutdown Worker Manager
+        if (workerManager) {
+          await workerManager.shutdown();
+        }
+        
         // Clean up global functions
         delete window.p2pNetworkApp;
       }
@@ -159,6 +190,106 @@
       
     } catch (error) {
       console.error('Failed to initialize Collaborative P2P:', error);
+    }
+  }
+
+  // Phase 4: Initialize Worker Manager
+  async function initializeWorkerManager() {
+    try {
+      console.log('🛠️ Initializing Worker Manager...');
+      
+      // Dynamically import WorkerManager
+      const { WorkerManager } = await import('/src/lib/collaboration/WorkerManager.js');
+      
+      // Initialize with P2P and IPFS integration
+      workerManager = new WorkerManager(collaborativeP2PManager, null);
+      
+      // Setup worker event handlers
+      workerManager.on('initialized', (data) => {
+        workerPoolActive = true;
+        workerCapabilities = data.capabilities || [];
+        console.log(`✅ Worker Manager initialized with ${data.localWorkers} workers`);
+        updateWorkerDisplay();
+      });
+
+      workerManager.on('workerCreated', (data) => {
+        console.log(`🔧 Worker created: ${data.workerId} (${data.type})`);
+        updateWorkerDisplay();
+      });
+
+      workerManager.on('taskQueued', (data) => {
+        distributedTasks.push({
+          ...data.task,
+          status: 'queued',
+          queuedAt: new Date()
+        });
+        updateTaskDisplay();
+      });
+
+      workerManager.on('taskAssigned', (data) => {
+        const task = distributedTasks.find(t => t.id === data.taskId);
+        if (task) {
+          task.status = 'running';
+          task.assignedWorker = data.workerId;
+          task.startedAt = new Date();
+        }
+        updateTaskDisplay();
+      });
+
+      workerManager.on('workerError', (data) => {
+        console.error(`❌ Worker error: ${data.workerId}`, data.error);
+        updateWorkerDisplay();
+      });
+
+      // Initialize worker manager
+      await workerManager.initialize();
+      
+      // Start background monitoring
+      startWorkerMonitoring();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize Worker Manager:', error);
+      workerPoolActive = false;
+    }
+  }
+
+  // Phase 4: Start worker monitoring
+  function startWorkerMonitoring() {
+    setInterval(() => {
+      if (workerManager) {
+        const stats = workerManager.getStats();
+        updateWorkerStats(stats);
+        
+        // Update performance metrics
+        performanceMetrics.gpuUtilization = calculateGPUUtilization(stats);
+        updatePerformanceDisplay();
+      }
+    }, 2000); // Update every 2 seconds
+  }
+
+  // Phase 4: Calculate GPU utilization
+  function calculateGPUUtilization(stats) {
+    const gpuWorkers = stats.workerStats.filter(w => w.type === 'gpu-compute' || w.type === 'ai-inference');
+    const busyGpuWorkers = gpuWorkers.filter(w => w.status === 'busy');
+    return gpuWorkers.length > 0 ? (busyGpuWorkers.length / gpuWorkers.length) * 100 : 0;
+  }
+
+  // Phase 4: Update worker stats
+  function updateWorkerStats(stats) {
+    // Store current stats
+    workerStats.set('current', {
+      ...stats,
+      timestamp: Date.now()
+    });
+    
+    // Update task completion metrics
+    const completedTasks = distributedTasks.filter(t => t.status === 'completed');
+    if (completedTasks.length > 0) {
+      const totalTime = completedTasks.reduce((sum, task) => {
+        return sum + (task.completedAt - task.startedAt);
+      }, 0);
+      performanceMetrics.averageTaskTime = totalTime / completedTasks.length;
+      performanceMetrics.tasksCompleted = completedTasks.length;
     }
   }
           updateDisplays();
