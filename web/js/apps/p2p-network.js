@@ -20,6 +20,23 @@
   let distributedTasks = [];
   let workerCapabilities = [];
 
+  // Phase 5: CloudFlare Integration
+  let cloudflareIntegration = null;
+  let cloudflareConfig = {
+    enableWorkers: true,
+    enableR2: true,
+    enableCDN: true,
+    workerNamespace: 'swissknife-workers',
+    r2BucketName: 'swissknife-storage'
+  };
+  let cloudflareStats = {
+    deployedWorkers: 0,
+    activeTasks: 0,
+    totalExecutions: 0,
+    cacheHitRate: 0.85
+  };
+  let hybridTasks = [];
+
   // Application state
   let peers = [];
   let tasks = [];
@@ -64,6 +81,9 @@
         
         // Phase 4: Initialize Worker Manager
         await initializeWorkerManager();
+        
+        // Phase 5: Initialize CloudFlare Integration
+        await initializeCloudFlareIntegration();
       },
       async destroy() {
         if (P2PMLSystem) {
@@ -73,6 +93,11 @@
         // Phase 4: Shutdown Worker Manager
         if (workerManager) {
           await workerManager.shutdown();
+        }
+        
+        // Phase 5: Shutdown CloudFlare Integration
+        if (cloudflareIntegration) {
+          await cloudflareIntegration.shutdown();
         }
         
         // Clean up global functions
@@ -250,6 +275,126 @@
     } catch (error) {
       console.error('❌ Failed to initialize Worker Manager:', error);
       workerPoolActive = false;
+    }
+  }
+
+  // Phase 5: Initialize CloudFlare Integration
+  async function initializeCloudFlareIntegration() {
+    try {
+      console.log('🌩️ Initializing CloudFlare Integration...');
+      
+      // Dynamically import CloudFlare modules
+      const { CloudFlareIntegration } = await import('/src/cloudflare/cloudflare-integration.js');
+      const { EnhancedWorkerManager } = await import('/src/cloudflare/enhanced-worker-manager.js');
+      
+      // Initialize CloudFlare integration
+      cloudflareIntegration = new CloudFlareIntegration(cloudflareConfig);
+      
+      // Setup CloudFlare event handlers
+      cloudflareIntegration.on('initialized', () => {
+        console.log('✅ CloudFlare Integration initialized successfully');
+        cloudflareStats.initialized = true;
+        updateCloudFlareDisplay();
+      });
+
+      cloudflareIntegration.on('workerDeployed', (data) => {
+        console.log(`🚀 CloudFlare Worker deployed: ${data.name}`);
+        cloudflareStats.deployedWorkers++;
+        updateCloudFlareDisplay();
+      });
+
+      cloudflareIntegration.on('taskStarted', (task) => {
+        hybridTasks.push({
+          ...task,
+          status: 'running',
+          location: 'cloudflare',
+          startedAt: new Date()
+        });
+        cloudflareStats.activeTasks++;
+        updateHybridTaskDisplay();
+      });
+
+      cloudflareIntegration.on('taskCompleted', (data) => {
+        const task = hybridTasks.find(t => t.id === data.task.id);
+        if (task) {
+          task.status = 'completed';
+          task.result = data.result;
+          task.completedAt = new Date();
+        }
+        cloudflareStats.activeTasks--;
+        cloudflareStats.totalExecutions++;
+        updateHybridTaskDisplay();
+      });
+
+      cloudflareIntegration.on('taskFailed', (data) => {
+        const task = hybridTasks.find(t => t.id === data.task.id);
+        if (task) {
+          task.status = 'failed';
+          task.error = data.error;
+          task.completedAt = new Date();
+        }
+        cloudflareStats.activeTasks--;
+        updateHybridTaskDisplay();
+      });
+
+      cloudflareIntegration.on('cached', (data) => {
+        console.log(`💾 Result cached: ${data.key}`);
+        updateCloudFlareDisplay();
+      });
+
+      cloudflareIntegration.on('fileUploaded', (data) => {
+        console.log(`📤 File uploaded to R2: ${data.key}`);
+        updateCloudFlareDisplay();
+      });
+
+      // Initialize CloudFlare integration
+      await cloudflareIntegration.initialize();
+      
+      // Deploy sample workers
+      await deploySampleWorkers();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize CloudFlare Integration:', error);
+      cloudflareStats.initialized = false;
+    }
+  }
+
+  // Deploy sample CloudFlare workers
+  async function deploySampleWorkers() {
+    try {
+      const { getWorkerTemplate } = await import('/src/cloudflare/worker-templates.js');
+      
+      // Deploy AI Inference Worker
+      const aiWorkerScript = getWorkerTemplate('ai-inference');
+      await cloudflareIntegration.deployWorker(aiWorkerScript, {
+        name: 'swissknife-ai-inference',
+        script: aiWorkerScript,
+        environment: 'development',
+        routes: ['*/ai-inference/*']
+      });
+
+      // Deploy Compute Worker
+      const computeWorkerScript = getWorkerTemplate('compute');
+      await cloudflareIntegration.deployWorker(computeWorkerScript, {
+        name: 'swissknife-compute',
+        script: computeWorkerScript,
+        environment: 'development',
+        routes: ['*/compute/*']
+      });
+
+      // Deploy File Processing Worker
+      const fileWorkerScript = getWorkerTemplate('file-processing');
+      await cloudflareIntegration.deployWorker(fileWorkerScript, {
+        name: 'swissknife-file-processing',
+        script: fileWorkerScript,
+        environment: 'development',
+        routes: ['*/file-processing/*']
+      });
+
+      console.log('✅ Sample CloudFlare workers deployed successfully');
+      
+    } catch (error) {
+      console.error('❌ Failed to deploy sample workers:', error);
     }
   }
 
@@ -1044,6 +1189,7 @@
             <button class="tab-button" data-tab="models">Models</button>
             <button class="tab-button" data-tab="ipfs-models">IPFS Models</button>
             <button class="tab-button" data-tab="tasks">Tasks</button>
+            <button class="tab-button" data-tab="cloudflare">CloudFlare</button>
             <button class="tab-button" data-tab="resources">Resources</button>
           </div>
 
@@ -1065,6 +1211,10 @@
 
           <div class="tab-content" id="tasks-tab">
             ${renderTasksTab()}
+          </div>
+
+          <div class="tab-content" id="cloudflare-tab">
+            ${renderCloudFlareTab()}
           </div>
 
           <div class="tab-content" id="resources-tab">
@@ -1848,6 +1998,447 @@
     `;
   }
 
+  function renderCloudFlareTab() {
+    const cfStats = cloudflareStats;
+    const hybridTasksList = hybridTasks.slice(-10); // Show last 10 tasks
+    
+    return `
+      <div class="cloudflare-section">
+        <div class="section-header">
+          <h3>CloudFlare Integration</h3>
+          <div class="cloudflare-actions">
+            <button class="action-btn primary" onclick="window.p2pNetworkApp.deployWorker()">
+              <span class="btn-icon">🚀</span>
+              Deploy Worker
+            </button>
+            <button class="action-btn" onclick="window.p2pNetworkApp.testCloudFlareTask()">
+              <span class="btn-icon">⚡</span>
+              Test Task
+            </button>
+            <button class="action-btn" onclick="window.p2pNetworkApp.uploadToR2()">
+              <span class="btn-icon">📤</span>
+              Upload to R2
+            </button>
+          </div>
+        </div>
+
+        <div class="cloudflare-tabs">
+          <button class="cf-tab-btn active" data-cf-tab="overview">Overview</button>
+          <button class="cf-tab-btn" data-cf-tab="workers">Workers</button>
+          <button class="cf-tab-btn" data-cf-tab="tasks">Hybrid Tasks</button>
+          <button class="cf-tab-btn" data-cf-tab="storage">R2 Storage</button>
+          <button class="cf-tab-btn" data-cf-tab="cdn">CDN Cache</button>
+        </div>
+
+        <div class="cloudflare-content">
+          <div class="cf-tab-content active" id="overview-cf">
+            <div class="cf-overview-stats">
+              <div class="cf-stat-card">
+                <div class="cf-stat-icon">⚡</div>
+                <div class="cf-stat-info">
+                  <div class="cf-stat-value">${cfStats.deployedWorkers}</div>
+                  <div class="cf-stat-label">Deployed Workers</div>
+                </div>
+              </div>
+              
+              <div class="cf-stat-card">
+                <div class="cf-stat-icon">🏃</div>
+                <div class="cf-stat-info">
+                  <div class="cf-stat-value">${cfStats.activeTasks}</div>
+                  <div class="cf-stat-label">Active Tasks</div>
+                </div>
+              </div>
+              
+              <div class="cf-stat-card">
+                <div class="cf-stat-icon">📊</div>
+                <div class="cf-stat-info">
+                  <div class="cf-stat-value">${cfStats.totalExecutions}</div>
+                  <div class="cf-stat-label">Total Executions</div>
+                </div>
+              </div>
+              
+              <div class="cf-stat-card">
+                <div class="cf-stat-icon">💾</div>
+                <div class="cf-stat-info">
+                  <div class="cf-stat-value">${(cfStats.cacheHitRate * 100).toFixed(1)}%</div>
+                  <div class="cf-stat-label">Cache Hit Rate</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cf-integration-status">
+              <h4>Integration Status</h4>
+              <div class="cf-status-grid">
+                <div class="cf-status-item ${cloudflareConfig.enableWorkers ? 'enabled' : 'disabled'}">
+                  <span class="cf-status-icon">${cloudflareConfig.enableWorkers ? '✅' : '❌'}</span>
+                  <span class="cf-status-label">CloudFlare Workers</span>
+                </div>
+                <div class="cf-status-item ${cloudflareConfig.enableR2 ? 'enabled' : 'disabled'}">
+                  <span class="cf-status-icon">${cloudflareConfig.enableR2 ? '✅' : '❌'}</span>
+                  <span class="cf-status-label">R2 Storage</span>
+                </div>
+                <div class="cf-status-item ${cloudflareConfig.enableCDN ? 'enabled' : 'disabled'}">
+                  <span class="cf-status-icon">${cloudflareConfig.enableCDN ? '✅' : '❌'}</span>
+                  <span class="cf-status-label">CDN Cache</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="cf-quick-actions">
+              <h4>Quick Actions</h4>
+              <div class="cf-actions-grid">
+                <button class="cf-action-card" onclick="window.p2pNetworkApp.testAIInference()">
+                  <div class="cf-action-icon">🤖</div>
+                  <div class="cf-action-label">Test AI Inference</div>
+                </button>
+                <button class="cf-action-card" onclick="window.p2pNetworkApp.testCompute()">
+                  <div class="cf-action-icon">🧮</div>
+                  <div class="cf-action-label">Test Compute</div>
+                </button>
+                <button class="cf-action-card" onclick="window.p2pNetworkApp.testFileProcessing()">
+                  <div class="cf-action-icon">📁</div>
+                  <div class="cf-action-label">Process File</div>
+                </button>
+                <button class="cf-action-card" onclick="window.p2pNetworkApp.testDataAnalysis()">
+                  <div class="cf-action-icon">📊</div>
+                  <div class="cf-action-label">Analyze Data</div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cf-tab-content" id="workers-cf">
+            <h4>Deployed CloudFlare Workers</h4>
+            <div class="cf-workers-list">
+              <div class="cf-worker-card">
+                <div class="cf-worker-header">
+                  <div class="cf-worker-name">swissknife-ai-inference</div>
+                  <div class="cf-worker-status active">Active</div>
+                </div>
+                <div class="cf-worker-details">
+                  <div class="cf-worker-url">https://swissknife-ai-inference.workers.dev</div>
+                  <div class="cf-worker-routes">*/ai-inference/*</div>
+                </div>
+                <div class="cf-worker-actions">
+                  <button class="action-btn small" onclick="window.p2pNetworkApp.testWorker('ai-inference')">Test</button>
+                  <button class="action-btn small" onclick="window.p2pNetworkApp.viewWorkerLogs('ai-inference')">Logs</button>
+                </div>
+              </div>
+
+              <div class="cf-worker-card">
+                <div class="cf-worker-header">
+                  <div class="cf-worker-name">swissknife-compute</div>
+                  <div class="cf-worker-status active">Active</div>
+                </div>
+                <div class="cf-worker-details">
+                  <div class="cf-worker-url">https://swissknife-compute.workers.dev</div>
+                  <div class="cf-worker-routes">*/compute/*</div>
+                </div>
+                <div class="cf-worker-actions">
+                  <button class="action-btn small" onclick="window.p2pNetworkApp.testWorker('compute')">Test</button>
+                  <button class="action-btn small" onclick="window.p2pNetworkApp.viewWorkerLogs('compute')">Logs</button>
+                </div>
+              </div>
+
+              <div class="cf-worker-card">
+                <div class="cf-worker-header">
+                  <div class="cf-worker-name">swissknife-file-processing</div>
+                  <div class="cf-worker-status active">Active</div>
+                </div>
+                <div class="cf-worker-details">
+                  <div class="cf-worker-url">https://swissknife-file-processing.workers.dev</div>
+                  <div class="cf-worker-routes">*/file-processing/*</div>
+                </div>
+                <div class="cf-worker-actions">
+                  <button class="action-btn small" onclick="window.p2pNetworkApp.testWorker('file-processing')">Test</button>
+                  <button class="action-btn small" onclick="window.p2pNetworkApp.viewWorkerLogs('file-processing')">Logs</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cf-tab-content" id="tasks-cf">
+            <h4>Hybrid Task Execution</h4>
+            <div class="cf-tasks-list">
+              ${hybridTasksList.map(task => `
+                <div class="cf-task-card ${task.status}">
+                  <div class="cf-task-header">
+                    <div class="cf-task-id">${task.id}</div>
+                    <div class="cf-task-location">${task.location}</div>
+                    <div class="cf-task-status ${task.status}">
+                      <span class="status-dot"></span>
+                      ${task.status}
+                    </div>
+                  </div>
+                  
+                  <div class="cf-task-details">
+                    <div class="cf-task-type">${task.type}</div>
+                    <div class="cf-task-time">
+                      ${task.completedAt ? 
+                        `Completed in ${task.completedAt - task.startedAt}ms` : 
+                        `Running for ${Date.now() - task.startedAt}ms`
+                      }
+                    </div>
+                  </div>
+                  
+                  ${task.result ? `
+                    <div class="cf-task-result">
+                      <strong>Result:</strong> ${JSON.stringify(task.result).substring(0, 100)}...
+                    </div>
+                  ` : ''}
+                  
+                  ${task.error ? `
+                    <div class="cf-task-error">
+                      <strong>Error:</strong> ${task.error}
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="cf-tab-content" id="storage-cf">
+            <h4>CloudFlare R2 Storage</h4>
+            <div class="cf-storage-stats">
+              <div class="cf-storage-stat">
+                <div class="cf-stat-label">Total Files</div>
+                <div class="cf-stat-value">0</div>
+              </div>
+              <div class="cf-storage-stat">
+                <div class="cf-stat-label">Storage Used</div>
+                <div class="cf-stat-value">0 MB</div>
+              </div>
+              <div class="cf-storage-stat">
+                <div class="cf-stat-label">Bandwidth</div>
+                <div class="cf-stat-value">0 MB</div>
+              </div>
+            </div>
+            
+            <div class="cf-storage-actions">
+              <button class="action-btn primary" onclick="window.p2pNetworkApp.uploadTestFile()">
+                <span class="btn-icon">📤</span>
+                Upload Test File
+              </button>
+              <button class="action-btn" onclick="window.p2pNetworkApp.listR2Files()">
+                <span class="btn-icon">📋</span>
+                List Files
+              </button>
+            </div>
+          </div>
+
+          <div class="cf-tab-content" id="cdn-cf">
+            <h4>CloudFlare CDN Cache</h4>
+            <div class="cf-cdn-stats">
+              <div class="cf-cdn-stat">
+                <div class="cf-stat-label">Cache Hit Rate</div>
+                <div class="cf-stat-value">${(cfStats.cacheHitRate * 100).toFixed(1)}%</div>
+              </div>
+              <div class="cf-cdn-stat">
+                <div class="cf-stat-label">Total Requests</div>
+                <div class="cf-stat-value">0</div>
+              </div>
+              <div class="cf-cdn-stat">
+                <div class="cf-stat-label">Bandwidth Saved</div>
+                <div class="cf-stat-value">0 MB</div>
+              </div>
+            </div>
+            
+            <div class="cf-cdn-actions">
+              <button class="action-btn primary" onclick="window.p2pNetworkApp.testCache()">
+                <span class="btn-icon">💾</span>
+                Test Cache
+              </button>
+              <button class="action-btn" onclick="window.p2pNetworkApp.invalidateCache()">
+                <span class="btn-icon">🗑️</span>
+                Invalidate Cache
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        .cloudflare-section {
+          padding: 20px;
+        }
+        
+        .cloudflare-tabs {
+          display: flex;
+          gap: 8px;
+          margin: 20px 0;
+          border-bottom: 2px solid #e9ecef;
+        }
+        
+        .cf-tab-btn {
+          padding: 8px 16px;
+          border: none;
+          background: none;
+          cursor: pointer;
+          font-weight: 500;
+          border-radius: 6px 6px 0 0;
+          transition: all 0.2s ease;
+        }
+        
+        .cf-tab-btn.active {
+          background: linear-gradient(135deg, #007bff, #0056b3);
+          color: white;
+        }
+        
+        .cf-tab-content {
+          display: none;
+          padding: 20px 0;
+        }
+        
+        .cf-tab-content.active {
+          display: block;
+        }
+        
+        .cf-overview-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          margin-bottom: 30px;
+        }
+        
+        .cf-stat-card {
+          background: linear-gradient(135deg, #f8f9fa, #ffffff);
+          border: 1px solid #e9ecef;
+          border-radius: 12px;
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        
+        .cf-stat-icon {
+          font-size: 24px;
+        }
+        
+        .cf-stat-value {
+          font-size: 24px;
+          font-weight: bold;
+          color: #007bff;
+        }
+        
+        .cf-stat-label {
+          font-size: 14px;
+          color: #6c757d;
+        }
+        
+        .cf-integration-status {
+          margin: 30px 0;
+        }
+        
+        .cf-status-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 12px;
+          margin-top: 16px;
+        }
+        
+        .cf-status-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px solid #e9ecef;
+        }
+        
+        .cf-status-item.enabled {
+          background: linear-gradient(135deg, #d4edda, #c3e6cb);
+          border-color: #c3e6cb;
+        }
+        
+        .cf-status-item.disabled {
+          background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+          border-color: #f5c6cb;
+        }
+        
+        .cf-actions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 12px;
+          margin-top: 16px;
+        }
+        
+        .cf-action-card {
+          background: linear-gradient(135deg, #f8f9fa, #ffffff);
+          border: 1px solid #e9ecef;
+          border-radius: 8px;
+          padding: 16px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-align: center;
+        }
+        
+        .cf-action-card:hover {
+          background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+          transform: translateY(-2px);
+        }
+        
+        .cf-action-icon {
+          font-size: 24px;
+          margin-bottom: 8px;
+        }
+        
+        .cf-worker-card, .cf-task-card {
+          background: linear-gradient(135deg, #f8f9fa, #ffffff);
+          border: 1px solid #e9ecef;
+          border-radius: 8px;
+          padding: 16px;
+          margin-bottom: 12px;
+        }
+        
+        .cf-worker-header, .cf-task-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+        
+        .cf-worker-status.active, .cf-task-status.completed {
+          background: linear-gradient(135deg, #28a745, #20c997);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+        }
+        
+        .cf-task-status.running {
+          background: linear-gradient(135deg, #ffc107, #fd7e14);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+        }
+        
+        .cf-task-status.failed {
+          background: linear-gradient(135deg, #dc3545, #c82333);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+        }
+        
+        .cf-storage-stats, .cf-cdn-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 16px;
+          margin: 20px 0;
+        }
+        
+        .cf-storage-stat, .cf-cdn-stat {
+          text-align: center;
+          padding: 16px;
+          background: linear-gradient(135deg, #f8f9fa, #ffffff);
+          border: 1px solid #e9ecef;
+          border-radius: 8px;
+        }
+      </style>
+    `;
+  }
+
   function renderNetworkTopology() {
     return `
       <div class="topology-container">
@@ -2529,6 +3120,10 @@ Availability:
           case 'tasks':
             tabContent.innerHTML = renderTasksTab();
             break;
+          case 'cloudflare':
+            tabContent.innerHTML = renderCloudFlareTab();
+            setupCloudFlareTabHandlers();
+            break;
           case 'resources':
             tabContent.innerHTML = renderResourcesTab();
             break;
@@ -2556,6 +3151,49 @@ Availability:
         });
       });
     });
+  }
+
+  function setupCloudFlareTabHandlers() {
+    const cfTabBtns = document.querySelectorAll('.cf-tab-btn');
+    const cfTabContents = document.querySelectorAll('.cf-tab-content');
+
+    cfTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-cf-tab');
+        
+        cfTabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        cfTabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === `${tabId}-cf`) {
+            content.classList.add('active');
+          }
+        });
+      });
+    });
+  }
+
+  function updateCloudFlareDisplay() {
+    const cfTab = document.getElementById('cloudflare-tab');
+    if (cfTab && cfTab.classList.contains('active')) {
+      cfTab.innerHTML = renderCloudFlareTab();
+      setupCloudFlareTabHandlers();
+    }
+  }
+
+  function updateHybridTaskDisplay() {
+    updateCloudFlareDisplay();
+  }
+
+  function updateWorkerDisplay() {
+    // Update worker displays
+    updateDisplays();
+  }
+
+  function updateTaskDisplay() {
+    // Update task displays
+    updateDisplays();
   }
 
   function setupMockP2PManager() {

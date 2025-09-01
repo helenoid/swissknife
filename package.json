@@ -38,6 +38,8 @@
     "desktop:collaborative": "vite dev --config vite.web.config.ts --mode collaborative",
     "desktop:distributed": "vite dev --config vite.web.config.ts --mode distributed",
     "desktop:file-sharing": "vite dev --config vite.web.config.ts --mode file-sharing",
+    "desktop:cloudflare": "vite dev --config vite.web.config.ts --mode cloudflare",
+    "desktop:hybrid": "vite dev --config vite.web.config.ts --mode hybrid",
     "dev:collaborative": "vite dev --config vite.web.config.ts --mode collaborative --open",
     "virtual-desktop": "vite dev --config vite.web.config.ts",
     "webgui": "vite dev --config vite.web.config.ts",
