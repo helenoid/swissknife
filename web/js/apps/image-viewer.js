@@ -1237,6 +1237,146 @@ export class ImageViewerApp {
     return document.querySelector('.image-viewer-container') && 
            !document.activeElement.matches('input, textarea, select');
   }
+
+  // Modern app framework methods
+  async initialize() {
+    console.log('🚀 Initializing Image Viewer app...');
+    this.swissknife = this.desktop.swissknife;
+    this.initializeApp();
+    console.log('✅ Image Viewer initialized');
+    return this;
+  }
+
+  async render() {
+    console.log('🎨 Rendering Image Viewer app...');
+    const windowConfig = this.createWindowConfig();
+    
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      const container = document.querySelector('.image-viewer-container');
+      if (container) {
+        this.setupEventHandlers(container);
+        this.setupKeyboardHandlers();
+        this.updateDisplay();
+      }
+    }, 100);
+    
+    return windowConfig;
+  }
+
+  createWindowConfig() {
+    return {
+      title: '🖼️ Image Viewer',
+      content: this.getWindowContent(),
+      width: 1200,
+      height: 800,
+      resizable: true,
+      x: 150,
+      y: 100
+    };
+  }
+
+  getWindowContent() {
+    return `
+      <div class="image-viewer-container">
+        <!-- Toolbar -->
+        <div class="image-toolbar">
+          <div class="toolbar-section">
+            <button class="toolbar-btn" id="open-files-btn" title="Open Files">📁</button>
+            <button class="toolbar-btn" id="open-folder-btn" title="Open Folder">📂</button>
+            <button class="toolbar-btn" id="open-url-btn" title="Open URL">🔗</button>
+          </div>
+          <div class="toolbar-section">
+            <button class="toolbar-btn" id="prev-image-btn" title="Previous Image" ${this.images.length <= 1 ? 'disabled' : ''}>⬅️</button>
+            <span class="image-counter" id="image-counter">
+              ${this.currentImage ? `${this.currentImageIndex + 1} of ${this.images.length}` : 'No images'}
+            </span>
+            <button class="toolbar-btn" id="next-image-btn" title="Next Image" ${this.images.length <= 1 ? 'disabled' : ''}>➡️</button>
+          </div>
+          <div class="toolbar-section">
+            <button class="toolbar-btn" id="zoom-out-btn" title="Zoom Out">🔍-</button>
+            <span class="zoom-level" id="zoom-level">${Math.round(this.zoom * 100)}%</span>
+            <button class="toolbar-btn" id="zoom-in-btn" title="Zoom In">🔍+</button>
+            <button class="toolbar-btn" id="fit-screen-btn" title="Fit to Screen">📐</button>
+          </div>
+          <div class="toolbar-section">
+            <button class="toolbar-btn" id="rotate-left-btn" title="Rotate Left">↺</button>
+            <button class="toolbar-btn" id="rotate-right-btn" title="Rotate Right">↻</button>
+            <button class="toolbar-btn" id="flip-horizontal-btn" title="Flip Horizontal">⟷</button>
+            <button class="toolbar-btn" id="flip-vertical-btn" title="Flip Vertical">↕️</button>
+          </div>
+          <div class="toolbar-section">
+            <button class="toolbar-btn ${this.editMode ? 'active' : ''}" id="edit-mode-btn" title="Edit Mode">✏️</button>
+            <button class="toolbar-btn" id="save-btn" title="Save Image">💾</button>
+            <button class="toolbar-btn" id="share-btn" title="Share">📤</button>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="image-content">
+          <!-- Sidebar -->
+          <div class="image-sidebar ${this.sidebarVisible ? 'visible' : 'hidden'}">
+            <!-- Image List -->
+            <div class="sidebar-section">
+              <div class="section-header">
+                <h4>Images (${this.images.length})</h4>
+                <button class="collapse-btn" data-target="image-list">−</button>
+              </div>
+              <div class="image-list" id="image-list">
+                ${this.renderImageList()}
+              </div>
+            </div>
+
+            <!-- Image Info -->
+            <div class="sidebar-section">
+              <div class="section-header">
+                <h4>Image Info</h4>
+                <button class="collapse-btn" data-target="image-info">−</button>
+              </div>
+              <div class="image-info" id="image-info">
+                ${this.renderImageInfo()}
+              </div>
+            </div>
+
+            <!-- Editing Tools -->
+            <div class="sidebar-section">
+              <div class="section-header">
+                <h4>Editing Tools</h4>
+                <button class="collapse-btn" data-target="editing-tools">−</button>
+              </div>
+              <div class="editing-tools" id="editing-tools">
+                ${this.renderEditingTools()}
+              </div>
+            </div>
+
+            <!-- AI Features -->
+            <div class="sidebar-section">
+              <div class="section-header">
+                <h4>AI Features</h4>
+                <button class="collapse-btn" data-target="ai-features">−</button>
+              </div>
+              <div class="ai-features" id="ai-features">
+                ${this.renderAIFeatures()}
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Display -->
+          <div class="image-display" id="image-display">
+            ${this.currentImage ? this.renderImageDisplay() : this.renderWelcomeScreen()}
+          </div>
+        </div>
+
+        <!-- Image Actions Panel -->
+        <div class="actions-panel">
+          <button class="action-btn" id="fullscreen-btn">🖥️ Fullscreen</button>
+          <button class="action-btn" id="slideshow-btn">▶️ Slideshow</button>
+          <button class="action-btn" id="compare-btn">🔀 Compare</button>
+          <button class="action-btn" id="metadata-btn">📋 Metadata</button>
+        </div>
+      </div>
+    `;
+  }
 }
 
 // Register the app
