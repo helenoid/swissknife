@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "lib": [
       "ES2022",
       "DOM",
@@ -23,7 +23,10 @@
     "paths": {
       "@/*": ["src/*"],
       "@src/*": ["src/*"],
-      "@dist/*": ["dist/*"]
+      "@dist/*": ["dist/*"],
+      "@shared/*": ["src/shared/*"],
+      "@web/*": ["web/src/*"],
+      "@ipfs/*": ["ipfs_accelerate_js/src/*"]
     },
     "types": ["node", "jest"],
     "allowSyntheticDefaultImports": true,
@@ -41,6 +44,11 @@
       }
     ]
   },
+  "references": [
+    { "path": "./src" },
+    { "path": "./web" },
+    { "path": "./ipfs_accelerate_js" }
+  ],
   "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"],
   "exclude": ["node_modules", "dist"],
   "ts-node": {

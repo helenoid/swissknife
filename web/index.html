@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SwissKnife Web Desktop</title>
+    <link rel="icon" href="/favicon.ico">
+    
+    <!-- Desktop CSS Files -->
+    <link rel="stylesheet" href="/css/desktop.css">
+    <link rel="stylesheet" href="/css/windows.css">
+    <link rel="stylesheet" href="/css/terminal.css">
+    <link rel="stylesheet" href="/css/apps.css">
+    <link rel="stylesheet" href="/css/aero-enhanced.css">
+    <link rel="stylesheet" href="/css/model-browser.css">
+    <link rel="stylesheet" href="/css/strudel.css">
+    <link rel="stylesheet" href="/css/strudel-grandma.css">
+    <link rel="stylesheet" href="/css/vibecode-enhanced.css">
+    <link rel="stylesheet" href="/css/strudel-ai-daw.css">
+    <link rel="stylesheet" href="/css/api-keys-enhanced.css">
+    <link rel="stylesheet" href="/css/github-oauth.css">
 </head>
 <body>
     <!-- Desktop Environment -->
@@ -17,9 +32,13 @@
                 <div class="icon-image">🖥️</div>
                 <div class="icon-label">Terminal</div>
             </div>
-            <div class="icon" data-app="vibecode" title="VibeCode Editor">
-                <div class="icon-image">📝</div>
+            <div class="icon" data-app="vibecode" title="VibeCode - AI Streamlit Editor">
+                <div class="icon-image">🎯</div>
                 <div class="icon-label">VibeCode</div>
+            </div>
+            <div class="icon" data-app="strudel-ai-daw" title="Strudel AI DAW">
+                <div class="icon-image">🎵</div>
+                <div class="icon-label">Strudel AI</div>
             </div>
             <div class="icon" data-app="ai-chat" title="AI Chat">
                 <div class="icon-image">🤖</div>
@@ -33,9 +52,9 @@
                 <div class="icon-image">⚡</div>
                 <div class="icon-label">Tasks</div>
             </div>
-            <div class="icon" data-app="model-browser" title="Model Browser">
+            <div class="icon" data-app="model-browser" title="AI Model Manager">
                 <div class="icon-image">🧠</div>
-                <div class="icon-label">Models</div>
+                <div class="icon-label">AI Models</div>
             </div>
             <div class="icon" data-app="ipfs-explorer" title="IPFS Explorer">
                 <div class="icon-image">🌐</div>
@@ -57,6 +76,14 @@
                 <div class="icon-image">🔑</div>
                 <div class="icon-label">API Keys</div>
             </div>
+            <div class="icon" data-app="github" title="GitHub">
+                <div class="icon-image">🐙</div>
+                <div class="icon-label">GitHub</div>
+            </div>
+            <div class="icon" data-app="oauth-login" title="OAuth Login">
+                <div class="icon-image">🔐</div>
+                <div class="icon-label">OAuth</div>
+            </div>
             <div class="icon" data-app="cron" title="AI Cron">
                 <div class="icon-image">⏰</div>
                 <div class="icon-label">AI Cron</div>
@@ -69,6 +96,38 @@
                 <div class="icon-image">🎵</div>
                 <div class="icon-label">Music Studio</div>
             </div>
+            <div class="icon" data-app="p2p-network" title="P2P Network Manager">
+                <div class="icon-image">🔗</div>
+                <div class="icon-label">P2P Network</div>
+            </div>
+            <div class="icon" data-app="neural-network-designer" title="Neural Network Designer">
+                <div class="icon-image">🧠</div>
+                <div class="icon-label">NN Designer</div>
+            </div>
+            <div class="icon" data-app="training-manager" title="Training Manager">
+                <div class="icon-image">🎯</div>
+                <div class="icon-label">Training</div>
+            </div>
+            <div class="icon" data-app="calculator" title="Calculator">
+                <div class="icon-image">🧮</div>
+                <div class="icon-label">Calculator</div>
+            </div>
+            <div class="icon" data-app="clock" title="Clock & Timers">
+                <div class="icon-image">🕐</div>
+                <div class="icon-label">Clock</div>
+            </div>
+            <div class="icon" data-app="image-viewer" title="Image Viewer">
+                <div class="icon-image">🖼️</div>
+                <div class="icon-label">Images</div>
+            </div>
+            <div class="icon" data-app="notes" title="Notes">
+                <div class="icon-image">📝</div>
+                <div class="icon-label">Notes</div>
+            </div>
+            <div class="icon" data-app="system-monitor" title="System Monitor">
+                <div class="icon-image">📊</div>
+                <div class="icon-label">Monitor</div>
+            </div>
         </div>
         
         <!-- Windows Container -->
@@ -77,9 +136,11 @@
         <!-- System Panel/Taskbar -->
         <div class="system-panel">
             <div class="panel-left">
-                <div class="system-menu-button" id="system-menu-btn">
-                    <span class="swiss-logo">🇨🇭</span>
-                    <span>SwissKnife</span>
+                <div class="system-menu-button swiss-flag-square" id="system-menu-btn">
+                    <div class="swiss-flag-icon">
+                        <div class="flag-cross-horizontal"></div>
+                        <div class="flag-cross-vertical"></div>
+                    </div>
                 </div>
                 <div class="taskbar-apps" id="taskbar-apps"></div>
             </div>
@@ -94,11 +155,12 @@
         </div>
         
         <!-- System Menu -->
-        <div id="system-menu" class="system-menu">
+        <div id="system-menu" class="system-menu hidden">
             <div class="menu-section">
                 <div class="menu-title">Applications</div>
                 <div class="menu-item" data-app="terminal">🖥️ Terminal</div>
-                <div class="menu-item" data-app="vibecode">📝 VibeCode</div>
+                <div class="menu-item" data-app="vibecode">🎯 VibeCode - AI Streamlit Editor</div>
+                <div class="menu-item" data-app="strudel-ai-daw">🎵 Strudel AI DAW</div>
                 <div class="menu-item" data-app="ai-chat">🤖 AI Chat</div>
                 <div class="menu-item" data-app="file-manager">📁 File Manager</div>
             </div>
@@ -114,9 +176,20 @@
                 <div class="menu-item" data-app="settings">⚙️ Settings</div>
                 <div class="menu-item" data-app="mcp-control">🔌 MCP Control</div>
                 <div class="menu-item" data-app="api-keys">🔑 API Keys</div>
+                <div class="menu-item" data-app="github">🐙 GitHub</div>
+                <div class="menu-item" data-app="oauth-login">🔐 OAuth Login</div>
                 <div class="menu-item" data-app="cron">⏰ AI Cron</div>
                 <div class="menu-item" data-app="strudel">🎵 Music Studio</div>
                 <div class="menu-item" data-app="navi"><img src="/assets/icons/navi-icon.png" style="width: 16px; height: 16px; border-radius: 2px; vertical-align: middle; margin-right: 4px;"> NAVI</div>
+            </div>
+            <div class="menu-separator"></div>
+            <div class="menu-section">
+                <div class="menu-title">Tools & Utilities</div>
+                <div class="menu-item" data-app="calculator">🧮 Calculator</div>
+                <div class="menu-item" data-app="clock">🕐 Clock & Timers</div>
+                <div class="menu-item" data-app="image-viewer">🖼️ Image Viewer</div>
+                <div class="menu-item" data-app="notes">📝 Notes</div>
+                <div class="menu-item" data-app="system-monitor">📊 System Monitor</div>
                 <div class="menu-item" onclick="showAbout()">ℹ️ About</div>
             </div>
         </div>
@@ -176,24 +249,10 @@
         <div class="context-item" onclick="showDesktopProperties()">⚙️ Properties</div>
     </div>
     
-    <!-- Scripts -->
-    <script src="js/core/swissknife-core.js"></script>
-    <script src="js/core/strudel-cdn-loader.js"></script>
-    <script src="js/core/window-manager.js"></script>
-    <script src="js/core/desktop-manager.js"></script>
-    <script src="js/core/ai-engine.js"></script>
-    <script src="js/core/storage-engine.js"></script>
-    <script src="js/core/webnn-engine.js"></script>
-    <script src="js/music-parser.js"></script>
-    <script src="js/apps/terminal.js"></script>
-    <script src="js/apps/vibecode.js"></script>
-    <script src="js/apps/ai-chat.js"></script>
-    <script src="js/apps/file-manager.js"></script>
-    <script src="js/apps/task-manager.js"></script>
-    <script src="js/apps/model-browser.js"></script>
-    <script src="js/apps/ipfs-explorer.js"></script>
-    <script src="js/apps/settings.js"></script>
-    <script src="js/apps/strudel-grandma.js"></script>
-    <script src="js/main.js"></script>
+    <!-- P2P ML System Bridge -->
+    <script src="/js/p2p-ml-bridge.js"></script>
+
+    <!-- Vite Entry Point -->
+    <script type="module" src="/main.ts"></script>
 </body>
 </html>

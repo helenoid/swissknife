@@ -1,37 +1,110 @@
 /**
- * Terminal App for SwissKnife Web Desktop
- * Provides a browser-based terminal interface to the SwissKnife toolkit
+ * Enhanced Terminal App for SwissKnife Web Desktop
+ * Advanced terminal with P2P integration, AI assistance, and multi-session support
  */
 
-import { SwissKnifeCLIAdapter } from '../adapters/cli-adapter.js';
-
 export class TerminalApp {
-  constructor(windowElement, swissknife) {
-    this.window = windowElement;
-    this.swissknife = swissknife;
+  constructor(desktop) {
+    this.desktop = desktop;
+    this.swissknife = null;
+    this.sessions = new Map();
+    this.activeSession = null;
+    this.currentDirectory = '/home/swissknife';
     this.commandHistory = [];
     this.historyIndex = 0;
-    this.currentDirectory = '/';
+    this.p2pSystem = null;
+    this.aiAssist = null;
+    this.autoComplete = [];
     
-    // Initialize CLI adapter for enhanced commands
-    this.cliAdapter = new SwissKnifeCLIAdapter(swissknife);
+    // Built-in commands
+    this.builtinCommands = new Map([
+      ['help', { handler: this.showHelp.bind(this), description: 'Show available commands' }],
+      ['clear', { handler: this.clearTerminal.bind(this), description: 'Clear terminal screen' }],
+      ['ls', { handler: this.listFiles.bind(this), description: 'List directory contents' }],
+      ['cd', { handler: this.changeDirectory.bind(this), description: 'Change directory' }],
+      ['pwd', { handler: this.printWorkingDirectory.bind(this), description: 'Print working directory' }],
+      ['cat', { handler: this.displayFile.bind(this), description: 'Display file contents' }],
+      ['echo', { handler: this.echoText.bind(this), description: 'Display text' }],
+      ['date', { handler: this.showDate.bind(this), description: 'Show current date and time' }],
+      ['whoami', { handler: this.showUser.bind(this), description: 'Show current user' }],
+      ['ps', { handler: this.showProcesses.bind(this), description: 'Show running processes' }],
+      ['top', { handler: this.showSystemStats.bind(this), description: 'Show system statistics' }],
+      ['history', { handler: this.showCommandHistory.bind(this), description: 'Show command history' }],
+      ['alias', { handler: this.manageAliases.bind(this), description: 'Manage command aliases' }],
+      ['export', { handler: this.setEnvironmentVar.bind(this), description: 'Set environment variables' }],
+      ['env', { handler: this.showEnvironment.bind(this), description: 'Show environment variables' }],
+      ['grep', { handler: this.grepText.bind(this), description: 'Search text patterns' }],
+      ['find', { handler: this.findFiles.bind(this), description: 'Find files and directories' }],
+      ['nano', { handler: this.openEditor.bind(this), description: 'Open text editor' }],
+      ['vim', { handler: this.openEditor.bind(this), description: 'Open vim editor' }],
+      ['ssh', { handler: this.connectSSH.bind(this), description: 'Connect via SSH (P2P)' }],
+      ['scp', { handler: this.copyFiles.bind(this), description: 'Copy files over network' }],
+      ['ipfs', { handler: this.ipfsCommand.bind(this), description: 'IPFS commands' }],
+      ['p2p', { handler: this.p2pCommand.bind(this), description: 'P2P network commands' }],
+      ['ai', { handler: this.aiCommand.bind(this), description: 'AI assistant commands' }],
+      ['desktop', { handler: this.desktopCommand.bind(this), description: 'Desktop management commands' }],
+      ['install', { handler: this.installPackage.bind(this), description: 'Install packages' }],
+      ['update', { handler: this.updateSystem.bind(this), description: 'Update system' }],
+      ['monitor', { handler: this.monitorSystem.bind(this), description: 'Monitor system resources' }],
+      ['log', { handler: this.showLogs.bind(this), description: 'Show system logs' }],
+      ['backup', { handler: this.backupData.bind(this), description: 'Backup data to IPFS' }],
+      ['restore', { handler: this.restoreData.bind(this), description: 'Restore data from backup' }]
+    ]);
     
-    this.init();
+    // Environment variables
+    this.environment = {
+      'HOME': '/home/swissknife',
+      'USER': 'swissknife',
+      'PATH': '/usr/local/bin:/usr/bin:/bin',
+      'SHELL': '/bin/swissknife-shell',
+      'TERM': 'swissknife-256color',
+      'PWD': this.currentDirectory
+    };
+    
+    // Command aliases
+    this.aliases = new Map([
+      ['ll', 'ls -la'],
+      ['la', 'ls -a'],
+      ['..', 'cd ..'],
+      ['~', 'cd ~'],
+      ['h', 'help'],
+      ['c', 'clear']
+    ]);
+    
+    this.initializeIntegrations();
   }
 
-  init() {
-    this.createTerminalUI();
-    this.setupEventListeners();
-    this.showWelcome();
+  async initializeIntegrations() {
+    try {
+      this.swissknife = this.desktop.swissknife;
+      
+      // Connect to P2P system for distributed terminal access
+      if (window.p2pMLSystem) {
+        this.p2pSystem = window.p2pMLSystem;
+        this.setupP2PTerminal();
+      }
+      
+      // Connect to AI system for intelligent assistance
+      if (window.aiManager || this.swissknife?.ai) {
+        this.aiAssist = window.aiManager || this.swissknife.ai;
+      }
+      
+      // Load saved settings
+      this.loadSettings();
+      
+      console.log('✅ Terminal integrations initialized');
+    } catch (error) {
+      console.error('❌ Terminal integration error:', error);
+    }
   }
 
   createTerminalUI() {
     this.window.innerHTML = `
       <div class="terminal-container">
         <div class="terminal-header">
-          <div class="terminal-title">SwissKnife Terminal</div>
+          <div class="terminal-title">🖥️ SwissKnife Terminal - Enhanced with Shared System</div>
           <div class="terminal-controls">
-            <button class="btn-minimize">-</button>
+            <button class="btn-minimize">−</button>
             <button class="btn-maximize">□</button>
             <button class="btn-close">×</button>
           </div>
@@ -40,11 +113,125 @@ export class TerminalApp {
           <div class="terminal-output" id="terminal-output"></div>
           <div class="terminal-input-line">
             <span class="terminal-prompt">swissknife@web:${this.currentDirectory}$ </span>
-            <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false">
+            <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false" autofocus>
           </div>
         </div>
       </div>
     `;
+
+    // Add enhanced terminal styling
+    const style = document.createElement('style');
+    style.textContent = `
+      .terminal-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        font-family: 'Courier New', monospace;
+        background: #1a1a1a;
+        color: #00ff00;
+      }
+      
+      .terminal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: #2d2d2d;
+        border-bottom: 1px solid #444;
+      }
+      
+      .terminal-title {
+        font-size: 14px;
+        color: #fff;
+      }
+      
+      .terminal-controls button {
+        background: none;
+        border: none;
+        color: #fff;
+        padding: 4px 8px;
+        margin-left: 4px;
+        cursor: pointer;
+        border-radius: 3px;
+      }
+      
+      .terminal-controls button:hover {
+        background: #444;
+      }
+      
+      .terminal-body {
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .terminal-output {
+        flex: 1;
+        white-space: pre-wrap;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      
+      .terminal-input-line {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+      }
+      
+      .terminal-prompt {
+        color: #00ff00;
+        font-weight: bold;
+        margin-right: 8px;
+      }
+      
+      .terminal-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #00ff00;
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+      }
+      
+      .terminal-line {
+        margin: 2px 0;
+      }
+      
+      .terminal-command {
+        color: #ffff00;
+      }
+      
+      .terminal-error {
+        color: #ff4444;
+      }
+      
+      .terminal-success {
+        color: #44ff44;
+      }
+      
+      .terminal-info {
+        color: #4488ff;
+      }
+      
+      .terminal-welcome {
+        color: #ff8844;
+        font-weight: bold;
+      }
+      
+      .terminal-category {
+        color: #ff44ff;
+        font-weight: bold;
+      }
+      
+      .terminal-help {
+        color: #44ffff;
+        font-weight: bold;
+      }
+    `;
+    this.window.appendChild(style);
 
     this.output = this.window.querySelector('#terminal-output');
     this.input = this.window.querySelector('#terminal-input');
@@ -103,13 +290,16 @@ export class TerminalApp {
     const args = parts.slice(1);
 
     try {
-      // Check if it's a SwissKnife CLI command first
-      if (cmd.startsWith('sk') || ['ai', 'chat', 'task', 'config', 'models', 'storage', 'mcp', 'ipfs'].includes(cmd)) {
+      // First try the shared CLI adapter for all SwissKnife commands
+      if (cmd.startsWith('sk-') || ['sk', 'ai', 'chat', 'task', 'config', 'models', 'storage', 'mcp', 'ipfs'].includes(cmd)) {
         const result = await this.cliAdapter.executeCommand(command);
         if (result.success) {
-          this.addOutput(result.output, result.type || 'normal');
+          this.addOutput(result.output, 'normal');
+          if (result.data) {
+            console.log('Command data:', result.data);
+          }
         } else {
-          this.addOutput(result.error, 'error');
+          this.addOutput(result.output, 'error');
         }
         return;
       }
@@ -343,8 +533,16 @@ export class TerminalApp {
   }
 
   showWelcome() {
-    this.addOutput('🔧 SwissKnife Web Terminal v1.0', 'welcome');
-    this.addOutput('Type "help" for available commands or "sk help" for SwissKnife CLI help.', 'info');
+    this.addOutput('🔧 SwissKnife Web Terminal v1.0 - Enhanced with Shared System', 'welcome');
+    this.addOutput('Type "help" for available commands or use the new unified SwissKnife CLI:', 'info');
+    this.addOutput('', '');
+    this.addOutput('✨ New Unified Commands:', 'category');
+    this.addOutput('  sk-ai inference "Hello World"    - AI inference with shared providers');
+    this.addOutput('  sk-config get ai.defaultModel    - Get configuration values');
+    this.addOutput('  sk-events list                   - List active cross-component events');
+    this.addOutput('  sk-desktop launch ai-chat        - Launch desktop applications');
+    this.addOutput('  sk-ipfs status                   - Check IPFS acceleration status');
+    this.addOutput('  sk-status                        - Unified system status');
     this.addOutput('', '');
   }
 
@@ -368,24 +566,27 @@ export class TerminalApp {
     this.addOutput('  env            - Show environment variables');
     this.addOutput('  history        - Show command history');
     this.addOutput('', '');
-    this.addOutput('SwissKnife Commands:', 'category');
-    this.addOutput('  sk             - SwissKnife main interface');
-    this.addOutput('  sk-ai <msg>    - AI chat and commands');
-    this.addOutput('  sk-task <cmd>  - Task management');
-    this.addOutput('  sk-config      - Configuration management');
-    this.addOutput('  sk-models      - Model management');
-    this.addOutput('  sk-storage     - Storage operations');
-    this.addOutput('  sk-mcp         - Model Context Protocol');
-    this.addOutput('  sk-ipfs        - IPFS operations');
+    this.addOutput('Unified SwissKnife Commands (Shared System):', 'category');
+    this.addOutput('  sk-ai inference <prompt>    - AI inference with shared providers');
+    this.addOutput('  sk-ai models               - List all available AI models');
+    this.addOutput('  sk-ai providers            - List AI providers');
+    this.addOutput('  sk-config get [key]        - Get configuration (try: sk-config get ai.defaultModel)');
+    this.addOutput('  sk-config set <key> <val>  - Set configuration value');
+    this.addOutput('  sk-config reset            - Reset to default configuration');
+    this.addOutput('  sk-events emit <event>     - Emit cross-component events');
+    this.addOutput('  sk-events list             - List active event listeners');
+    this.addOutput('  sk-desktop launch <app>    - Launch desktop applications');
+    this.addOutput('  sk-desktop close <app>     - Close desktop applications');
+    this.addOutput('  sk-desktop list            - List available desktop apps');
+    this.addOutput('  sk-ipfs status             - Check IPFS system status');
+    this.addOutput('  sk-ipfs add <file>         - Add file to IPFS');
+    this.addOutput('  sk-status [component]      - Unified system status');
     this.addOutput('', '');
-    this.addOutput('Legacy Commands (still supported):', 'category');
-    this.addOutput('  ai, chat, task, config, models, storage, mcp, ipfs');
-    this.addOutput('', '');
-    this.addOutput('Application Commands:', 'category');
-    this.addOutput('  code [file]    - Open VibeCode editor');
-    this.addOutput('  status         - Show system status');
-    this.addOutput('', '');
-    this.addOutput('For detailed help on SwissKnife commands, use: sk help');
+    this.addOutput('Try these examples:', 'info');
+    this.addOutput('  sk-ai inference "What is SwissKnife?"');
+    this.addOutput('  sk-desktop launch ai-chat');
+    this.addOutput('  sk-config get');
+    this.addOutput('  sk-events list');
   }
 
   clearTerminal() {

@@ -6,6 +6,8 @@ import '../css/terminal.css';
 import '../css/apps.css';
 import '../css/strudel.css';
 import '../css/strudel-grandma.css';
+import '../css/vibecode-enhanced.css';
+import '../css/strudel-ai-daw.css';
 import SwissKnife from './swissknife-browser.js';
 import DesktopEnhancer from './desktop-enhancer.js';
 
@@ -224,11 +226,20 @@ class SwissKnifeDesktop {
         console.log('✅ Registered terminal app');
         
         this.apps.set('vibecode', {
-            name: 'VibeCode Editor',
-            icon: '📝',
+            name: 'VibeCode - AI Streamlit Editor',
+            icon: '🎯',
             component: 'VibeCodeApp',
             singleton: false
         });
+        console.log('✅ Registered enhanced VibeCode app');
+        
+        this.apps.set('strudel-ai-daw', {
+            name: 'Strudel AI DAW',
+            icon: '🎵',
+            component: 'StrudelAIDAW',
+            singleton: false
+        });
+        console.log('✅ Registered Strudel AI DAW app');
         
         this.apps.set('ai-chat', {
             name: 'AI Chat',
@@ -316,6 +327,71 @@ class SwissKnifeDesktop {
             singleton: false
         });
         console.log('✅ Registered strudel app');
+        
+        this.apps.set('p2p-network', {
+            name: 'P2P Network Manager',
+            icon: '🔗',
+            component: 'P2PNetworkApp',
+            singleton: true
+        });
+        console.log('✅ Registered p2p-network app');
+        
+        this.apps.set('neural-network-designer', {
+            name: 'Neural Network Designer',
+            icon: '🧠',
+            component: 'NeuralNetworkDesignerApp',
+            singleton: false
+        });
+        console.log('✅ Registered neural-network-designer app');
+        
+        this.apps.set('training-manager', {
+            name: 'Training Manager',
+            icon: '🎯',
+            component: 'TrainingManagerApp',
+            singleton: true
+        });
+        console.log('✅ Registered training-manager app');
+        
+        // Register additional essential apps
+        this.apps.set('calculator', {
+            name: 'Calculator',
+            icon: '🧮',
+            component: 'CalculatorApp',
+            singleton: true
+        });
+        console.log('✅ Registered calculator app');
+        
+        this.apps.set('clock', {
+            name: 'Clock & Timers',
+            icon: '🕐',
+            component: 'ClockApp',
+            singleton: true
+        });
+        console.log('✅ Registered clock app');
+        
+        this.apps.set('image-viewer', {
+            name: 'Image Viewer',
+            icon: '🖼️',
+            component: 'ImageViewerApp',
+            singleton: false
+        });
+        console.log('✅ Registered image-viewer app');
+        
+        this.apps.set('notes', {
+            name: 'Notes',
+            icon: '📝',
+            component: 'NotesApp',
+            singleton: false
+        });
+        console.log('✅ Registered notes app');
+        
+        this.apps.set('system-monitor', {
+            name: 'System Monitor',
+            icon: '📊',
+            component: 'SystemMonitorApp',
+            singleton: true
+        });
+        console.log('✅ Registered system-monitor app');
         
         console.log('📱 Total apps registered:', this.apps.size);
         console.log('📱 Apps list:', Array.from(this.apps.keys()));
@@ -576,13 +652,27 @@ class SwissKnifeDesktop {
                     break;
                     
                 case 'vibecodeapp':
-                    // Placeholder for VibeCode
-                    contentElement.innerHTML = `
-                        <div class="app-placeholder">
-                            <h2>💻 VibeCode</h2>
-                            <p>WebNN/WebGPU powered code editor will be implemented here.</p>
-                            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                        </div>
+                    console.log('🎯 Loading Enhanced VibeCode app...');
+                    // Import and instantiate Enhanced VibeCode app
+                    const VibeCodeModule = await import('./apps/vibecode.js');
+                    const VibeCodeApp = VibeCodeModule.VibeCodeApp;
+                    appInstance = new VibeCodeApp(this);
+                    await appInstance.initialize();
+                    const vibeWindow = appInstance.createWindow();
+                    contentElement.appendChild(vibeWindow.querySelector('.vibecode-container'));
+                    break;
+                    
+                case 'strudel-ai-daw':
+                case 'strudelaaidaw':
+                    console.log('🎵 Loading Strudel AI DAW app...');
+                    // Import and instantiate Strudel AI DAW app
+                    const StrudelAIModule = await import('./apps/strudel-ai-daw.js');
+                    const StrudelAIDAW = StrudelAIModule.StrudelAIDAW;
+                    appInstance = new StrudelAIDAW(this);
+                    await appInstance.initialize();
+                    const dawWindow = appInstance.createWindow();
+                    contentElement.appendChild(dawWindow.querySelector('.strudel-ai-daw'));
+                    break;
                     `;
                     break;
                     
@@ -671,6 +761,192 @@ class SwissKnifeDesktop {
                         }
                     }
                     break;
+
+                case 'p2pnetworkapp':
+                    console.log('🔗 Loading P2P Network Manager...');
+                    // Import and create P2P Network app
+                    try {
+                        await this.loadScript('./js/apps/p2p-network.js');
+                        if (window.createP2PNetworkApp) {
+                            appInstance = window.createP2PNetworkApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('P2P Network app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load P2P Network app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🔗 P2P Network Manager</h2>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+
+                case 'neuralnetworkdesignerapp':
+                    console.log('🧠 Loading Neural Network Designer...');
+                    // Import and create Neural Network Designer app
+                    try {
+                        await this.loadScript('./js/apps/neural-network-designer.js');
+                        if (window.createNeuralNetworkDesignerApp) {
+                            appInstance = window.createNeuralNetworkDesignerApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('Neural Network Designer app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load Neural Network Designer app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🧠 Neural Network Designer</h2>
+                                <p>Visual neural network design interface.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+
+                case 'trainingmanagerapp':
+                    console.log('🎯 Loading Training Manager...');
+                    // Import and create Training Manager app
+                    try {
+                        await this.loadScript('./js/apps/training-manager.js');
+                        if (window.createTrainingManagerApp) {
+                            appInstance = window.createTrainingManagerApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('Training Manager app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load Training Manager app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎯 Training Manager</h2>
+                                <p>AI model training with IPFS versioning and P2P coordination.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'calculatorapp':
+                    console.log('🧮 Loading Calculator app...');
+                    // Import and instantiate Calculator app
+                    try {
+                        const CalculatorModule = await import('./apps/calculator.js');
+                        const CalculatorApp = CalculatorModule.CalculatorApp;
+                        appInstance = new CalculatorApp(this);
+                        await appInstance.initialize();
+                        const calculatorWindow = appInstance.createWindow();
+                        contentElement.appendChild(calculatorWindow);
+                    } catch (error) {
+                        console.error('Failed to load Calculator app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🧮 Calculator</h2>
+                                <p>Scientific calculator with advanced functions.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'clockapp':
+                    console.log('🕐 Loading Clock app...');
+                    // Import and instantiate Clock app
+                    try {
+                        const ClockModule = await import('./apps/clock.js');
+                        const ClockApp = ClockModule.ClockApp;
+                        appInstance = new ClockApp(this);
+                        await appInstance.initialize();
+                        const clockWindow = appInstance.createWindow();
+                        contentElement.appendChild(clockWindow);
+                    } catch (error) {
+                        console.error('Failed to load Clock app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🕐 Clock & Timers</h2>
+                                <p>World clock, stopwatch, timer, and alarm system.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'imageviewerapp':
+                    console.log('🖼️ Loading Image Viewer app...');
+                    // Import and instantiate Image Viewer app
+                    try {
+                        const ImageViewerModule = await import('./apps/image-viewer.js');
+                        const ImageViewerApp = ImageViewerModule.ImageViewerApp;
+                        appInstance = new ImageViewerApp(this);
+                        await appInstance.initialize();
+                        const imageWindow = appInstance.createWindow();
+                        contentElement.appendChild(imageWindow);
+                    } catch (error) {
+                        console.error('Failed to load Image Viewer app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🖼️ Image Viewer</h2>
+                                <p>Advanced image viewing with editing capabilities.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'notesapp':
+                    console.log('📝 Loading Notes app...');
+                    // Import and instantiate Notes app
+                    try {
+                        const NotesModule = await import('./apps/notes.js');
+                        const NotesApp = NotesModule.NotesApp;
+                        appInstance = new NotesApp(this);
+                        await appInstance.initialize();
+                        const notesWindow = appInstance.createWindow();
+                        contentElement.appendChild(notesWindow);
+                    } catch (error) {
+                        console.error('Failed to load Notes app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📝 Notes</h2>
+                                <p>Rich text notes with markdown support and AI assistance.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'systemmonitorapp':
+                    console.log('📊 Loading System Monitor app...');
+                    // Import and instantiate System Monitor app
+                    try {
+                        const SystemMonitorModule = await import('./apps/system-monitor.js');
+                        const SystemMonitorApp = SystemMonitorModule.SystemMonitorApp;
+                        appInstance = new SystemMonitorApp(this);
+                        await appInstance.initialize();
+                        const monitorWindow = appInstance.createWindow();
+                        contentElement.appendChild(monitorWindow);
+                    } catch (error) {
+                        console.error('Failed to load System Monitor app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📊 System Monitor</h2>
+                                <p>Real-time system performance monitoring.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
                     
                 default:
                     throw new Error(`Unknown app component: ${componentName}`);
@@ -694,6 +970,16 @@ class SwissKnifeDesktop {
                 </div>
             `;
         }
+    }
+    
+    async loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+            document.head.appendChild(script);
+        });
     }
     
     loadCronApp(contentElement) {

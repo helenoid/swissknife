@@ -1,5 +1,7 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
+    "composite": true,
     "target": "es2020",
     "module": "esnext",
     "moduleResolution": "node",
@@ -7,6 +9,7 @@
     "declarationDir": "./dist/types",
     "sourceMap": true,
     "outDir": "./dist",
+    "rootDir": ".",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -17,7 +20,13 @@
       "esnext",
       "webworker"
     ],
-    "jsx": "react"
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../src/shared/*"],
+      "@ipfs/*": ["src/*"],
+      "@/*": ["../src/*"]
+    }
   },
   "include": [
     "src/**/*"
