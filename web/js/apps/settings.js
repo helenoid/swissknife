@@ -134,6 +134,164 @@ export class SettingsApp {
     this.applySettings();
   }
 
+  async render() {
+    const content = `
+      <div class="settings-container enhanced">
+        <div class="settings-sidebar">
+          <div class="settings-nav">
+            <div class="nav-item active" data-section="general">
+              <span class="nav-icon">⚙️</span>
+              <span class="nav-label">General</span>
+            </div>
+            <div class="nav-item" data-section="ai">
+              <span class="nav-icon">🤖</span>
+              <span class="nav-label">AI & Models</span>
+            </div>
+            <div class="nav-item" data-section="p2p">
+              <span class="nav-icon">🌐</span>
+              <span class="nav-label">P2P Network</span>
+            </div>
+            <div class="nav-item" data-section="storage">
+              <span class="nav-icon">💾</span>
+              <span class="nav-label">Storage</span>
+            </div>
+            <div class="nav-item" data-section="appearance">
+              <span class="nav-icon">🎨</span>
+              <span class="nav-label">Appearance</span>
+            </div>
+            <div class="nav-item" data-section="security">
+              <span class="nav-icon">🔒</span>
+              <span class="nav-label">Security</span>
+            </div>
+            <div class="nav-item" data-section="advanced">
+              <span class="nav-icon">🔧</span>
+              <span class="nav-label">Advanced</span>
+            </div>
+            <div class="nav-item" data-section="about">
+              <span class="nav-icon">ℹ️</span>
+              <span class="nav-label">About</span>
+            </div>
+          </div>
+          
+          <!-- Real-time monitoring panel -->
+          <div class="monitoring-panel">
+            <h4>System Status</h4>
+            <div class="metric-row">
+              <span>Memory:</span>
+              <span id="memory-metric">${this.systemMetrics.memory || 0} MB</span>
+            </div>
+            <div class="metric-row">
+              <span>P2P Peers:</span>
+              <span id="p2p-metric">${this.systemMetrics.p2pConnections || 0}</span>
+            </div>
+            <div class="metric-row">
+              <span>Active Models:</span>
+              <span id="models-metric">${this.systemMetrics.activeModels || 0}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-main">
+          <div class="settings-header">
+            <h2 id="section-title">General Settings</h2>
+            <div class="settings-actions">
+              <button class="btn btn-secondary" id="reset-btn">Reset to Defaults</button>
+              <button class="btn btn-primary" id="save-btn" disabled>Save Changes</button>
+            </div>
+          </div>
+          
+          <div class="settings-content" id="settings-content">
+            ${this.renderGeneralSettings()}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Set up event listeners after content is rendered
+    setTimeout(() => {
+      this.setupEventListeners();
+      this.renderCurrentSection();
+    }, 100);
+
+    return content;
+  }
+
+  setupEventListeners() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const saveBtn = document.querySelector('#save-btn');
+    const resetBtn = document.querySelector('#reset-btn');
+
+    // Navigation
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        navItems.forEach(nav => nav.classList.remove('active'));
+        item.classList.add('active');
+        
+        const section = item.dataset.section;
+        this.currentSection = section;
+        this.renderCurrentSection();
+      });
+    });
+
+    // Save button
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        this.saveSettings();
+      });
+    }
+
+    // Reset button
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to reset all settings to defaults?')) {
+          this.resetToDefaults();
+        }
+      });
+    }
+
+    // Start system monitoring
+    this.startSystemMonitoring();
+  }
+
+  renderCurrentSection() {
+    const content = document.getElementById('settings-content');
+    const title = document.getElementById('section-title');
+    
+    if (!content || !title) return;
+
+    const sections = {
+      general: { title: 'General Settings', content: this.renderGeneralSection() },
+      ai: { title: 'AI & Models', content: this.renderAISection() },
+      p2p: { title: 'P2P Network', content: this.renderP2PSection() },
+      storage: { title: 'Storage', content: this.renderStorageSection() },
+      appearance: { title: 'Appearance', content: this.renderAppearanceSection() },
+      security: { title: 'Security', content: this.renderSecuritySection() },
+      advanced: { title: 'Advanced', content: this.renderAdvancedSection() },
+      about: { title: 'About', content: this.renderAboutSection() }
+    };
+
+    const section = sections[this.currentSection];
+    if (section) {
+      title.textContent = section.title;
+      content.innerHTML = section.content;
+      this.setupSectionEventListeners();
+    }
+  }
+
+  setupSectionEventListeners() {
+    // Listen for input changes to enable save button
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('change', () => {
+        this.unsavedChanges = true;
+        const saveBtn = document.getElementById('save-btn');
+        if (saveBtn) {
+          saveBtn.disabled = false;
+        }
+      });
+    });
+  }
+
   setupP2PIntegration() {
     if (!this.p2pSystem) return;
     
@@ -575,6 +733,88 @@ export class SettingsApp {
               </div>
             </div>
             <button class="btn btn-secondary" id="install-model">Install New Model</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderP2PSection() {
+    return `
+      <div class="settings-section">
+        <div class="setting-group">
+          <h3>P2P Network Configuration</h3>
+          
+          <div class="setting-item">
+            <label for="enable-p2p">Enable P2P networking</label>
+            <input type="checkbox" id="enable-p2p" ${this.settings.p2p?.enabled ? 'checked' : ''}>
+            <span class="setting-description">Connect to peer-to-peer network for distributed computing</span>
+          </div>
+          
+          <div class="setting-item">
+            <label for="p2p-port">P2P Port</label>
+            <input type="number" id="p2p-port" value="${this.settings.p2p?.port || 9090}" min="1024" max="65535">
+            <span class="setting-description">Port for incoming P2P connections</span>
+          </div>
+          
+          <div class="setting-item">
+            <label for="max-peers">Maximum Peers</label>
+            <select id="max-peers">
+              <option value="5" ${this.settings.p2p?.maxPeers === 5 ? 'selected' : ''}>5</option>
+              <option value="10" ${this.settings.p2p?.maxPeers === 10 ? 'selected' : ''}>10</option>
+              <option value="25" ${this.settings.p2p?.maxPeers === 25 ? 'selected' : ''}>25</option>
+              <option value="50" ${this.settings.p2p?.maxPeers === 50 ? 'selected' : ''}>50</option>
+            </select>
+          </div>
+          
+          <div class="setting-item">
+            <label for="enable-discovery">Enable peer discovery</label>
+            <input type="checkbox" id="enable-discovery" ${this.settings.p2p?.enableDiscovery ? 'checked' : ''}>
+            <span class="setting-description">Automatically discover peers on the network</span>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Distributed Computing</h3>
+          
+          <div class="setting-item">
+            <label for="share-compute">Share compute resources</label>
+            <input type="checkbox" id="share-compute" ${this.settings.p2p?.shareCompute ? 'checked' : ''}>
+            <span class="setting-description">Allow other peers to use your computing power</span>
+          </div>
+          
+          <div class="setting-item">
+            <label for="max-compute-share">Max compute share (%)</label>
+            <input type="range" id="max-compute-share" min="10" max="90" value="${this.settings.p2p?.maxComputeShare || 50}">
+            <span class="range-value">${this.settings.p2p?.maxComputeShare || 50}%</span>
+          </div>
+          
+          <div class="setting-item">
+            <label for="bandwidth-limit">Bandwidth limit (MB/s)</label>
+            <select id="bandwidth-limit">
+              <option value="1" ${this.settings.p2p?.bandwidthLimit === 1 ? 'selected' : ''}>1 MB/s</option>
+              <option value="5" ${this.settings.p2p?.bandwidthLimit === 5 ? 'selected' : ''}>5 MB/s</option>
+              <option value="10" ${this.settings.p2p?.bandwidthLimit === 10 ? 'selected' : ''}>10 MB/s</option>
+              <option value="0" ${this.settings.p2p?.bandwidthLimit === 0 ? 'selected' : ''}>Unlimited</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Network Status</h3>
+          <div class="network-status" id="p2p-status">
+            <div class="status-item">
+              <span>Connected Peers:</span>
+              <span id="connected-peers">${this.systemMetrics.p2pConnections || 0}</span>
+            </div>
+            <div class="status-item">
+              <span>Network ID:</span>
+              <span id="network-id">Loading...</span>
+            </div>
+            <div class="status-item">
+              <span>Node Status:</span>
+              <span id="node-status" class="status-indicator">Connecting...</span>
+            </div>
           </div>
         </div>
       </div>

@@ -952,6 +952,189 @@ export class TaskManagerApp {
     }, 3000);
   }
 
+  // Modern app framework methods
+  async initialize() {
+    console.log('🚀 Initializing Task Manager app...');
+    await this.initializeIntegrations();
+    console.log('✅ Task Manager initialized');
+  }
+
+  async render() {
+    console.log('🎨 Rendering Task Manager app...');
+    const content = this.createWindow();
+    
+    // Set up event listeners after content is rendered
+    setTimeout(() => {
+      this.setupEventListeners();
+    }, 100);
+    
+    return content;
+  }
+
+  setupEventListeners() {
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const view = e.target.dataset.view;
+        this.switchView(view);
+      });
+    });
+
+    // Control buttons
+    const pauseBtn = document.getElementById('pause-monitoring');
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => this.toggleMonitoring());
+    }
+
+    const exportBtn = document.getElementById('export-data');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => this.exportData());
+    }
+
+    const settingsBtn = document.getElementById('settings-btn');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', () => this.showSettings());
+    }
+
+    // Process management
+    const refreshBtn = document.getElementById('refresh-processes');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => this.refreshProcesses());
+    }
+
+    const killBtn = document.getElementById('kill-selected');
+    if (killBtn) {
+      killBtn.addEventListener('click', () => this.killSelectedProcesses());
+    }
+
+    // Search and filters
+    const searchInput = document.getElementById('process-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => this.filterProcesses(e.target.value));
+    }
+
+    const filterSelect = document.getElementById('process-filter');
+    if (filterSelect) {
+      filterSelect.addEventListener('change', (e) => this.applyProcessFilter(e.target.value));
+    }
+  }
+
+  switchView(view) {
+    this.currentView = view;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    // Update content
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.toggle('active', content.dataset.view === view);
+    });
+    
+    // Load view-specific data
+    switch (view) {
+      case 'processes':
+        this.loadProcessData();
+        break;
+      case 'performance':
+        this.loadPerformanceData();
+        break;
+      case 'network':
+        this.loadNetworkData();
+        break;
+      case 'p2p':
+        this.loadP2PData();
+        break;
+    }
+  }
+
+  toggleMonitoring() {
+    if (this.monitoringInterval) {
+      this.stopPerformanceMonitoring();
+      document.getElementById('pause-monitoring').innerHTML = '▶️';
+      document.getElementById('pause-monitoring').title = 'Resume Monitoring';
+    } else {
+      this.startPerformanceMonitoring();
+      document.getElementById('pause-monitoring').innerHTML = '⏸️';
+      document.getElementById('pause-monitoring').title = 'Pause Monitoring';
+    }
+  }
+
+  exportData() {
+    const data = {
+      timestamp: new Date().toISOString(),
+      systemMetrics: this.systemMetrics,
+      performanceHistory: this.performanceHistory,
+      processes: this.processes
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `task-manager-data-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  showSettings() {
+    alert('Settings feature coming soon!');
+  }
+
+  refreshProcesses() {
+    this.loadProcessData();
+    this.showNotification('Process list refreshed', 'success');
+  }
+
+  killSelectedProcesses() {
+    const checkboxes = document.querySelectorAll('input[name="process-select"]:checked');
+    if (checkboxes.length === 0) {
+      this.showNotification('No processes selected', 'warning');
+      return;
+    }
+    
+    if (confirm(`Are you sure you want to terminate ${checkboxes.length} process(es)?`)) {
+      checkboxes.forEach(checkbox => {
+        const pid = parseInt(checkbox.value);
+        this.killProcess(pid);
+      });
+    }
+  }
+
+  filterProcesses(query) {
+    const filteredProcesses = this.processes.filter(process =>
+      process.name.toLowerCase().includes(query.toLowerCase()) ||
+      process.pid.toString().includes(query)
+    );
+    this.displayProcesses(filteredProcesses);
+  }
+
+  applyProcessFilter(filter) {
+    let filteredProcesses = [...this.processes];
+    
+    switch (filter) {
+      case 'high-cpu':
+        filteredProcesses = filteredProcesses.filter(p => p.cpu > 10);
+        break;
+      case 'high-memory':
+        filteredProcesses = filteredProcesses.filter(p => p.memory > 100);
+        break;
+      case 'web':
+        filteredProcesses = filteredProcesses.filter(p => 
+          p.name.toLowerCase().includes('chrome') || 
+          p.name.toLowerCase().includes('firefox') ||
+          p.name.toLowerCase().includes('browser')
+        );
+        break;
+      case 'system':
+        filteredProcesses = filteredProcesses.filter(p => p.system);
+        break;
+    }
+    
+    this.displayProcesses(filteredProcesses);
+  }
+
   // App lifecycle methods
   onDestroy() {
     this.stopPerformanceMonitoring();

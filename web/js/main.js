@@ -647,36 +647,72 @@ class SwissKnifeDesktop {
                     break;
                     
                 case 'aichatapp':
-                    // Placeholder for AI Chat app
-                    contentElement.innerHTML = `
-                        <div class="app-placeholder">
-                            <h2>🤖 AI Chat</h2>
-                            <p>AI Chat functionality will be implemented here.</p>
-                            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                        </div>
-                    `;
+                    console.log('🤖 Loading AI Chat app...');
+                    // Import and instantiate AI Chat app
+                    try {
+                        const AIChatModule = await import('./apps/ai-chat.js');
+                        const AIChatApp = AIChatModule.AIChatApp;
+                        appInstance = new AIChatApp(this);
+                        await appInstance.initialize();
+                        const aiChatContent = await appInstance.render();
+                        contentElement.innerHTML = aiChatContent;
+                    } catch (error) {
+                        console.error('Failed to load AI Chat app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🤖 AI Chat</h2>
+                                <p>AI Chat functionality will be implemented here.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'filemanagerapp':
-                    // Placeholder for File Manager
-                    contentElement.innerHTML = `
-                        <div class="app-placeholder">
-                            <h2>📁 File Manager</h2>
-                            <p>File management functionality will be implemented here.</p>
-                            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                        </div>
-                    `;
+                    console.log('📁 Loading File Manager app...');
+                    // Import and instantiate File Manager app
+                    try {
+                        const FileManagerModule = await import('./apps/file-manager.js');
+                        const FileManagerApp = FileManagerModule.FileManagerApp;
+                        appInstance = new FileManagerApp(this);
+                        await appInstance.initialize();
+                        const fileManagerContent = await appInstance.render();
+                        contentElement.innerHTML = fileManagerContent;
+                    } catch (error) {
+                        console.error('Failed to load File Manager app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📁 File Manager</h2>
+                                <p>File management functionality will be implemented here.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'vibecodeapp':
                     console.log('🎯 Loading Enhanced VibeCode app...');
                     // Import and instantiate Enhanced VibeCode app
-                    const VibeCodeModule = await import('./apps/vibecode.js');
-                    const VibeCodeApp = VibeCodeModule.VibeCodeApp;
-                    appInstance = new VibeCodeApp(this);
-                    await appInstance.initialize();
-                    const vibeWindow = appInstance.createWindow();
-                    contentElement.appendChild(vibeWindow.querySelector('.vibecode-container'));
+                    try {
+                        const VibeCodeModule = await import('./apps/vibecode.js');
+                        const VibeCodeApp = VibeCodeModule.VibeCodeApp;
+                        appInstance = new VibeCodeApp(this);
+                        await appInstance.initialize();
+                        const vibeCodeContent = await appInstance.render();
+                        contentElement.innerHTML = vibeCodeContent;
+                    } catch (error) {
+                        console.error('Failed to load VibeCode app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎯 VibeCode</h2>
+                                <p>AI-powered Streamlit editor functionality will be implemented here.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'strudel-ai-daw':
@@ -692,14 +728,26 @@ class SwissKnifeDesktop {
                     break;
                     
                 case 'settingsapp':
-                    // Placeholder for Settings
-                    contentElement.innerHTML = `
-                        <div class="app-placeholder">
-                            <h2>⚙️ Settings</h2>
-                            <p>Configuration settings will be implemented here.</p>
-                            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                        </div>
-                    `;
+                    console.log('⚙️ Loading Settings app...');
+                    // Import and instantiate Settings app
+                    try {
+                        const SettingsModule = await import('./apps/settings.js');
+                        const SettingsApp = SettingsModule.SettingsApp;
+                        appInstance = new SettingsApp(this);
+                        await appInstance.initialize();
+                        const settingsContent = await appInstance.render();
+                        contentElement.innerHTML = settingsContent;
+                    } catch (error) {
+                        console.error('Failed to load Settings app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>⚙️ Settings</h2>
+                                <p>Configuration settings will be implemented here.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'apikeysapp':
@@ -713,8 +761,26 @@ class SwissKnifeDesktop {
                     break;
                     
                 case 'taskmanagerapp':
-                    // Task Manager
-                    this.loadTaskManagerApp(contentElement);
+                    console.log('⚡ Loading Task Manager app...');
+                    // Import and instantiate Task Manager app
+                    try {
+                        const TaskManagerModule = await import('./apps/task-manager.js');
+                        const TaskManagerApp = TaskManagerModule.TaskManagerApp;
+                        appInstance = new TaskManagerApp(this);
+                        await appInstance.initialize();
+                        const taskManagerContent = await appInstance.render();
+                        contentElement.innerHTML = taskManagerContent;
+                    } catch (error) {
+                        console.error('Failed to load Task Manager app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>⚡ Task Manager</h2>
+                                <p>Real-time system monitoring and process management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'modelbrowserapp':
