@@ -12,24 +12,24 @@
     "maxFailures": 0,
     "metadata": {
       "ci": {
-        "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/a3d4bf80c0559c202be329f5a28350c8102b6e39",
-        "commitHash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-        "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17366226999"
+        "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/ac377c8b5909a7b67054ca532cfb8caa5738faee",
+        "commitHash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+        "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17367524384"
       },
       "gitCommit": {
-        "shortHash": "a3d4bf8",
-        "hash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-        "subject": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps",
-        "body": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
+        "shortHash": "ac377c8",
+        "hash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+        "subject": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality",
+        "body": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
         "author": {
           "name": "copilot-swe-agent[bot]",
           "email": "198982749+Copilot@users.noreply.github.com",
-          "time": 1756694679000
+          "time": 1756698758000
         },
         "committer": {
           "name": "copilot-swe-agent[bot]",
           "email": "198982749+Copilot@users.noreply.github.com",
-          "time": 1756694679000
+          "time": 1756698758000
         },
         "branch": "copilot/fix-4f5d6426-bbe0-41bc-9292-a2b6568efd32"
       }
@@ -65,24 +65,24 @@
         "retries": 2,
         "metadata": {
           "ci": {
-            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "commitHash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17366226999"
+            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "commitHash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17367524384"
           },
           "gitCommit": {
-            "shortHash": "a3d4bf8",
-            "hash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "subject": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps",
-            "body": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
+            "shortHash": "ac377c8",
+            "hash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "subject": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality",
+            "body": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
             "author": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "committer": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "branch": "copilot/fix-4f5d6426-bbe0-41bc-9292-a2b6568efd32"
           }
@@ -102,24 +102,24 @@
         "retries": 2,
         "metadata": {
           "ci": {
-            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "commitHash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17366226999"
+            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "commitHash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17367524384"
           },
           "gitCommit": {
-            "shortHash": "a3d4bf8",
-            "hash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "subject": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps",
-            "body": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
+            "shortHash": "ac377c8",
+            "hash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "subject": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality",
+            "body": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
             "author": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "committer": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "branch": "copilot/fix-4f5d6426-bbe0-41bc-9292-a2b6568efd32"
           }
@@ -139,24 +139,24 @@
         "retries": 2,
         "metadata": {
           "ci": {
-            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "commitHash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17366226999"
+            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "commitHash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17367524384"
           },
           "gitCommit": {
-            "shortHash": "a3d4bf8",
-            "hash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "subject": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps",
-            "body": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
+            "shortHash": "ac377c8",
+            "hash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "subject": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality",
+            "body": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
             "author": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "committer": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "branch": "copilot/fix-4f5d6426-bbe0-41bc-9292-a2b6568efd32"
           }
@@ -176,24 +176,24 @@
         "retries": 2,
         "metadata": {
           "ci": {
-            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "commitHash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17366226999"
+            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "commitHash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17367524384"
           },
           "gitCommit": {
-            "shortHash": "a3d4bf8",
-            "hash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "subject": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps",
-            "body": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
+            "shortHash": "ac377c8",
+            "hash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "subject": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality",
+            "body": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
             "author": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "committer": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "branch": "copilot/fix-4f5d6426-bbe0-41bc-9292-a2b6568efd32"
           }
@@ -213,24 +213,24 @@
         "retries": 2,
         "metadata": {
           "ci": {
-            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "commitHash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17366226999"
+            "commitHref": "https://github.com/hallucinate-llc/swissknife/commit/ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "commitHash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "buildHref": "https://github.com/hallucinate-llc/swissknife/actions/runs/17367524384"
           },
           "gitCommit": {
-            "shortHash": "a3d4bf8",
-            "hash": "a3d4bf80c0559c202be329f5a28350c8102b6e39",
-            "subject": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps",
-            "body": "🎯 Complete Systematic Testing of 25 SwissKnife Applications - Verified 5 Fully Functional Apps\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
+            "shortHash": "ac377c8",
+            "hash": "ac377c8b5909a7b67054ca532cfb8caa5738faee",
+            "subject": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality",
+            "body": "🧠 MAJOR ENHANCEMENT: Neural Network Designer - Transform Placeholder to Full Functionality\n\nCo-authored-by: hallucinate-llc <211129872+hallucinate-llc@users.noreply.github.com>\n",
             "author": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "committer": {
               "name": "copilot-swe-agent[bot]",
               "email": "198982749+Copilot@users.noreply.github.com",
-              "time": 1756694679000
+              "time": 1756698758000
             },
             "branch": "copilot/fix-4f5d6426-bbe0-41bc-9292-a2b6568efd32"
           }
@@ -260,13 +260,13 @@
   "suites": [],
   "errors": [
     {
-      "message": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.",
-      "stack": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments."
+      "message": "Error: http://localhost:3001 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.",
+      "stack": "Error: http://localhost:3001 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer."
     }
   ],
   "stats": {
-    "startTime": "2025-09-01T02:54:45.786Z",
-    "duration": 789.16,
+    "startTime": "2025-09-01T04:28:13.754Z",
+    "duration": 66.19799999999998,
     "expected": 0,
     "skipped": 0,
     "unexpected": 0,
