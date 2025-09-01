@@ -872,15 +872,14 @@ class SwissKnifeDesktop {
 
                 case 'neuralnetworkdesignerapp':
                     console.log('🧠 Loading Neural Network Designer...');
-                    // Import and create Neural Network Designer app
+                    // Import and instantiate Neural Network Designer app
                     try {
-                        await this.loadScript('./js/apps/neural-network-designer.js');
-                        if (window.createNeuralNetworkDesignerApp) {
-                            appInstance = window.createNeuralNetworkDesignerApp();
-                            appInstance.init(contentElement);
-                        } else {
-                            throw new Error('Neural Network Designer app not found');
-                        }
+                        const NeuralNetworkDesignerModule = await import('./apps/neural-network-designer.js');
+                        const NeuralNetworkDesignerApp = NeuralNetworkDesignerModule.NeuralNetworkDesignerApp;
+                        appInstance = new NeuralNetworkDesignerApp(this);
+                        await appInstance.initialize();
+                        const neuralDesignerContent = await appInstance.createWindow();
+                        contentElement.innerHTML = neuralDesignerContent;
                     } catch (error) {
                         console.error('Failed to load Neural Network Designer app:', error);
                         contentElement.innerHTML = `

@@ -486,6 +486,10 @@ class SwissKnifeDesktop {
                     await this.createSystemMonitorApp(contentElement);
                     break;
                     
+                case 'NeuralNetworkDesignerApp':
+                    await this.createNeuralNetworkDesignerApp(contentElement);
+                    break;
+                    
                 default:
                     this.createPlaceholderApp(contentElement, componentName);
             }
@@ -696,6 +700,15 @@ class SwissKnifeDesktop {
         const html = await systemMonitor.render();
         contentElement.innerHTML = html;
         return systemMonitor;
+    }
+
+    async createNeuralNetworkDesignerApp(contentElement) {
+        const { NeuralNetworkDesignerApp } = await import('./apps/neural-network-designer.js');
+        const neuralNetworkDesigner = new NeuralNetworkDesignerApp(this);
+        await neuralNetworkDesigner.initialize();
+        const html = await neuralNetworkDesigner.createWindow();
+        contentElement.innerHTML = html;
+        return neuralNetworkDesigner;
     }
 
     createPlaceholderApp(contentElement, componentName) {
