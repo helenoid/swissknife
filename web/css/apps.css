@@ -3092,3 +3092,477 @@ body.theme-sunset .metric-value {
 body.theme-sunset .metric-bar {
     background: rgba(255, 255, 255, 0.1);
 }
+
+/* === Phase 3: Collaborative File Manager Styles === */
+
+/* Collaborative toolbar buttons */
+.collaborative-btn {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    border: none;
+    color: white;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.collaborative-btn:hover {
+    background: linear-gradient(135deg, #357abd, #2e6da4);
+    transform: translateY(-1px);
+}
+
+/* Collaborative status bar */
+.collaborative-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: rgba(74, 144, 226, 0.1);
+    border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+    font-size: 12px;
+}
+
+.collab-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.collab-label {
+    font-weight: 600;
+    color: #4a90e2;
+}
+
+/* Collaborators display */
+.collaborators-list {
+    display: flex;
+    gap: 4px;
+}
+
+.collaborator-avatar {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.collaborator-initial {
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.collaborator-status {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid white;
+}
+
+.collaborator-status.active {
+    background: #28a745;
+}
+
+.collaborator-status.idle {
+    background: #ffc107;
+}
+
+/* Transfer progress */
+.transfer-progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 200px;
+}
+
+.transfer-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.transfer-name {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a90e2, #28a745);
+    transition: width 0.3s ease;
+}
+
+.transfer-percent {
+    min-width: 30px;
+    text-align: right;
+}
+
+/* Collaborative buttons */
+.collab-btn {
+    padding: 4px 8px;
+    background: rgba(74, 144, 226, 0.2);
+    border: 1px solid rgba(74, 144, 226, 0.3);
+    border-radius: 4px;
+    color: #4a90e2;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s ease;
+}
+
+.collab-btn:hover {
+    background: rgba(74, 144, 226, 0.3);
+    border-color: rgba(74, 144, 226, 0.5);
+}
+
+/* Invitation dialog */
+.invite-dialog {
+    min-width: 400px;
+    max-width: 500px;
+}
+
+.peer-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.peer-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.peer-item label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+}
+
+.peer-name {
+    font-weight: 500;
+}
+
+.peer-status {
+    font-size: 11px;
+    color: #888;
+}
+
+.permission-settings {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 16px;
+}
+
+.permission-settings h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+}
+
+.permission-settings label {
+    display: block;
+    margin-bottom: 4px;
+    cursor: pointer;
+}
+
+/* Shared clipboard dialog */
+.clipboard-dialog {
+    min-width: 500px;
+    max-width: 600px;
+    max-height: 80vh;
+}
+
+.clipboard-items {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.clipboard-item {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: #888;
+}
+
+.item-type {
+    background: rgba(74, 144, 226, 0.2);
+    color: #4a90e2;
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.item-content {
+    margin-bottom: 8px;
+    max-height: 60px;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.clipboard-input {
+    display: flex;
+    gap: 8px;
+}
+
+.clipboard-input textarea {
+    flex: 1;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    resize: vertical;
+}
+
+/* Annotations panel */
+.annotations-panel {
+    position: fixed;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 300px;
+    max-height: 400px;
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    z-index: 1001;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.panel-header h4 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.panel-close {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.panel-body {
+    padding: 12px;
+}
+
+.annotations-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.annotation-item {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+.annotation-item.resolved {
+    opacity: 0.6;
+    border-color: #28a745;
+}
+
+.annotation-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: #888;
+}
+
+.annotation-author {
+    font-weight: 500;
+    color: #4a90e2;
+}
+
+.annotation-content {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.annotation-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.annotation-form {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+}
+
+.annotation-form textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    resize: vertical;
+    margin-bottom: 8px;
+}
+
+/* File items with collaborative indicators */
+.file-item.collaborative {
+    border-left: 3px solid #4a90e2;
+}
+
+.file-item.shared {
+    background: rgba(74, 144, 226, 0.05);
+}
+
+.file-collaborators {
+    font-size: 10px;
+    color: #4a90e2;
+    margin-top: 2px;
+}
+
+.file-shared-indicator {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #4a90e2;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    color: white;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.modal-body {
+    padding: 16px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #4a90e2;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #357abd;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
+}

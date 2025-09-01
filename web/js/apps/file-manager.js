@@ -1,7 +1,10 @@
 /**
  * Enhanced File Manager App for SwissKnife Web Desktop
- * Advanced file management with IPFS integration, cloud storage, and smart features
+ * Advanced file management with IPFS integration, cloud storage, and collaborative features
  */
+
+// Import collaborative file system
+import { CollaborativeFileSystem } from '../../../ipfs_accelerate_js/src/p2p/collaborative-file-system.js';
 
 export class FileManagerApp {
   constructor(desktop) {
@@ -19,12 +22,21 @@ export class FileManagerApp {
     this.searchQuery = '';
     this.showHidden = false;
     
+    // Collaborative features - Phase 3
+    this.collaborativeFS = null;
+    this.isCollaborativeMode = false;
+    this.activeCollaborators = new Map();
+    this.sharedFolders = [];
+    this.fileAnnotations = new Map();
+    this.transferProgress = new Map();
+    
     // File system integration
     this.storageProviders = {
       local: { name: 'Local Storage', icon: '💾', enabled: true },
       ipfs: { name: 'IPFS Network', icon: '🌐', enabled: true },
       cloud: { name: 'Cloud Storage', icon: '☁️', enabled: false },
-      p2p: { name: 'P2P Network', icon: '🔗', enabled: true }
+      p2p: { name: 'P2P Network', icon: '🔗', enabled: true },
+      collaborative: { name: 'Collaborative Workspace', icon: '👥', enabled: true }
     };
     
     // File type handlers
@@ -121,7 +133,117 @@ export class FileManagerApp {
 
   async initialize() {
     this.swissknife = this.desktop.swissknife;
+    
+    // Initialize collaborative file system if P2P is available
+    if (this.desktop.p2pManager) {
+      try {
+        this.collaborativeFS = new CollaborativeFileSystem(this.desktop.p2pManager);
+        this.isCollaborativeMode = true;
+        
+        // Setup event listeners for collaborative features
+        this.setupCollaborativeEvents();
+        
+        // Load shared folders and files
+        await this.loadSharedContent();
+        
+        console.log('Collaborative file system initialized');
+      } catch (error) {
+        console.warn('Could not initialize collaborative features:', error);
+        this.isCollaborativeMode = false;
+      }
+    }
+    
     await this.loadFiles();
+  }
+
+  setupCollaborativeEvents() {
+    if (!this.collaborativeFS) return;
+
+    // File sharing events
+    this.collaborativeFS.on('fileShared', (file) => {
+      this.handleSharedFile(file);
+    });
+
+    // File change events
+    this.collaborativeFS.on('fileChanged', (change) => {
+      this.handleFileChange(change);
+    });
+
+    // Transfer progress events
+    this.collaborativeFS.on('transferProgress', (progress) => {
+      this.updateTransferProgress(progress);
+    });
+
+    // Collaborator events
+    this.collaborativeFS.on('collaboratorJoined', (collaborator) => {
+      this.activeCollaborators.set(collaborator.id, collaborator);
+      this.updateCollaboratorDisplay();
+    });
+
+    this.collaborativeFS.on('collaboratorLeft', (collaboratorId) => {
+      this.activeCollaborators.delete(collaboratorId);
+      this.updateCollaboratorDisplay();
+    });
+
+    // Annotation events
+    this.collaborativeFS.on('annotationAdded', (annotation) => {
+      this.addFileAnnotation(annotation);
+    });
+
+    // Clipboard events
+    this.collaborativeFS.on('clipboardUpdated', (clipboardItem) => {
+      this.updateSharedClipboard(clipboardItem);
+    });
+  }
+
+  async loadSharedContent() {
+    if (!this.collaborativeFS) return;
+
+    try {
+      // Load shared folders
+      this.sharedFolders = this.collaborativeFS.getSharedFolders();
+      
+      // Load shared files
+      const sharedFiles = this.collaborativeFS.getSharedFiles();
+      
+      // Add to mock files for display
+      sharedFiles.forEach(file => {
+        this.mockFiles.push({
+          name: file.name,
+          type: 'file',
+          size: file.size,
+          modified: file.lastModified.getTime(),
+          created: file.created.getTime(),
+          permissions: 'rw-',
+          location: 'collaborative',
+          extension: file.name.split('.').pop(),
+          collaborative: true,
+          collaborators: file.collaborators.length,
+          shared: true,
+          fileId: file.id
+        });
+      });
+      
+      // Add shared folders
+      this.sharedFolders.forEach(folder => {
+        this.mockFiles.push({
+          name: `📁 ${folder.name}`,
+          type: 'folder',
+          size: 0,
+          modified: folder.lastModified.getTime(),
+          created: folder.created.getTime(),
+          permissions: 'rwx',
+          location: 'collaborative',
+          collaborative: true,
+          participants: folder.participants.length,
+          shared: true,
+          folderId: folder.id
+        });
+      });
+      
+    } catch (error) {
+      console.error('Error loading shared content:', error);
+    }
   }
 
   createWindow() {
@@ -155,6 +277,11 @@ export class FileManagerApp {
             <button class="toolbar-btn" id="upload-btn" title="Upload Files">📤</button>
             <button class="toolbar-btn" id="download-btn" title="Download Selected" ${this.selectedFiles.size === 0 ? 'disabled' : ''}>📥</button>
             <button class="toolbar-btn" id="share-btn" title="Share via P2P" ${this.selectedFiles.size === 0 ? 'disabled' : ''}>🔗</button>
+            ${this.isCollaborativeMode ? `
+              <button class="toolbar-btn collaborative-btn" id="create-shared-folder-btn" title="Create Shared Folder">👥📁</button>
+              <button class="toolbar-btn collaborative-btn" id="invite-collaborators-btn" title="Invite Collaborators">👥+</button>
+              <button class="toolbar-btn collaborative-btn" id="shared-clipboard-btn" title="Shared Clipboard">📋</button>
+            ` : ''}
             <input type="file" id="file-input" style="display: none;" multiple>
           </div>
           
@@ -181,6 +308,44 @@ export class FileManagerApp {
             </div>
           `).join('')}
         </div>
+        
+        <!-- Collaborative Status Bar -->
+        ${this.isCollaborativeMode ? `
+          <div class="collaborative-bar">
+            <div class="collab-section">
+              <span class="collab-label">Collaborators:</span>
+              <div class="collaborators-list" id="collaborators-list">
+                ${Array.from(this.activeCollaborators.values()).map(collaborator => `
+                  <div class="collaborator-avatar" title="${collaborator.name}">
+                    <span class="collaborator-initial">${collaborator.name.charAt(0)}</span>
+                    <span class="collaborator-status ${collaborator.active ? 'active' : 'idle'}"></span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div class="collab-section">
+              <span class="collab-label">Transfers:</span>
+              <div class="transfer-progress-container" id="transfer-progress">
+                ${Array.from(this.transferProgress.values()).map(progress => `
+                  <div class="transfer-item">
+                    <span class="transfer-name">${progress.fileName}</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: ${(progress.transferred / progress.totalSize) * 100}%"></div>
+                    </div>
+                    <span class="transfer-percent">${Math.round((progress.transferred / progress.totalSize) * 100)}%</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div class="collab-section">
+              <button class="collab-btn" id="shared-clipboard-toggle">📋 Clipboard (${this.collaborativeFS?.getClipboardHistory?.()?.length || 0})</button>
+              <button class="collab-btn" id="annotations-toggle">💬 Comments</button>
+              <button class="collab-btn" id="sync-status">🔄 Synced</button>
+            </div>
+          </div>
+        ` : ''}
         
         <div class="file-content">
           <!-- Enhanced Sidebar -->
@@ -1147,6 +1312,35 @@ export class FileManagerApp {
       if (uploadBtn && fileInput) uploadBtn.addEventListener('click', () => fileInput.click());
       if (downloadBtn) downloadBtn.addEventListener('click', () => this.downloadSelected(container));
       if (shareBtn) shareBtn.addEventListener('click', () => this.shareSelected(container));
+      
+      // Collaborative controls
+      if (this.isCollaborativeMode) {
+        const createSharedFolderBtn = container.querySelector('#create-shared-folder-btn');
+        const inviteCollaboratorsBtn = container.querySelector('#invite-collaborators-btn');
+        const sharedClipboardBtn = container.querySelector('#shared-clipboard-btn');
+        const sharedClipboardToggle = container.querySelector('#shared-clipboard-toggle');
+        const annotationsToggle = container.querySelector('#annotations-toggle');
+        const syncStatus = container.querySelector('#sync-status');
+        
+        if (createSharedFolderBtn) {
+          createSharedFolderBtn.addEventListener('click', () => this.createSharedFolder(container));
+        }
+        if (inviteCollaboratorsBtn) {
+          inviteCollaboratorsBtn.addEventListener('click', () => this.inviteCollaborators(container));
+        }
+        if (sharedClipboardBtn) {
+          sharedClipboardBtn.addEventListener('click', () => this.openSharedClipboard(container));
+        }
+        if (sharedClipboardToggle) {
+          sharedClipboardToggle.addEventListener('click', () => this.toggleSharedClipboard(container));
+        }
+        if (annotationsToggle) {
+          annotationsToggle.addEventListener('click', () => this.toggleAnnotations(container));
+        }
+        if (syncStatus) {
+          syncStatus.addEventListener('click', () => this.showSyncStatus(container));
+        }
+      }
       
       if (fileInput) {
         fileInput.addEventListener('change', (e) => {
@@ -2125,5 +2319,372 @@ export class FileManagerApp {
   async deleteFile(filePath) {
     console.log(`🗑️ Deleting file: ${filePath}`);
     // TODO: Implement actual file deletion
+  }
+
+  // === Phase 3: Collaborative File System Methods ===
+
+  async createSharedFolder(container) {
+    if (!this.collaborativeFS) return;
+
+    const name = prompt('Enter shared folder name:');
+    if (!name) return;
+
+    try {
+      // Get available peers for collaboration
+      const peers = await this.desktop.p2pManager.getAvailablePeers();
+      
+      if (peers.length === 0) {
+        this.showNotification('No peers available for collaboration', 'warning');
+        return;
+      }
+
+      // For now, include all available peers
+      const sharedFolder = await this.collaborativeFS.createSharedFolder(name, peers);
+      
+      this.showNotification(`Shared folder "${name}" created with ${peers.length} participants`, 'success');
+      
+      // Refresh the file list to show the new shared folder
+      await this.loadSharedContent();
+      this.updateFileList(container);
+      
+    } catch (error) {
+      console.error('Error creating shared folder:', error);
+      this.showNotification('Failed to create shared folder', 'error');
+    }
+  }
+
+  async inviteCollaborators(container) {
+    if (!this.collaborativeFS) return;
+
+    try {
+      const peers = await this.desktop.p2pManager.getAvailablePeers();
+      
+      if (peers.length === 0) {
+        this.showNotification('No peers available to invite', 'warning');
+        return;
+      }
+
+      // Create invitation dialog
+      const inviteDialog = this.createInvitationDialog(peers);
+      container.appendChild(inviteDialog);
+      
+    } catch (error) {
+      console.error('Error inviting collaborators:', error);
+      this.showNotification('Failed to invite collaborators', 'error');
+    }
+  }
+
+  createInvitationDialog(peers) {
+    const dialog = document.createElement('div');
+    dialog.className = 'modal-overlay';
+    dialog.innerHTML = `
+      <div class="modal-content invite-dialog">
+        <div class="modal-header">
+          <h3>Invite Collaborators</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="peer-list">
+            ${peers.map(peer => `
+              <div class="peer-item">
+                <input type="checkbox" id="peer-${peer.id}" value="${peer.id}">
+                <label for="peer-${peer.id}">
+                  <span class="peer-name">${peer.name || peer.id}</span>
+                  <span class="peer-status">${peer.online ? 'Online' : 'Offline'}</span>
+                </label>
+              </div>
+            `).join('')}
+          </div>
+          <div class="permission-settings">
+            <h4>Permissions</h4>
+            <label><input type="checkbox" checked> Read access</label>
+            <label><input type="checkbox" checked> Write access</label>
+            <label><input type="checkbox"> Admin access</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-cancel">Cancel</button>
+          <button class="btn btn-primary modal-invite">Send Invitations</button>
+        </div>
+      </div>
+    `;
+
+    // Setup dialog event handlers
+    const closeBtn = dialog.querySelector('.modal-close');
+    const cancelBtn = dialog.querySelector('.modal-cancel');
+    const inviteBtn = dialog.querySelector('.modal-invite');
+
+    const closeDialog = () => dialog.remove();
+    
+    closeBtn.addEventListener('click', closeDialog);
+    cancelBtn.addEventListener('click', closeDialog);
+    
+    inviteBtn.addEventListener('click', () => {
+      const selectedPeers = Array.from(dialog.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(cb => cb.value)
+        .filter(value => value.startsWith('peer-'))
+        .map(value => value.replace('peer-', ''));
+      
+      if (selectedPeers.length > 0) {
+        this.sendCollaborationInvites(selectedPeers);
+        this.showNotification(`Invitations sent to ${selectedPeers.length} peers`, 'success');
+      }
+      
+      closeDialog();
+    });
+
+    return dialog;
+  }
+
+  async sendCollaborationInvites(peerIds) {
+    // Implementation would send actual invitations via P2P
+    console.log('Sending collaboration invites to:', peerIds);
+  }
+
+  async openSharedClipboard(container) {
+    if (!this.collaborativeFS) return;
+
+    const clipboardHistory = this.collaborativeFS.getClipboardHistory();
+    
+    const clipboardDialog = document.createElement('div');
+    clipboardDialog.className = 'modal-overlay';
+    clipboardDialog.innerHTML = `
+      <div class="modal-content clipboard-dialog">
+        <div class="modal-header">
+          <h3>Shared Clipboard</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="clipboard-items">
+            ${clipboardHistory.length > 0 ? clipboardHistory.map(item => `
+              <div class="clipboard-item" data-id="${item.id}">
+                <div class="item-header">
+                  <span class="item-type">${item.type}</span>
+                  <span class="item-source">From: ${item.source}</span>
+                  <span class="item-time">${new Date(item.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="item-content">
+                  ${item.type === 'text' ? item.content : `${item.type.toUpperCase()} content`}
+                </div>
+                <div class="item-actions">
+                  <button class="btn btn-sm clipboard-copy" data-content="${item.content}">Copy</button>
+                  <button class="btn btn-sm clipboard-paste" data-id="${item.id}">Paste</button>
+                </div>
+              </div>
+            `).join('') : '<p>No shared clipboard items</p>'}
+          </div>
+          <div class="clipboard-input">
+            <textarea placeholder="Add to shared clipboard..." id="clipboard-text"></textarea>
+            <button class="btn btn-primary" id="add-to-clipboard">Add</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(clipboardDialog);
+
+    // Setup clipboard dialog handlers
+    const closeBtn = clipboardDialog.querySelector('.modal-close');
+    closeBtn.addEventListener('click', () => clipboardDialog.remove());
+
+    const addBtn = clipboardDialog.querySelector('#add-to-clipboard');
+    const textArea = clipboardDialog.querySelector('#clipboard-text');
+    
+    addBtn.addEventListener('click', async () => {
+      const content = textArea.value.trim();
+      if (content) {
+        await this.collaborativeFS.addToSharedClipboard(content, 'text');
+        textArea.value = '';
+        clipboardDialog.remove();
+        this.showNotification('Added to shared clipboard', 'success');
+      }
+    });
+
+    // Copy/paste handlers
+    clipboardDialog.querySelectorAll('.clipboard-copy').forEach(btn => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.content);
+        this.showNotification('Copied to local clipboard', 'success');
+      });
+    });
+  }
+
+  toggleSharedClipboard(container) {
+    this.openSharedClipboard(container);
+  }
+
+  toggleAnnotations(container) {
+    // Show/hide file annotations
+    const annotationsPanel = container.querySelector('.annotations-panel');
+    if (annotationsPanel) {
+      annotationsPanel.style.display = annotationsPanel.style.display === 'none' ? 'block' : 'none';
+    } else {
+      this.createAnnotationsPanel(container);
+    }
+  }
+
+  createAnnotationsPanel(container) {
+    const panel = document.createElement('div');
+    panel.className = 'annotations-panel';
+    panel.innerHTML = `
+      <div class="panel-header">
+        <h4>File Comments & Annotations</h4>
+        <button class="panel-close">&times;</button>
+      </div>
+      <div class="panel-body">
+        <div class="annotations-list" id="annotations-list">
+          <!-- Annotations will be populated here -->
+        </div>
+        <div class="annotation-form">
+          <textarea placeholder="Add a comment..." id="annotation-text"></textarea>
+          <button class="btn btn-primary" id="add-annotation">Add Comment</button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(panel);
+
+    // Setup handlers
+    const closeBtn = panel.querySelector('.panel-close');
+    closeBtn.addEventListener('click', () => panel.remove());
+
+    const addBtn = panel.querySelector('#add-annotation');
+    const textArea = panel.querySelector('#annotation-text');
+    
+    addBtn.addEventListener('click', () => this.addAnnotation(textArea.value));
+
+    this.updateAnnotationsList(panel);
+  }
+
+  async addAnnotation(content) {
+    if (!this.collaborativeFS || !content.trim()) return;
+
+    const selectedFile = Array.from(this.selectedFiles)[0];
+    if (!selectedFile) {
+      this.showNotification('Please select a file to annotate', 'warning');
+      return;
+    }
+
+    try {
+      await this.collaborativeFS.addFileAnnotation(selectedFile.fileId || selectedFile.name, {
+        fileId: selectedFile.fileId || selectedFile.name,
+        userId: this.desktop.p2pManager.getLocalPeerId(),
+        userName: 'Current User',
+        content: content.trim(),
+        position: { line: 1, column: 1 },
+        type: 'comment',
+        resolved: false
+      });
+
+      this.showNotification('Comment added', 'success');
+    } catch (error) {
+      console.error('Error adding annotation:', error);
+      this.showNotification('Failed to add comment', 'error');
+    }
+  }
+
+  updateAnnotationsList(panel) {
+    const annotationsList = panel.querySelector('#annotations-list');
+    const selectedFile = Array.from(this.selectedFiles)[0];
+    
+    if (!selectedFile || !this.collaborativeFS) {
+      annotationsList.innerHTML = '<p>Select a file to view comments</p>';
+      return;
+    }
+
+    const annotations = this.collaborativeFS.getFileAnnotations(selectedFile.fileId || selectedFile.name);
+    
+    annotationsList.innerHTML = annotations.length > 0 ? annotations.map(annotation => `
+      <div class="annotation-item">
+        <div class="annotation-header">
+          <span class="annotation-author">${annotation.userName}</span>
+          <span class="annotation-time">${new Date(annotation.timestamp).toLocaleString()}</span>
+        </div>
+        <div class="annotation-content">${annotation.content}</div>
+        <div class="annotation-actions">
+          <button class="btn btn-sm" onclick="this.closest('.annotation-item').classList.toggle('resolved')">
+            ${annotation.resolved ? 'Reopen' : 'Resolve'}
+          </button>
+        </div>
+      </div>
+    `).join('') : '<p>No comments for this file</p>';
+  }
+
+  showSyncStatus(container) {
+    const status = {
+      connected: this.isCollaborativeMode,
+      peers: this.activeCollaborators.size,
+      lastSync: new Date(),
+      pendingOperations: 0
+    };
+
+    this.showNotification(
+      `Sync Status: ${status.connected ? 'Connected' : 'Disconnected'} | ` +
+      `Peers: ${status.peers} | Last sync: ${status.lastSync.toLocaleTimeString()}`,
+      'info'
+    );
+  }
+
+  // Event handlers for collaborative features
+  handleSharedFile(file) {
+    this.showNotification(`New shared file: ${file.name}`, 'info');
+    this.updateFileList(document.querySelector('.file-manager-container'));
+  }
+
+  handleFileChange(change) {
+    console.log('File changed:', change);
+    // Update file display if needed
+  }
+
+  updateTransferProgress(progress) {
+    this.transferProgress.set(progress.fileId, progress);
+    this.updateTransferDisplay();
+  }
+
+  updateCollaboratorDisplay() {
+    const collaboratorsList = document.querySelector('#collaborators-list');
+    if (collaboratorsList) {
+      collaboratorsList.innerHTML = Array.from(this.activeCollaborators.values()).map(collaborator => `
+        <div class="collaborator-avatar" title="${collaborator.name}">
+          <span class="collaborator-initial">${collaborator.name.charAt(0)}</span>
+          <span class="collaborator-status ${collaborator.active ? 'active' : 'idle'}"></span>
+        </div>
+      `).join('');
+    }
+  }
+
+  updateTransferDisplay() {
+    const transferContainer = document.querySelector('#transfer-progress');
+    if (transferContainer) {
+      transferContainer.innerHTML = Array.from(this.transferProgress.values()).map(progress => `
+        <div class="transfer-item">
+          <span class="transfer-name">${progress.fileName}</span>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${(progress.transferred / progress.totalSize) * 100}%"></div>
+          </div>
+          <span class="transfer-percent">${Math.round((progress.transferred / progress.totalSize) * 100)}%</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  updateSharedClipboard(clipboardItem) {
+    this.showNotification(`New shared clipboard item from ${clipboardItem.source}`, 'info');
+    
+    // Update clipboard button count
+    const clipboardBtn = document.querySelector('#shared-clipboard-toggle');
+    if (clipboardBtn && this.collaborativeFS) {
+      const count = this.collaborativeFS.getClipboardHistory().length;
+      clipboardBtn.textContent = `📋 Clipboard (${count})`;
+    }
+  }
+
+  addFileAnnotation(annotation) {
+    if (!this.fileAnnotations.has(annotation.fileId)) {
+      this.fileAnnotations.set(annotation.fileId, []);
+    }
+    this.fileAnnotations.get(annotation.fileId).push(annotation);
+    
+    this.showNotification(`New comment on ${annotation.fileId}`, 'info');
   }
 }

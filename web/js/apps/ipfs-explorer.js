@@ -52,6 +52,17 @@ export class IPFSExplorerApp {
         this.setupP2PIntegration();
       }
       
+      // Initialize collaborative file system if available - Phase 3
+      if (this.desktop.p2pManager && this.desktop.collaborativeFS) {
+        this.collaborativeFS = this.desktop.collaborativeFS;
+        this.isCollaborativeMode = true;
+        
+        // Setup collaborative event listeners
+        this.setupCollaborativeIPFS();
+        
+        console.log('🤝 IPFS Explorer connected to Collaborative File System');
+      }
+      
       // Initialize IPFS node if available
       await this.initializeIPFSNode();
       
@@ -62,6 +73,27 @@ export class IPFSExplorerApp {
     } catch (error) {
       console.error('❌ IPFS Explorer integration error:', error);
     }
+  }
+
+  setupCollaborativeIPFS() {
+    if (!this.collaborativeFS) return;
+
+    // Listen for shared IPFS content
+    this.collaborativeFS.on('fileShared', (file) => {
+      if (file.ipfsHash) {
+        this.handleSharedIPFSContent(file);
+      }
+    });
+
+    // Listen for collaborative pinning requests
+    this.collaborativeFS.on('pinRequest', (request) => {
+      this.handleCollaborativePinning(request);
+    });
+
+    // Share IPFS discovery with peers
+    this.collaborativeFS.on('ipfsDiscovery', (discovery) => {
+      this.handleIPFSDiscovery(discovery);
+    });
   }
 
   createWindow() {

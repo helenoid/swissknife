@@ -14,3 +14,6 @@ export * from './peer-discovery.js'
 export * from './collaborative-p2p.js'
 export * from './workspace-manager.js'
 export * from './real-time-sync.js'
+
+// Phase 3: Advanced File Sharing & Collaboration
+export * from './collaborative-file-system.js'
