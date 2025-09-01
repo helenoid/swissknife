@@ -508,6 +508,10 @@ class SwissKnifeDesktop {
                     await this.createSystemMonitorApp(contentElement);
                     break;
                     
+                case 'P2PNetworkApp':
+                    await this.createP2PNetworkApp(contentElement);
+                    break;
+                    
                 case 'NeuralNetworkDesignerApp':
                     await this.createNeuralNetworkDesignerApp(contentElement);
                     break;
@@ -776,6 +780,46 @@ class SwissKnifeDesktop {
         const html = await systemMonitor.render();
         contentElement.innerHTML = html;
         return systemMonitor;
+    }
+
+    async createP2PNetworkApp(contentElement) {
+        try {
+            // Import the P2P Network app
+            await import('./apps/p2p-network.js');
+            
+            // Check if we have the modern class-based app or fall back to function
+            if (window.P2PNetworkApp) {
+                const p2pApp = new window.P2PNetworkApp();
+                await p2pApp.initialize();
+                const html = await p2pApp.render();
+                contentElement.innerHTML = html;
+                return p2pApp;
+            } else if (window.createP2PNetworkApp) {
+                // Fall back to function-based creation
+                const p2pApp = window.createP2PNetworkApp();
+                if (p2pApp.initialize) {
+                    await p2pApp.initialize();
+                }
+                if (p2pApp.render) {
+                    const html = await p2pApp.render();
+                    contentElement.innerHTML = html;
+                } else if (p2pApp.init) {
+                    await p2pApp.init(contentElement);
+                }
+                return p2pApp;
+            } else {
+                throw new Error('P2P Network app not found');
+            }
+        } catch (error) {
+            console.error('Error creating P2P Network app:', error);
+            contentElement.innerHTML = `
+                <div class="error-message">
+                    <h3>🔗 P2P Network Manager</h3>
+                    <p>Failed to load P2P Network app</p>
+                    <p>Error: ${error.message}</p>
+                </div>
+            `;
+        }
     }
 
     async createNeuralNetworkDesignerApp(contentElement) {
