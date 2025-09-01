@@ -1,7 +1,10 @@
 /**
  * Enhanced File Manager App for SwissKnife Web Desktop
- * Advanced file management with IPFS integration, cloud storage, and smart features
+ * Advanced file management with IPFS integration, cloud storage, and collaborative features
  */
+
+// Import collaborative file system
+import { CollaborativeFileSystem } from '../../../ipfs_accelerate_js/src/p2p/collaborative-file-system.js';
 
 export class FileManagerApp {
   constructor(desktop) {
@@ -19,12 +22,21 @@ export class FileManagerApp {
     this.searchQuery = '';
     this.showHidden = false;
     
+    // Collaborative features - Phase 3
+    this.collaborativeFS = null;
+    this.isCollaborativeMode = false;
+    this.activeCollaborators = new Map();
+    this.sharedFolders = [];
+    this.fileAnnotations = new Map();
+    this.transferProgress = new Map();
+    
     // File system integration
     this.storageProviders = {
       local: { name: 'Local Storage', icon: '💾', enabled: true },
       ipfs: { name: 'IPFS Network', icon: '🌐', enabled: true },
       cloud: { name: 'Cloud Storage', icon: '☁️', enabled: false },
-      p2p: { name: 'P2P Network', icon: '🔗', enabled: true }
+      p2p: { name: 'P2P Network', icon: '🔗', enabled: true },
+      collaborative: { name: 'Collaborative Workspace', icon: '👥', enabled: true }
     };
     
     // File type handlers
@@ -121,7 +133,117 @@ export class FileManagerApp {
 
   async initialize() {
     this.swissknife = this.desktop.swissknife;
+    
+    // Initialize collaborative file system if P2P is available
+    if (this.desktop.p2pManager) {
+      try {
+        this.collaborativeFS = new CollaborativeFileSystem(this.desktop.p2pManager);
+        this.isCollaborativeMode = true;
+        
+        // Setup event listeners for collaborative features
+        this.setupCollaborativeEvents();
+        
+        // Load shared folders and files
+        await this.loadSharedContent();
+        
+        console.log('Collaborative file system initialized');
+      } catch (error) {
+        console.warn('Could not initialize collaborative features:', error);
+        this.isCollaborativeMode = false;
+      }
+    }
+    
     await this.loadFiles();
+  }
+
+  setupCollaborativeEvents() {
+    if (!this.collaborativeFS) return;
+
+    // File sharing events
+    this.collaborativeFS.on('fileShared', (file) => {
+      this.handleSharedFile(file);
+    });
+
+    // File change events
+    this.collaborativeFS.on('fileChanged', (change) => {
+      this.handleFileChange(change);
+    });
+
+    // Transfer progress events
+    this.collaborativeFS.on('transferProgress', (progress) => {
+      this.updateTransferProgress(progress);
+    });
+
+    // Collaborator events
+    this.collaborativeFS.on('collaboratorJoined', (collaborator) => {
+      this.activeCollaborators.set(collaborator.id, collaborator);
+      this.updateCollaboratorDisplay();
+    });
+
+    this.collaborativeFS.on('collaboratorLeft', (collaboratorId) => {
+      this.activeCollaborators.delete(collaboratorId);
+      this.updateCollaboratorDisplay();
+    });
+
+    // Annotation events
+    this.collaborativeFS.on('annotationAdded', (annotation) => {
+      this.addFileAnnotation(annotation);
+    });
+
+    // Clipboard events
+    this.collaborativeFS.on('clipboardUpdated', (clipboardItem) => {
+      this.updateSharedClipboard(clipboardItem);
+    });
+  }
+
+  async loadSharedContent() {
+    if (!this.collaborativeFS) return;
+
+    try {
+      // Load shared folders
+      this.sharedFolders = this.collaborativeFS.getSharedFolders();
+      
+      // Load shared files
+      const sharedFiles = this.collaborativeFS.getSharedFiles();
+      
+      // Add to mock files for display
+      sharedFiles.forEach(file => {
+        this.mockFiles.push({
+          name: file.name,
+          type: 'file',
+          size: file.size,
+          modified: file.lastModified.getTime(),
+          created: file.created.getTime(),
+          permissions: 'rw-',
+          location: 'collaborative',
+          extension: file.name.split('.').pop(),
+          collaborative: true,
+          collaborators: file.collaborators.length,
+          shared: true,
+          fileId: file.id
+        });
+      });
+      
+      // Add shared folders
+      this.sharedFolders.forEach(folder => {
+        this.mockFiles.push({
+          name: `📁 ${folder.name}`,
+          type: 'folder',
+          size: 0,
+          modified: folder.lastModified.getTime(),
+          created: folder.created.getTime(),
+          permissions: 'rwx',
+          location: 'collaborative',
+          collaborative: true,
+          participants: folder.participants.length,
+          shared: true,
+          folderId: folder.id
+        });
+      });
+      
+    } catch (error) {
+      console.error('Error loading shared content:', error);
+    }
   }
 
   createWindow() {
@@ -155,6 +277,11 @@ export class FileManagerApp {
             <button class="toolbar-btn" id="upload-btn" title="Upload Files">📤</button>
             <button class="toolbar-btn" id="download-btn" title="Download Selected" ${this.selectedFiles.size === 0 ? 'disabled' : ''}>📥</button>
             <button class="toolbar-btn" id="share-btn" title="Share via P2P" ${this.selectedFiles.size === 0 ? 'disabled' : ''}>🔗</button>
+            ${this.isCollaborativeMode ? `
+              <button class="toolbar-btn collaborative-btn" id="create-shared-folder-btn" title="Create Shared Folder">👥📁</button>
+              <button class="toolbar-btn collaborative-btn" id="invite-collaborators-btn" title="Invite Collaborators">👥+</button>
+              <button class="toolbar-btn collaborative-btn" id="shared-clipboard-btn" title="Shared Clipboard">📋</button>
+            ` : ''}
             <input type="file" id="file-input" style="display: none;" multiple>
           </div>
           
@@ -181,6 +308,44 @@ export class FileManagerApp {
             </div>
           `).join('')}
         </div>
+        
+        <!-- Collaborative Status Bar -->
+        ${this.isCollaborativeMode ? `
+          <div class="collaborative-bar">
+            <div class="collab-section">
+              <span class="collab-label">Collaborators:</span>
+              <div class="collaborators-list" id="collaborators-list">
+                ${Array.from(this.activeCollaborators.values()).map(collaborator => `
+                  <div class="collaborator-avatar" title="${collaborator.name}">
+                    <span class="collaborator-initial">${collaborator.name.charAt(0)}</span>
+                    <span class="collaborator-status ${collaborator.active ? 'active' : 'idle'}"></span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div class="collab-section">
+              <span class="collab-label">Transfers:</span>
+              <div class="transfer-progress-container" id="transfer-progress">
+                ${Array.from(this.transferProgress.values()).map(progress => `
+                  <div class="transfer-item">
+                    <span class="transfer-name">${progress.fileName}</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: ${(progress.transferred / progress.totalSize) * 100}%"></div>
+                    </div>
+                    <span class="transfer-percent">${Math.round((progress.transferred / progress.totalSize) * 100)}%</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div class="collab-section">
+              <button class="collab-btn" id="shared-clipboard-toggle">📋 Clipboard (${this.collaborativeFS?.getClipboardHistory?.()?.length || 0})</button>
+              <button class="collab-btn" id="annotations-toggle">💬 Comments</button>
+              <button class="collab-btn" id="sync-status">🔄 Synced</button>
+            </div>
+          </div>
+        ` : ''}
         
         <div class="file-content">
           <!-- Enhanced Sidebar -->
@@ -950,6 +1115,107 @@ export class FileManagerApp {
           opacity: 0.7;
         }
 
+        /* Empty folder state */
+        .empty-folder {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 300px;
+          opacity: 0.6;
+        }
+
+        .empty-icon {
+          font-size: 48px;
+          margin-bottom: 16px;
+        }
+
+        .empty-text {
+          font-size: 16px;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+
+        .empty-subtext {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+
+        /* File list items */
+        .file-item {
+          padding: 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          user-select: none;
+        }
+
+        .file-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .file-item.selected {
+          background: linear-gradient(135deg, #4ade80, #22c55e);
+          color: white;
+        }
+
+        .file-item.grid-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          min-height: 80px;
+        }
+
+        .file-item.list-item {
+          display: grid;
+          grid-template-columns: 32px 1fr 80px 60px 120px 80px;
+          gap: 12px;
+          align-items: center;
+          padding: 12px 8px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .file-icon {
+          font-size: 24px;
+          margin-bottom: 4px;
+        }
+
+        .file-name {
+          font-size: 11px;
+          font-weight: 500;
+          max-width: 100px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .file-size, .file-type, .file-modified, .file-location {
+          font-size: 10px;
+          opacity: 0.8;
+        }
+
+        .list-item .file-icon {
+          font-size: 20px;
+          margin-bottom: 0;
+        }
+
+        .list-item .file-name {
+          max-width: none;
+          font-size: 12px;
+        }
+
+        .breadcrumb-item {
+          cursor: pointer;
+          padding: 2px 4px;
+          border-radius: 3px;
+          transition: background 0.2s ease;
+        }
+
+        .breadcrumb-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
           .file-toolbar {
@@ -982,92 +1248,225 @@ export class FileManagerApp {
       y: 75
     };
   }
-                <div class="quick-item" data-path="/">🏠 Home</div>
-                <div class="quick-item" data-path="/documents">📄 Documents</div>
-                <div class="quick-item" data-path="/downloads">📥 Downloads</div>
-                <div class="quick-item" data-path="/images">🖼️ Images</div>
-                <div class="quick-item" data-path="/projects">💼 Projects</div>
-              </div>
-            </div>
-            <div class="sidebar-section">
-              <h4>Storage Info</h4>
-              <div class="storage-info">
-                <div class="storage-item">
-                  <span>IPFS Storage:</span>
-                  <span id="ipfs-status">Checking...</span>
-                </div>
-                <div class="storage-item">
-                  <span>Local Storage:</span>
-                  <span id="local-storage">0 MB used</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="file-main">
-            <div class="breadcrumb" id="breadcrumb">
-              <span class="breadcrumb-item active">Home</span>
-            </div>
-            
-            <div class="file-list-container">
-              <div class="file-list ${this.viewMode}-view" id="file-list">
-                <!-- Files will be populated here -->
-              </div>
-            </div>
-            
-            <div class="status-bar">
-              <span id="file-count">0 items</span>
-              <span id="selection-info"></span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Context Menu -->
-        <div class="context-menu" id="context-menu" style="display: none;">
-          <div class="menu-item" data-action="open">Open</div>
-          <div class="menu-item" data-action="download">Download</div>
-          <div class="menu-separator"></div>
-          <div class="menu-item" data-action="copy">Copy</div>
-          <div class="menu-item" data-action="cut">Cut</div>
-          <div class="menu-item" data-action="paste">Paste</div>
-          <div class="menu-separator"></div>
-          <div class="menu-item" data-action="rename">Rename</div>
-          <div class="menu-item" data-action="delete">Delete</div>
-          <div class="menu-separator"></div>
-          <div class="menu-item" data-action="properties">Properties</div>
-        </div>
-        
-        <!-- Upload Progress -->
-        <div class="upload-progress" id="upload-progress" style="display: none;">
-          <div class="progress-header">
-            <span>Uploading files...</span>
-            <button class="close-btn">✕</button>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: 0%"></div>
-          </div>
-          <div class="progress-details">
-            <span id="upload-status">Preparing...</span>
-          </div>
-        </div>
-      </div>
-    `;
 
-    const window = this.desktop.createWindow({
-      title: 'File Manager',
-      content: content,
-      width: 900,
-      height: 700,
-      resizable: true
-    });
-
-    this.setupEventListeners(window);
-    this.updateFileList(window);
-    this.updateStorageInfo(window);
+  async render() {
+    const windowData = this.createWindow();
     
-    return window;
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      const container = document.querySelector('.file-manager-container');
+      if (container) {
+        this.setupEventHandlers(container);
+      }
+    }, 0);
+    
+    return windowData.content;
   }
 
+  setupEventHandlers(container) {
+    // Set up comprehensive event handlers for the file manager
+    console.log('🔧 Setting up File Manager event handlers...');
+    
+    try {
+      // Navigation controls
+      const backBtn = container.querySelector('#back-btn');
+      const forwardBtn = container.querySelector('#forward-btn');
+      const upBtn = container.querySelector('#up-btn');
+      const refreshBtn = container.querySelector('#refresh-btn');
+      
+      if (backBtn) backBtn.addEventListener('click', () => this.navigateBack(container));
+      if (forwardBtn) forwardBtn.addEventListener('click', () => this.navigateForward(container));
+      if (upBtn) upBtn.addEventListener('click', () => this.navigateUp(container));
+      if (refreshBtn) refreshBtn.addEventListener('click', () => this.refresh(container));
+      
+      // Path input
+      const pathInput = container.querySelector('#path-input');
+      if (pathInput) {
+        pathInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            this.navigateToPath(container, pathInput.value);
+          }
+        });
+      }
+      
+      // Search functionality
+      const searchInput = container.querySelector('#search-input');
+      const searchBtn = container.querySelector('#search-btn');
+      if (searchInput && searchBtn) {
+        const handleSearch = () => {
+          this.searchQuery = searchInput.value;
+          this.updateFileList(container);
+        };
+        searchInput.addEventListener('input', handleSearch);
+        searchBtn.addEventListener('click', handleSearch);
+      }
+      
+      // File operations
+      const newFolderBtn = container.querySelector('#new-folder-btn');
+      const uploadBtn = container.querySelector('#upload-btn');
+      const downloadBtn = container.querySelector('#download-btn');
+      const shareBtn = container.querySelector('#share-btn');
+      const fileInput = container.querySelector('#file-input');
+      
+      if (newFolderBtn) newFolderBtn.addEventListener('click', () => this.createNewFolder(container));
+      if (uploadBtn && fileInput) uploadBtn.addEventListener('click', () => fileInput.click());
+      if (downloadBtn) downloadBtn.addEventListener('click', () => this.downloadSelected(container));
+      if (shareBtn) shareBtn.addEventListener('click', () => this.shareSelected(container));
+      
+      // Collaborative controls
+      if (this.isCollaborativeMode) {
+        const createSharedFolderBtn = container.querySelector('#create-shared-folder-btn');
+        const inviteCollaboratorsBtn = container.querySelector('#invite-collaborators-btn');
+        const sharedClipboardBtn = container.querySelector('#shared-clipboard-btn');
+        const sharedClipboardToggle = container.querySelector('#shared-clipboard-toggle');
+        const annotationsToggle = container.querySelector('#annotations-toggle');
+        const syncStatus = container.querySelector('#sync-status');
+        
+        if (createSharedFolderBtn) {
+          createSharedFolderBtn.addEventListener('click', () => this.createSharedFolder(container));
+        }
+        if (inviteCollaboratorsBtn) {
+          inviteCollaboratorsBtn.addEventListener('click', () => this.inviteCollaborators(container));
+        }
+        if (sharedClipboardBtn) {
+          sharedClipboardBtn.addEventListener('click', () => this.openSharedClipboard(container));
+        }
+        if (sharedClipboardToggle) {
+          sharedClipboardToggle.addEventListener('click', () => this.toggleSharedClipboard(container));
+        }
+        if (annotationsToggle) {
+          annotationsToggle.addEventListener('click', () => this.toggleAnnotations(container));
+        }
+        if (syncStatus) {
+          syncStatus.addEventListener('click', () => this.showSyncStatus(container));
+        }
+      }
+      
+      if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files.length > 0) {
+            this.uploadFiles(container, Array.from(e.target.files));
+          }
+        });
+      }
+      
+      // View mode controls
+      const gridViewBtn = container.querySelector('#grid-view-btn');
+      const listViewBtn = container.querySelector('#list-view-btn');
+      if (gridViewBtn) gridViewBtn.addEventListener('click', () => this.setViewMode(container, 'grid'));
+      if (listViewBtn) listViewBtn.addEventListener('click', () => this.setViewMode(container, 'list'));
+      
+      // Sort controls
+      const sortBy = container.querySelector('#sort-by');
+      if (sortBy) {
+        sortBy.addEventListener('change', (e) => {
+          this.sortBy = e.target.value;
+          this.updateFileList(container);
+        });
+      }
+      
+      // Show hidden files toggle
+      const showHidden = container.querySelector('#show-hidden');
+      if (showHidden) {
+        showHidden.addEventListener('change', (e) => {
+          this.showHidden = e.target.checked;
+          this.updateFileList(container);
+        });
+      }
+      
+      // Quick access items
+      container.querySelectorAll('.quick-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const path = item.dataset.path;
+          if (path) this.navigateToPath(container, path);
+        });
+      });
+      
+      // File list interactions
+      const fileList = container.querySelector('#file-list');
+      if (fileList) {
+        fileList.addEventListener('click', (e) => this.handleFileClick(container, e));
+        fileList.addEventListener('dblclick', (e) => this.handleFileDoubleClick(container, e));
+        fileList.addEventListener('contextmenu', (e) => this.showContextMenu(container, e));
+        
+        // Drag and drop support
+        fileList.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          fileList.classList.add('drag-over');
+        });
+        
+        fileList.addEventListener('dragleave', () => {
+          fileList.classList.remove('drag-over');
+        });
+        
+        fileList.addEventListener('drop', (e) => {
+          e.preventDefault();
+          fileList.classList.remove('drag-over');
+          const files = Array.from(e.dataTransfer.files);
+          if (files.length > 0) {
+            this.uploadFiles(container, files);
+          }
+        });
+      }
+      
+      // Context menu
+      const contextMenu = container.querySelector('#context-menu');
+      if (contextMenu) {
+        contextMenu.addEventListener('click', (e) => this.handleContextMenuClick(container, e));
+        
+        // Hide context menu on outside click
+        document.addEventListener('click', (e) => {
+          if (!contextMenu.contains(e.target)) {
+            contextMenu.style.display = 'none';
+          }
+        });
+      }
+      
+      // Breadcrumb navigation
+      const breadcrumb = container.querySelector('#path-breadcrumb');
+      if (breadcrumb) {
+        breadcrumb.addEventListener('click', (e) => {
+          const breadcrumbItem = e.target.closest('.breadcrumb-item');
+          if (breadcrumbItem && breadcrumbItem.dataset.path) {
+            this.navigateToPath(container, breadcrumbItem.dataset.path);
+          }
+        });
+      }
+      
+      // Storage provider clicks
+      container.querySelectorAll('.storage-provider').forEach(provider => {
+        provider.addEventListener('click', () => {
+          const providerType = provider.dataset.provider;
+          this.switchStorageProvider(container, providerType);
+        });
+      });
+      
+      // Operation buttons in sidebar
+      const cutBtn = container.querySelector('#cut-btn');
+      const copyBtn = container.querySelector('#copy-btn');
+      const pasteBtn = container.querySelector('#paste-btn');
+      const deleteBtn = container.querySelector('#delete-btn');
+      
+      if (cutBtn) cutBtn.addEventListener('click', () => this.cutSelected(container));
+      if (copyBtn) copyBtn.addEventListener('click', () => this.copySelected(container));
+      if (pasteBtn) pasteBtn.addEventListener('click', () => this.pasteFiles(container));
+      if (deleteBtn) deleteBtn.addEventListener('click', () => this.deleteSelected(container));
+      
+      // AI tools
+      const autoOrganizeBtn = container.querySelector('#auto-organize-btn');
+      const duplicateFinderBtn = container.querySelector('#duplicate-finder-btn');
+      const smartTagsBtn = container.querySelector('#smart-tags-btn');
+      
+      if (autoOrganizeBtn) autoOrganizeBtn.addEventListener('click', () => this.autoOrganize(container));
+      if (duplicateFinderBtn) duplicateFinderBtn.addEventListener('click', () => this.findDuplicates(container));
+      if (smartTagsBtn) smartTagsBtn.addEventListener('click', () => this.generateSmartTags(container));
+      
+      console.log('✅ File Manager event handlers set up successfully');
+      
+    } catch (error) {
+      console.error('❌ Error setting up File Manager event handlers:', error);
+    }
+  }
   setupEventListeners(window) {
     const backBtn = window.querySelector('#back-btn');
     const forwardBtn = window.querySelector('#forward-btn');
@@ -1153,50 +1552,286 @@ export class FileManagerApp {
 
   async loadFiles() {
     try {
-      // Load files from SwissKnife storage
-      const result = await this.swissknife.storage.list({
-        path: this.currentPath,
-        recursive: false
-      });
-      
-      this.files = result.files || [];
+      // Load files from SwissKnife storage if available
+      if (this.swissknife && this.swissknife.storage) {
+        const result = await this.swissknife.storage.list({
+          path: this.currentPath,
+          recursive: false
+        });
+        this.files = result.files || [];
+      } else {
+        // Use mock data when storage is not available
+        this.files = this.getMockFiles();
+      }
     } catch (error) {
       console.error('Failed to load files:', error);
       this.files = this.getMockFiles(); // Fallback to mock data
     }
   }
 
+  renderBreadcrumb() {
+    const pathParts = this.currentPath.split('/').filter(part => part !== '');
+    let breadcrumb = '<span class="breadcrumb-item" data-path="/">📁</span>';
+    
+    let currentPath = '';
+    pathParts.forEach(part => {
+      currentPath += '/' + part;
+      breadcrumb += ` / <span class="breadcrumb-item" data-path="${currentPath}">${part}</span>`;
+    });
+    
+    return breadcrumb;
+  }
+
+  getFilteredFiles() {
+    let filteredFiles = [...this.files];
+    
+    // Apply search filter
+    if (this.searchQuery) {
+      filteredFiles = filteredFiles.filter(file => 
+        file.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply hidden files filter
+    if (!this.showHidden) {
+      filteredFiles = filteredFiles.filter(file => !file.name.startsWith('.'));
+    }
+    
+    // Apply sorting
+    filteredFiles.sort((a, b) => {
+      let aValue = a[this.sortBy];
+      let bValue = b[this.sortBy];
+      
+      if (this.sortBy === 'modified') {
+        aValue = new Date(a.modified);
+        bValue = new Date(b.modified);
+      }
+      
+      if (this.sortBy === 'size') {
+        aValue = a.size || 0;
+        bValue = b.size || 0;
+      }
+      
+      if (this.sortBy === 'name' || this.sortBy === 'type') {
+        aValue = (aValue || '').toLowerCase();
+        bValue = (bValue || '').toLowerCase();
+      }
+      
+      if (this.sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+    
+    return filteredFiles;
+  }
+
+  renderFileList() {
+    const filteredFiles = this.getFilteredFiles();
+    
+    if (filteredFiles.length === 0) {
+      return `
+        <div class="empty-folder">
+          <div class="empty-icon">📂</div>
+          <div class="empty-text">This folder is empty</div>
+          <div class="empty-subtext">Drag files here or use the upload button</div>
+        </div>
+      `;
+    }
+    
+    return filteredFiles.map((file, index) => {
+      const icon = this.getFileIcon(file);
+      const size = file.type === 'folder' || file.type === 'directory' ? '' : this.formatFileSize(file.size || 0);
+      const modified = this.formatDate(file.modified);
+      const selected = this.selectedFiles.has(index) ? 'selected' : '';
+      
+      if (this.viewMode === 'grid') {
+        return `
+          <div class="file-item grid-item ${selected}" data-index="${index}" data-path="${file.path || file.name}">
+            <div class="file-icon">${icon}</div>
+            <div class="file-name" title="${file.name}">${file.name}</div>
+            <div class="file-size">${size}</div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="file-item list-item ${selected}" data-index="${index}" data-path="${file.path || file.name}">
+            <div class="file-icon">${icon}</div>
+            <div class="file-name">${file.name}</div>
+            <div class="file-size">${size}</div>
+            <div class="file-type">${file.type || this.getFileExtension(file.name)}</div>
+            <div class="file-modified">${modified}</div>
+            <div class="file-location">${file.location || 'local'}</div>
+          </div>
+        `;
+      }
+    }).join('');
+  }
+
+  getFileIcon(file) {
+    if (!file) return '📄';
+    
+    if (file.type === 'folder' || file.type === 'directory') {
+      return '📁';
+    }
+    
+    const extension = this.getFileExtension(file.name).toLowerCase();
+    
+    // Image files
+    if (this.fileHandlers.image.includes(extension)) {
+      return '🖼️';
+    }
+    
+    // Video files
+    if (this.fileHandlers.video.includes(extension)) {
+      return '🎬';
+    }
+    
+    // Audio files
+    if (this.fileHandlers.audio.includes(extension)) {
+      return '🎵';
+    }
+    
+    // Document files
+    if (this.fileHandlers.document.includes(extension)) {
+      return '📄';
+    }
+    
+    // Code files
+    if (this.fileHandlers.code.includes(extension)) {
+      return '📝';
+    }
+    
+    // Archive files
+    if (this.fileHandlers.archive.includes(extension)) {
+      return '📦';
+    }
+    
+    // Default file icon
+    return '📄';
+  }
+
+  getFileExtension(filename) {
+    // Add comprehensive null/undefined/type checking
+    if (!filename || typeof filename !== 'string' || filename.length === 0) {
+      return '';
+    }
+    
+    try {
+      const parts = filename.split('.');
+      return parts.length > 1 ? parts.pop() || '' : '';
+    } catch (error) {
+      console.warn('Error getting file extension for:', filename, error);
+      return '';
+    }
+  }
+
+  formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  formatDate(date) {
+    if (!date) return 'Unknown';
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'Invalid Date';
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  }
+
   getMockFiles() {
     return [
       {
-        name: 'documents',
-        type: 'directory',
+        name: 'Documents',
+        type: 'folder',
         size: 0,
-        modified: new Date('2024-01-15'),
-        path: '/documents'
+        modified: Date.now() - 86400000,
+        created: Date.now() - 2592000000,
+        permissions: 'rwx',
+        location: 'local',
+        path: '/Documents'
+      },
+      {
+        name: 'Pictures',
+        type: 'folder',
+        size: 0,
+        modified: Date.now() - 172800000,
+        created: Date.now() - 2592000000,
+        permissions: 'rwx',
+        location: 'local',
+        path: '/Pictures'
+      },
+      {
+        name: 'AI Models',
+        type: 'folder',
+        size: 0,
+        modified: Date.now() - 3600000,
+        created: Date.now() - 1296000000,
+        permissions: 'rwx',
+        location: 'ipfs',
+        path: '/AI Models'
       },
       {
         name: 'project-notes.md',
         type: 'file',
-        size: 2048,
-        modified: new Date('2024-01-20'),
-        path: '/project-notes.md',
-        hash: 'QmX1Y2Z3...'
+        size: 15420,
+        modified: Date.now() - 1800000,
+        created: Date.now() - 86400000,
+        permissions: 'rw-',
+        location: 'local',
+        extension: 'md',
+        path: '/project-notes.md'
       },
       {
-        name: 'config.json',
+        name: 'neural-network-v2.js',
         type: 'file',
-        size: 512,
-        modified: new Date('2024-01-18'),
-        path: '/config.json',
-        hash: 'QmA1B2C3...'
+        size: 245678,
+        modified: Date.now() - 7200000,
+        created: Date.now() - 259200000,
+        permissions: 'rw-',
+        location: 'local',
+        extension: 'js',
+        path: '/neural-network-v2.js'
       },
       {
-        name: 'downloads',
-        type: 'directory',
-        size: 0,
-        modified: new Date('2024-01-10'),
-        path: '/downloads'
+        name: 'training-data.json',
+        type: 'file',
+        size: 12587456,
+        modified: Date.now() - 14400000,
+        created: Date.now() - 432000000,
+        permissions: 'rw-',
+        location: 'ipfs',
+        extension: 'json',
+        path: '/training-data.json'
+      },
+      {
+        name: 'desktop-screenshot.png',
+        type: 'file',
+        size: 2048576,
+        modified: Date.now() - 28800000,
+        created: Date.now() - 172800000,
+        permissions: 'rw-',
+        location: 'local',
+        extension: 'png',
+        path: '/desktop-screenshot.png'
+      },
+      {
+        name: 'shared-model-bert.zip',
+        type: 'file',
+        size: 438912345,
+        modified: Date.now() - 86400000,
+        created: Date.now() - 604800000,
+        permissions: 'r--',
+        location: 'p2p',
+        extension: 'zip',
+        path: '/shared-model-bert.zip'
       }
     ];
   }
@@ -1246,29 +1881,6 @@ export class FileManagerApp {
       selectionInfo.textContent = '';
       window.querySelector('#download-btn').disabled = true;
     }
-  }
-
-  getFileIcon(filename) {
-    const ext = filename.split('.').pop().toLowerCase();
-    const iconMap = {
-      'txt': '📄',
-      'md': '📝',
-      'json': '⚙️',
-      'js': '📜',
-      'ts': '📘',
-      'html': '🌐',
-      'css': '🎨',
-      'img': '🖼️',
-      'jpg': '🖼️',
-      'jpeg': '🖼️',
-      'png': '🖼️',
-      'gif': '🖼️',
-      'pdf': '📕',
-      'zip': '📦',
-      'tar': '📦',
-      'gz': '📦'
-    };
-    return iconMap[ext] || '📄';
   }
 
   formatFileSize(bytes) {
@@ -1560,5 +2172,519 @@ export class FileManagerApp {
     } catch (error) {
       this.desktop.showNotification('Failed to create folder: ' + error.message, 'error');
     }
+  }
+
+  // Missing methods referenced in event handlers
+  shareSelected(container) {
+    console.log('🔗 Sharing selected files via P2P...');
+    // TODO: Implement P2P sharing functionality
+    this.showNotification('P2P sharing feature coming soon!', 'info');
+  }
+
+  cutSelected(container) {
+    if (this.selectedFiles.size === 0) return;
+    
+    this.clipboard = {
+      operation: 'cut',
+      files: Array.from(this.selectedFiles).map(index => this.files[index])
+    };
+    
+    console.log('✂️ Cut files to clipboard');
+    this.updateOperationButtons(container);
+  }
+
+  copySelected(container) {
+    if (this.selectedFiles.size === 0) return;
+    
+    this.clipboard = {
+      operation: 'copy', 
+      files: Array.from(this.selectedFiles).map(index => this.files[index])
+    };
+    
+    console.log('📋 Copied files to clipboard');
+    this.updateOperationButtons(container);
+  }
+
+  async pasteFiles(container) {
+    if (!this.clipboard) return;
+    
+    try {
+      for (const file of this.clipboard.files) {
+        const newPath = this.currentPath + '/' + file.name;
+        
+        if (this.clipboard.operation === 'copy') {
+          // Copy file to new location
+          await this.copyFile(file.path, newPath);
+        } else if (this.clipboard.operation === 'cut') {
+          // Move file to new location
+          await this.moveFile(file.path, newPath);
+        }
+      }
+      
+      if (this.clipboard.operation === 'cut') {
+        this.clipboard = null; // Clear clipboard after cut operation
+      }
+      
+      await this.loadFiles();
+      this.updateFileList(container);
+      this.updateOperationButtons(container);
+      
+    } catch (error) {
+      this.showNotification('Paste operation failed: ' + error.message, 'error');
+    }
+  }
+
+  async deleteSelected(container) {
+    if (this.selectedFiles.size === 0) return;
+    
+    const confirmed = confirm(`Are you sure you want to delete ${this.selectedFiles.size} item(s)?`);
+    if (!confirmed) return;
+    
+    try {
+      for (const index of this.selectedFiles) {
+        const file = this.files[index];
+        await this.deleteFile(file.path);
+      }
+      
+      this.selectedFiles.clear();
+      await this.loadFiles();
+      this.updateFileList(container);
+      this.updateOperationButtons(container);
+      
+    } catch (error) {
+      this.showNotification('Delete operation failed: ' + error.message, 'error');
+    }
+  }
+
+  switchStorageProvider(container, providerType) {
+    console.log('🔄 Switching to storage provider:', providerType);
+    // TODO: Implement storage provider switching
+    this.showNotification(`Switching to ${providerType} storage...`, 'info');
+  }
+
+  autoOrganize(container) {
+    console.log('🤖 Auto-organizing files...');
+    // TODO: Implement AI-powered auto-organization
+    this.showNotification('AI auto-organization feature coming soon!', 'info');
+  }
+
+  findDuplicates(container) {
+    console.log('🔍 Finding duplicate files...');
+    // TODO: Implement duplicate file detection
+    this.showNotification('Duplicate finder feature coming soon!', 'info');
+  }
+
+  generateSmartTags(container) {
+    console.log('🏷️ Generating smart tags...');
+    // TODO: Implement AI-powered smart tagging
+    this.showNotification('Smart tagging feature coming soon!', 'info');
+  }
+
+  updateOperationButtons(container) {
+    // Update the state of operation buttons based on selection and clipboard
+    const cutBtn = container.querySelector('#cut-btn');
+    const copyBtn = container.querySelector('#copy-btn');
+    const pasteBtn = container.querySelector('#paste-btn');
+    const deleteBtn = container.querySelector('#delete-btn');
+    
+    const hasSelection = this.selectedFiles.size > 0;
+    const hasClipboard = this.clipboard !== null;
+    
+    if (cutBtn) cutBtn.disabled = !hasSelection;
+    if (copyBtn) copyBtn.disabled = !hasSelection;
+    if (pasteBtn) pasteBtn.disabled = !hasClipboard;
+    if (deleteBtn) deleteBtn.disabled = !hasSelection;
+  }
+
+  showNotification(message, type = 'info') {
+    // Use desktop notification system if available, otherwise console
+    if (this.desktop && this.desktop.showNotification) {
+      this.desktop.showNotification(message, type);
+    } else {
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+  }
+
+  // File system operations (mocked for now)
+  async copyFile(sourcePath, targetPath) {
+    console.log(`📋 Copying file from ${sourcePath} to ${targetPath}`);
+    // TODO: Implement actual file copy
+  }
+
+  async moveFile(sourcePath, targetPath) {
+    console.log(`✂️ Moving file from ${sourcePath} to ${targetPath}`);
+    // TODO: Implement actual file move
+  }
+
+  async deleteFile(filePath) {
+    console.log(`🗑️ Deleting file: ${filePath}`);
+    // TODO: Implement actual file deletion
+  }
+
+  // === Phase 3: Collaborative File System Methods ===
+
+  async createSharedFolder(container) {
+    if (!this.collaborativeFS) return;
+
+    const name = prompt('Enter shared folder name:');
+    if (!name) return;
+
+    try {
+      // Get available peers for collaboration
+      const peers = await this.desktop.p2pManager.getAvailablePeers();
+      
+      if (peers.length === 0) {
+        this.showNotification('No peers available for collaboration', 'warning');
+        return;
+      }
+
+      // For now, include all available peers
+      const sharedFolder = await this.collaborativeFS.createSharedFolder(name, peers);
+      
+      this.showNotification(`Shared folder "${name}" created with ${peers.length} participants`, 'success');
+      
+      // Refresh the file list to show the new shared folder
+      await this.loadSharedContent();
+      this.updateFileList(container);
+      
+    } catch (error) {
+      console.error('Error creating shared folder:', error);
+      this.showNotification('Failed to create shared folder', 'error');
+    }
+  }
+
+  async inviteCollaborators(container) {
+    if (!this.collaborativeFS) return;
+
+    try {
+      const peers = await this.desktop.p2pManager.getAvailablePeers();
+      
+      if (peers.length === 0) {
+        this.showNotification('No peers available to invite', 'warning');
+        return;
+      }
+
+      // Create invitation dialog
+      const inviteDialog = this.createInvitationDialog(peers);
+      container.appendChild(inviteDialog);
+      
+    } catch (error) {
+      console.error('Error inviting collaborators:', error);
+      this.showNotification('Failed to invite collaborators', 'error');
+    }
+  }
+
+  createInvitationDialog(peers) {
+    const dialog = document.createElement('div');
+    dialog.className = 'modal-overlay';
+    dialog.innerHTML = `
+      <div class="modal-content invite-dialog">
+        <div class="modal-header">
+          <h3>Invite Collaborators</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="peer-list">
+            ${peers.map(peer => `
+              <div class="peer-item">
+                <input type="checkbox" id="peer-${peer.id}" value="${peer.id}">
+                <label for="peer-${peer.id}">
+                  <span class="peer-name">${peer.name || peer.id}</span>
+                  <span class="peer-status">${peer.online ? 'Online' : 'Offline'}</span>
+                </label>
+              </div>
+            `).join('')}
+          </div>
+          <div class="permission-settings">
+            <h4>Permissions</h4>
+            <label><input type="checkbox" checked> Read access</label>
+            <label><input type="checkbox" checked> Write access</label>
+            <label><input type="checkbox"> Admin access</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-cancel">Cancel</button>
+          <button class="btn btn-primary modal-invite">Send Invitations</button>
+        </div>
+      </div>
+    `;
+
+    // Setup dialog event handlers
+    const closeBtn = dialog.querySelector('.modal-close');
+    const cancelBtn = dialog.querySelector('.modal-cancel');
+    const inviteBtn = dialog.querySelector('.modal-invite');
+
+    const closeDialog = () => dialog.remove();
+    
+    closeBtn.addEventListener('click', closeDialog);
+    cancelBtn.addEventListener('click', closeDialog);
+    
+    inviteBtn.addEventListener('click', () => {
+      const selectedPeers = Array.from(dialog.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(cb => cb.value)
+        .filter(value => value.startsWith('peer-'))
+        .map(value => value.replace('peer-', ''));
+      
+      if (selectedPeers.length > 0) {
+        this.sendCollaborationInvites(selectedPeers);
+        this.showNotification(`Invitations sent to ${selectedPeers.length} peers`, 'success');
+      }
+      
+      closeDialog();
+    });
+
+    return dialog;
+  }
+
+  async sendCollaborationInvites(peerIds) {
+    // Implementation would send actual invitations via P2P
+    console.log('Sending collaboration invites to:', peerIds);
+  }
+
+  async openSharedClipboard(container) {
+    if (!this.collaborativeFS) return;
+
+    const clipboardHistory = this.collaborativeFS.getClipboardHistory();
+    
+    const clipboardDialog = document.createElement('div');
+    clipboardDialog.className = 'modal-overlay';
+    clipboardDialog.innerHTML = `
+      <div class="modal-content clipboard-dialog">
+        <div class="modal-header">
+          <h3>Shared Clipboard</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="clipboard-items">
+            ${clipboardHistory.length > 0 ? clipboardHistory.map(item => `
+              <div class="clipboard-item" data-id="${item.id}">
+                <div class="item-header">
+                  <span class="item-type">${item.type}</span>
+                  <span class="item-source">From: ${item.source}</span>
+                  <span class="item-time">${new Date(item.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="item-content">
+                  ${item.type === 'text' ? item.content : `${item.type.toUpperCase()} content`}
+                </div>
+                <div class="item-actions">
+                  <button class="btn btn-sm clipboard-copy" data-content="${item.content}">Copy</button>
+                  <button class="btn btn-sm clipboard-paste" data-id="${item.id}">Paste</button>
+                </div>
+              </div>
+            `).join('') : '<p>No shared clipboard items</p>'}
+          </div>
+          <div class="clipboard-input">
+            <textarea placeholder="Add to shared clipboard..." id="clipboard-text"></textarea>
+            <button class="btn btn-primary" id="add-to-clipboard">Add</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(clipboardDialog);
+
+    // Setup clipboard dialog handlers
+    const closeBtn = clipboardDialog.querySelector('.modal-close');
+    closeBtn.addEventListener('click', () => clipboardDialog.remove());
+
+    const addBtn = clipboardDialog.querySelector('#add-to-clipboard');
+    const textArea = clipboardDialog.querySelector('#clipboard-text');
+    
+    addBtn.addEventListener('click', async () => {
+      const content = textArea.value.trim();
+      if (content) {
+        await this.collaborativeFS.addToSharedClipboard(content, 'text');
+        textArea.value = '';
+        clipboardDialog.remove();
+        this.showNotification('Added to shared clipboard', 'success');
+      }
+    });
+
+    // Copy/paste handlers
+    clipboardDialog.querySelectorAll('.clipboard-copy').forEach(btn => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.content);
+        this.showNotification('Copied to local clipboard', 'success');
+      });
+    });
+  }
+
+  toggleSharedClipboard(container) {
+    this.openSharedClipboard(container);
+  }
+
+  toggleAnnotations(container) {
+    // Show/hide file annotations
+    const annotationsPanel = container.querySelector('.annotations-panel');
+    if (annotationsPanel) {
+      annotationsPanel.style.display = annotationsPanel.style.display === 'none' ? 'block' : 'none';
+    } else {
+      this.createAnnotationsPanel(container);
+    }
+  }
+
+  createAnnotationsPanel(container) {
+    const panel = document.createElement('div');
+    panel.className = 'annotations-panel';
+    panel.innerHTML = `
+      <div class="panel-header">
+        <h4>File Comments & Annotations</h4>
+        <button class="panel-close">&times;</button>
+      </div>
+      <div class="panel-body">
+        <div class="annotations-list" id="annotations-list">
+          <!-- Annotations will be populated here -->
+        </div>
+        <div class="annotation-form">
+          <textarea placeholder="Add a comment..." id="annotation-text"></textarea>
+          <button class="btn btn-primary" id="add-annotation">Add Comment</button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(panel);
+
+    // Setup handlers
+    const closeBtn = panel.querySelector('.panel-close');
+    closeBtn.addEventListener('click', () => panel.remove());
+
+    const addBtn = panel.querySelector('#add-annotation');
+    const textArea = panel.querySelector('#annotation-text');
+    
+    addBtn.addEventListener('click', () => this.addAnnotation(textArea.value));
+
+    this.updateAnnotationsList(panel);
+  }
+
+  async addAnnotation(content) {
+    if (!this.collaborativeFS || !content.trim()) return;
+
+    const selectedFile = Array.from(this.selectedFiles)[0];
+    if (!selectedFile) {
+      this.showNotification('Please select a file to annotate', 'warning');
+      return;
+    }
+
+    try {
+      await this.collaborativeFS.addFileAnnotation(selectedFile.fileId || selectedFile.name, {
+        fileId: selectedFile.fileId || selectedFile.name,
+        userId: this.desktop.p2pManager.getLocalPeerId(),
+        userName: 'Current User',
+        content: content.trim(),
+        position: { line: 1, column: 1 },
+        type: 'comment',
+        resolved: false
+      });
+
+      this.showNotification('Comment added', 'success');
+    } catch (error) {
+      console.error('Error adding annotation:', error);
+      this.showNotification('Failed to add comment', 'error');
+    }
+  }
+
+  updateAnnotationsList(panel) {
+    const annotationsList = panel.querySelector('#annotations-list');
+    const selectedFile = Array.from(this.selectedFiles)[0];
+    
+    if (!selectedFile || !this.collaborativeFS) {
+      annotationsList.innerHTML = '<p>Select a file to view comments</p>';
+      return;
+    }
+
+    const annotations = this.collaborativeFS.getFileAnnotations(selectedFile.fileId || selectedFile.name);
+    
+    annotationsList.innerHTML = annotations.length > 0 ? annotations.map(annotation => `
+      <div class="annotation-item">
+        <div class="annotation-header">
+          <span class="annotation-author">${annotation.userName}</span>
+          <span class="annotation-time">${new Date(annotation.timestamp).toLocaleString()}</span>
+        </div>
+        <div class="annotation-content">${annotation.content}</div>
+        <div class="annotation-actions">
+          <button class="btn btn-sm" onclick="this.closest('.annotation-item').classList.toggle('resolved')">
+            ${annotation.resolved ? 'Reopen' : 'Resolve'}
+          </button>
+        </div>
+      </div>
+    `).join('') : '<p>No comments for this file</p>';
+  }
+
+  showSyncStatus(container) {
+    const status = {
+      connected: this.isCollaborativeMode,
+      peers: this.activeCollaborators.size,
+      lastSync: new Date(),
+      pendingOperations: 0
+    };
+
+    this.showNotification(
+      `Sync Status: ${status.connected ? 'Connected' : 'Disconnected'} | ` +
+      `Peers: ${status.peers} | Last sync: ${status.lastSync.toLocaleTimeString()}`,
+      'info'
+    );
+  }
+
+  // Event handlers for collaborative features
+  handleSharedFile(file) {
+    this.showNotification(`New shared file: ${file.name}`, 'info');
+    this.updateFileList(document.querySelector('.file-manager-container'));
+  }
+
+  handleFileChange(change) {
+    console.log('File changed:', change);
+    // Update file display if needed
+  }
+
+  updateTransferProgress(progress) {
+    this.transferProgress.set(progress.fileId, progress);
+    this.updateTransferDisplay();
+  }
+
+  updateCollaboratorDisplay() {
+    const collaboratorsList = document.querySelector('#collaborators-list');
+    if (collaboratorsList) {
+      collaboratorsList.innerHTML = Array.from(this.activeCollaborators.values()).map(collaborator => `
+        <div class="collaborator-avatar" title="${collaborator.name}">
+          <span class="collaborator-initial">${collaborator.name.charAt(0)}</span>
+          <span class="collaborator-status ${collaborator.active ? 'active' : 'idle'}"></span>
+        </div>
+      `).join('');
+    }
+  }
+
+  updateTransferDisplay() {
+    const transferContainer = document.querySelector('#transfer-progress');
+    if (transferContainer) {
+      transferContainer.innerHTML = Array.from(this.transferProgress.values()).map(progress => `
+        <div class="transfer-item">
+          <span class="transfer-name">${progress.fileName}</span>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${(progress.transferred / progress.totalSize) * 100}%"></div>
+          </div>
+          <span class="transfer-percent">${Math.round((progress.transferred / progress.totalSize) * 100)}%</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  updateSharedClipboard(clipboardItem) {
+    this.showNotification(`New shared clipboard item from ${clipboardItem.source}`, 'info');
+    
+    // Update clipboard button count
+    const clipboardBtn = document.querySelector('#shared-clipboard-toggle');
+    if (clipboardBtn && this.collaborativeFS) {
+      const count = this.collaborativeFS.getClipboardHistory().length;
+      clipboardBtn.textContent = `📋 Clipboard (${count})`;
+    }
+  }
+
+  addFileAnnotation(annotation) {
+    if (!this.fileAnnotations.has(annotation.fileId)) {
+      this.fileAnnotations.set(annotation.fileId, []);
+    }
+    this.fileAnnotations.get(annotation.fileId).push(annotation);
+    
+    this.showNotification(`New comment on ${annotation.fileId}`, 'info');
   }
 }

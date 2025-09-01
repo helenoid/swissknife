@@ -269,6 +269,22 @@ class SwissKnifeDesktop {
             singleton: true
         });
         
+        this.apps.set('huggingface', {
+            name: '🤗 Hugging Face Hub',
+            icon: '🤗',
+            component: 'HuggingFaceApp',
+            singleton: true
+        });
+        console.log('✅ Registered huggingface app');
+        
+        this.apps.set('openrouter', {
+            name: '🔄 OpenRouter Hub',
+            icon: '🔄',
+            component: 'OpenRouterApp',
+            singleton: true
+        });
+        console.log('✅ Registered openrouter app');
+        
         this.apps.set('ipfs-explorer', {
             name: 'IPFS Explorer',
             icon: '🌐',
@@ -392,6 +408,23 @@ class SwissKnifeDesktop {
             singleton: true
         });
         console.log('✅ Registered system-monitor app');
+        
+        // Register additional missing apps that appear in the UI
+        this.apps.set('github', {
+            name: 'GitHub',
+            icon: '🐙',
+            component: 'GitHubApp',
+            singleton: true
+        });
+        console.log('✅ Registered github app');
+        
+        this.apps.set('oauth-login', {
+            name: 'OAuth Login',
+            icon: '🔐',
+            component: 'OAuthLoginApp',
+            singleton: true
+        });
+        console.log('✅ Registered oauth-login app');
         
         console.log('📱 Total apps registered:', this.apps.size);
         console.log('📱 Apps list:', Array.from(this.apps.keys()));
@@ -630,36 +663,72 @@ class SwissKnifeDesktop {
                     break;
                     
                 case 'aichatapp':
-                    // Placeholder for AI Chat app
-                    contentElement.innerHTML = `
-                        <div class="app-placeholder">
-                            <h2>🤖 AI Chat</h2>
-                            <p>AI Chat functionality will be implemented here.</p>
-                            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                        </div>
-                    `;
+                    console.log('🤖 Loading AI Chat app...');
+                    // Import and instantiate AI Chat app
+                    try {
+                        const AIChatModule = await import('./apps/ai-chat.js');
+                        const AIChatApp = AIChatModule.AIChatApp;
+                        appInstance = new AIChatApp(this);
+                        await appInstance.initialize();
+                        const aiChatContent = await appInstance.render();
+                        contentElement.innerHTML = aiChatContent;
+                    } catch (error) {
+                        console.error('Failed to load AI Chat app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🤖 AI Chat</h2>
+                                <p>AI Chat functionality will be implemented here.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'filemanagerapp':
-                    // Placeholder for File Manager
-                    contentElement.innerHTML = `
-                        <div class="app-placeholder">
-                            <h2>📁 File Manager</h2>
-                            <p>File management functionality will be implemented here.</p>
-                            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                        </div>
-                    `;
+                    console.log('📁 Loading File Manager app...');
+                    // Import and instantiate File Manager app
+                    try {
+                        const FileManagerModule = await import('./apps/file-manager.js');
+                        const FileManagerApp = FileManagerModule.FileManagerApp;
+                        appInstance = new FileManagerApp(this);
+                        await appInstance.initialize();
+                        const fileManagerContent = await appInstance.render();
+                        contentElement.innerHTML = fileManagerContent;
+                    } catch (error) {
+                        console.error('Failed to load File Manager app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📁 File Manager</h2>
+                                <p>File management functionality will be implemented here.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'vibecodeapp':
                     console.log('🎯 Loading Enhanced VibeCode app...');
                     // Import and instantiate Enhanced VibeCode app
-                    const VibeCodeModule = await import('./apps/vibecode.js');
-                    const VibeCodeApp = VibeCodeModule.VibeCodeApp;
-                    appInstance = new VibeCodeApp(this);
-                    await appInstance.initialize();
-                    const vibeWindow = appInstance.createWindow();
-                    contentElement.appendChild(vibeWindow.querySelector('.vibecode-container'));
+                    try {
+                        const VibeCodeModule = await import('./apps/vibecode.js');
+                        const VibeCodeApp = VibeCodeModule.VibeCodeApp;
+                        appInstance = new VibeCodeApp(this);
+                        await appInstance.initialize();
+                        const vibeCodeContent = await appInstance.render();
+                        contentElement.innerHTML = vibeCodeContent;
+                    } catch (error) {
+                        console.error('Failed to load VibeCode app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎯 VibeCode</h2>
+                                <p>AI-powered Streamlit editor functionality will be implemented here.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'strudel-ai-daw':
@@ -673,18 +742,28 @@ class SwissKnifeDesktop {
                     const dawWindow = appInstance.createWindow();
                     contentElement.appendChild(dawWindow.querySelector('.strudel-ai-daw'));
                     break;
-                    `;
-                    break;
                     
                 case 'settingsapp':
-                    // Placeholder for Settings
-                    contentElement.innerHTML = `
-                        <div class="app-placeholder">
-                            <h2>⚙️ Settings</h2>
-                            <p>Configuration settings will be implemented here.</p>
-                            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                        </div>
-                    `;
+                    console.log('⚙️ Loading Settings app...');
+                    // Import and instantiate Settings app
+                    try {
+                        const SettingsModule = await import('./apps/settings.js');
+                        const SettingsApp = SettingsModule.SettingsApp;
+                        appInstance = new SettingsApp(this);
+                        await appInstance.initialize();
+                        const settingsContent = await appInstance.render();
+                        contentElement.innerHTML = settingsContent;
+                    } catch (error) {
+                        console.error('Failed to load Settings app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>⚙️ Settings</h2>
+                                <p>Configuration settings will be implemented here.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'apikeysapp':
@@ -698,13 +777,87 @@ class SwissKnifeDesktop {
                     break;
                     
                 case 'taskmanagerapp':
-                    // Task Manager
-                    this.loadTaskManagerApp(contentElement);
+                    console.log('⚡ Loading Task Manager app...');
+                    // Import and instantiate Task Manager app
+                    try {
+                        const TaskManagerModule = await import('./apps/task-manager.js');
+                        const TaskManagerApp = TaskManagerModule.TaskManagerApp;
+                        appInstance = new TaskManagerApp(this);
+                        await appInstance.initialize();
+                        const taskManagerContent = await appInstance.render();
+                        contentElement.innerHTML = taskManagerContent;
+                    } catch (error) {
+                        console.error('Failed to load Task Manager app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>⚡ Task Manager</h2>
+                                <p>Real-time system monitoring and process management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'modelbrowserapp':
                     // Model Browser
                     this.loadModelBrowserApp(contentElement);
+                    break;
+                    
+                case 'huggingfaceapp':
+                    console.log('🤗 Loading Hugging Face Hub app...');
+                    // Import and instantiate Hugging Face app
+                    try {
+                        const HuggingFaceModule = await import('./apps/huggingface.js');
+                        const HuggingFaceApp = HuggingFaceModule.default || HuggingFaceModule.HuggingFaceApp || window.HuggingFaceApp;
+                        appInstance = new HuggingFaceApp();
+                        await appInstance.initialize();
+                        const huggingfaceContent = appInstance.render();
+                        contentElement.innerHTML = huggingfaceContent;
+                        
+                        // Setup event handlers by calling the app's setup method
+                        if (appInstance.setupEventListeners) {
+                            appInstance.setupEventListeners();
+                        }
+                    } catch (error) {
+                        console.error('Failed to load Hugging Face app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🤗 Hugging Face Hub</h2>
+                                <p>Professional AI Model Hub, Dataset Management & Inference Platform</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'openrouterapp':
+                    console.log('🔄 Loading OpenRouter Hub app...');
+                    // Import and instantiate OpenRouter app
+                    try {
+                        const OpenRouterModule = await import('./apps/openrouter.js');
+                        const OpenRouterApp = OpenRouterModule.default || OpenRouterModule.OpenRouterApp || window.OpenRouterApp;
+                        appInstance = new OpenRouterApp();
+                        await appInstance.initialize();
+                        const openrouterContent = appInstance.render();
+                        contentElement.innerHTML = openrouterContent;
+                        
+                        // Setup event handlers by calling the app's setup method
+                        if (appInstance.setupEventListeners) {
+                            appInstance.setupEventListeners();
+                        }
+                    } catch (error) {
+                        console.error('Failed to load OpenRouter app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🔄 OpenRouter Hub</h2>
+                                <p>Universal LLM Access Hub - Multiple AI Providers Through Single Interface</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'ipfsexplorerapp':
@@ -763,21 +916,25 @@ class SwissKnifeDesktop {
                     break;
 
                 case 'p2pnetworkapp':
-                    console.log('🔗 Loading P2P Network Manager...');
-                    // Import and create P2P Network app
+                    console.log('🔗 Loading P2P Network app...');
                     try {
-                        await this.loadScript('./js/apps/p2p-network.js');
+                        // Try to import the P2P Network app module
+                        const P2PNetworkModule = await import('./apps/p2p-network.js');
+                        console.log('📦 Imported P2P Network module:', P2PNetworkModule);
+                        
+                        // Check if the app creator function exists
                         if (window.createP2PNetworkApp) {
                             appInstance = window.createP2PNetworkApp();
                             appInstance.init(contentElement);
                         } else {
-                            throw new Error('P2P Network app not found');
+                            throw new Error('P2P Network app not loaded properly');
                         }
                     } catch (error) {
                         console.error('Failed to load P2P Network app:', error);
                         contentElement.innerHTML = `
                             <div class="app-placeholder">
                                 <h2>🔗 P2P Network Manager</h2>
+                                <p>P2P networking and distributed machine learning coordination.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
@@ -787,15 +944,14 @@ class SwissKnifeDesktop {
 
                 case 'neuralnetworkdesignerapp':
                     console.log('🧠 Loading Neural Network Designer...');
-                    // Import and create Neural Network Designer app
+                    // Import and instantiate Neural Network Designer app
                     try {
-                        await this.loadScript('./js/apps/neural-network-designer.js');
-                        if (window.createNeuralNetworkDesignerApp) {
-                            appInstance = window.createNeuralNetworkDesignerApp();
-                            appInstance.init(contentElement);
-                        } else {
-                            throw new Error('Neural Network Designer app not found');
-                        }
+                        const NeuralNetworkDesignerModule = await import('./apps/neural-network-designer.js');
+                        const NeuralNetworkDesignerApp = NeuralNetworkDesignerModule.NeuralNetworkDesignerApp;
+                        appInstance = new NeuralNetworkDesignerApp(this);
+                        await appInstance.initialize();
+                        const neuralDesignerContent = await appInstance.createWindow();
+                        contentElement.innerHTML = neuralDesignerContent;
                     } catch (error) {
                         console.error('Failed to load Neural Network Designer app:', error);
                         contentElement.innerHTML = `
@@ -841,8 +997,8 @@ class SwissKnifeDesktop {
                         const CalculatorApp = CalculatorModule.CalculatorApp;
                         appInstance = new CalculatorApp(this);
                         await appInstance.initialize();
-                        const calculatorWindow = appInstance.createWindow();
-                        contentElement.appendChild(calculatorWindow);
+                        const calculatorContent = await appInstance.render();
+                        contentElement.innerHTML = calculatorContent;
                     } catch (error) {
                         console.error('Failed to load Calculator app:', error);
                         contentElement.innerHTML = `
@@ -864,8 +1020,8 @@ class SwissKnifeDesktop {
                         const ClockApp = ClockModule.ClockApp;
                         appInstance = new ClockApp(this);
                         await appInstance.initialize();
-                        const clockWindow = appInstance.createWindow();
-                        contentElement.appendChild(clockWindow);
+                        const clockContent = await appInstance.render();
+                        contentElement.innerHTML = clockContent;
                     } catch (error) {
                         console.error('Failed to load Clock app:', error);
                         contentElement.innerHTML = `
@@ -910,8 +1066,8 @@ class SwissKnifeDesktop {
                         const NotesApp = NotesModule.NotesApp;
                         appInstance = new NotesApp(this);
                         await appInstance.initialize();
-                        const notesWindow = appInstance.createWindow();
-                        contentElement.appendChild(notesWindow);
+                        const notesContent = await appInstance.render();
+                        contentElement.innerHTML = notesContent;
                     } catch (error) {
                         console.error('Failed to load Notes app:', error);
                         contentElement.innerHTML = `
@@ -933,14 +1089,62 @@ class SwissKnifeDesktop {
                         const SystemMonitorApp = SystemMonitorModule.SystemMonitorApp;
                         appInstance = new SystemMonitorApp(this);
                         await appInstance.initialize();
-                        const monitorWindow = appInstance.createWindow();
-                        contentElement.appendChild(monitorWindow);
+                        const monitorContent = await appInstance.render();
+                        contentElement.innerHTML = monitorContent;
                     } catch (error) {
                         console.error('Failed to load System Monitor app:', error);
                         contentElement.innerHTML = `
                             <div class="app-placeholder">
                                 <h2>📊 System Monitor</h2>
                                 <p>Real-time system performance monitoring.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'githubapp':
+                    console.log('🐙 Loading GitHub app...');
+                    // Import and instantiate GitHub app
+                    try {
+                        await this.loadScript('./js/apps/github.js');
+                        if (window.createGitHubApp) {
+                            appInstance = window.createGitHubApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('GitHub app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load GitHub app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🐙 GitHub</h2>
+                                <p>GitHub integration and repository management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'oauthloginapp':
+                    console.log('🔐 Loading OAuth Login app...');
+                    // Import and instantiate OAuth Login app
+                    try {
+                        await this.loadScript('./js/apps/oauth-login.js');
+                        if (window.createOAuthLoginApp) {
+                            appInstance = window.createOAuthLoginApp();
+                            appInstance.init(contentElement);
+                        } else {
+                            throw new Error('OAuth Login app not found');
+                        }
+                    } catch (error) {
+                        console.error('Failed to load OAuth Login app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🔐 OAuth Login</h2>
+                                <p>OAuth authentication and login management.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>

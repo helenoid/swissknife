@@ -52,6 +52,17 @@ export class IPFSExplorerApp {
         this.setupP2PIntegration();
       }
       
+      // Initialize collaborative file system if available - Phase 3
+      if (this.desktop.p2pManager && this.desktop.collaborativeFS) {
+        this.collaborativeFS = this.desktop.collaborativeFS;
+        this.isCollaborativeMode = true;
+        
+        // Setup collaborative event listeners
+        this.setupCollaborativeIPFS();
+        
+        console.log('🤝 IPFS Explorer connected to Collaborative File System');
+      }
+      
       // Initialize IPFS node if available
       await this.initializeIPFSNode();
       
@@ -62,6 +73,27 @@ export class IPFSExplorerApp {
     } catch (error) {
       console.error('❌ IPFS Explorer integration error:', error);
     }
+  }
+
+  setupCollaborativeIPFS() {
+    if (!this.collaborativeFS) return;
+
+    // Listen for shared IPFS content
+    this.collaborativeFS.on('fileShared', (file) => {
+      if (file.ipfsHash) {
+        this.handleSharedIPFSContent(file);
+      }
+    });
+
+    // Listen for collaborative pinning requests
+    this.collaborativeFS.on('pinRequest', (request) => {
+      this.handleCollaborativePinning(request);
+    });
+
+    // Share IPFS discovery with peers
+    this.collaborativeFS.on('ipfsDiscovery', (discovery) => {
+      this.handleIPFSDiscovery(discovery);
+    });
   }
 
   createWindow() {
@@ -1781,5 +1813,120 @@ export class IPFSExplorerApp {
       this.p2pSystem.off('ipfs:pin-request');
     }
   }
-}
+
+  // Modern app framework methods
+  async render() {
+    console.log('🎨 Rendering IPFS Explorer app...');
+    const windowConfig = this.createWindowConfig();
+    
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      const container = document.querySelector('.ipfs-explorer-container');
+      if (container) {
+        this.setupEventListeners();
+        this.initializeIPFSConnection(container);
+      }
+    }, 100);
+    
+    return windowConfig;
+  }
+
+  createWindowConfig() {
+    return {
+      title: '🌐 IPFS Explorer',
+      content: this.getWindowContent(),
+      width: 1200,
+      height: 800,
+      resizable: true,
+      x: 200,
+      y: 150
+    };
+  }
+
+  getWindowContent() {
+    return `
+      <div class="ipfs-explorer-container">
+        <div class="ipfs-toolbar">
+          <div class="toolbar-section">
+            <button class="toolbar-btn" id="back-btn" title="Back" disabled>⬅️</button>
+            <button class="toolbar-btn" id="forward-btn" title="Forward" disabled>➡️</button>
+            <button class="toolbar-btn" id="refresh-btn" title="Refresh">🔄</button>
+          </div>
+          <div class="toolbar-section path-section">
+            <div class="path-breadcrumb" id="path-breadcrumb">/ipfs/</div>
+            <input type="text" id="path-input" placeholder="Enter IPFS hash or path..." class="path-input">
+          </div>
+          <div class="toolbar-section">
+            <button class="toolbar-btn" id="upload-btn" title="Upload Files">📤</button>
+            <button class="toolbar-btn" id="pin-btn" title="Pin Content">📌</button>
+          </div>
+        </div>
+        
+        <div class="ipfs-main">
+          <div class="ipfs-sidebar">
+            <div class="sidebar-section">
+              <h3>Quick Access</h3>
+              <div class="quick-access">
+                <div class="access-item" data-path="/ipfs/">🏠 Root</div>
+                <div class="access-item" data-path="/pins/">📌 Pinned</div>
+                <div class="access-item" data-path="/recent/">🕐 Recent</div>
+                <div class="access-item" data-path="/shared/">🌐 P2P Shared</div>
+              </div>
+            </div>
+            
+            <div class="sidebar-section">
+              <h3>Node Status</h3>
+              <div class="node-status">
+                <div class="status-item">
+                  <span class="status-label">Status:</span>
+                  <span class="status-value" id="node-status">Connecting...</span>
+                </div>
+                <div class="status-item">
+                  <span class="status-label">Peers:</span>
+                  <span class="status-value" id="peer-count">0</span>
+                </div>
+                <div class="status-item">
+                  <span class="status-label">Storage:</span>
+                  <span class="status-value" id="storage-used">0 MB</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="ipfs-content">
+            <div class="content-header">
+              <div class="view-controls">
+                <button class="view-btn active" data-view="list">📋 List</button>
+                <button class="view-btn" data-view="grid">🔲 Grid</button>
+              </div>
+              <div class="sort-controls">
+                <select id="sort-select">
+                  <option value="name">Sort by Name</option>
+                  <option value="size">Sort by Size</option>
+                  <option value="date">Sort by Date</option>
+                  <option value="type">Sort by Type</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="file-browser" id="file-browser">
+              <div class="loading-indicator">
+                <div class="spinner"></div>
+                <div>Loading IPFS content...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Upload Area -->
+        <div class="upload-area" id="upload-area" style="display: none;">
+          <div class="upload-content">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drop files here to upload to IPFS</div>
+            <div class="upload-note">or click to select files</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
 }

@@ -71,7 +71,57 @@ export class TerminalApp {
       ['c', 'clear']
     ]);
     
+    // Initialize CLI adapter as null - will be initialized later if available
+    this.cliAdapter = null;
+
     this.initializeIntegrations();
+  }
+
+  async initialize(contentElement) {
+    this.contentElement = contentElement;
+    await this.render();
+    return this;
+  }
+
+  async render() {
+    if (!this.contentElement) {
+      throw new Error('Content element not provided');
+    }
+
+    this.contentElement.innerHTML = `
+      <div class="terminal-container">
+        <div class="terminal-header">
+          <div class="terminal-tabs">
+            <div class="terminal-tab active" data-session="main">
+              <span class="tab-title">Terminal</span>
+              <button class="tab-close">×</button>
+            </div>
+            <button class="new-tab-btn" title="New Tab">+</button>
+          </div>
+          <div class="terminal-controls">
+            <button class="terminal-btn" id="ai-assist-btn" title="AI Assistant">🤖</button>
+            <button class="terminal-btn" id="p2p-connect-btn" title="P2P Connect">🌐</button>
+            <button class="terminal-btn" id="settings-btn" title="Settings">⚙️</button>
+          </div>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-output" id="terminal-output"></div>
+          <div class="terminal-input-line">
+            <span class="terminal-prompt" id="terminal-prompt">swissknife@desktop:${this.currentDirectory}$ </span>
+            <input type="text" class="terminal-input" id="terminal-input" 
+                   placeholder="Type a command..." autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+        <div class="terminal-status">
+          <span class="status-left">Ready</span>
+          <span class="status-right">Session: main | ${this.environment.USER}@${this.environment.TERM}</span>
+        </div>
+      </div>
+    `;
+
+    this.setupEventListeners();
+    this.createMainSession();
+    this.showWelcomeMessage();
   }
 
   async initializeIntegrations() {
@@ -95,6 +145,20 @@ export class TerminalApp {
       console.log('✅ Terminal integrations initialized');
     } catch (error) {
       console.error('❌ Terminal integration error:', error);
+    }
+  }
+
+  loadSettings() {
+    // Load terminal settings from localStorage
+    try {
+      const savedSettings = localStorage.getItem('swissknife-terminal-settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        // Apply saved settings
+        this.currentDirectory = settings.currentDirectory || this.currentDirectory;
+      }
+    } catch (error) {
+      console.warn('Could not load terminal settings:', error);
     }
   }
 
@@ -239,16 +303,32 @@ export class TerminalApp {
   }
 
   setupEventListeners() {
-    this.input.addEventListener('keydown', this.handleKeyDown.bind(this));
+    this.input = this.contentElement.querySelector('#terminal-input');
+    this.output = this.contentElement.querySelector('#terminal-output');
+    this.prompt = this.contentElement.querySelector('#terminal-prompt');
     
-    // Window controls
-    this.window.querySelector('.btn-close').addEventListener('click', () => {
-      this.window.remove();
-    });
+    if (this.input) {
+      this.input.addEventListener('keydown', this.handleKeyDown.bind(this));
+      this.input.focus();
+    }
     
-    this.window.querySelector('.btn-minimize').addEventListener('click', () => {
-      this.window.style.display = 'none';
-    });
+    // AI Assistant button
+    const aiBtn = this.contentElement.querySelector('#ai-assist-btn');
+    if (aiBtn) {
+      aiBtn.addEventListener('click', () => this.toggleAIAssistant());
+    }
+    
+    // P2P Connect button  
+    const p2pBtn = this.contentElement.querySelector('#p2p-connect-btn');
+    if (p2pBtn) {
+      p2pBtn.addEventListener('click', () => this.toggleP2PConnection());
+    }
+    
+    // Settings button
+    const settingsBtn = this.contentElement.querySelector('#settings-btn');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', () => this.openTerminalSettings());
+    }
   }
 
   handleKeyDown(event) {
@@ -290,8 +370,8 @@ export class TerminalApp {
     const args = parts.slice(1);
 
     try {
-      // First try the shared CLI adapter for all SwissKnife commands
-      if (cmd.startsWith('sk-') || ['sk', 'ai', 'chat', 'task', 'config', 'models', 'storage', 'mcp', 'ipfs'].includes(cmd)) {
+      // First try the shared CLI adapter for all SwissKnife commands (if available)
+      if (this.cliAdapter && (cmd.startsWith('sk-') || ['sk', 'ai', 'chat', 'task', 'config', 'models', 'storage', 'mcp', 'ipfs'].includes(cmd))) {
         const result = await this.cliAdapter.executeCommand(command);
         if (result.success) {
           this.addOutput(result.output, 'normal');
@@ -703,5 +783,169 @@ export class TerminalApp {
         this.addOutput(`Possible completions: ${matches.join(', ')}`);
       }
     }
+  }
+
+  toggleAIAssistant() {
+    console.log('AI Assistant toggled');
+    this.addOutput('🤖 AI Assistant panel toggled', 'info');
+    // TODO: Implement AI assistant functionality
+  }
+
+  toggleP2PConnection() {
+    console.log('P2P Connection toggled');
+    this.addOutput('🌐 P2P Connection panel toggled', 'info');
+    // TODO: Implement P2P connection functionality
+  }
+
+  openTerminalSettings() {
+    console.log('Terminal Settings opened');
+    this.addOutput('⚙️ Terminal Settings opened', 'info');
+    // TODO: Implement terminal settings
+  }
+
+  createMainSession() {
+    const sessionId = 'main';
+    this.sessions.set(sessionId, {
+      id: sessionId,
+      name: 'Terminal',
+      history: [],
+      cwd: this.currentDirectory
+    });
+    this.activeSession = sessionId;
+  }
+
+  showWelcomeMessage() {
+    this.addOutput(`
+Welcome to SwissKnife Terminal
+=============================
+
+A powerful terminal with AI assistance, P2P connectivity, and SwissKnife integration.
+
+Available commands:
+• help - Show all available commands
+• ai [query] - Get AI assistance  
+• p2p - Connect to P2P network
+• ipfs - IPFS storage commands
+• desktop - Desktop management
+
+Type 'help' for a complete list of commands.
+`, 'info');
+  }
+
+  addOutput(text, type = 'output') {
+    if (!this.output) {
+      this.output = this.contentElement.querySelector('#terminal-output');
+    }
+    
+    if (this.output) {
+      const outputLine = document.createElement('div');
+      outputLine.className = `terminal-line terminal-${type}`;
+      outputLine.innerHTML = text.replace(/\n/g, '<br>');
+      this.output.appendChild(outputLine);
+      this.output.scrollTop = this.output.scrollHeight;
+    }
+  }
+
+  // Missing method implementations
+  echoText(args) {
+    this.addOutput(args.join(' '));
+  }
+
+  printWorkingDirectory() {
+    this.addOutput(this.currentDirectory);
+  }
+
+  showDate() {
+    this.addOutput(new Date().toString());
+  }
+
+  showUser() {
+    this.addOutput('swissknife-user');
+  }
+
+  showSystemStats() {
+    this.addOutput('System Statistics:', 'info');
+    this.addOutput(`Uptime: ${this.getUptime()}`);
+    this.addOutput(`Memory: ${this.getMemoryUsage()}`);
+    this.addOutput(`Platform: ${navigator.platform}`);
+  }
+
+  manageAliases(args) {
+    if (args.length === 0) {
+      this.addOutput('Current aliases:', 'info');
+      this.aliases.forEach((value, key) => {
+        this.addOutput(`${key}='${value}'`);
+      });
+    } else {
+      this.addOutput('Alias management not fully implemented yet', 'warning');
+    }
+  }
+
+  setEnvironmentVar(args) {
+    if (args.length < 1) {
+      this.addOutput('Usage: export KEY=value', 'warning');
+      return;
+    }
+    this.addOutput('Environment variable setting not fully implemented yet', 'warning');
+  }
+
+  grepText(args) {
+    this.addOutput('grep command not fully implemented yet', 'warning');
+  }
+
+  findFiles(args) {
+    this.addOutput('find command not fully implemented yet', 'warning');
+  }
+
+  openEditor(args) {
+    this.addOutput('Editor opening not fully implemented yet', 'warning');
+  }
+
+  connectSSH(args) {
+    this.addOutput('SSH connection not fully implemented yet', 'warning');
+  }
+
+  copyFiles(args) {
+    this.addOutput('File copying not fully implemented yet', 'warning');
+  }
+
+  ipfsCommand(args) {
+    this.addOutput('IPFS command not fully implemented yet', 'warning');
+  }
+
+  p2pCommand(args) {
+    this.addOutput('P2P command not fully implemented yet', 'warning');
+  }
+
+  aiCommand(args) {
+    this.addOutput('AI command not fully implemented yet', 'warning');
+  }
+
+  desktopCommand(args) {
+    this.addOutput('Desktop command not fully implemented yet', 'warning');
+  }
+
+  installPackage(args) {
+    this.addOutput('Package installation not fully implemented yet', 'warning');
+  }
+
+  updateSystem(args) {
+    this.addOutput('System update not fully implemented yet', 'warning');
+  }
+
+  monitorSystem(args) {
+    this.addOutput('System monitoring not fully implemented yet', 'warning');
+  }
+
+  showLogs(args) {
+    this.addOutput('Log viewing not fully implemented yet', 'warning');
+  }
+
+  backupData(args) {
+    this.addOutput('Data backup not fully implemented yet', 'warning');
+  }
+
+  restoreData(args) {
+    this.addOutput('Data restore not fully implemented yet', 'warning');
   }
 }

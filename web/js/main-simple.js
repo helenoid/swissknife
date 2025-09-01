@@ -102,6 +102,20 @@ class SwissKnifeDesktop {
             singleton: true
         });
         
+        this.apps.set('huggingface', {
+            name: '🤗 Hugging Face Hub',
+            icon: '🤗',
+            component: 'HuggingFaceApp',
+            singleton: true
+        });
+        
+        this.apps.set('openrouter', {
+            name: '🔄 OpenRouter Hub',
+            icon: '🔄',
+            component: 'OpenRouterApp',
+            singleton: true
+        });
+        
         this.apps.set('ipfs-explorer', {
             name: 'IPFS Explorer',
             icon: '🌐',
@@ -430,6 +444,14 @@ class SwissKnifeDesktop {
                     await this.createModelBrowserApp(contentElement);
                     break;
                     
+                case 'HuggingFaceApp':
+                    await this.createHuggingFaceApp(contentElement);
+                    break;
+                    
+                case 'OpenRouterApp':
+                    await this.createOpenRouterApp(contentElement);
+                    break;
+                    
                 case 'IPFSExplorerApp':
                     await this.createIPFSExplorerApp(contentElement);
                     break;
@@ -486,6 +508,14 @@ class SwissKnifeDesktop {
                     await this.createSystemMonitorApp(contentElement);
                     break;
                     
+                case 'P2PNetworkApp':
+                    await this.createP2PNetworkApp(contentElement);
+                    break;
+                    
+                case 'NeuralNetworkDesignerApp':
+                    await this.createNeuralNetworkDesignerApp(contentElement);
+                    break;
+                    
                 default:
                     this.createPlaceholderApp(contentElement, componentName);
             }
@@ -497,9 +527,22 @@ class SwissKnifeDesktop {
 
     // App creation methods
     async createTerminalApp(contentElement) {
-        const { TerminalApp } = await import('./apps/terminal.js');
-        const terminal = new TerminalApp(contentElement, this);
-        return terminal;
+        try {
+            console.log('🔧 Creating terminal app...');
+            const { TerminalApp } = await import('./apps/terminal.js');
+            console.log('✅ Terminal module imported successfully');
+            
+            const terminal = new TerminalApp(this);
+            console.log('✅ Terminal instance created');
+            
+            await terminal.initialize(contentElement);
+            console.log('✅ Terminal initialized successfully');
+            
+            return terminal;
+        } catch (error) {
+            console.error('❌ Terminal creation error:', error);
+            throw error;
+        }
     }
 
     async createVibeCodeApp(contentElement) {
@@ -554,6 +597,60 @@ class SwissKnifeDesktop {
         const html = await modelBrowser.render();
         contentElement.innerHTML = html;
         return modelBrowser;
+    }
+
+    async createHuggingFaceApp(contentElement) {
+        try {
+            const { HuggingFaceApp } = await import('./apps/huggingface.js');
+            const huggingFace = new HuggingFaceApp();
+            await huggingFace.initialize();
+            const html = huggingFace.render();
+            contentElement.innerHTML = html;
+            
+            // Setup event handlers
+            if (huggingFace.setupEventListeners) {
+                huggingFace.setupEventListeners();
+            }
+            
+            return huggingFace;
+        } catch (error) {
+            console.error('Failed to load Hugging Face app:', error);
+            contentElement.innerHTML = `
+                <div class="app-placeholder">
+                    <h2>🤗 Hugging Face Hub</h2>
+                    <p>Professional AI Model Hub, Dataset Management & Inference Platform</p>
+                    <p>Failed to load: ${error.message}</p>
+                    <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                </div>
+            `;
+        }
+    }
+
+    async createOpenRouterApp(contentElement) {
+        try {
+            const { OpenRouterApp } = await import('./apps/openrouter.js');
+            const openRouter = new OpenRouterApp();
+            await openRouter.initialize();
+            const html = openRouter.render();
+            contentElement.innerHTML = html;
+            
+            // Setup event handlers
+            if (openRouter.setupEventListeners) {
+                openRouter.setupEventListeners();
+            }
+            
+            return openRouter;
+        } catch (error) {
+            console.error('Failed to load OpenRouter app:', error);
+            contentElement.innerHTML = `
+                <div class="app-placeholder">
+                    <h2>🔄 OpenRouter Hub</h2>
+                    <p>Universal LLM Access Hub - Multiple AI Providers Through Single Interface</p>
+                    <p>Failed to load: ${error.message}</p>
+                    <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                </div>
+            `;
+        }
     }
 
     async createIPFSExplorerApp(contentElement) {
@@ -683,6 +780,55 @@ class SwissKnifeDesktop {
         const html = await systemMonitor.render();
         contentElement.innerHTML = html;
         return systemMonitor;
+    }
+
+    async createP2PNetworkApp(contentElement) {
+        try {
+            // Import the P2P Network app
+            await import('./apps/p2p-network.js');
+            
+            // Check if we have the modern class-based app or fall back to function
+            if (window.P2PNetworkApp) {
+                const p2pApp = new window.P2PNetworkApp();
+                await p2pApp.initialize();
+                const html = await p2pApp.render();
+                contentElement.innerHTML = html;
+                return p2pApp;
+            } else if (window.createP2PNetworkApp) {
+                // Fall back to function-based creation
+                const p2pApp = window.createP2PNetworkApp();
+                if (p2pApp.initialize) {
+                    await p2pApp.initialize();
+                }
+                if (p2pApp.render) {
+                    const html = await p2pApp.render();
+                    contentElement.innerHTML = html;
+                } else if (p2pApp.init) {
+                    await p2pApp.init(contentElement);
+                }
+                return p2pApp;
+            } else {
+                throw new Error('P2P Network app not found');
+            }
+        } catch (error) {
+            console.error('Error creating P2P Network app:', error);
+            contentElement.innerHTML = `
+                <div class="error-message">
+                    <h3>🔗 P2P Network Manager</h3>
+                    <p>Failed to load P2P Network app</p>
+                    <p>Error: ${error.message}</p>
+                </div>
+            `;
+        }
+    }
+
+    async createNeuralNetworkDesignerApp(contentElement) {
+        const { NeuralNetworkDesignerApp } = await import('./apps/neural-network-designer.js');
+        const neuralNetworkDesigner = new NeuralNetworkDesignerApp(this);
+        await neuralNetworkDesigner.initialize();
+        const html = await neuralNetworkDesigner.createWindow();
+        contentElement.innerHTML = html;
+        return neuralNetworkDesigner;
     }
 
     createPlaceholderApp(contentElement, componentName) {
