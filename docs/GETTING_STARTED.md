@@ -1,390 +1,348 @@
-# Getting Started with SwissKnife
+# SwissKnife - Getting Started Guide
 
-This guide helps new developers get started with the SwissKnife project, a powerful CLI tool with AI capabilities, built on a unified TypeScript architecture.
+## Quick Start (5 Minutes)
 
-## Project Overview
+SwissKnife is the world's first browser-based collaborative virtual desktop with comprehensive AI integration. Get started in minutes:
 
-SwissKnife is a powerful, terminal-based AI coding tool built entirely in TypeScript. It provides a unified interface to interact with various AI models (OpenAI, Anthropic, local models, etc.) for coding assistance, content generation, and complex task execution.
+### 1. Clone and Install
+```bash
+git clone https://github.com/hallucinate-llc/swissknife.git
+cd swissknife
+npm install --legacy-peer-deps
+```
 
-The core architecture integrates several advanced components:
-- **AI Agent**: Manages conversations, uses tools, and orchestrates complex reasoning.
-- **Graph-of-Thought (GoT) Engine**: Enables non-linear problem-solving for complex tasks.
-- **Enhanced TaskNet**: Features a high-performance Fibonacci Heap scheduler and advanced task decomposition/synthesis. Includes coordination mechanisms (Merkle Clock, Hamming Distance) for potential future distributed execution.
-- **ML Engine**: Integrates local model inference capabilities using Node.js bindings (e.g., ONNX Runtime).
-- **Virtual Filesystem (VFS)**: Abstracts storage operations over multiple backends (local filesystem, IPFS).
-- **IPFS Integration**: Uses an IPFS client (e.g., connecting to IPFS Kit MCP Server) for content-addressable storage.
-- **MCP Integration**: Supports acting as an MCP server and managing connections to other MCP servers.
-- **Rich CLI**: Interactive terminal UI built with Ink/React.
+### 2. Launch Collaborative Desktop (Recommended)
+```bash
+npm run desktop:collaborative
+```
+**➡️ Open http://localhost:3001 - Complete collaborative virtual desktop ready instantly**
 
-All functionality is implemented in TypeScript following clean room principles, based on requirements derived from previous projects like Goose and IPFS Accelerate, but without direct code translation or Rust dependencies. See [CLEAN_ROOM_IMPLEMENTATION.md](./CLEAN_ROOM_IMPLEMENTATION.md).
+You now have access to 27+ professional applications including:
+- **🤗 Hugging Face Hub** - 100,000+ AI models
+- **🔄 OpenRouter** - GPT-4, Claude 3, Gemini Pro access
+- **💻 VibeCode** - Professional AI-powered Streamlit IDE
+- **🧠 Neural Network Designer** - Visual AI model building
+- **📁 File Manager** - Collaborative file operations
+- **⚡ Terminal** - AI-powered command interface
+- And 21+ additional professional applications
 
-## Prerequisites
+## What You Get
 
-- Node.js (v18 or higher)
-- npm or pnpm
-- Basic knowledge of TypeScript and React
-- Access to API keys for the models you want to use
+### 🖥️ Complete Virtual Desktop Environment
+- **27 Professional Applications** working seamlessly together
+- **Real-time Collaboration** with multiple users
+- **Swiss Precision Design** with modern gradient glass morphism UI
+- **Advanced Window Management** with drag, snap, minimize/maximize
 
-## Installation
+### 🤖 Universal AI Access
+- **Hugging Face Integration**: Instant access to 100,000+ AI models
+- **OpenRouter Integration**: Premium models (GPT-4, Claude 3, Gemini Pro)
+- **Multi-provider Intelligence**: Automatic optimization and fallback
+- **Edge AI Deployment**: Sub-100ms inference via CloudFlare
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/endomorphosis/swissknife.git
-   cd swissknife
-   ```
+### 🤝 Collaborative Features
+- **P2P Networking**: Real-time task sharing across peers
+- **File Collaboration**: IPFS-powered distributed file sharing
+- **Distributed Computing**: Share computational resources
+- **Live Editing**: Real-time collaborative code editing
 
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   pnpm install
-   ```
+### ⚡ Advanced Infrastructure
+- **Web Workers**: Background processing for heavy tasks
+- **Audio Workers**: Collaborative music creation
+- **CloudFlare Integration**: Hybrid P2P + cloud computing
+- **TypeScript**: Full type safety and modern development
 
-3. Run the development server:
-   ```bash
-   npm run dev
-   # or
-   pnpm run dev
-   ```
+## Launch Modes
+
+### Single-User Mode
+```bash
+npm run desktop              # Traditional desktop mode
+npm run dev:web             # Development with hot reload
+```
+
+### Collaborative Modes
+```bash
+npm run desktop:collaborative  # Full P2P collaboration (RECOMMENDED)
+npm run desktop:distributed    # Advanced distributed computing
+npm run desktop:cloudflare     # CloudFlare edge computing
+npm run desktop:hybrid         # Complete hybrid mode
+npm run dev:collaborative      # Development with collaboration
+```
+
+### CLI Mode
+```bash
+npm run dev:cli
+swissknife "Generate a React component"
+swissknife sk-hf search "text-generation"
+swissknife sk-or chat "Explain this code" --model gpt-4
+```
+
+## Essential Applications
+
+### 🤗 Hugging Face Hub
+**Access 100,000+ AI models with professional interface**
+- Browse models by task, popularity, or performance
+- Run inference with multiple methods (API, CloudFlare, local)
+- Deploy models to CloudFlare edge for ultra-fast inference
+- Interactive AI playground with parameter controls
+
+### 🔄 OpenRouter Hub
+**Universal access to 100+ premium language models**
+- GPT-4, Claude 3, Gemini Pro, Mistral AI, and more
+- Interactive playground with real-time parameter tuning
+- Chat interface with model switching capabilities
+- Usage analytics and cost tracking
+
+### 💻 VibeCode - Professional AI IDE
+**Complete Streamlit development environment**
+- Monaco editor with 40+ Streamlit-specific completions
+- AI-powered code assistance and optimization
+- Live preview with mobile/tablet/desktop modes
+- Professional template system and multi-panel interface
+
+### 🧠 Neural Network Designer
+**Visual neural network architecture design**
+- Drag-and-drop neural network building
+- Real-time training visualization
+- Collaborative model development
+- Export to popular frameworks
+
+### 📁 Collaborative File Manager
+**Professional file operations with collaboration**
+- Real-time file sharing via IPFS
+- Collaborative editing with conflict resolution
+- Version control and file history
+- Hybrid local + distributed storage
+
+### ⚡ Enhanced Terminal
+**AI-powered command interface**
+- AI assistance for complex commands
+- Collaborative terminal sessions
+- Distributed command execution
+- Integration with all desktop applications
 
 ## Configuration
 
-There are two main ways to configure the application:
-
-1. **Environment Variables**: Set API keys directly in your environment:
-   ```bash
-   export OPENAI_API_KEY=your_openai_api_key
-   export ANTHROPIC_API_KEY=your_anthropic_api_key
-   export SWISSKNIFE_MCP_URL=your_mcp_server_url
-   # etc.
-   ```
-
-2. **In-App Configuration**: Use the `/config` command in the app to configure providers, API keys, and other settings. The application saves these in a configuration file.
-
-## Understanding the Codebase
-
-The codebase is organized by domain rather than by source component, creating clear boundaries between different areas of functionality:
-
-### Domain Organization
-
-The project follows a domain-driven structure within `src/`:
-
-- `src/`
-  - `ai/`: Core AI agent logic, model interactions, tool execution, thinking processes (GoT).
-    - `agent/`: The main `Agent` class and related components.
-    - `models/`: `ModelRegistry`, `ModelProvider` interfaces and implementations, `ModelExecutionService`.
-    - `tools/`: `ToolExecutor`, `Tool` interface, specific tool implementations.
-    - `thinking/`: `ThinkingManager`, `GoTEngine`, graph structures (`node.ts`, `graph.ts`).
-  - `auth/`: Authentication, authorization, API key management (`api-key-manager.ts`), UCAN logic.
-  - `cli/`: CLI entry point (`cli.ts`), command parsing, execution context, help generation, output formatting.
-  - `commands/`: Implementations of specific CLI commands (e.g., `agent.ts`, `config.ts`, `mcp.ts`, `task.ts`). Uses Ink/React for UI.
-  - `components/`: Reusable React components for the Ink-based CLI UI.
-  - `config/`: `ConfigurationManager` for handling settings.
-  - `constants/`: Shared constants, product info, potentially default model definitions.
-  - `entrypoints/`: Secondary entry points (e.g., `mcp.ts` for running as an MCP server).
-  - `ml/`: Machine Learning engine, model loading, inference execution, hardware detection (Node.js specific).
-  - `services/`: Higher-level services coordinating multiple components (e.g., `mcpClient.ts` managing MCP connections).
-  - `storage/`: Virtual Filesystem (VFS) abstraction (`operations.ts`, `backend.ts`, `registry.ts`, `path-resolver.ts`) and backends (`filesystem.ts`, `ipfs.ts`). Includes IPFS client (`mcp-client.ts` or `ipfs-client.ts`).
-  - `tasks/`: Enhanced TaskNet system.
-    - `manager.ts`: `TaskManager` for creating and tracking tasks.
-    - `scheduler/`: `TaskScheduler` using `FibonacciHeap`.
-    - `execution/`: `TaskExecutor` for running tasks locally or delegating.
-    - `workers/`: Local worker pool using `worker_threads`.
-    - `coordination/`: Merkle Clock and Hamming Distance logic for distribution.
-    - `decomposition/`: Task decomposition strategies.
-    - `synthesis/`: Result synthesis strategies.
-    - `graph/`: GoT structures (`node.ts`, `graph.ts`, `manager.ts` might live here or top-level tasks).
-  - `types/`: Shared TypeScript type definitions (e.g., `ai.ts`, `cli.ts`, `tasks.ts`).
-  - `utils/`: Common utilities (logging, encryption, environment detection, etc.).
-
-See [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for more details.
-
-### Key Components
-
-- **AI Agent System**: Core agent implementation with tool execution capabilities
-- **Model Registry**: Management of different AI models from various providers
-- **Graph-of-Thought**: Advanced non-linear reasoning system
-- **Fibonacci Heap Scheduler**: Efficient task prioritization and execution
-- **IPFS Client**: API-based integration with an IPFS node (e.g., IPFS Kit MCP Server).
-- **CLI Command System**: Rich terminal interface with command registry, parsing, and execution logic.
-
-## Detailed Documentation
-
-For in-depth information about the architecture and implementation details for each development phase, refer to the following documents:
-
-- **Phase 1:** [Analysis & Planning](./phase1/) (Includes component inventory, mapping, architecture definition, integration strategy)
-- **Phase 2:** [Core Implementation](./phase2/) (Covers AI, ML, Task, Storage, CLI core implementations)
-- **Phase 3:** [TaskNet Enhancement](./phase3/) (Details GoT, Scheduler, Coordination, Decomposition/Synthesis)
-- **Phase 4:** [CLI Integration](./phase4/) (Details command implementations and cross-component workflows)
-- **Phase 5:** [Optimization & Finalization](./phase5/) (Covers performance, testing, final docs, release prep)
-
-See also:
-- [Unified Architecture](./UNIFIED_ARCHITECTURE.md)
-- [Project Structure](./PROJECT_STRUCTURE.md)
-- [Developer Guide](./DEVELOPER_GUIDE.md)
-- [Contributing Guide](./CONTRIBUTING.md)
-
-## Making Changes
-
-When making changes to the codebase, follow these guidelines:
-
-1. **Domain Boundaries**: Respect domain boundaries and use well-defined interfaces for cross-domain communication
-2. **TypeScript Patterns**: Follow TypeScript best practices and leverage the type system for safety
-3. **Testing**: Add tests for new functionality, including unit tests for components and integration tests for cross-domain functionality
-4. **Documentation**: Update relevant documentation in the `docs/` directory
-
-## Common Development Tasks
-
-### Adding a New Model Provider
-
-1. Create a new provider implementation in `src/ai/models/providers/`
-2. Implement the `ModelProvider` interface
-3. Register the provider in the model registry
-4. Add configuration handling in the config system
-5. Update relevant CLI commands
-
-```typescript
-// Example: src/ai/models/providers/custom-provider.ts
-import { ModelProvider, Model, ModelResponse } from '../../types/model';
-
-export class CustomProvider implements ModelProvider {
-  id = 'custom-provider';
-  name = 'Custom AI Provider';
-  
-  constructor(private apiKey: string) {}
-  
-  getAvailableModels(): string[] {
-    return ['standard', 'advanced'];
-  }
-  
-  createModel(modelId: string): Model {
-    return {
-      id: modelId,
-      provider: this.id,
-      name: `${this.name} ${modelId}`,
-      
-      async generate(options) {
-        // Implementation details...
-        return { content: 'Response text' };
-      }
-    };
-  }
-  
-  getDefaultModel(): Model {
-    return this.createModel('standard');
-  }
-}
-```
-
-### Implementing a Custom Tool
-
-1. Create a new tool implementation in `src/ai/tools/implementations/`
-2. Implement the `Tool` interface
-3. Register the tool with the agent
-
-```typescript
-// Example: src/ai/tools/implementations/custom-tool.ts
-import { Tool } from '../tool';
-
-export class CustomTool implements Tool {
-  name = 'custom.tool';
-  description = 'A custom tool for specific operations';
-  parameters = {
-    type: 'object',
-    properties: {
-      input: {
-        type: 'string',
-        description: 'Input to process'
-      }
-    },
-    required: ['input']
-  };
-  
-  async execute(args: any): Promise<any> {
-    // Tool implementation...
-    return {
-      result: `Processed: ${args.input}`,
-      success: true
-    };
-  }
-}
-```
-
-### Adding a New CLI Command
-
-1. Create a command implementation in `src/cli/commands/`
-2. Register the command with the command registry
-
-```typescript
-// Example: src/cli/commands/custom-command.ts
-import { Command } from '../types/command';
-
-export function registerCustomCommands() {
-  const commandRegistry = CommandRegistry.getInstance();
-  
-  commandRegistry.registerCommand({
-    id: 'custom.command',
-    name: 'custom command',
-    description: 'Performs a custom operation',
-    args: [
-      {
-        name: 'input',
-        description: 'Input to process',
-        required: true
-      }
-    ],
-    
-    async handler(args, context) {
-      try {
-        // Command implementation...
-        context.ui.success(`Processed: ${args.input}`);
-        return 0;
-      } catch (error) {
-        context.ui.error(`Error: ${error.message}`);
-        return 1;
-      }
-    }
-  });
-}
-```
-
-## Interacting with Storage (including IPFS)
-
-SwissKnife uses a Virtual Filesystem (VFS) accessed via `StorageOperations` to interact with different storage backends.
-
-```typescript
-// Example: Using StorageOperations
-import { StorageOperations } from '../storage/operations'; // Adjust path
-import { ConfigManager } from '../config/manager'; // Adjust path
-
-async function storeAndReadFile(filePath: string, virtualDestPath: string) {
-  // StorageOperations instance (likely obtained via ExecutionContext)
-  const storageOps = new StorageOperations(/* registry, resolver */);
-
-  // Read local file
-  const content = await fs.readFile(filePath); // Use Node fs for local read
-
-  // Write to the virtual path (which might resolve to IPFS backend)
-  await storageOps.writeFile(virtualDestPath, content);
-  console.log(`File written to ${virtualDestPath}`);
-
-  // Read back from the virtual path
-  const retrievedContent = await storageOps.readFile(virtualDestPath);
-  console.log(`Read back ${retrievedContent.length} bytes.`);
-  return retrievedContent;
-}
-
-// Example usage:
-// storeAndReadFile('./local-data.txt', '/ipfs/my-data.txt');
-// storeAndReadFile('./image.png', '/local/images/image.png');
-```
-
-```typescript
-// Example: Using the MCP client
-import { MCPClient } from '../../storage/ipfs/mcp-client';
-import { ConfigManager } from '../../config/manager';
-
-async function storeFile(filePath: string) {
-  // Get MCP client configuration
-  const config = ConfigManager.getInstance();
-  const mcpClient = new MCPClient({
-    baseUrl: config.get('storage.mcp.baseUrl'),
-    authentication: {
-      type: config.get('storage.mcp.authType'),
-      value: config.get('storage.mcp.authValue')
-    }
-  });
-  
-  // Read file and store in IPFS
-  const content = await fs.readFile(filePath);
-  const result = await mcpClient.addContent(content);
-  
-  console.log(`File stored with CID: ${result.cid}`);
-  return result.cid;
-}
-```
-
-## Running Tests
-
-Run the tests using:
+### Environment Variables
 ```bash
-npm test
-# or
-pnpm test
+# AI Integration
+HUGGINGFACE_API_TOKEN=your_hf_token
+OPENROUTER_API_KEY=your_openrouter_key
+
+# Collaboration Settings
+SWISSKNIFE_P2P_ENABLED=true
+SWISSKNIFE_MAX_PEERS=10
+SWISSKNIFE_WORKSPACE_ID=your-workspace-id
+
+# CloudFlare (Optional)
+CLOUDFLARE_API_TOKEN=your_cf_token
+CLOUDFLARE_ACCOUNT_ID=your_account_id
+
+# Development
+SWISSKNIFE_DEBUG_MODE=true
 ```
 
-The testing system includes:
-- Unit tests for individual components
-- Integration tests for cross-domain functionality
-- End-to-end tests for complete workflows
+### Quick Configuration
+```bash
+# Set up AI providers
+swissknife sk-config set huggingface.token your_token
+swissknife sk-config set openrouter.key your_key
 
-## Testing and Validation (Updated v0.0.56)
+# Enable collaboration
+swissknife sk-config set p2p.enabled true
+swissknife sk-config set collaboration.auto_join true
+```
 
-SwissKnife includes comprehensive testing and validation to ensure code quality and functionality:
+## Common Use Cases
 
-### Current Test Status ✅
+### Individual Development
+1. **Launch desktop**: `npm run desktop`
+2. **Open VibeCode** for professional code editing
+3. **Use AI assistance** via Hugging Face or OpenRouter
+4. **Test applications** with live preview
+5. **Manage files** with professional file manager
+
+### Team Collaboration
+1. **Launch collaborative mode**: `npm run desktop:collaborative`
+2. **Create workspace** or join existing one
+3. **Share files** automatically via IPFS
+4. **Collaborate in real-time** on code, documents, AI models
+5. **Distribute heavy tasks** across team members
+
+### AI Development
+1. **Access Hugging Face Hub** for model exploration
+2. **Use Neural Network Designer** for architecture design
+3. **Deploy models to edge** for production use
+4. **Collaborate on training** across multiple machines
+5. **Optimize inference** with multi-provider intelligence
+
+### Distributed Computing
+1. **Launch distributed mode**: `npm run desktop:distributed`
+2. **Connect peers** for resource sharing
+3. **Distribute AI inference** across network
+4. **Share computational load** for heavy tasks
+5. **Monitor performance** with real-time metrics
+
+## Testing and Validation
+
+### Quick Health Check
+```bash
+# Test core functionality
+npm run test
+
+# Test collaboration features
+npm run test:collaborative
+
+# Test AI integration
+npm run test:huggingface
+npm run test:openrouter
+
+# Test edge deployment
+npm run test:edge-deployment
+```
+
+### Browser Compatibility
+- **Chrome/Chromium**: Full support with WebGPU
+- **Firefox**: Full support with WebGL fallback
+- **Safari**: Core features supported
+- **Edge**: Full support with WebGPU
+
+### Performance Requirements
+- **RAM**: 2GB minimum, 4GB+ recommended
+- **CPU**: Modern dual-core, quad-core+ recommended
+- **Network**: Broadband for collaboration features
+- **Storage**: 1GB for base installation
+
+## Troubleshooting
+
+### Common Issues
+
+#### Port Already in Use
+```bash
+# Check what's using port 3001
+lsof -i :3001
+
+# Use different port
+SWISSKNIFE_PORT=3002 npm run desktop:collaborative
+```
+
+#### AI API Issues
+```bash
+# Test Hugging Face connectivity
+curl -H "Authorization: Bearer $HUGGINGFACE_API_TOKEN" \
+  https://api-inference.huggingface.co/models/gpt2
+
+# Test OpenRouter connectivity
+curl -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+  https://openrouter.ai/api/v1/models
+```
+
+#### P2P Connection Problems
+```bash
+# Test with local network only
+SWISSKNIFE_P2P_LOCAL_ONLY=true npm run desktop:collaborative
+
+# Debug P2P connections
+DEBUG=swissknife:p2p npm run desktop:collaborative
+```
+
+#### Performance Issues
+```bash
+# Launch without workers
+SWISSKNIFE_ENABLE_WORKERS=false npm run desktop
+
+# Reduce peer count
+SWISSKNIFE_MAX_PEERS=3 npm run desktop:collaborative
+
+# Enable performance monitoring
+npm run desktop:collaborative -- --profile
+```
+
+## Next Steps
+
+### Explore Applications
+- Try the **Neural Network Designer** for AI model building
+- Use **VibeCode** for professional development
+- Experiment with **collaborative features**
+- Test **AI integration** with your own projects
+
+### Join Community
+- Share workspaces with team members
+- Contribute to collaborative projects
+- Report issues and request features
+- Share your SwissKnife configurations
+
+### Advanced Features
+- Set up **CloudFlare integration** for edge computing
+- Configure **custom AI providers**
+- Create **custom applications** for the desktop
+- Develop **collaborative workflows**
+
+## Getting Help
+
+### Documentation
+- **[README.md](../README.md)** - Complete overview
+- **[AI_INTEGRATION_COMPLETE.md](./AI_INTEGRATION_COMPLETE.md)** - AI features guide
+- **[COLLABORATION_IMPLEMENTATION_PLAN.md](../COLLABORATION_IMPLEMENTATION_PLAN.md)** - Collaboration features
+- **[docs/](.)** - Complete documentation suite
+
+### Support
+- **GitHub Issues**: Report bugs and request features
+- **Discussions**: Community support and discussions
+- **Wiki**: Community-contributed guides
+- **Discord**: Real-time community chat (coming soon)
+
+---
+
+**Welcome to SwissKnife - the future of collaborative development! 🚀**
+
+## Legacy Information (CLI Development)
+
+For developers working on the CLI components or traditional terminal-based features, the following legacy information remains relevant:
+
+### Project Overview (CLI Architecture)
+
+SwissKnife includes a powerful terminal-based AI coding tool built entirely in TypeScript. It provides a unified interface to interact with various AI models (OpenAI, Anthropic, local models, etc.) for coding assistance, content generation, and complex task execution.
+
+The core CLI architecture integrates several advanced components:
+- **AI Agent**: Manages conversations, uses tools, and orchestrates complex reasoning.
+- **Graph-of-Thought (GoT) Engine**: Enables non-linear problem-solving for complex tasks.
+- **Enhanced TaskNet**: Features a high-performance Fibonacci Heap scheduler and advanced task decomposition/synthesis.
+- **ML Engine**: Integrates local model inference capabilities using Node.js bindings.
+- **Virtual Filesystem (VFS)**: Abstracts storage operations over multiple backends.
+- **IPFS Integration**: Uses an IPFS client for content-addressable storage.
+- **MCP Integration**: Supports acting as an MCP server and managing connections to other MCP servers.
+
+### CLI Development Setup
+
+For CLI development specifically:
+
+```bash
+# Run CLI development server
+npm run dev:cli
+
+# Build CLI components
+npm run build:cli
+
+# Test CLI functionality
+npm run test:cli
+```
+
+### CLI Configuration (Legacy)
+
+Traditional CLI configuration through environment variables:
+
+```bash
+export OPENAI_API_KEY=your_openai_api_key
+export ANTHROPIC_API_KEY=your_anthropic_api_key
+export SWISSKNIFE_MCP_URL=your_mcp_server_url
+```
+
+### Legacy Testing Status
 
 **Total Tests Passing**: 58/58 tests (100% success rate)
 - ✅ **Phase 3 Components**: 13/13 tests passing (MerkleClock, FibonacciHeapScheduler, TaskStatus)
 - ✅ **Phase 4 CLI Integration**: 4/4 tests passing (IPFSCommand, TaskCommand, AgentCommand, CrossIntegration)
 - ✅ **Utility Modules**: 41/41 tests passing (Array, Cache, Events, Performance, Workers)
 
-### Quick Validation (Recommended)
-
-```bash
-# Quick core module validation (fastest - 100% success rate)
-node validate-fixes.cjs
-
-# TypeScript functionality testing (fully functional)
-node tsx-test-runner.cjs
-
-# Comprehensive edge case testing (complete validation)
-node direct-test-runner-v2.cjs
-```
-
-### Traditional Testing
-
-```bash
-# Jest-based testing (validated working)
-npm test                    # All tests
-npm test -- <test-file>     # Specific test file (validated pattern)
-pnpm test:unit             # Unit tests
-pnpm test:integration      # Integration tests  
-pnpm test:coverage         # Coverage report
-```
-
-### Running Specific Test Groups
-
-```bash
-# Validated test patterns that work:
-npm test -- test/unit/phase3/components.test.ts    # Phase 3 (13/13 passing)
-npm test -- test/unit/phase4/components.test.ts    # Phase 4 (4/4 passing)
-npm test -- test/unit/utils/array.test.ts          # Array utils (5/5 passing)
-npm test -- test/unit/utils/events/event-bus.test.ts  # Events (19/19 passing)
-```
-
-### Validation Status
-- ✅ **Core Modules**: 100% validated and production-ready
-- ✅ **Phase 3 Components**: Complete implementation with all tests passing
-- ✅ **Phase 4 CLI Integration**: Successful rewrite and integration 
-- ✅ **Alternative Testing**: Fully operational and recommended
-- ✅ **Import Paths**: All clean and functional  
-- ✅ **API Compatibility**: Complete backward compatibility maintained
-- ✅ **TypeScript Compilation**: All errors resolved
-- ✅ **Test Infrastructure**: Robust and reliable for continued development
-
-## Need Help?
-
-- Check the existing documentation in the `docs/` directory
-- Look at the tests in the `test/` directory for examples
-- Review existing code patterns for similar functionality
-
-## Conclusion
-
-This guide provides a starting point for new developers working on the SwissKnife project. By understanding the domain-driven organization and unified TypeScript architecture, you can effectively contribute to the project while maintaining consistency with the existing codebase.
-
-For more detailed information, refer to:
-- `docs/UNIFIED_ARCHITECTURE.md` for architecture details
-- `docs/UNIFIED_INTEGRATION_PLAN.md` for integration approach
-- `docs/PROJECT_STRUCTURE.md` for project organization
-- `docs/CONTRIBUTING.md` for contribution guidelines
+For detailed CLI development information, refer to the legacy documentation sections above.

@@ -10,7 +10,7 @@ export interface SimplePeer {
   id: SimplePeerId
   connection?: RTCPeerConnection
   dataChannel?: RTCDataChannel
-  capabilities: PeerCapabilities
+  capabilities: any
   status: 'connecting' | 'connected' | 'disconnected'
   lastSeen: Date
 }
@@ -379,7 +379,7 @@ export class SimpleP2PManager {
     })
   }
 
-  private getLocalCapabilities(): PeerCapabilities {
+  protected getLocalCapabilities(): any {
     // Return mock capabilities - in practice this would detect real hardware
     return {
       gpu: { available: true, type: 'webgpu', memory: 4096, computeUnits: 8, supportedFeatures: ['compute'] },
@@ -389,7 +389,7 @@ export class SimpleP2PManager {
     }
   }
 
-  private getDefaultCapabilities(): PeerCapabilities {
+  private getDefaultCapabilities(): any {
     return {
       gpu: { available: false, type: 'webgpu', memory: 0, computeUnits: 1, supportedFeatures: [] },
       frameworks: { webgpu: false, webnn: false, onnx: false, tensorflow: false, pytorch: false },

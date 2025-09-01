@@ -136,7 +136,11 @@ Schedule for next week to review progress.
     }
   }
 
-  createWindow() {
+  async initialize() {
+    // App is ready for rendering
+  }
+
+  async render() {
     const content = `
       <div class="notes-container">
         <!-- Sidebar -->
@@ -737,14 +741,15 @@ Schedule for next week to review progress.
       </style>
     `;
 
-    return {
-      title: 'Notes',
-      content,
-      width: 1000,
-      height: 700,
-      x: 150,
-      y: 50
-    };
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      const container = document.querySelector('.notes-container');
+      if (container) {
+        this.setupEventHandlers(container);
+      }
+    }, 0);
+
+    return content;
   }
 
   renderTagsList() {

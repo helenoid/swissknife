@@ -1,6 +1,13 @@
 // P2P System Types for SwissKnife ML Virtual OS
-import type { PeerId } from '@libp2p/peer-id'
-import type { Multiaddr } from '@multiformats/multiaddr'
+// Using simplified types to avoid LibP2P dependency issues
+export interface PeerId {
+  id: string;
+  publicKey?: string;
+}
+
+export interface Multiaddr {
+  toString(): string;
+}
 
 export interface MLPeer {
   id: PeerId

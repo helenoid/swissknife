@@ -1249,4 +1249,113 @@ console.log(result);</code></pre>
     this.updateEndpointsList();
     this.updateRoutingStats();
   }
+
+  // Modern app framework methods
+  async initialize() {
+    console.log('🚀 Initializing Model Browser app...');
+    this.swissknife = this.desktop.swissknife;
+    await this.initializeIntegrations();
+    await this.loadModels();
+    await this.loadInstalledModels();
+    console.log('✅ Model Browser initialized');
+    return this;
+  }
+
+  async render() {
+    console.log('🎨 Rendering Model Browser app...');
+    const windowConfig = this.createWindowConfig();
+    
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      const container = document.querySelector('.model-browser-container');
+      if (container) {
+        this.setupEventListeners(container);
+        this.renderModelList(container);
+      }
+    }, 100);
+    
+    return windowConfig;
+  }
+
+  createWindowConfig() {
+    // Get content from the original createWindow method
+    const content = this.getWindowContent();
+    
+    return {
+      title: '🧠 Model Browser',
+      content: content,
+      width: 1000,
+      height: 700,
+      resizable: true,
+      x: 150,
+      y: 100
+    };
+  }
+
+  getWindowContent() {
+    return `
+      <div class="model-browser-container">
+        <div class="model-toolbar">
+          <div class="toolbar-section">
+            <div class="search-box">
+              <input type="text" id="model-search" placeholder="Search models..." value="${this.searchQuery}">
+              <button class="search-btn">🔍</button>
+            </div>
+          </div>
+          <div class="toolbar-section">
+            <div class="filter-buttons">
+              <button class="filter-btn ${this.currentFilter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+              <button class="filter-btn ${this.currentFilter === 'language' ? 'active' : ''}" data-filter="language">Language</button>
+              <button class="filter-btn ${this.currentFilter === 'vision' ? 'active' : ''}" data-filter="vision">Vision</button>
+              <button class="filter-btn ${this.currentFilter === 'code' ? 'active' : ''}" data-filter="code">Code</button>
+              <button class="filter-btn ${this.currentFilter === 'embedding' ? 'active' : ''}" data-filter="embedding">Embedding</button>
+              <button class="filter-btn ${this.currentFilter === 'installed' ? 'active' : ''}" data-filter="installed">Installed</button>
+            </div>
+          </div>
+          <div class="toolbar-section">
+            <button class="btn btn-primary" id="refresh-models">🔄 Refresh</button>
+            <button class="btn btn-secondary" id="import-model">📥 Import</button>
+          </div>
+        </div>
+        
+        <div class="model-content">
+          <div class="model-list-container">
+            <div class="model-list" id="model-list">
+              <!-- Models will be populated here -->
+            </div>
+          </div>
+          
+          <div class="model-details" id="model-details">
+            <div class="no-selection">
+              <div class="no-selection-icon">🤖</div>
+              <h3>No Model Selected</h3>
+              <p>Select a model from the list to see details and options.</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Download Progress Modal -->
+        <div class="modal" id="download-modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Downloading Model</h3>
+              <button class="close-btn" id="close-download">✕</button>
+            </div>
+            <div class="modal-body">
+              <div class="download-info">
+                <div class="model-name" id="download-model-name"></div>
+                <div class="download-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                  </div>
+                  <div class="progress-text" id="progress-text">0%</div>
+                </div>
+                <div class="download-speed" id="download-speed">0 MB/s</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
 }

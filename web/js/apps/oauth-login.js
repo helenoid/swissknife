@@ -1096,4 +1096,22 @@ oauthSystem.loadProviderConfigs();
 window.OAuthLoginSystem = OAuthLoginSystem;
 window.oauthSystem = oauthSystem;
 
+// Create OAuth login app instance for desktop integration
+window.createOAuthLoginApp = function() {
+    return {
+        name: "OAuth Login",
+        icon: "🔐",
+        init: async function(container) {
+            const html = await oauthSystem.render();
+            container.innerHTML = html;
+            
+            // Initialize event handlers
+            oauthSystem.initializeEventHandlers(container);
+        },
+        destroy: function() {
+            // Cleanup if needed
+        }
+    };
+};
+
 export { OAuthLoginSystem };

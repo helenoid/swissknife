@@ -1245,6 +1245,26 @@ export class ClockApp {
       this.updateInterval = null;
     }
   }
+
+  // Initialize method required by the desktop framework
+  async initialize() {
+    // Initialize clock app
+    this.startTimeUpdates();
+    return this;
+  }
+
+  // Render method required by the desktop framework  
+  async render() {
+    const windowConfig = this.createWindow();
+    
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      this.setupEventHandlers(document.querySelector('.clock-container'));
+      this.updateTimeDisplay();
+    }, 0);
+    
+    return windowConfig.content;
+  }
 }
 
 // Register the app

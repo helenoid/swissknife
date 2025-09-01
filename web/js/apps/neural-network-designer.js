@@ -3,136 +3,127 @@
  * Visual interface for designing and configuring neural networks with IPFS model versioning
  */
 
-(function() {
-  'use strict';
-
-  // Application state
-  let networkConfig = {
-    layers: [],
-    connections: [],
-    metadata: {
-      name: 'Untitled Network',
-      description: '',
-      version: '1.0.0',
-      author: '',
-      created: new Date().toISOString()
-    }
-  };
-  
-  let selectedLayer = null;
-  let draggedLayer = null;
-  let connectionMode = false;
-  let p2pSystem = null;
-  let ipfsStorage = null;
-
-  // Layer types with configurations
-  const layerTypes = {
-    input: { 
-      name: 'Input Layer', 
-      icon: '📥', 
-      color: '#4CAF50',
-      params: ['inputSize', 'inputType']
-    },
-    dense: { 
-      name: 'Dense/Linear', 
-      icon: '🔗', 
-      color: '#2196F3',
-      params: ['units', 'activation', 'dropout']
-    },
-    conv2d: { 
-      name: 'Conv2D', 
-      icon: '🔲', 
-      color: '#FF9800',
-      params: ['filters', 'kernelSize', 'strides', 'padding', 'activation']
-    },
-    maxpool: { 
-      name: 'MaxPool2D', 
-      icon: '⬇️', 
-      color: '#9C27B0',
-      params: ['poolSize', 'strides']
-    },
-    dropout: { 
-      name: 'Dropout', 
-      icon: '🎯', 
-      color: '#F44336',
-      params: ['rate']
-    },
-    batchnorm: { 
-      name: 'BatchNorm', 
-      icon: '📊', 
-      color: '#607D8B',
-      params: ['momentum', 'epsilon']
-    },
-    attention: { 
-      name: 'Attention', 
-      icon: '👁️', 
-      color: '#E91E63',
-      params: ['numHeads', 'keyDim', 'dropout']
-    },
-    transformer: { 
-      name: 'Transformer', 
-      icon: '🔄', 
-      color: '#3F51B5',
-      params: ['numHeads', 'dModel', 'dff', 'dropout']
-    },
-    output: { 
-      name: 'Output Layer', 
-      icon: '📤', 
-      color: '#795548',
-      params: ['outputSize', 'activation']
-    }
-  };
-
-  // Create Neural Network Designer application
-  window.createNeuralNetworkDesignerApp = function() {
-    return {
-      name: "Neural Network Designer",
-      icon: "🧠",
-      init: function(container) {
-        initializeP2PSystem();
-        renderApp(container);
-        setupEventHandlers(container);
-        setupCanvasInteractions(container);
-      },
-      destroy: function() {
-        // Clean up
-        delete window.neuralNetworkDesignerApp;
+export class NeuralNetworkDesignerApp {
+  constructor(desktop) {
+    this.desktop = desktop;
+    this.swissknife = null;
+    
+    // Application state
+    this.networkConfig = {
+      layers: [],
+      connections: [],
+      metadata: {
+        name: 'Untitled Network',
+        description: '',
+        version: '1.0.0',
+        author: '',
+        created: new Date().toISOString()
       }
     };
-  };
+    
+    this.selectedLayer = null;
+    this.draggedLayer = null;
+    this.connectionMode = false;
+    this.p2pSystem = null;
+    this.ipfsStorage = null;
 
-  async function initializeP2PSystem() {
-    try {
-      if (window.initializeP2PMLSystem) {
-        p2pSystem = window.initializeP2PMLSystem({
-          enableModelSharing: true,
-          enableIPFS: true
-        });
-        ipfsStorage = p2pSystem?.getIPFSStorage();
+    // Layer types with configurations
+    this.layerTypes = {
+      input: { 
+        name: 'Input Layer', 
+        icon: '📥', 
+        color: '#4CAF50',
+        params: ['inputSize', 'inputType']
+      },
+      dense: { 
+        name: 'Dense/Linear', 
+        icon: '🔗', 
+        color: '#2196F3',
+        params: ['units', 'activation', 'dropout']
+      },
+      conv2d: { 
+        name: 'Conv2D', 
+        icon: '🔲', 
+        color: '#FF9800',
+        params: ['filters', 'kernelSize', 'strides', 'padding', 'activation']
+      },
+      maxpool: { 
+        name: 'MaxPool2D', 
+        icon: '⬇️', 
+        color: '#9C27B0',
+        params: ['poolSize', 'strides']
+      },
+      dropout: { 
+        name: 'Dropout', 
+        icon: '🎯', 
+        color: '#F44336',
+        params: ['rate']
+      },
+      batchnorm: { 
+        name: 'BatchNorm', 
+        icon: '📊', 
+        color: '#607D8B',
+        params: ['momentum', 'epsilon']
+      },
+      attention: { 
+        name: 'Attention', 
+        icon: '👁️', 
+        color: '#E91E63',
+        params: ['numHeads', 'keyDim', 'dropout']
+      },
+      transformer: { 
+        name: 'Transformer', 
+        icon: '🔄', 
+        color: '#3F51B5',
+        params: ['numHeads', 'dModel', 'dff', 'dropout']
+      },
+      output: { 
+        name: 'Output Layer', 
+        icon: '📤', 
+        color: '#795548',
+        params: ['outputSize', 'activation']
       }
+    };
+  }
+
+  async initialize() {
+    try {
+      this.swissknife = this.desktop.swissknife;
+      await this.initializeP2PSystem();
+      this.addStyles();
+      console.log('✅ Neural Network Designer integrations initialized');
     } catch (error) {
-      console.warn('P2P system not available for Neural Network Designer:', error);
+      console.error('❌ Neural Network Designer integration error:', error);
     }
   }
 
-  function renderApp(container) {
-    container.innerHTML = `
+  render() {
+    return `
       <div class="neural-designer-container">
-        <!-- Header Toolbar -->
+        <!-- Toolbar -->
         <div class="designer-toolbar">
           <div class="toolbar-section">
-            <button class="btn btn-primary" id="new-network">🆕 New</button>
-            <button class="btn btn-secondary" id="load-network">📂 Load</button>
-            <button class="btn btn-secondary" id="save-network">💾 Save</button>
-            <button class="btn btn-secondary" id="export-network">📤 Export</button>
+            <span class="network-name" id="network-name">${this.networkConfig.metadata.name}</span>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.showMetadataModal()">✏️ Edit</button>
           </div>
+          
           <div class="toolbar-section">
-            <span class="network-name" id="network-name">${networkConfig.metadata.name}</span>
-            <button class="btn btn-sm" id="edit-metadata">✏️</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.newNetwork()">🆕 New</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.loadNetwork()">📂 Load</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.saveNetwork()">💾 Save</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.exportNetwork()">📤 Export</button>
           </div>
+          
           <div class="toolbar-section">
-            <button class="btn btn-success" id="validate-network">✅ Validate</button>
-            <button class="btn btn-warning" id="deploy-network">🚀 Deploy</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.validateNetwork()">✅ Validate</button>
+            <button class="btn btn-sm btn-success" onclick="window.neuralDesignerApp?.trainNetwork()">🚀 Train</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.deployToP2P()">🌐 Deploy</button>
+          </div>
+          
+          <div class="toolbar-section">
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.undo()">↶ Undo</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.redo()">↷ Redo</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.clearCanvas()">🗑️ Clear</button>
           </div>
         </div>
 
@@ -140,26 +131,31 @@
         <div class="designer-content">
           <!-- Layer Palette -->
           <div class="layer-palette">
-            <h3>Layer Types</h3>
+            <h3>🧱 Layer Types</h3>
             <div class="palette-grid">
-              ${Object.entries(layerTypes).map(([type, config]) => `
-                <div class="layer-type" data-layer-type="${type}" draggable="true">
-                  <span class="layer-icon" style="color: ${config.color}">${config.icon}</span>
+              ${Object.entries(this.layerTypes).map(([type, config]) => `
+                <div class="layer-type" draggable="true" data-layer-type="${type}" style="border-left: 4px solid ${config.color}">
+                  <span class="layer-icon">${config.icon}</span>
                   <span class="layer-name">${config.name}</span>
                 </div>
               `).join('')}
             </div>
             
-            <!-- Connection Tools -->
             <div class="connection-tools">
-              <h4>Tools</h4>
-              <button class="tool-btn" id="connection-mode">🔗 Connect</button>
-              <button class="tool-btn" id="delete-mode">🗑️ Delete</button>
-              <button class="tool-btn" id="select-mode">👆 Select</button>
+              <h4>🔗 Connection Tools</h4>
+              <button class="tool-btn" id="connection-mode" onclick="window.neuralDesignerApp?.toggleConnectionMode()">
+                🔗 Connect Layers
+              </button>
+              <button class="tool-btn" onclick="window.neuralDesignerApp?.autoConnect()">
+                ⚡ Auto Connect
+              </button>
+              <button class="tool-btn" onclick="window.neuralDesignerApp?.clearConnections()">
+                🗑️ Clear Connections
+              </button>
             </div>
           </div>
 
-          <!-- Canvas Area -->
+          <!-- Canvas Container -->
           <div class="canvas-container">
             <canvas id="network-canvas" width="800" height="600"></canvas>
             <div class="canvas-overlay" id="canvas-overlay"></div>
@@ -167,42 +163,45 @@
 
           <!-- Properties Panel -->
           <div class="properties-panel">
-            <h3>Properties</h3>
+            <h3>⚙️ Properties</h3>
             <div id="layer-properties">
-              <p class="no-selection">Select a layer to edit properties</p>
+              <div class="no-selection">
+                Select a layer to view its properties
+              </div>
             </div>
             
             <!-- Network Summary -->
             <div class="network-summary">
-              <h4>Network Summary</h4>
-              <div class="summary-stats">
+              <h4>📊 Network Summary</h4>
+              <div class="summary-stats" id="network-stats">
                 <div class="stat">
-                  <span class="stat-label">Layers:</span>
-                  <span class="stat-value" id="layer-count">0</span>
+                  <span class="stat-label">Total Layers:</span>
+                  <span class="stat-value" id="total-layers">0</span>
                 </div>
                 <div class="stat">
                   <span class="stat-label">Parameters:</span>
-                  <span class="stat-value" id="param-count">0</span>
+                  <span class="stat-value" id="total-params">0</span>
                 </div>
                 <div class="stat">
                   <span class="stat-label">Connections:</span>
-                  <span class="stat-value" id="connection-count">0</span>
+                  <span class="stat-value" id="total-connections">0</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Memory:</span>
+                  <span class="stat-value" id="memory-usage">0 MB</span>
                 </div>
               </div>
             </div>
-
-            <!-- IPFS Version Control -->
+            
+            <!-- Version Control -->
             <div class="version-control">
-              <h4>Version Control</h4>
-              <div class="version-info">
-                <div class="current-version">
-                  <span>Version: ${networkConfig.metadata.version}</span>
-                  <button class="btn btn-sm" id="create-version">📝 New Version</button>
-                </div>
-                <div class="version-history" id="version-history">
-                  <!-- Version history will be populated here -->
-                </div>
+              <h4>📂 Version Control</h4>
+              <div class="current-version">
+                <span>v${this.networkConfig.metadata.version}</span>
+                <button class="btn btn-sm" onclick="window.neuralDesignerApp?.commitVersion()">💾</button>
               </div>
+              <button class="btn btn-sm" onclick="window.neuralDesignerApp?.viewVersionHistory()">📜 History</button>
+              <button class="btn btn-sm" onclick="window.neuralDesignerApp?.shareToIPFS()">🌐 Share</button>
             </div>
           </div>
         </div>
@@ -210,627 +209,441 @@
         <!-- Status Bar -->
         <div class="designer-status">
           <div class="status-section">
-            <span class="status-item">Ready</span>
+            <span class="status-item">Layers: <span id="status-layers">0</span></span>
+            <span class="status-item">P2P: <span id="p2p-status">Disconnected</span></span>
+            <span class="status-item">IPFS: <span id="ipfs-status">Ready</span></span>
           </div>
           <div class="status-section">
-            <span class="status-item" id="p2p-status">P2P: ${p2pSystem ? 'Connected' : 'Disconnected'}</span>
-            <span class="status-item" id="ipfs-status">IPFS: ${ipfsStorage ? 'Available' : 'Unavailable'}</span>
+            <span class="status-item">Canvas: 800x600</span>
+            <span class="status-item">Zoom: 100%</span>
           </div>
         </div>
       </div>
 
-      <!-- Modals -->
+      <!-- Metadata Modal -->
       <div id="metadata-modal" class="modal" style="display: none;">
         <div class="modal-content">
-          <h3>Network Metadata</h3>
-          <form id="metadata-form">
+          <h3>📝 Network Metadata</h3>
+          <form id="metadata-form" onsubmit="window.neuralDesignerApp?.saveMetadata(event)">
             <div class="form-group">
-              <label>Name:</label>
-              <input type="text" id="meta-name" value="${networkConfig.metadata.name}">
+              <label for="meta-name">Network Name:</label>
+              <input type="text" id="meta-name" value="${this.networkConfig.metadata.name}" required>
             </div>
             <div class="form-group">
-              <label>Description:</label>
-              <textarea id="meta-description">${networkConfig.metadata.description}</textarea>
+              <label for="meta-description">Description:</label>
+              <textarea id="meta-description" rows="3">${this.networkConfig.metadata.description}</textarea>
             </div>
             <div class="form-group">
-              <label>Author:</label>
-              <input type="text" id="meta-author" value="${networkConfig.metadata.author}">
+              <label for="meta-author">Author:</label>
+              <input type="text" id="meta-author" value="${this.networkConfig.metadata.author}">
             </div>
             <div class="form-group">
-              <label>Version:</label>
-              <input type="text" id="meta-version" value="${networkConfig.metadata.version}">
+              <label for="meta-version">Version:</label>
+              <input type="text" id="meta-version" value="${this.networkConfig.metadata.version}">
             </div>
             <div class="form-actions">
-              <button type="button" class="btn btn-secondary" id="cancel-metadata">Cancel</button>
+              <button type="button" class="btn" onclick="window.neuralDesignerApp?.hideMetadataModal()">Cancel</button>
               <button type="submit" class="btn btn-primary">Save</button>
             </div>
           </form>
         </div>
       </div>
     `;
-
-    // Apply styling
-    addNeuralDesignerStyles();
-    updateNetworkSummary();
-    renderCanvas(container);
   }
 
-  function setupEventHandlers(container) {
-    // Toolbar events
-    container.querySelector('#new-network').addEventListener('click', createNewNetwork);
-    container.querySelector('#load-network').addEventListener('click', loadNetwork);
-    container.querySelector('#save-network').addEventListener('click', saveNetwork);
-    container.querySelector('#export-network').addEventListener('click', exportNetwork);
-    container.querySelector('#edit-metadata').addEventListener('click', showMetadataModal);
-    container.querySelector('#validate-network').addEventListener('click', validateNetwork);
-    container.querySelector('#deploy-network').addEventListener('click', deployNetwork);
+  createWindow() {
+    // Make this instance globally available for onclick handlers
+    window.neuralDesignerApp = this;
+    
+    const content = this.render();
+    
+    // Setup event handlers after DOM is ready
+    setTimeout(() => {
+      this.setupEventHandlers();
+      this.setupCanvasInteractions();
+      this.updateNetworkSummary();
+    }, 100);
+    
+    return content;
+  }
 
-    // Tool events
-    container.querySelector('#connection-mode').addEventListener('click', () => setMode('connection'));
-    container.querySelector('#delete-mode').addEventListener('click', () => setMode('delete'));
-    container.querySelector('#select-mode').addEventListener('click', () => setMode('select'));
+  // Initialize P2P system for distributed training
+  async initializeP2PSystem() {
+    try {
+      if (window.initializeP2PMLSystem) {
+        this.p2pSystem = window.initializeP2PMLSystem({
+          enableModelSharing: true,
+          enableIPFS: true
+        });
+        this.ipfsStorage = this.p2pSystem?.getIPFSStorage();
+      }
+    } catch (error) {
+      console.warn('P2P system not available for Neural Network Designer:', error);
+    }
+  }
 
-    // Version control
-    container.querySelector('#create-version').addEventListener('click', createNewVersion);
-
-    // Modal events
-    container.querySelector('#cancel-metadata').addEventListener('click', hideMetadataModal);
-    container.querySelector('#metadata-form').addEventListener('submit', saveMetadata);
-
-    // Layer palette drag events
-    const layerTypes = container.querySelectorAll('.layer-type');
-    layerTypes.forEach(layerEl => {
-      layerEl.addEventListener('dragstart', handleLayerDragStart);
+  setupEventHandlers() {
+    // Layer palette drag handlers
+    const layerTypes = document.querySelectorAll('.layer-type');
+    layerTypes.forEach(layer => {
+      layer.addEventListener('dragstart', (e) => {
+        this.draggedLayer = e.target.dataset.layerType;
+      });
     });
-  }
 
-  function setupCanvasInteractions(container) {
-    const canvas = container.querySelector('#network-canvas');
-    const ctx = canvas.getContext('2d');
-    
-    canvas.addEventListener('dragover', handleCanvasDragOver);
-    canvas.addEventListener('drop', handleCanvasDrop);
-    canvas.addEventListener('click', handleCanvasClick);
-    canvas.addEventListener('mousedown', handleCanvasMouseDown);
-    canvas.addEventListener('mousemove', handleCanvasMouseMove);
-    canvas.addEventListener('mouseup', handleCanvasMouseUp);
-  }
+    // Canvas drop handler
+    const canvas = document.getElementById('network-canvas');
+    if (canvas) {
+      canvas.addEventListener('dragover', (e) => e.preventDefault());
+      canvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (this.draggedLayer) {
+          this.addLayerToCanvas(this.draggedLayer, e.offsetX, e.offsetY);
+          this.draggedLayer = null;
+        }
+      });
 
-  function renderCanvas(container) {
-    const canvas = container.querySelector('#network-canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw grid
-    drawGrid(ctx, canvas.width, canvas.height);
-    
-    // Draw connections
-    networkConfig.connections.forEach(connection => {
-      drawConnection(ctx, connection);
-    });
-    
-    // Draw layers
-    networkConfig.layers.forEach(layer => {
-      drawLayer(ctx, layer);
-    });
-  }
-
-  function drawGrid(ctx, width, height) {
-    ctx.strokeStyle = '#f0f0f0';
-    ctx.lineWidth = 1;
-    
-    const gridSize = 20;
-    
-    for (let x = 0; x <= width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-    
-    for (let y = 0; y <= height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
+      canvas.addEventListener('click', (e) => {
+        this.handleCanvasClick(e);
+      });
     }
   }
 
-  function drawLayer(ctx, layer) {
-    const config = layerTypes[layer.type];
-    const x = layer.x;
-    const y = layer.y;
-    const width = 120;
-    const height = 60;
-    
-    // Draw layer background
-    ctx.fillStyle = selectedLayer === layer ? '#e3f2fd' : '#ffffff';
-    ctx.strokeStyle = config.color;
-    ctx.lineWidth = 2;
-    ctx.fillRect(x, y, width, height);
-    ctx.strokeRect(x, y, width, height);
-    
-    // Draw layer icon and name
-    ctx.fillStyle = config.color;
-    ctx.font = '16px Arial';
-    ctx.fillText(config.icon, x + 10, y + 25);
-    
-    ctx.fillStyle = '#333333';
-    ctx.font = '12px Arial';
-    ctx.fillText(config.name, x + 35, y + 20);
-    ctx.fillText(layer.name || `Layer ${layer.id}`, x + 10, y + 40);
-    
-    // Draw parameters summary
-    if (layer.params) {
-      ctx.font = '10px Arial';
-      ctx.fillStyle = '#666666';
-      const paramText = Object.entries(layer.params)
-        .slice(0, 2)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(', ');
-      ctx.fillText(paramText, x + 10, y + 55);
+  setupCanvasInteractions() {
+    // Setup canvas drawing context
+    const canvas = document.getElementById('network-canvas');
+    if (canvas) {
+      this.ctx = canvas.getContext('2d');
+      this.renderCanvas();
     }
   }
 
-  function drawConnection(ctx, connection) {
-    const fromLayer = networkConfig.layers.find(l => l.id === connection.from);
-    const toLayer = networkConfig.layers.find(l => l.id === connection.to);
-    
-    if (!fromLayer || !toLayer) return;
-    
-    const fromX = fromLayer.x + 120;
-    const fromY = fromLayer.y + 30;
-    const toX = toLayer.x;
-    const toY = toLayer.y + 30;
-    
-    ctx.strokeStyle = '#2196F3';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(fromX, fromY);
-    ctx.lineTo(toX, toY);
-    ctx.stroke();
-    
-    // Draw arrow
-    const angle = Math.atan2(toY - fromY, toX - fromX);
-    const arrowLength = 10;
-    ctx.beginPath();
-    ctx.moveTo(toX, toY);
-    ctx.lineTo(
-      toX - arrowLength * Math.cos(angle - Math.PI / 6),
-      toY - arrowLength * Math.sin(angle - Math.PI / 6)
-    );
-    ctx.moveTo(toX, toY);
-    ctx.lineTo(
-      toX - arrowLength * Math.cos(angle + Math.PI / 6),
-      toY - arrowLength * Math.sin(angle + Math.PI / 6)
-    );
-    ctx.stroke();
-  }
-
-  function handleLayerDragStart(e) {
-    const layerType = e.target.closest('.layer-type').dataset.layerType;
-    e.dataTransfer.setData('application/layer-type', layerType);
-  }
-
-  function handleCanvasDragOver(e) {
-    e.preventDefault();
-  }
-
-  function handleCanvasDrop(e) {
-    e.preventDefault();
-    const layerType = e.dataTransfer.getData('application/layer-type');
-    if (layerType) {
-      const rect = e.target.getBoundingClientRect();
-      const x = Math.round((e.clientX - rect.left) / 20) * 20;
-      const y = Math.round((e.clientY - rect.top) / 20) * 20;
-      
-      addLayer(layerType, x, y);
-    }
-  }
-
-  function handleCanvasClick(e) {
-    const rect = e.target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const clickedLayer = findLayerAt(x, y);
-    
-    if (connectionMode && selectedLayer && clickedLayer && selectedLayer !== clickedLayer) {
-      addConnection(selectedLayer.id, clickedLayer.id);
-      setMode('select');
-    } else {
-      selectLayer(clickedLayer);
-    }
-  }
-
-  function handleCanvasMouseDown(e) {
-    const rect = e.target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    draggedLayer = findLayerAt(x, y);
-    if (draggedLayer) {
-      draggedLayer.dragOffsetX = x - draggedLayer.x;
-      draggedLayer.dragOffsetY = y - draggedLayer.y;
-    }
-  }
-
-  function handleCanvasMouseMove(e) {
-    if (draggedLayer) {
-      const rect = e.target.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      draggedLayer.x = Math.round((x - draggedLayer.dragOffsetX) / 20) * 20;
-      draggedLayer.y = Math.round((y - draggedLayer.dragOffsetY) / 20) * 20;
-      
-      renderCanvas(e.target.closest('.neural-designer-container'));
-    }
-  }
-
-  function handleCanvasMouseUp(e) {
-    draggedLayer = null;
-  }
-
-  function addLayer(type, x, y) {
+  addLayerToCanvas(layerType, x, y) {
     const layer = {
-      id: Date.now(),
-      type: type,
-      name: `${layerTypes[type].name} ${networkConfig.layers.length + 1}`,
+      id: `layer_${Date.now()}`,
+      type: layerType,
       x: x,
       y: y,
-      params: getDefaultParams(type)
+      params: {},
+      name: `${this.layerTypes[layerType].name} ${this.networkConfig.layers.length + 1}`
     };
-    
-    networkConfig.layers.push(layer);
-    updateNetworkSummary();
-    renderCanvas(document.querySelector('.neural-designer-container'));
+
+    this.networkConfig.layers.push(layer);
+    this.renderCanvas();
+    this.updateNetworkSummary();
   }
 
-  function addConnection(fromId, toId) {
-    const connection = {
-      id: Date.now(),
-      from: fromId,
-      to: toId
-    };
-    
-    networkConfig.connections.push(connection);
-    updateNetworkSummary();
-    renderCanvas(document.querySelector('.neural-designer-container'));
+  renderCanvas() {
+    if (!this.ctx) return;
+
+    // Clear canvas
+    this.ctx.clearRect(0, 0, 800, 600);
+
+    // Draw grid
+    this.drawGrid();
+
+    // Draw connections
+    this.drawConnections();
+
+    // Draw layers
+    this.drawLayers();
   }
 
-  function selectLayer(layer) {
-    selectedLayer = layer;
-    updatePropertiesPanel();
-    renderCanvas(document.querySelector('.neural-designer-container'));
-  }
+  drawGrid() {
+    this.ctx.strokeStyle = '#f0f0f0';
+    this.ctx.lineWidth = 1;
 
-  function findLayerAt(x, y) {
-    return networkConfig.layers.find(layer => 
-      x >= layer.x && x <= layer.x + 120 &&
-      y >= layer.y && y <= layer.y + 60
-    );
-  }
-
-  function setMode(mode) {
-    connectionMode = mode === 'connection';
-    
-    // Update tool button states
-    document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`#${mode}-mode`).classList.add('active');
-  }
-
-  function getDefaultParams(type) {
-    const defaults = {
-      input: { inputSize: 784, inputType: 'float32' },
-      dense: { units: 128, activation: 'relu', dropout: 0.0 },
-      conv2d: { filters: 32, kernelSize: 3, strides: 1, padding: 'same', activation: 'relu' },
-      maxpool: { poolSize: 2, strides: 2 },
-      dropout: { rate: 0.2 },
-      batchnorm: { momentum: 0.99, epsilon: 0.001 },
-      attention: { numHeads: 8, keyDim: 64, dropout: 0.1 },
-      transformer: { numHeads: 8, dModel: 512, dff: 2048, dropout: 0.1 },
-      output: { outputSize: 10, activation: 'softmax' }
-    };
-    
-    return defaults[type] || {};
-  }
-
-  function updatePropertiesPanel() {
-    const propertiesEl = document.querySelector('#layer-properties');
-    
-    if (!selectedLayer) {
-      propertiesEl.innerHTML = '<p class="no-selection">Select a layer to edit properties</p>';
-      return;
+    for (let x = 0; x <= 800; x += 40) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x, 600);
+      this.ctx.stroke();
     }
-    
-    const config = layerTypes[selectedLayer.type];
-    propertiesEl.innerHTML = `
-      <div class="layer-info">
-        <h4>${config.icon} ${selectedLayer.name}</h4>
-        <div class="form-group">
-          <label>Layer Name:</label>
-          <input type="text" id="layer-name" value="${selectedLayer.name}">
-        </div>
-      </div>
-      <div class="layer-params">
-        <h5>Parameters:</h5>
-        ${config.params.map(param => `
-          <div class="form-group">
-            <label>${param}:</label>
-            <input type="text" id="param-${param}" value="${selectedLayer.params[param] || ''}">
-          </div>
-        `).join('')}
-      </div>
-      <div class="layer-actions">
-        <button class="btn btn-danger btn-sm" id="delete-layer">🗑️ Delete Layer</button>
-        <button class="btn btn-primary btn-sm" id="duplicate-layer">📋 Duplicate</button>
-      </div>
-    `;
-    
-    // Add event listeners for property changes
-    propertiesEl.querySelector('#layer-name').addEventListener('input', (e) => {
-      selectedLayer.name = e.target.value;
-      renderCanvas(document.querySelector('.neural-designer-container'));
-    });
-    
-    config.params.forEach(param => {
-      const input = propertiesEl.querySelector(`#param-${param}`);
-      if (input) {
-        input.addEventListener('input', (e) => {
-          selectedLayer.params[param] = e.target.value;
-          updateNetworkSummary();
-        });
-      }
-    });
-    
-    propertiesEl.querySelector('#delete-layer').addEventListener('click', deleteSelectedLayer);
-    propertiesEl.querySelector('#duplicate-layer').addEventListener('click', duplicateSelectedLayer);
-  }
 
-  function updateNetworkSummary() {
-    document.querySelector('#layer-count').textContent = networkConfig.layers.length;
-    document.querySelector('#connection-count').textContent = networkConfig.connections.length;
-    
-    // Calculate parameter count (simplified)
-    let totalParams = 0;
-    networkConfig.layers.forEach(layer => {
-      if (layer.type === 'dense' && layer.params.units) {
-        totalParams += parseInt(layer.params.units) || 0;
-      } else if (layer.type === 'conv2d' && layer.params.filters) {
-        totalParams += parseInt(layer.params.filters) || 0;
-      }
-    });
-    document.querySelector('#param-count').textContent = totalParams.toLocaleString();
-  }
-
-  // Network operations
-  function createNewNetwork() {
-    if (confirm('Create new network? Current work will be lost.')) {
-      networkConfig = {
-        layers: [],
-        connections: [],
-        metadata: {
-          name: 'Untitled Network',
-          description: '',
-          version: '1.0.0',
-          author: '',
-          created: new Date().toISOString()
-        }
-      };
-      selectedLayer = null;
-      updateNetworkSummary();
-      renderCanvas(document.querySelector('.neural-designer-container'));
-      document.querySelector('#network-name').textContent = networkConfig.metadata.name;
+    for (let y = 0; y <= 600; y += 40) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(800, y);
+      this.ctx.stroke();
     }
   }
 
-  async function saveNetwork() {
-    try {
-      if (ipfsStorage) {
-        // Save to IPFS with versioning
-        const networkData = JSON.stringify(networkConfig);
-        const cid = await ipfsStorage.storeModelOnIPFS(
-          `network-${networkConfig.metadata.name}`,
-          new TextEncoder().encode(networkData),
-          {
-            type: 'neural-network-config',
-            name: networkConfig.metadata.name,
-            version: networkConfig.metadata.version,
-            author: networkConfig.metadata.author,
-            created: networkConfig.metadata.created,
-            modified: new Date().toISOString()
-          }
-        );
-        
-        alert(`Network saved to IPFS with CID: ${cid}`);
-      } else {
-        // Save to local storage
-        localStorage.setItem('nn-designer-network', JSON.stringify(networkConfig));
-        alert('Network saved locally');
-      }
-    } catch (error) {
-      console.error('Save failed:', error);
-      alert('Failed to save network');
-    }
-  }
-
-  async function loadNetwork() {
-    try {
-      if (ipfsStorage) {
-        // Show IPFS networks to load from
-        const models = ipfsStorage.getAvailableModels().filter(m => m.metadata.type === 'neural-network-config');
-        if (models.length === 0) {
-          alert('No neural networks found in IPFS');
-          return;
-        }
-        
-        // Simple selection (could be enhanced with a proper dialog)
-        const selectedModel = models[0];
-        const data = await ipfsStorage.loadModelFromIPFS(selectedModel.id);
-        if (data) {
-          networkConfig = JSON.parse(new TextDecoder().decode(data));
-          updateNetworkSummary();
-          renderCanvas(document.querySelector('.neural-designer-container'));
-          document.querySelector('#network-name').textContent = networkConfig.metadata.name;
-        }
-      } else {
-        // Load from local storage
-        const saved = localStorage.getItem('nn-designer-network');
-        if (saved) {
-          networkConfig = JSON.parse(saved);
-          updateNetworkSummary();
-          renderCanvas(document.querySelector('.neural-designer-container'));
-          document.querySelector('#network-name').textContent = networkConfig.metadata.name;
-        }
-      }
-    } catch (error) {
-      console.error('Load failed:', error);
-      alert('Failed to load network');
-    }
-  }
-
-  function exportNetwork() {
-    const dataStr = JSON.stringify(networkConfig, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `${networkConfig.metadata.name}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-  }
-
-  function validateNetwork() {
-    const errors = [];
-    
-    // Check for input layer
-    const inputLayers = networkConfig.layers.filter(l => l.type === 'input');
-    if (inputLayers.length === 0) {
-      errors.push('Network must have at least one input layer');
-    } else if (inputLayers.length > 1) {
-      errors.push('Network should have only one input layer');
-    }
-    
-    // Check for output layer
-    const outputLayers = networkConfig.layers.filter(l => l.type === 'output');
-    if (outputLayers.length === 0) {
-      errors.push('Network must have at least one output layer');
-    }
-    
-    // Check connections
-    networkConfig.layers.forEach(layer => {
-      if (layer.type !== 'input') {
-        const hasInput = networkConfig.connections.some(c => c.to === layer.id);
-        if (!hasInput) {
-          errors.push(`Layer "${layer.name}" has no input connections`);
-        }
-      }
+  drawLayers() {
+    this.networkConfig.layers.forEach(layer => {
+      const config = this.layerTypes[layer.type];
       
-      if (layer.type !== 'output') {
-        const hasOutput = networkConfig.connections.some(c => c.from === layer.id);
-        if (!hasOutput) {
-          errors.push(`Layer "${layer.name}" has no output connections`);
-        }
+      // Draw layer node
+      this.ctx.fillStyle = config.color;
+      this.ctx.fillRect(layer.x - 30, layer.y - 15, 60, 30);
+
+      // Draw layer icon
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '16px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(config.icon, layer.x, layer.y + 5);
+
+      // Draw layer name
+      this.ctx.fillStyle = '#333';
+      this.ctx.font = '10px Arial';
+      this.ctx.fillText(layer.name, layer.x, layer.y + 25);
+
+      // Highlight selected layer
+      if (this.selectedLayer === layer) {
+        this.ctx.strokeStyle = '#007bff';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(layer.x - 32, layer.y - 17, 64, 34);
       }
     });
+  }
+
+  drawConnections() {
+    this.networkConfig.connections.forEach(connection => {
+      const fromLayer = this.networkConfig.layers.find(l => l.id === connection.from);
+      const toLayer = this.networkConfig.layers.find(l => l.id === connection.to);
+
+      if (fromLayer && toLayer) {
+        this.ctx.strokeStyle = '#666';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(fromLayer.x, fromLayer.y);
+        this.ctx.lineTo(toLayer.x, toLayer.y);
+        this.ctx.stroke();
+
+        // Draw arrow
+        const angle = Math.atan2(toLayer.y - fromLayer.y, toLayer.x - fromLayer.x);
+        const arrowLength = 10;
+        this.ctx.beginPath();
+        this.ctx.moveTo(toLayer.x, toLayer.y);
+        this.ctx.lineTo(
+          toLayer.x - arrowLength * Math.cos(angle - 0.3),
+          toLayer.y - arrowLength * Math.sin(angle - 0.3)
+        );
+        this.ctx.moveTo(toLayer.x, toLayer.y);
+        this.ctx.lineTo(
+          toLayer.x - arrowLength * Math.cos(angle + 0.3),
+          toLayer.y - arrowLength * Math.sin(angle + 0.3)
+        );
+        this.ctx.stroke();
+      }
+    });
+  }
+
+  handleCanvasClick(e) {
+    const clickX = e.offsetX;
+    const clickY = e.offsetY;
+
+    // Find clicked layer
+    const clickedLayer = this.networkConfig.layers.find(layer => {
+      return clickX >= layer.x - 30 && clickX <= layer.x + 30 &&
+             clickY >= layer.y - 15 && clickY <= layer.y + 15;
+    });
+
+    if (clickedLayer) {
+      this.selectLayer(clickedLayer);
+    } else {
+      this.selectedLayer = null;
+      this.renderCanvas();
+      this.updatePropertiesPanel();
+    }
+  }
+
+  selectLayer(layer) {
+    this.selectedLayer = layer;
+    this.renderCanvas();
+    this.updatePropertiesPanel();
+  }
+
+  updatePropertiesPanel() {
+    const propertiesDiv = document.getElementById('layer-properties');
+    if (!propertiesDiv) return;
+
+    if (this.selectedLayer) {
+      const config = this.layerTypes[this.selectedLayer.type];
+      propertiesDiv.innerHTML = `
+        <div class="layer-info">
+          <h4>${config.icon} ${this.selectedLayer.name}</h4>
+          <div class="form-group">
+            <label>Layer Name:</label>
+            <input type="text" value="${this.selectedLayer.name}" onchange="window.neuralDesignerApp?.updateLayerName(this.value)">
+          </div>
+          <div class="layer-params">
+            <h5>Parameters</h5>
+            ${config.params.map(param => `
+              <div class="form-group">
+                <label>${param}:</label>
+                <input type="text" value="${this.selectedLayer.params[param] || ''}" 
+                       onchange="window.neuralDesignerApp?.updateLayerParam('${param}', this.value)">
+              </div>
+            `).join('')}
+          </div>
+          <div class="layer-actions">
+            <button class="btn btn-sm btn-danger" onclick="window.neuralDesignerApp?.deleteLayer()">🗑️ Delete</button>
+            <button class="btn btn-sm" onclick="window.neuralDesignerApp?.duplicateLayer()">📋 Duplicate</button>
+          </div>
+        </div>
+      `;
+    } else {
+      propertiesDiv.innerHTML = '<div class="no-selection">Select a layer to view its properties</div>';
+    }
+  }
+
+  updateNetworkSummary() {
+    const totalLayers = document.getElementById('total-layers');
+    const totalConnections = document.getElementById('total-connections');
+    const statusLayers = document.getElementById('status-layers');
+
+    if (totalLayers) totalLayers.textContent = this.networkConfig.layers.length;
+    if (totalConnections) totalConnections.textContent = this.networkConfig.connections.length;
+    if (statusLayers) statusLayers.textContent = this.networkConfig.layers.length;
+  }
+
+  // Action Methods
+  newNetwork() {
+    this.networkConfig = {
+      layers: [],
+      connections: [],
+      metadata: {
+        name: 'Untitled Network',
+        description: '',
+        version: '1.0.0',
+        author: '',
+        created: new Date().toISOString()
+      }
+    };
+    this.selectedLayer = null;
+    this.renderCanvas();
+    this.updateNetworkSummary();
+    this.updatePropertiesPanel();
+  }
+
+  showMetadataModal() {
+    const modal = document.getElementById('metadata-modal');
+    if (modal) modal.style.display = 'block';
+  }
+
+  hideMetadataModal() {
+    const modal = document.getElementById('metadata-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  saveMetadata(e) {
+    e.preventDefault();
     
+    const name = document.getElementById('meta-name')?.value || this.networkConfig.metadata.name;
+    const description = document.getElementById('meta-description')?.value || this.networkConfig.metadata.description;
+    const author = document.getElementById('meta-author')?.value || this.networkConfig.metadata.author;
+    const version = document.getElementById('meta-version')?.value || this.networkConfig.metadata.version;
+
+    this.networkConfig.metadata = {
+      ...this.networkConfig.metadata,
+      name,
+      description,
+      author,
+      version,
+      modified: new Date().toISOString()
+    };
+
+    const networkNameEl = document.getElementById('network-name');
+    if (networkNameEl) networkNameEl.textContent = name;
+
+    this.hideMetadataModal();
+  }
+
+  updateLayerName(name) {
+    if (this.selectedLayer) {
+      this.selectedLayer.name = name;
+      this.renderCanvas();
+    }
+  }
+
+  updateLayerParam(param, value) {
+    if (this.selectedLayer) {
+      this.selectedLayer.params[param] = value;
+    }
+  }
+
+  deleteLayer() {
+    if (this.selectedLayer) {
+      this.networkConfig.layers = this.networkConfig.layers.filter(l => l.id !== this.selectedLayer.id);
+      this.networkConfig.connections = this.networkConfig.connections.filter(
+        c => c.from !== this.selectedLayer.id && c.to !== this.selectedLayer.id
+      );
+      this.selectedLayer = null;
+      this.renderCanvas();
+      this.updateNetworkSummary();
+      this.updatePropertiesPanel();
+    }
+  }
+
+  duplicateLayer() {
+    if (this.selectedLayer) {
+      const newLayer = {
+        ...this.selectedLayer,
+        id: `layer_${Date.now()}`,
+        x: this.selectedLayer.x + 60,
+        y: this.selectedLayer.y + 40,
+        name: `${this.selectedLayer.name} Copy`
+      };
+      this.networkConfig.layers.push(newLayer);
+      this.renderCanvas();
+      this.updateNetworkSummary();
+    }
+  }
+
+  toggleConnectionMode() {
+    this.connectionMode = !this.connectionMode;
+    const btn = document.getElementById('connection-mode');
+    if (btn) {
+      btn.classList.toggle('active', this.connectionMode);
+      btn.textContent = this.connectionMode ? '✋ Exit Connect Mode' : '🔗 Connect Layers';
+    }
+  }
+
+  clearCanvas() {
+    if (confirm('Are you sure you want to clear the entire network?')) {
+      this.newNetwork();
+    }
+  }
+
+  validateNetwork() {
+    // Simple validation
+    const errors = [];
+    if (this.networkConfig.layers.length === 0) {
+      errors.push('Network has no layers');
+    }
+    
+    const inputLayers = this.networkConfig.layers.filter(l => l.type === 'input');
+    const outputLayers = this.networkConfig.layers.filter(l => l.type === 'output');
+    
+    if (inputLayers.length === 0) {
+      errors.push('Network needs at least one input layer');
+    }
+    if (outputLayers.length === 0) {
+      errors.push('Network needs at least one output layer');
+    }
+
     if (errors.length === 0) {
       alert('✅ Network validation passed!');
     } else {
-      alert('❌ Validation failed:\n\n' + errors.join('\n'));
+      alert('❌ Network validation failed:\n' + errors.join('\n'));
     }
   }
 
-  async function deployNetwork() {
-    try {
-      validateNetwork();
-      
-      if (p2pSystem) {
-        // Deploy to P2P network
-        alert('🚀 Deploying network to P2P system...\n\nThis feature will integrate with the model server for actual deployment.');
-      } else {
-        alert('P2P system not available for deployment');
-      }
-    } catch (error) {
-      console.error('Deployment failed:', error);
-      alert('Failed to deploy network');
-    }
-  }
+  // Placeholder methods for future implementation
+  loadNetwork() { alert('Load network functionality coming soon!'); }
+  saveNetwork() { alert('Save network functionality coming soon!'); }
+  exportNetwork() { alert('Export network functionality coming soon!'); }
+  trainNetwork() { alert('Train network functionality coming soon!'); }
+  deployToP2P() { alert('P2P deployment functionality coming soon!'); }
+  undo() { alert('Undo functionality coming soon!'); }
+  redo() { alert('Redo functionality coming soon!'); }
+  autoConnect() { alert('Auto-connect functionality coming soon!'); }
+  clearConnections() { this.networkConfig.connections = []; this.renderCanvas(); }
+  commitVersion() { alert('Version commit functionality coming soon!'); }
+  viewVersionHistory() { alert('Version history functionality coming soon!'); }
+  shareToIPFS() { alert('IPFS sharing functionality coming soon!'); }
 
-  function createNewVersion() {
-    const currentVersion = networkConfig.metadata.version;
-    const versionParts = currentVersion.split('.').map(Number);
-    versionParts[2]++; // Increment patch version
-    
-    networkConfig.metadata.version = versionParts.join('.');
-    networkConfig.metadata.modified = new Date().toISOString();
-    
-    document.querySelector('#meta-version').value = networkConfig.metadata.version;
-    saveNetwork(); // Auto-save new version
-  }
-
-  function deleteSelectedLayer() {
-    if (selectedLayer && confirm(`Delete layer "${selectedLayer.name}"?`)) {
-      // Remove layer
-      networkConfig.layers = networkConfig.layers.filter(l => l.id !== selectedLayer.id);
-      
-      // Remove associated connections
-      networkConfig.connections = networkConfig.connections.filter(c => 
-        c.from !== selectedLayer.id && c.to !== selectedLayer.id
-      );
-      
-      selectedLayer = null;
-      updateNetworkSummary();
-      updatePropertiesPanel();
-      renderCanvas(document.querySelector('.neural-designer-container'));
-    }
-  }
-
-  function duplicateSelectedLayer() {
-    if (selectedLayer) {
-      const newLayer = {
-        ...selectedLayer,
-        id: Date.now(),
-        name: selectedLayer.name + ' Copy',
-        x: selectedLayer.x + 140,
-        y: selectedLayer.y,
-        params: { ...selectedLayer.params }
-      };
-      
-      networkConfig.layers.push(newLayer);
-      selectLayer(newLayer);
-      updateNetworkSummary();
-      renderCanvas(document.querySelector('.neural-designer-container'));
-    }
-  }
-
-  // Modal functions
-  function showMetadataModal() {
-    document.querySelector('#metadata-modal').style.display = 'block';
-  }
-
-  function hideMetadataModal() {
-    document.querySelector('#metadata-modal').style.display = 'none';
-  }
-
-  function saveMetadata(e) {
-    e.preventDefault();
-    
-    networkConfig.metadata.name = document.querySelector('#meta-name').value;
-    networkConfig.metadata.description = document.querySelector('#meta-description').value;
-    networkConfig.metadata.author = document.querySelector('#meta-author').value;
-    networkConfig.metadata.version = document.querySelector('#meta-version').value;
-    networkConfig.metadata.modified = new Date().toISOString();
-    
-    document.querySelector('#network-name').textContent = networkConfig.metadata.name;
-    hideMetadataModal();
-  }
-
-  function addNeuralDesignerStyles() {
+  addStyles() {
     if (document.querySelector('#neural-designer-styles')) return;
     
     const style = document.createElement('style');
@@ -1215,5 +1028,4 @@
     
     document.head.appendChild(style);
   }
-
-})();
+}

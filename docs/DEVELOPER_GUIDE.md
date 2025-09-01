@@ -1,102 +1,592 @@
-# Developer Guide: Working with SwissKnife CI/CD
+# SwissKnife - Complete Developer Guide
 
-This guide helps developers understand the development workflow, project structure, testing strategy, and CI/CD system for the SwissKnife project.
+## Overview
+
+SwissKnife is the world's first browser-based collaborative virtual desktop with comprehensive AI integration. This guide provides developers with everything needed to understand, contribute to, and extend the platform.
+
+## Architecture Overview
+
+SwissKnife features a sophisticated multi-layered architecture:
+
+### Core Components
+- **🖥️ Virtual Desktop**: Browser-based desktop with 27+ professional applications
+- **🤖 AI Integration**: Hugging Face (100k+ models) + OpenRouter (100+ premium models)
+- **🤝 P2P Collaboration**: Real-time task sharing and file collaboration
+- **⚡ Distributed Computing**: Web workers, audio workers, and edge computing
+- **☁️ CloudFlare Integration**: Hybrid P2P + cloud computing
+- **🌐 IPFS Network**: Distributed storage and content sharing
+
+### Technology Stack
+- **Frontend**: TypeScript, React, Vite, Monaco Editor
+- **Styling**: Modern CSS with gradient glass morphism design
+- **Networking**: WebRTC, libp2p, IPFS
+- **AI**: Hugging Face Transformers, OpenRouter API, WebGPU
+- **Workers**: Web Workers, Audio Workers, CloudFlare Workers
+- **Build**: Vite with multiple configurations for different deployment modes
+
+## Project Structure
+
+```
+swissknife/
+├── src/                       # CLI and shared components
+├── web/                       # Virtual desktop applications
+│   ├── apps/                 # 27+ desktop applications
+│   │   ├── huggingface/      # Hugging Face Hub app
+│   │   ├── openrouter/       # OpenRouter Hub app
+│   │   ├── vibecode/         # Professional AI IDE
+│   │   ├── neural-designer/  # Neural network designer
+│   │   └── ...               # 23+ additional apps
+│   ├── components/           # Shared UI components
+│   ├── styles/              # Global styling and themes
+│   └── types/               # TypeScript type definitions
+├── ipfs_accelerate_js/       # IPFS and P2P infrastructure
+├── collaboration/            # Real-time collaboration engine
+├── workers/                  # Background worker infrastructure
+├── cloudflare/              # CloudFlare integration
+├── docs/                    # Complete documentation
+└── vite.*.config.ts         # Build configurations
+```
+
+## Development Environment Setup
+
+### Prerequisites
+- **Node.js**: v18+ (v20+ recommended)
+- **npm**: Latest version
+- **Modern Browser**: Chrome/Chromium with WebGPU support preferred
+- **Git**: For version control
+
+### Quick Setup
+```bash
+# Clone repository
+git clone https://github.com/hallucinate-llc/swissknife.git
+cd swissknife
+
+# Install dependencies
+npm install --legacy-peer-deps
+
+# Launch development environment
+npm run dev:collaborative
+
+# Open browser
+open http://localhost:3001
+```
+
+### Environment Configuration
+```bash
+# AI Provider Configuration
+export HUGGINGFACE_API_TOKEN=your_hf_token
+export OPENROUTER_API_KEY=your_openrouter_key
+
+# CloudFlare Configuration (Optional)
+export CLOUDFLARE_API_TOKEN=your_cf_token
+export CLOUDFLARE_ACCOUNT_ID=your_account_id
+
+# Development Settings
+export SWISSKNIFE_DEBUG_MODE=true
+export SWISSKNIFE_P2P_ENABLED=true
+```
 
 ## Development Workflow
 
-```mermaid
-graph LR
-    A[Create Feature Branch] --> B[Develop Changes]
-    B --> C[Run Local Tests]
-    C --> D[Create Pull Request]
-    D --> E[CI Checks Run]
-    E -->|Passes| F[Code Review]
-    E -->|Fails| B
-    F -->|Approved| G[Merge to Main]
-    G --> H[Auto-Deploy to Staging]
-    H --> I[Verify in Staging]
-    I -->|Good| J[Release to Production]
-    I -->|Issues| B
+### 1. Feature Development
+```bash
+# Create feature branch
+git checkout -b feature/amazing-new-feature
+
+# Make changes and test
+npm run test
+npm run test:collaborative
+
+# Build and validate
+npm run build:all
+npm run test:production
 ```
 
-## Project Architecture Overview
+### 2. Application Development
+For creating new desktop applications:
 
-SwissKnife is built on a unified TypeScript architecture, integrating AI capabilities, advanced task management (TaskNet with GoT), ML acceleration, and a virtual filesystem with IPFS support. Key principles include clean-room implementation and a domain-driven structure.
+```typescript
+// web/apps/my-app/MyApp.js
+class MyApp {
+    constructor() {
+        this.name = 'My App';
+        this.icon = '🚀';
+        this.version = '1.0.0';
+    }
 
-For detailed architecture, see:
-- [Unified Architecture](./UNIFIED_ARCHITECTURE.md)
-- [Project Structure](./PROJECT_STRUCTURE.md)
-- Phase-specific documentation:
-    - [Phase 1: Analysis & Planning](./phase1/)
-    - [Phase 2: Core Implementation](./phase2/)
-    - [Phase 3: TaskNet Enhancement](./phase3/)
-    - [Phase 4: CLI Integration](./phase4/)
-    - [Phase 5: Optimization & Finalization](./phase5/)
+    async initialize() {
+        // Initialize app resources
+        this.setupEventListeners();
+        this.loadConfiguration();
+    }
 
-## Getting Started
+    render() {
+        return `
+            <div class="app-container">
+                <div class="app-header">
+                    <h1>${this.name}</h1>
+                </div>
+                <div class="app-content">
+                    <!-- Your app content -->
+                </div>
+            </div>
+        `;
+    }
 
-### Prerequisites
-
-- Node.js (v18 or higher recommended)
-- npm or pnpm (pnpm is recommended for managing dependencies via `pnpm-lock.yaml`)
-- Git
-- Bun (required for the build process: `npm install -g bun`)
-
-### Setting Up Your Development Environment
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/endomorphosis/swissknife.git
-   cd swissknife
-   ```
-
-2. Install dependencies:
-   ```bash
-   # Using pnpm (recommended)
-   pnpm install
-
-   # Using npm (may require --legacy-peer-deps depending on conflicts)
-   npm install --legacy-peer-deps
-   # or simply 'npm install' if no peer dependency issues
-   ```
-
-3. Setup pre-commit hooks (optional but recommended):
-   ```bash
-   npx husky install
-   ```
-
-## Daily Development Workflow
-
-### 1. Creating a Feature Branch
-
-Always work in a feature branch, never directly on `main` or `develop`:
-
-```bash
-git checkout main
-git pull
-git checkout -b feature/your-feature-name
+    // Required methods for desktop integration
+    onFocus() { /* Handle focus */ }
+    onBlur() { /* Handle blur */ }
+    onClose() { /* Handle close */ }
+    onMinimize() { /* Handle minimize */ }
+    onRestore() { /* Handle restore */ }
+}
 ```
 
-### 2. Developing Changes
+### 3. AI Integration Development
+For integrating AI capabilities:
 
-As you develop, follow these practices:
+```typescript
+// AI Service Integration
+class MyAIService {
+    constructor() {
+        this.hf = new HuggingFaceIntegration();
+        this.openrouter = new OpenRouterIntegration();
+    }
 
-- Follow the code style guidelines
-- Write tests for your changes
-- Keep commits focused and with clear messages
-- Run tests regularly (`npm test` or `pnpm test`)
-- Keep up-to-date with the `main` branch (`git pull origin main` frequently)
+    async intelligentInference(prompt, options = {}) {
+        // Multi-provider intelligence
+        const provider = this.selectOptimalProvider(prompt, options);
+        
+        try {
+            return await provider.inference(prompt, options);
+        } catch (error) {
+            // Automatic fallback
+            return await this.fallbackInference(prompt, options);
+        }
+    }
 
-### 3. Local Testing
+    selectOptimalProvider(prompt, options) {
+        // Intelligent provider selection logic
+        if (options.speed === 'fast') return this.openrouter;
+        if (options.cost === 'low') return this.hf;
+        return this.hf; // Default to HF
+    }
+}
+```
 
-Before creating a pull request, run these checks locally:
+### 4. Collaboration Features
+For adding collaborative features:
 
+```typescript
+// P2P Collaboration Integration
+class CollaborativeFeature {
+    constructor() {
+        this.p2p = new CollaborativeP2PManager();
+        this.sync = new RealTimeSyncEngine();
+    }
+
+    async enableCollaboration(featureName) {
+        // Setup collaborative state
+        await this.p2p.createSharedState(featureName);
+        
+        // Subscribe to changes
+        this.p2p.onStateChange(featureName, (change) => {
+            this.handleRemoteChange(change);
+        });
+
+        // Enable real-time sync
+        this.sync.enable(featureName);
+    }
+
+    async shareData(key, data) {
+        await this.p2p.updateSharedState(key, data);
+    }
+}
+```
+
+## Testing Strategy
+
+### Test Hierarchy
+1. **Unit Tests**: Individual component testing
+2. **Integration Tests**: Cross-component interaction testing
+3. **Collaboration Tests**: P2P and real-time feature testing
+4. **AI Tests**: Model integration and inference testing
+5. **E2E Tests**: Complete workflow testing with Playwright
+
+### Running Tests
 ```bash
-# Format code
-npm run format
+# All tests
+npm run test
 
-# Lint check
-npm run lint
+# Specific test suites
+npm run test:collaborative      # P2P collaboration
+npm run test:huggingface       # HF integration
+npm run test:openrouter        # OpenRouter integration
+npm run test:edge-deployment   # CloudFlare edge
+npm run test:workers           # Worker infrastructure
+npm run test:browser           # Browser compatibility
+npm run test:e2e:playwright    # End-to-end testing
+
+# Development testing
+npm run test:vite              # Vite integration (16 tests)
+npm run test:production        # Production readiness
+```
+
+### Writing Tests
+```typescript
+// Example test for AI integration
+describe('HuggingFace Integration', () => {
+    let hf: HuggingFaceIntegration;
+
+    beforeEach(() => {
+        hf = new HuggingFaceIntegration();
+    });
+
+    test('should search models successfully', async () => {
+        const models = await hf.searchModels('text-generation');
+        expect(models.length).toBeGreaterThan(0);
+        expect(models[0]).toHaveProperty('modelId');
+    });
+
+    test('should perform inference', async () => {
+        const result = await hf.inference('gpt2', 'Hello world');
+        expect(result).toHaveProperty('generated_text');
+    });
+
+    test('should deploy to edge', async () => {
+        const deployment = await hf.deployToEdge('gpt2');
+        expect(deployment.url).toContain('workers.dev');
+    });
+});
+```
+
+## Build System
+
+### Vite Configurations
+- **vite.web.config.ts**: Main virtual desktop build
+- **vite.cli.config.ts**: CLI tool build
+- **vite.workers.config.ts**: Worker scripts build
+- **vite.ipfs.config.ts**: IPFS acceleration build
+
+### Build Commands
+```bash
+# Development builds
+npm run dev                    # Standard development
+npm run dev:collaborative      # Collaborative development
+npm run dev:cli               # CLI development
+
+# Production builds
+npm run build:all             # Build all components
+npm run build:collaborative   # Collaborative build
+npm run build:workers         # Worker infrastructure
+npm run build:docker          # Docker containerization
+
+# Specialized builds
+npm run build:ai              # AI integration components
+npm run build:edge            # Edge deployment preparation
+```
+
+### Build Optimization
+```typescript
+// vite.config.ts optimization example
+export default defineConfig({
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'ai-vendors': ['@huggingface/transformers', 'openrouter-sdk'],
+                    'collaboration': ['libp2p', 'ipfs-http-client'],
+                    'ui-framework': ['react', 'react-dom'],
+                    'editor': ['monaco-editor', '@monaco-editor/react']
+                }
+            }
+        },
+        target: 'esnext',
+        minify: 'terser',
+        sourcemap: true
+    },
+    optimizeDeps: {
+        include: ['ai-providers', 'p2p-libraries'],
+        exclude: ['large-binaries']
+    }
+});
+```
+
+## Deployment
+
+### Local Development
+```bash
+# Standard deployment
+npm run desktop
+
+# Collaborative deployment
+npm run desktop:collaborative
+
+# Advanced deployment modes
+npm run desktop:distributed    # Distributed computing
+npm run desktop:cloudflare     # CloudFlare integration
+npm run desktop:hybrid         # Complete hybrid mode
+```
+
+### Production Deployment
+```bash
+# Build for production
+npm run build:all
+
+# Create Docker container
+npm run build:docker
+docker run -p 3001:3001 swissknife:latest
+
+# Deploy to CloudFlare
+npm run deploy:cloudflare
+
+# Deploy to edge
+npm run deploy:edge
+```
+
+### Docker Deployment
+```dockerfile
+# Example Dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps --production
+COPY . .
+RUN npm run build:all
+EXPOSE 3001
+CMD ["npm", "run", "desktop:collaborative"]
+```
+
+## Performance Optimization
+
+### Frontend Optimization
+- **Code Splitting**: Automatic chunking by Vite
+- **Lazy Loading**: Applications load on demand
+- **Worker Offloading**: Heavy computations in background workers
+- **Caching**: Intelligent caching of AI models and results
+
+### AI Optimization
+- **Provider Selection**: Intelligent routing to optimal AI provider
+- **Edge Deployment**: Sub-100ms inference via CloudFlare
+- **Caching**: Model and result caching for repeated queries
+- **Batching**: Batch multiple AI requests for efficiency
+
+### P2P Optimization
+- **Connection Pooling**: Efficient peer connection management
+- **Data Compression**: Compressed data transfer between peers
+- **Selective Sync**: Only sync changed data portions
+- **Bandwidth Management**: Adaptive quality based on connection
+
+## Security Guidelines
+
+### API Key Management
+```typescript
+// Secure API key handling
+class SecureAPIManager {
+    private keys: Map<string, string> = new Map();
+
+    setKey(provider: string, key: string) {
+        // Encrypt key before storage
+        const encrypted = this.encrypt(key);
+        this.keys.set(provider, encrypted);
+    }
+
+    getKey(provider: string): string {
+        const encrypted = this.keys.get(provider);
+        return encrypted ? this.decrypt(encrypted) : '';
+    }
+
+    private encrypt(data: string): string {
+        // Implementation with proper encryption
+    }
+
+    private decrypt(data: string): string {
+        // Implementation with proper decryption
+    }
+}
+```
+
+### P2P Security
+- **Encrypted Communication**: All P2P traffic encrypted
+- **Peer Authentication**: Cryptographic peer verification
+- **Permission System**: Fine-grained access control
+- **Data Validation**: Comprehensive input validation
+
+### Content Security Policy
+```html
+<!-- Strict CSP for production -->
+<meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; 
+               script-src 'self' 'unsafe-eval'; 
+               connect-src 'self' https://*.huggingface.co https://openrouter.ai;
+               worker-src 'self' blob:;">
+```
+
+## Contribution Guidelines
+
+### Code Style
+- **TypeScript**: Strict mode enabled, full type safety
+- **Formatting**: Prettier with 2-space indentation
+- **Linting**: ESLint with collaborative development rules
+- **Naming**: Descriptive names, camelCase for variables, PascalCase for classes
+
+### Commit Guidelines
+```bash
+# Good commit messages
+feat(ai): add Hugging Face model deployment to CloudFlare edge
+fix(p2p): resolve connection stability in distributed mode
+docs(api): update AI integration documentation
+test(collab): add comprehensive P2P collaboration tests
+```
+
+### Pull Request Process
+1. **Create Feature Branch**: `feature/your-feature-name`
+2. **Develop and Test**: Ensure all tests pass
+3. **Update Documentation**: Update relevant docs
+4. **Create PR**: Provide clear description and testing instructions
+5. **Code Review**: Address feedback promptly
+6. **Merge**: Squash commits for clean history
+
+## Troubleshooting
+
+### Common Development Issues
+
+#### Port Conflicts
+```bash
+# Check port usage
+lsof -i :3001
+
+# Use alternative port
+SWISSKNIFE_PORT=3002 npm run dev:collaborative
+```
+
+#### Build Failures
+```bash
+# Clear cache and rebuild
+rm -rf node_modules dist
+npm install --legacy-peer-deps
+npm run build:all
+```
+
+#### AI Integration Issues
+```bash
+# Verify API keys
+echo $HUGGINGFACE_API_TOKEN
+echo $OPENROUTER_API_KEY
+
+# Test connectivity
+curl -H "Authorization: Bearer $HUGGINGFACE_API_TOKEN" \
+  https://api-inference.huggingface.co/models/gpt2
+```
+
+#### P2P Connection Problems
+```bash
+# Debug P2P connections
+DEBUG=swissknife:p2p npm run dev:collaborative
+
+# Test local network only
+SWISSKNIFE_P2P_LOCAL_ONLY=true npm run dev:collaborative
+```
+
+### Performance Issues
+```bash
+# Enable performance monitoring
+npm run dev:collaborative -- --profile
+
+# Check memory usage
+node --inspect-brk node_modules/.bin/vite dev
+
+# Reduce worker count
+SWISSKNIFE_WORKER_COUNT=2 npm run dev:collaborative
+```
+
+## Advanced Topics
+
+### Custom AI Provider Integration
+```typescript
+// Custom AI provider implementation
+class CustomAIProvider implements AIProvider {
+    id = 'custom-ai';
+    name = 'Custom AI Provider';
+
+    async inference(model: string, prompt: string): Promise<AIResult> {
+        // Implementation
+    }
+
+    async deployToEdge(model: string): Promise<EdgeDeployment> {
+        // Implementation
+    }
+}
+```
+
+### Worker Development
+```typescript
+// Custom worker implementation
+// workers/custom-worker.ts
+self.onmessage = async (event) => {
+    const { type, data } = event.data;
+    
+    switch (type) {
+        case 'process':
+            const result = await processData(data);
+            self.postMessage({ type: 'result', data: result });
+            break;
+    }
+};
+```
+
+### CloudFlare Integration
+```typescript
+// CloudFlare Worker deployment
+export default {
+    async fetch(request: Request): Promise<Response> {
+        // AI inference at the edge
+        const prompt = await request.text();
+        const result = await runAIInference(prompt);
+        return new Response(JSON.stringify(result));
+    }
+};
+```
+
+## Future Development
+
+### Roadmap Items
+- **Phase 7**: Advanced Real-time Collaboration (Voice/Video)
+- **Phase 8**: AI-Powered Intelligence (Smart task distribution)
+- **Phase 9**: Enterprise Features (SSO, Team management)
+- **Phase 10**: Performance & Scalability (Global P2P network)
+
+### Contribution Opportunities
+- **New AI Providers**: Integrate additional AI services
+- **Enhanced Applications**: Improve existing desktop apps
+- **Performance Optimization**: Optimize P2P and AI performance
+- **Documentation**: Expand guides and tutorials
+- **Testing**: Improve test coverage and automation
+
+## Resources
+
+### Documentation
+- **[README.md](../README.md)** - Project overview
+- **[AI_INTEGRATION_COMPLETE.md](./AI_INTEGRATION_COMPLETE.md)** - AI features
+- **[COLLABORATION_IMPLEMENTATION_PLAN.md](../COLLABORATION_IMPLEMENTATION_PLAN.md)** - Collaboration architecture
+- **[ENTRY_POINTS.md](./ENTRY_POINTS.md)** - Launch modes and configuration
+
+### Community
+- **GitHub Issues**: Bug reports and feature requests
+- **Discussions**: Development discussions and help
+- **Discord**: Real-time developer community (coming soon)
+- **Wiki**: Community-contributed documentation
+
+### Learning Resources
+- **TypeScript**: [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- **React**: [React Documentation](https://react.dev/)
+- **Vite**: [Vite Guide](https://vitejs.dev/guide/)
+- **WebRTC**: [WebRTC Documentation](https://webrtc.org/)
+- **IPFS**: [IPFS Documentation](https://docs.ipfs.io/)
+
+---
+
+**Happy developing with SwissKnife! 🚀**
 
 # Type check
 npm run typecheck

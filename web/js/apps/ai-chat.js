@@ -124,22 +124,26 @@ export class AIChatApp {
     await this.loadConversations();
   }
 
-  createWindow() {
+  async render() {
+    // Generate a unique ID for this instance
+    this.instanceId = 'ai-chat-' + Date.now();
+    
     const content = `
-      <div class="ai-chat-container">
+      <div class="ai-chat-container" id="${this.instanceId}">
         <!-- Enhanced Sidebar with Provider/Model Selection -->
         <div class="chat-sidebar">
           <div class="chat-header">
             <h3>🤖 AI Assistant</h3>
-            <button class="new-chat-btn" id="new-chat-btn" title="New Conversation">+</button>
+            <button class="new-chat-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.createNewConversation()" title="New Conversation">+</button>
           </div>
           
           <!-- Provider Selection -->
           <div class="provider-section">
             <label>AI Provider:</label>
-            <div class="provider-grid" id="provider-grid">
+            <div class="provider-grid">
               ${Object.entries(this.aiProviders).map(([key, provider]) => `
                 <div class="provider-card ${key === this.selectedProvider ? 'active' : ''}" 
+                     onclick="window.aiChatInstances?.['${this.instanceId}']?.selectProvider('${key}')" 
                      data-provider="${key}" title="${provider.name}">
                   <span class="provider-icon">${provider.icon}</span>
                   <span class="provider-name">${provider.name}</span>
@@ -150,8 +154,9 @@ export class AIChatApp {
 
           <!-- Model Selection -->
           <div class="model-section">
-            <label for="model-select">Model:</label>
-            <select id="model-select" class="enhanced-select">
+            <label for="${this.instanceId}-model-select">Model:</label>
+            <select id="${this.instanceId}-model-select" class="enhanced-select" 
+                    onchange="window.aiChatInstances?.['${this.instanceId}']?.updateSelectedModel(this.value)">
               ${this.aiProviders[this.selectedProvider].models.map(model => 
                 `<option value="${model}" ${model === this.selectedModel ? 'selected' : ''}>${model}</option>`
               ).join('')}
@@ -166,14 +171,15 @@ export class AIChatApp {
                 <div class="context-source ${source.enabled ? 'enabled' : ''}" data-context="${key}">
                   <span class="context-icon">${source.icon}</span>
                   <span class="context-name">${source.name}</span>
-                  <input type="checkbox" ${source.enabled ? 'checked' : ''} class="context-toggle">
+                  <input type="checkbox" ${source.enabled ? 'checked' : ''} class="context-toggle"
+                         onchange="window.aiChatInstances?.['${this.instanceId}']?.toggleContextSource('${key}', this.checked)">
                 </div>
               `).join('')}
             </div>
           </div>
 
           <!-- Conversation List -->
-          <div class="conversation-list" id="conversation-list">
+          <div class="conversation-list">
             <div class="conversation-item active" data-id="current">
               <div class="conversation-title">Current Session</div>
               <div class="conversation-meta">Just now</div>
@@ -181,14 +187,14 @@ export class AIChatApp {
           </div>
 
           <!-- Usage Statistics -->
-          <div class="usage-stats" id="usage-stats">
+          <div class="usage-stats">
             <div class="stat-item">
               <span class="stat-label">Messages:</span>
-              <span class="stat-value" id="message-count">0</span>
+              <span class="stat-value" id="${this.instanceId}-message-count">0</span>
             </div>
             <div class="stat-item">
               <span class="stat-label">Tokens:</span>
-              <span class="stat-value" id="token-count">0</span>
+              <span class="stat-value" id="${this.instanceId}-token-count">0</span>
             </div>
           </div>
         </div>
@@ -198,37 +204,37 @@ export class AIChatApp {
           <!-- Advanced Toolbar -->
           <div class="chat-toolbar">
             <div class="toolbar-left">
-              <button class="toolbar-btn" id="voice-btn" title="Voice Input">
+              <button class="toolbar-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.toggleVoiceInput()" title="Voice Input">
                 <span class="btn-icon">🎤</span>
                 <span class="btn-text">Voice</span>
               </button>
-              <button class="toolbar-btn" id="context-btn" title="Smart Context">
+              <button class="toolbar-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.showContextMenu()" title="Smart Context">
                 <span class="btn-icon">🧠</span>
                 <span class="btn-text">Context</span>
               </button>
-              <button class="toolbar-btn" id="translate-btn" title="Translation Mode">
+              <button class="toolbar-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.toggleTranslationMode()" title="Translation Mode">
                 <span class="btn-icon">🌐</span>
                 <span class="btn-text">Translate</span>
               </button>
             </div>
             <div class="toolbar-center">
-              <div class="connection-status" id="connection-status">
+              <div class="connection-status">
                 <span class="status-dot connected"></span>
                 <span class="status-text">Connected</span>
               </div>
             </div>
             <div class="toolbar-right">
-              <button class="toolbar-btn" id="export-btn" title="Export Conversation">
+              <button class="toolbar-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.exportConversation()" title="Export Conversation">
                 <span class="btn-icon">📤</span>
               </button>
-              <button class="toolbar-btn" id="settings-btn" title="Chat Settings">
+              <button class="toolbar-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.showSettings()" title="Chat Settings">
                 <span class="btn-icon">⚙️</span>
               </button>
             </div>
           </div>
 
           <!-- Messages Area -->
-          <div class="chat-messages" id="chat-messages">
+          <div class="chat-messages" id="${this.instanceId}-messages">
             <div class="welcome-message">
               <div class="welcome-icon">🤖</div>
               <h3>Enhanced AI Assistant</h3>
@@ -240,9 +246,9 @@ export class AIChatApp {
                 <div class="feature-chip">🌐 Multi-language</div>
               </div>
               <div class="quick-actions">
-                <button class="quick-action-btn" data-prompt="Analyze my desktop state">🖥️ Desktop Analysis</button>
-                <button class="quick-action-btn" data-prompt="Help me write code">💻 Code Assistant</button>
-                <button class="quick-action-btn" data-prompt="Explain system performance">📊 System Health</button>
+                <button class="quick-action-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.sendQuickAction('Analyze my desktop state')">🖥️ Desktop Analysis</button>
+                <button class="quick-action-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.sendQuickAction('Help me write code')">💻 Code Assistant</button>
+                <button class="quick-action-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.sendQuickAction('Explain system performance')">📊 System Health</button>
               </div>
             </div>
           </div>
@@ -250,37 +256,39 @@ export class AIChatApp {
           <!-- Enhanced Input Area -->
           <div class="chat-input-area">
             <div class="input-enhancements">
-              <div class="suggestion-chips" id="suggestion-chips" style="display: none;">
+              <div class="suggestion-chips" style="display: none;">
                 <!-- Dynamic suggestions will appear here -->
               </div>
-              <div class="context-preview" id="context-preview" style="display: none;">
+              <div class="context-preview" style="display: none;">
                 <!-- Context information preview -->
               </div>
             </div>
             
             <div class="input-container">
-              <div class="input-attachments" id="input-attachments" style="display: none;">
+              <div class="input-attachments" style="display: none;">
                 <!-- File attachments, context items -->
               </div>
               
               <div class="input-row">
-                <button class="input-btn" id="attach-btn" title="Attach File">📎</button>
-                <button class="input-btn" id="code-btn" title="Code Mode">💻</button>
-                <textarea id="chat-input" 
+                <button class="input-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.attachFile()" title="Attach File">📎</button>
+                <button class="input-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.toggleCodeMode()" title="Code Mode">💻</button>
+                <textarea id="${this.instanceId}-input" 
                           class="enhanced-input" 
                           placeholder="Ask me anything... (Shift+Enter for new line)"
-                          rows="1"></textarea>
-                <button class="input-btn voice-input" id="voice-input-btn" title="Voice Input">🎤</button>
-                <button class="send-btn" id="send-btn" title="Send Message">
+                          rows="1"
+                          oninput="window.aiChatInstances?.['${this.instanceId}']?.handleInputChange(this.value)"
+                          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.aiChatInstances?.['${this.instanceId}']?.sendMessage();}"></textarea>
+                <button class="input-btn voice-input" onclick="window.aiChatInstances?.['${this.instanceId}']?.startVoiceInput()" title="Voice Input">🎤</button>
+                <button class="send-btn" id="${this.instanceId}-send-btn" onclick="window.aiChatInstances?.['${this.instanceId}']?.sendMessage()" title="Send Message">
                   <span class="send-icon">➤</span>
                 </button>
               </div>
               
               <div class="input-footer">
                 <div class="input-stats">
-                  <span id="char-count">0</span> characters
+                  <span id="${this.instanceId}-char-count">0</span> characters
                   <span class="separator">•</span>
-                  <span id="estimated-tokens">~0 tokens</span>
+                  <span id="${this.instanceId}-estimated-tokens">~0 tokens</span>
                 </div>
                 <div class="input-shortcuts">
                   <span class="shortcut">Ctrl+K: Commands</span>
@@ -734,6 +742,34 @@ export class AIChatApp {
           justify-content: space-between;
         }
 
+        /* Typing indicator */
+        .typing-dots {
+          display: flex;
+          gap: 4px;
+          padding: 8px 0;
+        }
+
+        .typing-dots span {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.6);
+          animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+          0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+          40% { transform: scale(1); opacity: 1; }
+        }
+
+        .recording {
+          animation: pulse 1s infinite;
+          background: rgba(239, 68, 68, 0.3) !important;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
           .chat-sidebar {
@@ -748,86 +784,275 @@ export class AIChatApp {
       </style>
     `;
 
-    return {
-      title: 'AI Assistant',
-      content,
-      width: 1000,
-      height: 700,
-      x: 100,
-      y: 50
-    };
-  }
-  setupEventHandlers(container) {
-    // Provider selection
-    container.querySelectorAll('.provider-card').forEach(card => {
-      card.addEventListener('click', () => {
-        this.selectProvider(card.dataset.provider);
-      });
-    });
-
-    // Model selection
-    const modelSelect = container.querySelector('#model-select');
-    modelSelect.addEventListener('change', () => {
-      this.selectedModel = modelSelect.value;
-      this.updateModelCapabilities();
-    });
-
-    // Context source toggles
-    container.querySelectorAll('.context-source').forEach(source => {
-      const toggle = source.querySelector('.context-toggle');
-      toggle.addEventListener('change', () => {
-        this.toggleContextSource(source.dataset.context, toggle.checked);
-      });
-    });
-
-    // Toolbar buttons
-    container.querySelector('#voice-btn').addEventListener('click', () => {
-      this.toggleVoiceInput();
-    });
-
-    container.querySelector('#context-btn').addEventListener('click', () => {
-      this.showContextMenu();
-    });
-
-    container.querySelector('#translate-btn').addEventListener('click', () => {
-      this.toggleTranslationMode();
-    });
-
-    // Quick actions
-    container.querySelectorAll('.quick-action-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        this.sendQuickAction(btn.dataset.prompt);
-      });
-    });
-
-    // Input handling
-    const chatInput = container.querySelector('#chat-input');
-    const sendBtn = container.querySelector('#send-btn');
-
-    chatInput.addEventListener('input', () => {
-      this.handleInputChange(chatInput.value);
-    });
-
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        this.sendMessage();
+    // Register this instance globally for inline event handlers AFTER render completes
+    // This needs to be delayed to avoid issues during HTML parsing
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        if (!window.aiChatInstances) {
+          window.aiChatInstances = {};
+        }
+        window.aiChatInstances[this.instanceId] = this;
       }
-    });
+    }, 0);
 
-    sendBtn.addEventListener('click', () => {
+    return content;
+  }
+
+  getContainer() {
+    return document.getElementById(this.instanceId);
+  }
+
+  updateSelectedModel(model) {
+    this.selectedModel = model;
+    this.updateModelCapabilities();
+  }
+
+  selectProvider(providerId) {
+    this.selectedProvider = providerId;
+    
+    // Update UI
+    const container = this.getContainer();
+    if (container) {
+      container.querySelectorAll('.provider-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.provider === providerId);
+      });
+
+      // Update model options
+      const modelSelect = container.querySelector(`#${this.instanceId}-model-select`);
+      const provider = this.aiProviders[providerId];
+      modelSelect.innerHTML = provider.models.map(model => 
+        `<option value="${model}">${model}</option>`
+      ).join('');
+      
+      this.selectedModel = provider.models[0];
+      this.updateModelCapabilities();
+    }
+  }
+
+  updateModelCapabilities() {
+    const provider = this.aiProviders[this.selectedProvider];
+    const container = this.getContainer();
+    
+    if (container) {
+      // Update connection status
+      const statusText = container.querySelector('.status-text');
+      if (statusText) {
+        statusText.textContent = `Connected to ${provider.name}`;
+      }
+    }
+  }
+
+  toggleContextSource(contextId, enabled) {
+    this.contextSources[contextId].enabled = enabled;
+    
+    const container = this.getContainer();
+    if (container) {
+      const sourceElement = container.querySelector(`[data-context="${contextId}"]`);
+      if (sourceElement) {
+        sourceElement.classList.toggle('enabled', enabled);
+      }
+    }
+    
+    // Update context preview if needed
+    if (enabled) {
+      this.gatherContextData(contextId);
+    }
+  }
+
+  handleInputChange(value) {
+    const container = this.getContainer();
+    if (!container) return;
+    
+    const charCount = container.querySelector(`#${this.instanceId}-char-count`);
+    const tokenCount = container.querySelector(`#${this.instanceId}-estimated-tokens`);
+    
+    if (charCount) charCount.textContent = value.length;
+    if (tokenCount) tokenCount.textContent = `~${Math.ceil(value.length / 4)} tokens`;
+
+    // Auto-resize textarea
+    const textarea = container.querySelector(`#${this.instanceId}-input`);
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    }
+
+    // Enable/disable send button
+    const sendBtn = container.querySelector(`#${this.instanceId}-send-btn`);
+    if (sendBtn) {
+      sendBtn.disabled = !value.trim();
+    }
+  }
+
+  async sendMessage() {
+    const container = this.getContainer();
+    if (!container) return;
+    
+    const input = container.querySelector(`#${this.instanceId}-input`);
+    const message = input.value.trim();
+    
+    if (!message) return;
+
+    // Clear input
+    input.value = '';
+    this.handleInputChange('');
+
+    // Add user message to chat
+    this.addMessage('user', message);
+
+    // Gather context if enabled
+    const context = await this.gatherEnabledContext();
+
+    // Show typing indicator
+    this.showTypingIndicator();
+
+    try {
+      // Send to AI (mock response for now)
+      const response = await this.sendToAI(message, context);
+      this.hideTypingIndicator();
+      this.addMessage('assistant', response);
+
+      // Update statistics
+      this.updateUsageStats();
+    } catch (error) {
+      this.hideTypingIndicator();
+      this.addMessage('error', 'Sorry, I encountered an error: ' + error.message);
+    }
+  }
+
+  addMessage(type, content, timestamp = Date.now()) {
+    const container = this.getContainer();
+    if (!container) return;
+    
+    const messagesContainer = container.querySelector(`#${this.instanceId}-messages`);
+    if (!messagesContainer) return;
+
+    // Remove welcome message
+    const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+    if (welcomeMessage) {
+      welcomeMessage.remove();
+    }
+
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${type}`;
+    
+    const avatar = type === 'user' ? '👤' : (type === 'error' ? '⚠️' : '🤖');
+    const timeStr = new Date(timestamp).toLocaleTimeString();
+
+    messageElement.innerHTML = `
+      <div class="message-avatar">${avatar}</div>
+      <div class="message-content">
+        <div class="message-text">${this.formatMessage(content)}</div>
+        <div class="message-meta">
+          <span>${timeStr}</span>
+          ${type === 'assistant' ? '<span>✓ Delivered</span>' : ''}
+        </div>
+      </div>
+    `;
+
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    this.messageCount++;
+  }
+
+  showTypingIndicator() {
+    const container = this.getContainer();
+    if (!container) return;
+    
+    const messagesContainer = container.querySelector(`#${this.instanceId}-messages`);
+    if (!messagesContainer) return;
+    
+    const typingElement = document.createElement('div');
+    typingElement.className = 'message assistant typing';
+    typingElement.id = `${this.instanceId}-typing-indicator`;
+    typingElement.innerHTML = `
+      <div class="message-avatar">🤖</div>
+      <div class="message-content">
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    `;
+
+    messagesContainer.appendChild(typingElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  hideTypingIndicator() {
+    const typingIndicator = document.querySelector(`#${this.instanceId}-typing-indicator`);
+    if (typingIndicator) {
+      typingIndicator.remove();
+    }
+  }
+
+  updateUsageStats() {
+    const container = this.getContainer();
+    if (!container) return;
+    
+    const messageCountElement = container.querySelector(`#${this.instanceId}-message-count`);
+    const tokenCountElement = container.querySelector(`#${this.instanceId}-token-count`);
+
+    if (messageCountElement) messageCountElement.textContent = this.messageCount;
+    this.tokenUsage.output += 50; // Mock token count
+    if (tokenCountElement) tokenCountElement.textContent = this.tokenUsage.input + this.tokenUsage.output;
+  }
+
+  sendQuickAction(prompt) {
+    const container = this.getContainer();
+    if (!container) return;
+    
+    const input = container.querySelector(`#${this.instanceId}-input`);
+    if (input) {
+      input.value = prompt;
+      this.handleInputChange(prompt);
       this.sendMessage();
-    });
+    }
+  }
 
-    // Voice input
-    container.querySelector('#voice-input-btn').addEventListener('click', () => {
-      this.startVoiceInput();
-    });
+  // Placeholder methods for additional functionality
+  toggleVoiceInput() {
+    console.log('Voice input toggled');
+  }
 
-    // New conversation
-    container.querySelector('#new-chat-btn').addEventListener('click', () => {
-      this.createNewConversation();
-    });
+  showContextMenu() {
+    console.log('Context menu shown');
+  }
+
+  toggleTranslationMode() {
+    console.log('Translation mode toggled');
+  }
+
+  exportConversation() {
+    console.log('Conversation exported');
+  }
+
+  showSettings() {
+    console.log('Settings shown');
+  }
+
+  attachFile() {
+    console.log('File attachment');
+  }
+
+  toggleCodeMode() {
+    console.log('Code mode toggled');
+  }
+
+  startVoiceInput() {
+    console.log('Voice input started');
+  }
+
+  async gatherEnabledContext() {
+    const enabledSources = Object.entries(this.contextSources)
+      .filter(([_, source]) => source.enabled)
+      .map(([key, _]) => key);
+
+    const contextData = {};
+    for (const source of enabledSources) {
+      contextData[source] = await this.gatherContextData(source);
+    }
+
+    return contextData;
   }
 
   selectProvider(providerId) {
@@ -1149,328 +1374,5 @@ export class AIChatApp {
     if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
     return date.toLocaleDateString();
   }
-}
 
-// CSS for typing indicator
-const typingIndicatorStyles = `
-  .typing-dots {
-    display: flex;
-    gap: 4px;
-    padding: 8px 0;
-  }
-
-  .typing-dots span {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.6);
-    animation: typing 1.4s infinite ease-in-out;
-  }
-
-  .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-  .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-  @keyframes typing {
-    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-    40% { transform: scale(1); opacity: 1; }
-  }
-
-  .recording {
-    animation: pulse 1s infinite;
-    background: rgba(239, 68, 68, 0.3) !important;
-  }
-`;
-
-// Add styles to document
-if (!document.querySelector('#ai-chat-styles')) {
-  const styleSheet = document.createElement('style');
-  styleSheet.id = 'ai-chat-styles';
-  styleSheet.textContent = typingIndicatorStyles;
-  document.head.appendChild(styleSheet);
-}
-
-// Register the app
-if (typeof window !== 'undefined') {
-  window.createAIChatApp = (desktop) => new AIChatApp(desktop);
-}
-      width: 800,
-      height: 600,
-      resizable: true
-    });
-
-    this.setupEventListeners(window);
-    this.populateConversationList(window);
-    
-    return window;
-  }
-
-  setupEventListeners(window) {
-    const chatInput = window.querySelector('#chat-input');
-    const sendBtn = window.querySelector('#send-btn');
-    const newChatBtn = window.querySelector('.new-chat-btn');
-    const modelSelect = window.querySelector('#model-select');
-
-    // Send message on Enter (but allow Shift+Enter for new lines)
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        this.sendMessage(window);
-      }
-    });
-
-    sendBtn.addEventListener('click', () => this.sendMessage(window));
-    newChatBtn.addEventListener('click', () => this.startNewConversation(window));
-    
-    modelSelect.addEventListener('change', (e) => {
-      this.selectedModel = e.target.value;
-    });
-
-    // Auto-resize textarea
-    chatInput.addEventListener('input', () => {
-      chatInput.style.height = 'auto';
-      chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
-    });
-  }
-
-  async sendMessage(window) {
-    const chatInput = window.querySelector('#chat-input');
-    const message = chatInput.value.trim();
-    
-    if (!message) return;
-
-    // Clear input
-    chatInput.value = '';
-    chatInput.style.height = 'auto';
-
-    // Add user message to chat
-    this.addMessageToChat(window, message, 'user');
-
-    // Show typing indicator
-    const typingIndicator = this.addTypingIndicator(window);
-
-    try {
-      // Use shared AI system for inference
-      const response = await this.aiManager.inference({
-        model: this.selectedModel,
-        prompt: message,
-        temperature: 0.7,
-        max_tokens: 1000
-      });
-
-      // Remove typing indicator
-      typingIndicator.remove();
-
-      // Add AI response
-      this.addMessageToChat(window, response.response, 'assistant');
-
-      // Update conversation
-      if (!this.currentConversation) {
-        this.currentConversation = {
-          id: `conv_${Date.now()}`,
-          title: this.generateConversationTitle(message),
-          messages: []
-        };
-      }
-
-      this.currentConversation.messages.push(
-        { role: 'user', content: message },
-        { role: 'assistant', content: response.response }
-      );
-
-      await this.saveConversation(this.currentConversation);
-      this.populateConversationList(window);
-
-      // Emit event for cross-component integration
-      eventBus.emit('ai:inference-complete', {
-        model: this.selectedModel,
-        prompt: message,
-        response: response.response,
-        conversationId: this.currentConversation.id
-      });
-
-    } catch (error) {
-      typingIndicator.remove();
-      this.addMessageToChat(window, `Error: ${error.message}`, 'error');
-      
-      // Emit error event
-      eventBus.emit('ai:inference-error', {
-        model: this.selectedModel,
-        prompt: message,
-        error: error.message
-      });
-    }
-  }
-
-  addMessageToChat(window, message, role) {
-    const chatMessages = window.querySelector('#chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${role}-message`;
-    
-    const avatar = document.createElement('div');
-    avatar.className = 'message-avatar';
-    avatar.textContent = role === 'user' ? '👤' : role === 'assistant' ? '🤖' : '⚠️';
-    
-    const content = document.createElement('div');
-    content.className = 'message-content';
-    
-    if (role === 'assistant' && message.includes('```')) {
-      // Handle code blocks
-      content.innerHTML = this.formatCodeBlocks(message);
-    } else {
-      content.textContent = message;
-    }
-    
-    const timestamp = document.createElement('div');
-    timestamp.className = 'message-timestamp';
-    timestamp.textContent = new Date().toLocaleTimeString();
-    
-    messageDiv.appendChild(avatar);
-    messageDiv.appendChild(content);
-    messageDiv.appendChild(timestamp);
-    
-    // Remove welcome message if present
-    const welcomeMessage = chatMessages.querySelector('.welcome-message');
-    if (welcomeMessage) {
-      welcomeMessage.remove();
-    }
-    
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    return messageDiv;
-  }
-
-  addTypingIndicator(window) {
-    const chatMessages = window.querySelector('#chat-messages');
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message assistant-message typing';
-    typingDiv.innerHTML = `
-      <div class="message-avatar">🤖</div>
-      <div class="message-content">
-        <div class="typing-indicator">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-    `;
-    
-    chatMessages.appendChild(typingDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    return typingDiv;
-  }
-
-  formatCodeBlocks(text) {
-    return text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, language, code) => {
-      return `<pre><code class="language-${language || 'text'}">${this.escapeHtml(code.trim())}</code></pre>`;
-    });
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  startNewConversation(window) {
-    this.currentConversation = null;
-    const chatMessages = window.querySelector('#chat-messages');
-    chatMessages.innerHTML = `
-      <div class="welcome-message">
-        <h3>New Conversation</h3>
-        <p>What would you like to talk about?</p>
-      </div>
-    `;
-  }
-
-  generateConversationTitle(firstMessage) {
-    // Generate a title from the first message
-    const words = firstMessage.split(' ').slice(0, 5);
-    return words.join(' ') + (firstMessage.split(' ').length > 5 ? '...' : '');
-  }
-
-  async loadConversations() {
-    try {
-      const stored = localStorage.getItem('swissknife_conversations');
-      this.conversations = stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('Failed to load conversations:', error);
-      this.conversations = [];
-    }
-  }
-
-  async saveConversation(conversation) {
-    const existingIndex = this.conversations.findIndex(c => c.id === conversation.id);
-    if (existingIndex >= 0) {
-      this.conversations[existingIndex] = conversation;
-    } else {
-      this.conversations.unshift(conversation);
-    }
-    
-    // Keep only the last 50 conversations
-    this.conversations = this.conversations.slice(0, 50);
-    
-    try {
-      localStorage.setItem('swissknife_conversations', JSON.stringify(this.conversations));
-    } catch (error) {
-      console.error('Failed to save conversation:', error);
-    }
-  }
-
-  populateConversationList(window) {
-    const conversationList = window.querySelector('.conversation-list');
-    conversationList.innerHTML = '';
-    
-    this.conversations.forEach(conversation => {
-      const item = document.createElement('div');
-      item.className = 'conversation-item';
-      if (this.currentConversation?.id === conversation.id) {
-        item.classList.add('active');
-      }
-      
-      item.innerHTML = `
-        <div class="conversation-title">${conversation.title}</div>
-        <div class="conversation-preview">${conversation.messages[conversation.messages.length - 1]?.content?.substring(0, 50) || ''}...</div>
-        <div class="conversation-actions">
-          <button class="delete-btn" title="Delete">🗑️</button>
-        </div>
-      `;
-      
-      item.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('delete-btn')) {
-          this.loadConversation(window, conversation);
-        }
-      });
-      
-      const deleteBtn = item.querySelector('.delete-btn');
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.deleteConversation(window, conversation.id);
-      });
-      
-      conversationList.appendChild(item);
-    });
-  }
-
-  loadConversation(window, conversation) {
-    this.currentConversation = conversation;
-    const chatMessages = window.querySelector('#chat-messages');
-    chatMessages.innerHTML = '';
-    
-    conversation.messages.forEach(message => {
-      this.addMessageToChat(window, message.content, message.role);
-    });
-    
-    this.populateConversationList(window);
-  }
-
-  async deleteConversation(window, conversationId) {
-    this.conversations = this.conversations.filter(c => c.id !== conversationId);
-    await this.saveConversation();
-    
-    if (this.currentConversation?.id === conversationId) {
-      this.startNewConversation(window);
-    }
-    
-    this.populateConversationList(window);
-  }
 }

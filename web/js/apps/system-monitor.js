@@ -834,25 +834,25 @@ export class SystemMonitorApp {
     return `
       <div class="network-content">
         <div class="network-grid">
-          ${this.networkInterfaces.map(interface => `
+          ${this.networkInterfaces.map(netInterface => `
             <div class="network-interface">
               <div class="interface-header">
-                <div class="interface-name">${interface.name}</div>
-                <div class="interface-status status-${interface.status}">${interface.status}</div>
+                <div class="interface-name">${netInterface.name}</div>
+                <div class="interface-status status-${netInterface.status}">${netInterface.status}</div>
               </div>
               <div class="interface-details">
                 <div class="interface-detail">
                   <span>Type:</span>
-                  <span>${interface.type}</span>
+                  <span>${netInterface.type}</span>
                 </div>
                 <div class="interface-detail">
                   <span>Speed:</span>
-                  <span>${interface.speed || 'N/A'}</span>
+                  <span>${netInterface.speed || 'N/A'}</span>
                 </div>
-                ${interface.peers ? `
+                ${netInterface.peers ? `
                   <div class="interface-detail">
                     <span>Peers:</span>
-                    <span>${interface.peers}</span>
+                    <span>${netInterface.peers}</span>
                   </div>
                 ` : ''}
               </div>
@@ -1380,6 +1380,25 @@ export class SystemMonitorApp {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
     }
+  }
+
+  // Initialize method required by the desktop framework
+  async initialize() {
+    // App is ready for rendering
+  }
+
+  async render() {
+    const windowData = this.createWindow();
+    
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      const container = document.querySelector('.system-monitor-container');
+      if (container) {
+        this.setupEventHandlers(container);
+      }
+    }, 0);
+    
+    return windowData.content;
   }
 }
 

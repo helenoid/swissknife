@@ -62,7 +62,7 @@ export class CalculatorApp {
     };
   }
 
-  createWindow() {
+  createWindowConfig() {
     const content = `
       <div class="calculator-container">
         <!-- Mode Selector -->
@@ -1292,9 +1292,444 @@ export class CalculatorApp {
       }
     }
   }
-}
 
-// Register the app
-if (typeof window !== 'undefined') {
-  window.createCalculatorApp = (desktop) => new CalculatorApp(desktop);
+  // Initialize method required by the desktop framework
+  async initialize() {
+    // Initialize calculator state
+    this.currentDisplay = '0';
+    this.previousValue = null;
+    this.operation = null;
+    this.waitingForOperand = false;
+    return this;
+  }
+
+  // Render method required by the desktop framework
+  async render() {
+    const content = `
+      <div class="calculator-container">
+        <!-- Mode Selector -->
+        <div class="calculator-header">
+          <div class="mode-tabs">
+            <button class="mode-tab ${this.mode === 'standard' ? 'active' : ''}" data-mode="standard">
+              <span class="tab-icon">🧮</span>
+              <span class="tab-text">Standard</span>
+            </button>
+            <button class="mode-tab ${this.mode === 'scientific' ? 'active' : ''}" data-mode="scientific">
+              <span class="tab-icon">🔬</span>
+              <span class="tab-text">Scientific</span>
+            </button>
+            <button class="mode-tab ${this.mode === 'programmer' ? 'active' : ''}" data-mode="programmer">
+              <span class="tab-icon">💻</span>
+              <span class="tab-text">Programmer</span>
+            </button>
+            <button class="mode-tab ${this.mode === 'converter' ? 'active' : ''}" data-mode="converter">
+              <span class="tab-icon">🔄</span>
+              <span class="tab-text">Converter</span>
+            </button>
+          </div>
+          <button class="history-btn" id="history-btn" title="History">
+            <span>📜</span>
+          </button>
+        </div>
+
+        <!-- Display -->
+        <div class="calculator-display">
+          <div class="display-secondary" id="display-secondary"></div>
+          <div class="display-primary" id="display-primary">${this.currentDisplay}</div>
+          ${this.mode === 'programmer' ? `
+            <div class="programmer-displays">
+              <div class="base-display">HEX: <span id="hex-display">0</span></div>
+              <div class="base-display">OCT: <span id="oct-display">0</span></div>
+              <div class="base-display">BIN: <span id="bin-display">0</span></div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Calculator Body -->
+        <div class="calculator-body">
+          ${this.renderCalculatorForMode()}
+        </div>
+
+        <!-- History Panel -->
+        <div class="history-panel" id="history-panel" style="display: none;">
+          <div class="history-header">
+            <h3>History</h3>
+            <button class="clear-history-btn" id="clear-history-btn">Clear All</button>
+          </div>
+          <div class="history-list" id="history-list">
+            ${this.history.length === 0 ? '<div class="no-history">No calculations yet</div>' : ''}
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .calculator-container {
+          height: 100%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', roboto, monospace;
+          display: flex;
+          flex-direction: column;
+          user-select: none;
+        }
+
+        .calculator-header {
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .mode-tabs {
+          display: flex;
+          gap: 4px;
+        }
+
+        .mode-tab {
+          padding: 8px 12px;
+          background: rgba(255, 255, 255, 0.1);
+          border: none;
+          border-radius: 8px;
+          color: white;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
+        }
+
+        .mode-tab:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-1px);
+        }
+
+        .mode-tab.active {
+          background: rgba(255, 255, 255, 0.3);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .history-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: scale(1.05);
+        }
+
+        .calculator-display {
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .display-secondary {
+          font-size: 14px;
+          opacity: 0.7;
+          min-height: 20px;
+          text-align: right;
+          margin-bottom: 8px;
+        }
+
+        .display-primary {
+          font-size: 32px;
+          font-weight: 300;
+          text-align: right;
+          min-height: 40px;
+          word-wrap: break-word;
+          font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        }
+
+        .programmer-displays {
+          margin-top: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .base-display {
+          font-size: 12px;
+          font-family: monospace;
+          background: rgba(255, 255, 255, 0.1);
+          padding: 4px 8px;
+          border-radius: 4px;
+        }
+
+        .calculator-body {
+          flex: 1;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .button-grid {
+          display: grid;
+          gap: 8px;
+          flex: 1;
+        }
+
+        .standard-grid {
+          grid-template-columns: repeat(4, 1fr);
+          grid-template-rows: repeat(6, 1fr);
+        }
+
+        .scientific-grid {
+          grid-template-columns: repeat(6, 1fr);
+          grid-template-rows: repeat(7, 1fr);
+        }
+
+        .programmer-grid {
+          grid-template-columns: repeat(5, 1fr);
+          grid-template-rows: repeat(6, 1fr);
+        }
+
+        .calc-btn {
+          border: none;
+          border-radius: 12px;
+          font-size: 18px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          backdrop-filter: blur(10px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 50px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .calc-btn::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+          border-radius: inherit;
+          z-index: -1;
+        }
+
+        .calc-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .calc-btn:active {
+          transform: translateY(0);
+          transition: transform 0.05s ease;
+        }
+
+        .calc-btn.number {
+          background: rgba(255, 255, 255, 0.15);
+          color: white;
+        }
+
+        .calc-btn.operator {
+          background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+          color: white;
+        }
+
+        .calc-btn.function {
+          background: linear-gradient(135deg, #4ecdc4, #44a08d);
+          color: white;
+          font-size: 14px;
+        }
+
+        .calc-btn.special {
+          background: linear-gradient(135deg, #feca57, #ff9ff3);
+          color: white;
+        }
+
+        .calc-btn.wide {
+          grid-column: span 2;
+        }
+
+        .calc-btn.tall {
+          grid-row: span 2;
+        }
+
+        .converter-section {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          flex: 1;
+        }
+
+        .conversion-category {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .category-btn {
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          border-radius: 20px;
+          color: white;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 12px;
+        }
+
+        .category-btn.active {
+          background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .conversion-inputs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+
+        .conversion-input {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .conversion-input label {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+
+        .conversion-input select {
+          padding: 8px;
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 8px;
+          color: white;
+          font-size: 14px;
+        }
+
+        .conversion-input input {
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 8px;
+          color: white;
+          font-size: 16px;
+          text-align: center;
+        }
+
+        .conversion-input input::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .history-panel {
+          position: absolute;
+          top: 70px;
+          right: 16px;
+          width: 300px;
+          background: rgba(0, 0, 0, 0.9);
+          backdrop-filter: blur(20px);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          max-height: 400px;
+          z-index: 1000;
+        }
+
+        .history-header {
+          padding: 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .clear-history-btn {
+          padding: 4px 8px;
+          background: rgba(239, 68, 68, 0.3);
+          border: none;
+          border-radius: 4px;
+          color: white;
+          cursor: pointer;
+          font-size: 11px;
+        }
+
+        .history-list {
+          max-height: 300px;
+          overflow-y: auto;
+          padding: 8px;
+        }
+
+        .history-item {
+          padding: 8px;
+          border-radius: 6px;
+          margin-bottom: 4px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+          font-family: monospace;
+          font-size: 12px;
+        }
+
+        .history-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .no-history {
+          text-align: center;
+          opacity: 0.5;
+          padding: 20px;
+          font-size: 12px;
+        }
+
+        /* Animations */
+        @keyframes buttonPress {
+          0% { transform: scale(1); }
+          50% { transform: scale(0.95); }
+          100% { transform: scale(1); }
+        }
+
+        .calc-btn.pressed {
+          animation: buttonPress 0.1s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+          .mode-tabs {
+            flex-wrap: wrap;
+          }
+          
+          .tab-text {
+            display: none;
+          }
+          
+          .display-primary {
+            font-size: 24px;
+          }
+          
+          .calc-btn {
+            min-height: 40px;
+            font-size: 14px;
+          }
+        }
+      </style>
+    `;
+
+    // Set up event handlers after the HTML is rendered
+    setTimeout(() => {
+      this.setupEventHandlers(document.querySelector('.calculator-container'));
+      this.updateDisplay();
+      if (this.mode === 'programmer') {
+        this.updateProgrammerDisplays();
+      }
+    }, 0);
+
+    return content;
+  }
 }

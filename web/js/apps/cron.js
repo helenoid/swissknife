@@ -450,6 +450,10 @@ export class CronApp {
     await this.loadInitialData();
   }
 
+  render() {
+    return this.createWindow();
+  }
+
   setupEventListeners() {
     // Tab switching
     document.addEventListener('click', (e) => {

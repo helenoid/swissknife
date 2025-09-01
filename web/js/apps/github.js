@@ -955,4 +955,22 @@ const githubApp = new GitHubApp();
 window.GitHubApp = GitHubApp;
 window.githubApp = githubApp;
 
+// Create GitHub app instance for desktop integration
+window.createGitHubApp = function() {
+    return {
+        name: "GitHub",
+        icon: "🐙",
+        init: async function(container) {
+            const html = await githubApp.render();
+            container.innerHTML = html;
+            
+            // Initialize event handlers
+            githubApp.initializeEventHandlers(container);
+        },
+        destroy: function() {
+            // Cleanup if needed
+        }
+    };
+};
+
 export { GitHubApp };
