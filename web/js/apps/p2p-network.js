@@ -1,5 +1,5 @@
 // P2P Network Manager Application for SwissKnife Virtual Desktop
-// JavaScript version for integration with existing desktop system
+// Enhanced with Collaborative P2P Features - Phase 2 Implementation
 
 (function() {
   'use strict';
@@ -9,6 +9,11 @@
   let modelServer = null;
   let inferenceCoordinator = null;
 
+  // Phase 2: Collaborative P2P System
+  let collaborativeP2PManager = null;
+  let workspaceManager = null;
+  let realTimeSyncEngine = null;
+
   // Application state
   let peers = [];
   let tasks = [];
@@ -16,6 +21,13 @@
   let p2pManager = null;
   let connectionStatus = 'disconnected';
   let systemStatus = null;
+
+  // Phase 2: Collaborative state
+  let workspaces = [];
+  let currentWorkspace = null;
+  let collaborativeTasks = [];
+  let peerPresence = new Map();
+  let activeSessions = [];
 
   // Create P2P Network Manager application
   window.createP2PNetworkApp = function() {
@@ -66,6 +78,89 @@
 
         P2PMLSystem.on('peer:disconnected', (peer) => {
           removePeer(peer.id.id);
+          updateDisplays();
+        });
+      }
+
+      // Phase 2: Initialize Collaborative P2P System
+      await initializeCollaborativeP2P();
+      
+    } catch (error) {
+      console.error('Failed to initialize P2P ML System:', error);
+      connectionStatus = 'error';
+      updateDisplays();
+    }
+  }
+
+  // Phase 2: Initialize collaborative P2P features
+  async function initializeCollaborativeP2P() {
+    try {
+      // Initialize collaborative P2P manager
+      if (window.CollaborativeP2PManager) {
+        const config = {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ],
+          signaling: {
+            url: 'wss://signaling.swissknife.ai',
+            protocol: 'wss'
+          },
+          enableP2P: true,
+          maxPeers: 50
+        };
+
+        collaborativeP2PManager = new window.CollaborativeP2PManager(config);
+        
+        // Setup collaborative event handlers
+        collaborativeP2PManager.on('workspace:created', (workspace) => {
+          workspaces.push(workspace);
+          updateWorkspaceDisplay();
+        });
+
+        collaborativeP2PManager.on('workspace:joined', (workspace) => {
+          currentWorkspace = workspace;
+          updateWorkspaceDisplay();
+        });
+
+        collaborativeP2PManager.on('collaborative_task_completed', (task) => {
+          updateCollaborativeTaskDisplay();
+        });
+
+        collaborativeP2PManager.on('peer:presence_updated', (presence) => {
+          peerPresence.set(presence.peerId, presence);
+          updatePresenceDisplay();
+        });
+
+        // Initialize workspace manager
+        if (window.WorkspaceManager) {
+          workspaceManager = new window.WorkspaceManager(collaborativeP2PManager);
+          
+          workspaceManager.on('workspace:state_updated', (state) => {
+            updateWorkspaceStateDisplay();
+          });
+        }
+
+        // Initialize real-time sync engine
+        if (window.RealTimeSyncEngine) {
+          realTimeSyncEngine = new window.RealTimeSyncEngine();
+          
+          realTimeSyncEngine.onSync('*', (state) => {
+            updateSyncDisplay();
+          });
+        }
+
+        // Start collaborative P2P system
+        await collaborativeP2PManager.start();
+        
+      } else {
+        console.log('Collaborative P2P system not available - running in basic mode');
+      }
+      
+    } catch (error) {
+      console.error('Failed to initialize Collaborative P2P:', error);
+    }
+  }
           updateDisplays();
         });
 
