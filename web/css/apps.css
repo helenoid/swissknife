@@ -3566,3 +3566,673 @@ body.theme-sunset .metric-bar {
     padding: 4px 8px;
     font-size: 11px;
 }
+
+/* === P2P Network & CloudFlare Management Styles === */
+
+/* P2P Network App */
+.p2p-network-app {
+    padding: 20px;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.app-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+}
+
+.connection-status .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.connection-status.connected {
+    background: rgba(40, 167, 69, 0.2);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.connection-status.connected .status-indicator {
+    background: #28a745;
+}
+
+.connection-status.connecting {
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.connection-status.connecting .status-indicator {
+    background: #ffc107;
+}
+
+.connection-status.disconnected {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.connection-status.disconnected .status-indicator {
+    background: #dc3545;
+}
+
+/* CloudFlare status */
+.cloudflare-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.cloudflare-status.connected {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+    border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.cloudflare-status.disconnected {
+    background: rgba(108, 117, 125, 0.2);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
+/* Tabs */
+.p2p-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.tab-button {
+    flex: 1;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.tab-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.tab-button.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+    backdrop-filter: blur(10px);
+    min-height: 400px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* CloudFlare Specific Styles */
+.cloudflare-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+}
+
+.cloudflare-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.metric-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+}
+
+/* CloudFlare Workers */
+.workers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.worker-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.worker-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.worker-card.active {
+    border-color: rgba(40, 167, 69, 0.5);
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.worker-card.deploying {
+    border-color: rgba(255, 193, 7, 0.5);
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.worker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.worker-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+}
+
+.worker-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.worker-status.active {
+    background: rgba(40, 167, 69, 0.3);
+    color: #28a745;
+}
+
+.worker-status.deploying {
+    background: rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+}
+
+.worker-status.error {
+    background: rgba(220, 53, 69, 0.3);
+    color: #dc3545;
+}
+
+.worker-type {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 16px;
+    text-transform: capitalize;
+}
+
+.worker-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.worker-stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.stat-value {
+    color: white;
+    font-weight: 500;
+}
+
+.worker-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* CloudFlare Storage */
+.storage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.storage-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.storage-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.storage-info {
+    flex: 1;
+}
+
+.storage-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.storage-details {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.storage-cost {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffa500;
+}
+
+.storage-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* CDN Stats */
+.cdn-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+}
+
+/* Workers Tab */
+.workers-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.execution-overview {
+    margin-bottom: 24px;
+}
+
+.execution-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.stat-card.local {
+    border-color: rgba(0, 123, 255, 0.5);
+}
+
+.stat-card.p2p {
+    border-color: rgba(40, 167, 69, 0.5);
+}
+
+.stat-card.cloudflare {
+    border-color: rgba(255, 165, 0, 0.5);
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.stat-icon {
+    font-size: 18px;
+}
+
+.stat-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.stat-description {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Task Table */
+.task-table {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.task-header {
+    display: grid;
+    grid-template-columns: 1fr 120px 100px 80px 80px 80px;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.task-row {
+    display: grid;
+    grid-template-columns: 1fr 120px 100px 80px 80px 80px;
+    gap: 12px;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.task-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.task-execution {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.execution-icon {
+    font-size: 12px;
+}
+
+.task-execution.local {
+    color: #007bff;
+}
+
+.task-execution.p2p {
+    color: #28a745;
+}
+
+.task-execution.cloudflare {
+    color: #ffa500;
+}
+
+.task-status.completed {
+    color: #28a745;
+}
+
+.task-status.running {
+    color: #ffc107;
+}
+
+.task-status.failed {
+    color: #dc3545;
+}
+
+.task-status.pending {
+    color: #6c757d;
+}
+
+/* Worker Testing */
+.worker-testing {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+    backdrop-filter: blur(10px);
+}
+
+.test-suite {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.test-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.test-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.test-icon {
+    font-size: 24px;
+}
+
+/* Action Buttons */
+.action-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    border-color: #4a90e2;
+}
+
+.action-btn.primary:hover {
+    background: linear-gradient(135deg, #357abd, #2e6da4);
+}
+
+.action-btn.small {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+.action-btn.tiny {
+    padding: 2px 6px;
+    font-size: 10px;
+}
+
+.btn-icon {
+    margin-right: 4px;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .p2p-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-button {
+        flex: 1 1 calc(50% - 2px);
+        margin-bottom: 4px;
+    }
+    
+    .cloudflare-metrics {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    
+    .workers-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .execution-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .test-suite {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .task-header,
+    .task-row {
+        grid-template-columns: 1fr 80px 60px;
+        font-size: 11px;
+    }
+    
+    .task-header span:nth-child(n+4),
+    .task-row span:nth-child(n+4) {
+        display: none;
+    }
+}
