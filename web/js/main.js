@@ -269,6 +269,14 @@ class SwissKnifeDesktop {
             singleton: true
         });
         
+        this.apps.set('huggingface', {
+            name: '🤗 Hugging Face Hub',
+            icon: '🤗',
+            component: 'HuggingFaceApp',
+            singleton: true
+        });
+        console.log('✅ Registered huggingface app');
+        
         this.apps.set('ipfs-explorer', {
             name: 'IPFS Explorer',
             icon: '🌐',
@@ -786,6 +794,34 @@ class SwissKnifeDesktop {
                 case 'modelbrowserapp':
                     // Model Browser
                     this.loadModelBrowserApp(contentElement);
+                    break;
+                    
+                case 'huggingfaceapp':
+                    console.log('🤗 Loading Hugging Face Hub app...');
+                    // Import and instantiate Hugging Face app
+                    try {
+                        const HuggingFaceModule = await import('./apps/huggingface.js');
+                        const HuggingFaceApp = HuggingFaceModule.default || HuggingFaceModule.HuggingFaceApp || window.HuggingFaceApp;
+                        appInstance = new HuggingFaceApp();
+                        await appInstance.initialize();
+                        const huggingfaceContent = appInstance.render();
+                        contentElement.innerHTML = huggingfaceContent;
+                        
+                        // Setup event handlers by calling the app's setup method
+                        if (appInstance.setupEventListeners) {
+                            appInstance.setupEventListeners();
+                        }
+                    } catch (error) {
+                        console.error('Failed to load Hugging Face app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🤗 Hugging Face Hub</h2>
+                                <p>Professional AI Model Hub, Dataset Management & Inference Platform</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'ipfsexplorerapp':

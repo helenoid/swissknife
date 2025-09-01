@@ -102,6 +102,13 @@ class SwissKnifeDesktop {
             singleton: true
         });
         
+        this.apps.set('huggingface', {
+            name: '🤗 Hugging Face Hub',
+            icon: '🤗',
+            component: 'HuggingFaceApp',
+            singleton: true
+        });
+        
         this.apps.set('ipfs-explorer', {
             name: 'IPFS Explorer',
             icon: '🌐',
@@ -430,6 +437,10 @@ class SwissKnifeDesktop {
                     await this.createModelBrowserApp(contentElement);
                     break;
                     
+                case 'HuggingFaceApp':
+                    await this.createHuggingFaceApp(contentElement);
+                    break;
+                    
                 case 'IPFSExplorerApp':
                     await this.createIPFSExplorerApp(contentElement);
                     break;
@@ -571,6 +582,33 @@ class SwissKnifeDesktop {
         const html = await modelBrowser.render();
         contentElement.innerHTML = html;
         return modelBrowser;
+    }
+
+    async createHuggingFaceApp(contentElement) {
+        try {
+            const { HuggingFaceApp } = await import('./apps/huggingface.js');
+            const huggingFace = new HuggingFaceApp();
+            await huggingFace.initialize();
+            const html = huggingFace.render();
+            contentElement.innerHTML = html;
+            
+            // Setup event handlers
+            if (huggingFace.setupEventListeners) {
+                huggingFace.setupEventListeners();
+            }
+            
+            return huggingFace;
+        } catch (error) {
+            console.error('Failed to load Hugging Face app:', error);
+            contentElement.innerHTML = `
+                <div class="app-placeholder">
+                    <h2>🤗 Hugging Face Hub</h2>
+                    <p>Professional AI Model Hub, Dataset Management & Inference Platform</p>
+                    <p>Failed to load: ${error.message}</p>
+                    <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                </div>
+            `;
+        }
     }
 
     async createIPFSExplorerApp(contentElement) {
