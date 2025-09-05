@@ -1,24 +1,10 @@
-# SwissKnife Legacy Documentation
+# Legacy Documentation
 
-This directory contains archived documentation that is no longer current but may be useful for historical reference.
+This directory contains outdated documentation files that are preserved for historical reference.
 
 ## Contents
+- Previous versions of README files
+- Outdated test execution summaries
+- Historical project documentation
 
-### Implementation Guides
-- Legacy testing strategies
-- Historical implementation approaches
-- Archived best practices
-
-### Fix Documentation
-- Historical bug fix documentation
-- Legacy troubleshooting guides
-- Archived solution documents
-
-### Completion Reports
-- Phase completion summaries
-- Historical project milestones
-- Archived progress reports
-
-## Note
-
-These documents are kept for historical reference. For current documentation, see the main `/docs` directory.
+These files are kept for reference but are no longer actively maintained.
