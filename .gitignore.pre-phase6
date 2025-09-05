@@ -226,12 +226,4 @@ dist
 # Finder (MacOS) folder config
 .DS_Store
 source-maps/
-cli.mjs# Organized structure - generated reports
-docs/reports/*.md
-test-results/
-benchmark-results/
-playwright-report/
-coverage/
-# Phase script backups
-pre-phase*.txt
-*.phase*
+cli.mjs
