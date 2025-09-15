@@ -1,201 +1,271 @@
-# SwissKnife Desktop Applications Documentation
+# SwissKnife Desktop Applications
 
 ![Desktop Overview](https://github.com/user-attachments/assets/523ea3f6-b94b-4ebf-86d7-25fd89a3e9c2)
 
-This directory contains comprehensive documentation for all 27 applications in the SwissKnife virtual desktop environment, automatically generated using Playwright automation for consistent and up-to-date screenshots.
-
-## Overview
-
-SwissKnife features a complete virtual desktop environment with 27 professional applications supporting:
-- **Real-time P2P Collaboration**: Multi-user workspaces with live synchronization
-- **AI Integration**: Comprehensive AI model access via Hugging Face and OpenRouter
-- **Distributed Computing**: Task distribution across peer networks
-- **Professional Development Tools**: Complete IDE, terminal, and workflow automation
+This directory contains comprehensive documentation for 27 applications in SwissKnife's virtual desktop environment, automatically generated using Playwright automation.
 
 ## Applications Catalog
 
-### 🖥️ Core Development Tools
+### 🖥️ [SwissKnife Terminal](terminal.md)
+AI-powered terminal with P2P collaboration and distributed task execution
 
-#### [Terminal](terminal.md)
-![Terminal Icon](https://github.com/user-attachments/assets/7ec6fb2d-9c7b-4cca-a10a-7d9480061a8f)
-- **Description**: AI-powered terminal with P2P collaboration and distributed task execution
-- **Backend Dependencies**: CLI engine, AI providers, P2P networking, Task distribution
-- **Key Features**: AI assistance, P2P task sharing, Collaborative sessions, Enhanced command completion
+**Key Features:** AI assistance, P2P task sharing...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-#### [VibeCode](vibecode.md)
-![VibeCode](https://github.com/user-attachments/assets/a39638e6-a213-4a4d-9ac5-8ded5e405b9d)
-- **Description**: Professional AI-powered Streamlit development environment with Monaco editor
-- **Backend Dependencies**: Monaco editor, Streamlit runtime, AI code generation, File system
-- **Key Features**: AI code completion, Live preview, Template system, Multi-panel interface
+![terminal](../screenshots/terminal-icon.png)
 
-### 🎵 Creative Tools
+### 🎯 [VibeCode - AI Streamlit Editor](vibecode.md)
+Professional AI-powered Streamlit development environment with Monaco editor
 
-#### Strudel AI DAW
-- **Description**: Collaborative music creation with AI-powered digital audio workstation
-- **Backend Dependencies**: Strudel core, WebAudio API, Audio workers, P2P audio streaming
-- **Key Features**: Live coding, Pattern composition, Collaborative music, AI music generation
+**Key Features:** AI code completion, Live preview...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-### 🤖 AI & Machine Learning
+![vibecode](../screenshots/vibecode-icon.png)
 
-#### AI Chat
-- **Description**: Multi-provider AI chat with collaborative conversations
-- **Backend Dependencies**: OpenAI API, Anthropic API, Hugging Face, OpenRouter
-- **Key Features**: Multi-provider support, Collaborative chats, Context sharing, Real-time responses
+### 🎵 [Strudel AI DAW](strudel-ai-daw.md)
+Collaborative music creation with AI-powered digital audio workstation
 
-#### Hugging Face Hub
-- **Description**: Access to 100,000+ AI models with edge deployment
-- **Backend Dependencies**: Hugging Face API, Model hosting, Edge deployment, Inference engine
-- **Key Features**: Model browser, Edge deployment, Inference playground, Dataset access
+**Key Features:** Live coding, Pattern composition...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-#### OpenRouter Hub
-- **Description**: Universal access to 100+ premium language models
-- **Backend Dependencies**: OpenRouter API, Model routing, Load balancing, Cost optimization
-- **Key Features**: Model selection, Cost optimization, Performance monitoring, Multi-provider access
+![strudel-ai-daw](../screenshots/strudel-ai-daw-icon.png)
 
-#### Neural Network Designer
-- **Description**: Visual neural network architecture design with collaborative development
-- **Backend Dependencies**: Neural network frameworks, Training engine, Visualization, Model export
-- **Key Features**: Visual design, Real-time training, Collaborative development, Model export
+### 🤖 [AI Chat](ai-chat.md)
+Multi-provider AI chat with collaborative conversations
 
-### 📁 File & System Management
+**Key Features:** Multi-provider support, Collaborative chats...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-#### File Manager
-- **Description**: Professional file manager with IPFS integration and collaborative features
-- **Backend Dependencies**: File system API, IPFS network, P2P file sharing, Version control
-- **Key Features**: IPFS integration, Collaborative editing, Version control, Distributed storage
+![ai-chat](../screenshots/ai-chat-icon.png)
 
-#### IPFS Explorer
-- **Description**: Explore and manage IPFS content with collaborative features
-- **Backend Dependencies**: IPFS node, Content discovery, Pinning service, Gateway access
-- **Key Features**: Content browsing, Pin management, Peer discovery, Content sharing
+### 📁 [File Manager](file-manager.md)
+Professional file manager with IPFS integration and collaborative features
 
-### ⚡ Task & Network Management
+**Key Features:** IPFS integration, Collaborative editing...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-#### Task Manager
-- **Description**: Distributed task management with P2P coordination
-- **Backend Dependencies**: Task scheduler, P2P coordination, Worker pools, Event system
-- **Key Features**: Task scheduling, Distributed execution, Progress tracking, Error handling
+![file-manager](../screenshots/file-manager-icon.png)
 
-#### P2P Network Manager
-- **Description**: Peer-to-peer network coordination and task distribution
-- **Backend Dependencies**: libp2p, Network discovery, Task coordination, Peer management
-- **Key Features**: Peer discovery, Task distribution, Network monitoring, Load balancing
+### ⚡ [Task Manager](task-manager.md)
+Distributed task management with P2P coordination
 
-### 🔧 System & Configuration
+**Key Features:** Task scheduling, Distributed execution...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-#### Settings
-- **Description**: System configuration with P2P synchronization
-- **Backend Dependencies**: Configuration manager, P2P sync, Encryption, Backup system
-- **Key Features**: Configuration sync, Security settings, Backup/restore, Theme management
+![task-manager](../screenshots/task-manager-icon.png)
 
-#### Device Manager
-- **Description**: Manage local and remote devices with hardware acceleration
-- **Backend Dependencies**: Device detection, Hardware abstraction, WebGPU, Performance monitoring
-- **Key Features**: Device detection, Hardware acceleration, Performance monitoring, Resource allocation
+### 🧠 [AI Model Manager](model-browser.md)
+Browse and manage AI models with edge deployment
 
-#### API Keys Manager
-- **Description**: Secure API key management with encrypted storage
-- **Backend Dependencies**: Encryption service, Secure storage, Key rotation, Access control
-- **Key Features**: Secure storage, Key rotation, Usage tracking, Access control
+**Key Features:** Model discovery, Edge deployment...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-### 🛠️ Utilities & Productivity
+![model-browser](../screenshots/model-browser-icon.png)
 
-#### Calculator
-- **Description**: Professional calculator with multiple modes and collaborative equation sharing
-- **Backend Dependencies**: Mathematical engine, Expression parser, History storage, Sharing service
-- **Key Features**: Scientific calculations, Programmable functions, History tracking, Equation sharing
+### 🤗 [Hugging Face Hub](huggingface.md)
+Access to 100,000+ AI models with edge deployment
 
-#### Notes
-- **Description**: Collaborative note-taking with real-time synchronization
-- **Backend Dependencies**: Document storage, Real-time sync, Version control, Search indexing
-- **Key Features**: Real-time collaboration, Rich text editing, Version history, Search functionality
+**Key Features:** Model browser, Edge deployment...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-#### Clock & Timers
-- **Description**: World clock with timers and collaborative scheduling
-- **Backend Dependencies**: Time zone database, Timer service, Notification system, Calendar integration
-- **Key Features**: World clock, Timer management, Alarms, Time zone conversion
+![huggingface](../screenshots/huggingface-icon.png)
 
-#### Image Viewer
-- **Description**: Professional image viewer with editing and sharing capabilities
-- **Backend Dependencies**: Image processing, Format support, Editing engine, Sharing service
-- **Key Features**: Multi-format support, Basic editing, Batch processing, Cloud sharing
+### 🔄 [OpenRouter Hub](openrouter.md)
+Universal access to 100+ premium language models
 
-#### System Monitor
-- **Description**: Comprehensive system monitoring with performance analytics
-- **Backend Dependencies**: Performance APIs, Monitoring agents, Data collection, Analytics engine
-- **Key Features**: Performance monitoring, Resource tracking, Alert system, Historical data
+**Key Features:** Model selection, Cost optimization...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-### 🎓 Specialized Tools
+![openrouter](../screenshots/openrouter-icon.png)
 
-#### Training Manager
-- **Description**: AI model training coordination with distributed computing
-- **Backend Dependencies**: Training frameworks, Distributed computing, Model registry, Progress tracking
-- **Key Features**: Training coordination, Progress monitoring, Resource management, Model versioning
+### 🌐 [IPFS Explorer](ipfs-explorer.md)
+Explore and manage IPFS content with collaborative features
 
-#### AI Cron Scheduler
-- **Description**: AI-powered task scheduling with distributed execution
-- **Backend Dependencies**: Cron scheduler, AI planning, Task distribution, Monitoring
-- **Key Features**: AI scheduling, Distributed tasks, Smart timing, Resource optimization
+**Key Features:** Content browsing, Pin management...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-#### NAVI
-- **Description**: AI navigation assistant for system exploration
-- **Backend Dependencies**: AI navigation, System indexing, Search engine, Context awareness
-- **Key Features**: Smart navigation, Context search, System exploration, AI assistance
+![ipfs-explorer](../screenshots/ipfs-explorer-icon.png)
 
-#### MCP Control
-- **Description**: Model Context Protocol control interface
-- **Backend Dependencies**: MCP framework, Protocol handlers, Context management, API routing
-- **Key Features**: Protocol management, Context routing, API integration, Service coordination
+### 🔧 [Device Manager](device-manager.md)
+Manage local and remote devices with hardware acceleration
 
-#### GitHub Integration
-- **Description**: GitHub integration for collaborative development
-- **Backend Dependencies**: GitHub API, OAuth authentication, Repository access, Collaboration tools
-- **Key Features**: Repository management, Issue tracking, Pull request workflow, Team collaboration
+**Key Features:** Device detection, Hardware acceleration...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-#### OAuth Login
-- **Description**: OAuth authentication management
-- **Backend Dependencies**: OAuth providers, Token management, Security protocols, Session handling
-- **Key Features**: Multi-provider auth, Token refresh, Security management, Session control
+![device-manager](../screenshots/device-manager-icon.png)
 
-## Automated Documentation System
+### ⚙️ [Settings](settings.md)
+System configuration with P2P synchronization
 
-### Screenshot Automation
-- **Tool**: Playwright-based screenshot capture
-- **Frequency**: Automatic updates on UI changes
-- **Coverage**: Full desktop overview + individual application windows
-- **Format**: PNG with consistent naming convention
+**Key Features:** Configuration sync, Security settings...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
 
-### Documentation Generation
-- **Source**: Automated analysis of application metadata
-- **Output**: Markdown files with embedded screenshots
-- **Features**: Backend dependency mapping, feature matrices, development guides
+![settings](../screenshots/settings-icon.png)
 
-### CI/CD Integration
-- **Trigger**: On frontend changes or manual deployment
-- **Process**: Automated screenshot capture → Documentation update → PR creation
-- **Validation**: Screenshot comparison for UI regression detection
+### 🔌 [MCP Control](mcp-control.md)
+Model Context Protocol control and management interface
+
+**Key Features:** Service management, Protocol inspection...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![mcp-control](../screenshots/mcp-control-icon.png)
+
+### 🔑 [API Keys Manager](api-keys.md)
+Secure API key management with encrypted storage
+
+**Key Features:** Secure storage, Key rotation...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![api-keys](../screenshots/api-keys-icon.png)
+
+### 🐙 [GitHub Integration](github.md)
+GitHub repository management and collaboration tools
+
+**Key Features:** Repository management, Issue tracking...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![github](../screenshots/github-icon.png)
+
+### 🔐 [OAuth Authentication](oauth-login.md)
+OAuth login and authentication management system
+
+**Key Features:** Multi-provider auth, Token refresh...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![oauth-login](../screenshots/oauth-login-icon.png)
+
+### ⏰ [AI Cron Scheduler](cron.md)
+AI-powered task scheduling with distributed execution
+
+**Key Features:** AI scheduling, Distributed tasks...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![cron](../screenshots/cron-icon.png)
+
+### 🧭 [NAVI AI Assistant](navi.md)
+AI navigation assistant for system exploration and guidance
+
+**Key Features:** Smart navigation, Context search...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![navi](../screenshots/navi-icon.png)
+
+### 🎵 [Music Studio](strudel.md)
+Advanced music composition and live coding environment
+
+**Key Features:** Live coding, Pattern sequencing...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![strudel](../screenshots/strudel-icon.png)
+
+### 🔗 [P2P Network Manager](p2p-network.md)
+Peer-to-peer network coordination and task distribution
+
+**Key Features:** Peer discovery, Task distribution...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![p2p-network](../screenshots/p2p-network-icon.png)
+
+### 🧠 [Neural Network Designer](neural-network-designer.md)
+Visual neural network architecture design with collaborative development
+
+**Key Features:** Visual design, Real-time training...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![neural-network-designer](../screenshots/neural-network-designer-icon.png)
+
+### 🎯 [Training Manager](training-manager.md)
+AI model training coordination with distributed computing
+
+**Key Features:** Training coordination, Progress monitoring...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![training-manager](../screenshots/training-manager-icon.png)
+
+### 🧮 [Enhanced Calculator](calculator.md)
+Professional calculator with multiple modes and collaborative equation sharing
+
+**Key Features:** Scientific calculations, Programmable functions...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![calculator](../screenshots/calculator-icon.png)
+
+### 🕐 [World Clock & Timers](clock.md)
+World clock with timers and collaborative scheduling
+
+**Key Features:** World clock, Timer management...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![clock](../screenshots/clock-icon.png)
+
+### 🖼️ [Advanced Image Viewer](image-viewer.md)
+Professional image viewer with editing and sharing capabilities
+
+**Key Features:** Multi-format support, Basic editing...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![image-viewer](../screenshots/image-viewer-icon.png)
+
+### 📝 [Professional Notes App](notes.md)
+Collaborative note-taking with real-time synchronization
+
+**Key Features:** Real-time collaboration, Rich text editing...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![notes](../screenshots/notes-icon.png)
+
+### 📊 [System Monitor](system-monitor.md)
+Comprehensive system monitoring with performance analytics
+
+**Key Features:** Performance monitoring, Resource tracking...
+**Backend Dependencies:** 4 services required
+**Status:** ✅ Registered
+
+![system-monitor](../screenshots/system-monitor-icon.png)
+
+## Documentation Files
+- **[Backend Dependencies Mapping](backend-dependencies.md)** - Complete mapping of frontend to backend dependencies
+- **[Features Matrix](features-matrix.md)** - Feature comparison across all applications
+- **Individual Application Docs** - Detailed documentation for each application
+
+## Automation System
+This documentation is automatically maintained using:
+- **Playwright Screenshot Automation** - Captures current UI state
+- **Automated Documentation Generation** - Creates markdown files with embedded screenshots
+- **CI/CD Integration** - Updates documentation on code changes
+- **Visual Regression Detection** - Tracks UI changes over time
 
 ## Development Workflow
-
-### Frontend Development
-1. **Application Development**: Use individual application documentation for UI requirements
-2. **Component Integration**: Reference desktop integration patterns
-3. **Testing**: Automated screenshot validation for UI consistency
-
-### Backend Development
-1. **Dependency Mapping**: Use backend dependencies documentation to prioritize services
-2. **API Development**: Follow documented contracts for frontend integration
-3. **Service Testing**: Mock services for parallel frontend development
-
-### Parallel Development Strategy
-1. **Phase 1**: Critical path dependencies (5+ applications)
-2. **Phase 2**: Important dependencies (3-5 applications)  
-3. **Phase 3**: Specialized dependencies (1-2 applications)
-
-## Related Documentation
-- **[Backend Dependencies Mapping](backend-dependencies.md)** - Complete frontend-to-backend dependency mapping
-- **[Features Matrix](features-matrix.md)** - Feature comparison across applications
-- **[Automation Guide](../automation/README.md)** - Screenshot automation and CI/CD setup
+1. **Frontend Development**: Use the individual application documentation to understand UI requirements
+2. **Backend Development**: Reference the backend dependencies mapping to prioritize service development
+3. **Integration Testing**: Use the Playwright automation to validate integration points
+4. **Documentation Updates**: Screenshots and docs are automatically updated via CI/CD
 
 ---
-*This documentation is automatically generated and maintained using Playwright automation. Screenshots are updated automatically to reflect the latest UI changes.*
+*This documentation is auto-generated using Playwright automation. Screenshots are updated automatically to reflect the latest UI changes.*

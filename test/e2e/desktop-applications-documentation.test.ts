@@ -16,7 +16,7 @@ interface Application {
   icon: string;
 }
 
-// Comprehensive list of all SwissKnife applications based on the desktop
+// Comprehensive list of all SwissKnife applications based on the actual desktop implementation
 const applications: Application[] = [
   {
     name: 'terminal',
@@ -64,85 +64,22 @@ const applications: Application[] = [
     icon: '📁'
   },
   {
-    name: 'p2p-network',
-    selector: '[data-app="p2p-network"]',
-    title: 'P2P Network Manager',
-    description: 'Peer-to-peer network coordination and task distribution',
-    backendDependencies: ['libp2p', 'Network discovery', 'Task coordination', 'Peer management'],
-    features: ['Peer discovery', 'Task distribution', 'Network monitoring', 'Load balancing'],
-    icon: '🌐'
-  },
-  {
     name: 'task-manager',
     selector: '[data-app="task-manager"]',
     title: 'Task Manager',
     description: 'Distributed task management with P2P coordination',
     backendDependencies: ['Task scheduler', 'P2P coordination', 'Worker pools', 'Event system'],
     features: ['Task scheduling', 'Distributed execution', 'Progress tracking', 'Error handling'],
-    icon: '📋'
+    icon: '⚡'
   },
   {
     name: 'model-browser',
     selector: '[data-app="model-browser"]',
-    title: 'Model Browser',
+    title: 'AI Model Manager',
     description: 'Browse and manage AI models with edge deployment',
     backendDependencies: ['Model registry', 'Edge deployment', 'Model caching', 'Version management'],
     features: ['Model discovery', 'Edge deployment', 'Performance monitoring', 'Version control'],
     icon: '🧠'
-  },
-  {
-    name: 'ipfs-explorer',
-    selector: '[data-app="ipfs-explorer"]',
-    title: 'IPFS Explorer',
-    description: 'Explore and manage IPFS content with collaborative features',
-    backendDependencies: ['IPFS node', 'Content discovery', 'Pinning service', 'Gateway access'],
-    features: ['Content browsing', 'Pin management', 'Peer discovery', 'Content sharing'],
-    icon: '🌍'
-  },
-  {
-    name: 'device-manager',
-    selector: '[data-app="device-manager"]',
-    title: 'Device Manager',
-    description: 'Manage local and remote devices with hardware acceleration',
-    backendDependencies: ['Device detection', 'Hardware abstraction', 'WebGPU', 'Performance monitoring'],
-    features: ['Device detection', 'Hardware acceleration', 'Performance monitoring', 'Resource allocation'],
-    icon: '💻'
-  },
-  {
-    name: 'settings',
-    selector: '[data-app="settings"]',
-    title: 'Settings',
-    description: 'System configuration with P2P synchronization',
-    backendDependencies: ['Configuration manager', 'P2P sync', 'Encryption', 'Backup system'],
-    features: ['Configuration sync', 'Security settings', 'Backup/restore', 'Theme management'],
-    icon: '⚙️'
-  },
-  {
-    name: 'api-keys',
-    selector: '[data-app="api-keys"]',
-    title: 'API Keys Manager',
-    description: 'Secure API key management with encrypted storage',
-    backendDependencies: ['Encryption service', 'Secure storage', 'Key rotation', 'Access control'],
-    features: ['Secure storage', 'Key rotation', 'Usage tracking', 'Access control'],
-    icon: '🔑'
-  },
-  {
-    name: 'ai-cron',
-    selector: '[data-app="ai-cron"]',
-    title: 'AI Cron Scheduler',
-    description: 'AI-powered task scheduling with distributed execution',
-    backendDependencies: ['Cron scheduler', 'AI planning', 'Task distribution', 'Monitoring'],
-    features: ['AI scheduling', 'Distributed tasks', 'Smart timing', 'Resource optimization'],
-    icon: '⏰'
-  },
-  {
-    name: 'navi',
-    selector: '[data-app="navi"]',
-    title: 'NAVI',
-    description: 'AI navigation assistant for system exploration',
-    backendDependencies: ['AI navigation', 'System indexing', 'Search engine', 'Context awareness'],
-    features: ['Smart navigation', 'Context search', 'System exploration', 'AI assistance'],
-    icon: '🧭'
   },
   {
     name: 'huggingface',
@@ -163,6 +100,105 @@ const applications: Application[] = [
     icon: '🔄'
   },
   {
+    name: 'ipfs-explorer',
+    selector: '[data-app="ipfs-explorer"]',
+    title: 'IPFS Explorer',
+    description: 'Explore and manage IPFS content with collaborative features',
+    backendDependencies: ['IPFS node', 'Content discovery', 'Pinning service', 'Gateway access'],
+    features: ['Content browsing', 'Pin management', 'Peer discovery', 'Content sharing'],
+    icon: '🌐'
+  },
+  {
+    name: 'device-manager',
+    selector: '[data-app="device-manager"]',
+    title: 'Device Manager',
+    description: 'Manage local and remote devices with hardware acceleration',
+    backendDependencies: ['Device detection', 'Hardware abstraction', 'WebGPU', 'Performance monitoring'],
+    features: ['Device detection', 'Hardware acceleration', 'Performance monitoring', 'Resource allocation'],
+    icon: '🔧'
+  },
+  {
+    name: 'settings',
+    selector: '[data-app="settings"]',
+    title: 'Settings',
+    description: 'System configuration with P2P synchronization',
+    backendDependencies: ['Configuration manager', 'P2P sync', 'Encryption', 'Backup system'],
+    features: ['Configuration sync', 'Security settings', 'Backup/restore', 'Theme management'],
+    icon: '⚙️'
+  },
+  {
+    name: 'mcp-control',
+    selector: '[data-app="mcp-control"]',
+    title: 'MCP Control',
+    description: 'Model Context Protocol control and management interface',
+    backendDependencies: ['MCP protocol', 'Service discovery', 'Connection management', 'Protocol handlers'],
+    features: ['Service management', 'Protocol inspection', 'Connection monitoring', 'Debug tools'],
+    icon: '🔌'
+  },
+  {
+    name: 'api-keys',
+    selector: '[data-app="api-keys"]',
+    title: 'API Keys Manager',
+    description: 'Secure API key management with encrypted storage',
+    backendDependencies: ['Encryption service', 'Secure storage', 'Key rotation', 'Access control'],
+    features: ['Secure storage', 'Key rotation', 'Usage tracking', 'Access control'],
+    icon: '🔑'
+  },
+  {
+    name: 'github',
+    selector: '[data-app="github"]',
+    title: 'GitHub Integration',
+    description: 'GitHub repository management and collaboration tools',
+    backendDependencies: ['GitHub API', 'OAuth authentication', 'Git operations', 'Webhook handlers'],
+    features: ['Repository management', 'Issue tracking', 'Pull requests', 'Code review'],
+    icon: '🐙'
+  },
+  {
+    name: 'oauth-login',
+    selector: '[data-app="oauth-login"]',
+    title: 'OAuth Authentication',
+    description: 'OAuth login and authentication management system',
+    backendDependencies: ['OAuth providers', 'Token management', 'Session handling', 'Security validation'],
+    features: ['Multi-provider auth', 'Token refresh', 'Session management', 'Security auditing'],
+    icon: '🔐'
+  },
+  {
+    name: 'cron',
+    selector: '[data-app="cron"]',
+    title: 'AI Cron Scheduler',
+    description: 'AI-powered task scheduling with distributed execution',
+    backendDependencies: ['Cron scheduler', 'AI planning', 'Task distribution', 'Monitoring'],
+    features: ['AI scheduling', 'Distributed tasks', 'Smart timing', 'Resource optimization'],
+    icon: '⏰'
+  },
+  {
+    name: 'navi',
+    selector: '[data-app="navi"]',
+    title: 'NAVI AI Assistant',
+    description: 'AI navigation assistant for system exploration and guidance',
+    backendDependencies: ['AI navigation', 'System indexing', 'Search engine', 'Context awareness'],
+    features: ['Smart navigation', 'Context search', 'System exploration', 'AI assistance'],
+    icon: '🧭'
+  },
+  {
+    name: 'strudel',
+    selector: '[data-app="strudel"]',
+    title: 'Music Studio',
+    description: 'Advanced music composition and live coding environment',
+    backendDependencies: ['Strudel engine', 'WebAudio API', 'Pattern compiler', 'Audio synthesis'],
+    features: ['Live coding', 'Pattern sequencing', 'Audio synthesis', 'Real-time composition'],
+    icon: '🎵'
+  },
+  {
+    name: 'p2p-network',
+    selector: '[data-app="p2p-network"]',
+    title: 'P2P Network Manager',
+    description: 'Peer-to-peer network coordination and task distribution',
+    backendDependencies: ['libp2p', 'Network discovery', 'Task coordination', 'Peer management'],
+    features: ['Peer discovery', 'Task distribution', 'Network monitoring', 'Load balancing'],
+    icon: '🔗'
+  },
+  {
     name: 'neural-network-designer',
     selector: '[data-app="neural-network-designer"]',
     title: 'Neural Network Designer',
@@ -172,22 +208,22 @@ const applications: Application[] = [
     icon: '🧠'
   },
   {
+    name: 'training-manager',
+    selector: '[data-app="training-manager"]',
+    title: 'Training Manager',
+    description: 'AI model training coordination with distributed computing',
+    backendDependencies: ['Training frameworks', 'Distributed computing', 'Model registry', 'Progress tracking'],
+    features: ['Training coordination', 'Progress monitoring', 'Resource management', 'Model versioning'],
+    icon: '🎯'
+  },
+  {
     name: 'calculator',
     selector: '[data-app="calculator"]',
     title: 'Enhanced Calculator',
     description: 'Professional calculator with multiple modes and collaborative equation sharing',
     backendDependencies: ['Mathematical engine', 'Expression parser', 'History storage', 'Sharing service'],
     features: ['Scientific calculations', 'Programmable functions', 'History tracking', 'Equation sharing'],
-    icon: '🔢'
-  },
-  {
-    name: 'notes',
-    selector: '[data-app="notes"]',
-    title: 'Professional Notes App',
-    description: 'Collaborative note-taking with real-time synchronization',
-    backendDependencies: ['Document storage', 'Real-time sync', 'Version control', 'Search indexing'],
-    features: ['Real-time collaboration', 'Rich text editing', 'Version history', 'Search functionality'],
-    icon: '📝'
+    icon: '🧮'
   },
   {
     name: 'clock',
@@ -208,6 +244,15 @@ const applications: Application[] = [
     icon: '🖼️'
   },
   {
+    name: 'notes',
+    selector: '[data-app="notes"]',
+    title: 'Professional Notes App',
+    description: 'Collaborative note-taking with real-time synchronization',
+    backendDependencies: ['Document storage', 'Real-time sync', 'Version control', 'Search indexing'],
+    features: ['Real-time collaboration', 'Rich text editing', 'Version history', 'Search functionality'],
+    icon: '📝'
+  },
+  {
     name: 'system-monitor',
     selector: '[data-app="system-monitor"]',
     title: 'System Monitor',
@@ -215,15 +260,6 @@ const applications: Application[] = [
     backendDependencies: ['Performance APIs', 'Monitoring agents', 'Data collection', 'Analytics engine'],
     features: ['Performance monitoring', 'Resource tracking', 'Alert system', 'Historical data'],
     icon: '📊'
-  },
-  {
-    name: 'training-manager',
-    selector: '[data-app="training-manager"]',
-    title: 'Training Manager',
-    description: 'AI model training coordination with distributed computing',
-    backendDependencies: ['Training frameworks', 'Distributed computing', 'Model registry', 'Progress tracking'],
-    features: ['Training coordination', 'Progress monitoring', 'Resource management', 'Model versioning'],
-    icon: '🎓'
   }
 ];
 
@@ -266,6 +302,8 @@ test.describe('Desktop Applications Documentation', () => {
   for (const app of applications) {
     test(`should document ${app.name} application`, async () => {
       try {
+        console.log(`Documenting ${app.name} application...`);
+        
         // Look for the application icon
         const appIcon = page.locator(app.selector);
         
@@ -280,24 +318,56 @@ test.describe('Desktop Applications Documentation', () => {
           // Double-click to open the application
           await appIcon.dblclick();
           
-          // Wait for application window to appear
+          // Wait for application window to appear with more specific selectors
           await page.waitForTimeout(2000);
           
-          // Look for application window
-          const windowSelector = `.window-content, .window, [data-app-window="${app.name}"], #${app.name}-window`;
-          const appWindow = page.locator(windowSelector).first();
+          // Look for application window with multiple possible selectors
+          const windowSelectors = [
+            `[data-app-window="${app.name}"]`,
+            `.window[data-app="${app.name}"]`,
+            `.window:has([data-app="${app.name}"])`,
+            '.window-content:visible',
+            '.window:visible',
+            '#windows-container .window:last-child'
+          ];
           
-          if (await appWindow.count() > 0) {
+          let appWindow = null;
+          for (const selector of windowSelectors) {
+            const element = page.locator(selector).first();
+            if (await element.count() > 0 && await element.isVisible()) {
+              appWindow = element;
+              break;
+            }
+          }
+          
+          if (appWindow) {
+            console.log(`Found window for ${app.name}, taking screenshot...`);
+            
             // Take screenshot of the application window
             await appWindow.screenshot({ 
               path: path.join(screenshotsDir, `${app.name}-window.png`) 
             });
             
-            // Close the window (look for close button)
-            const closeButton = page.locator('.window-close, .close-btn, [data-action="close"]').first();
-            if (await closeButton.count() > 0) {
-              await closeButton.click();
+            // Try to close the window with multiple possible close button selectors
+            const closeSelectors = [
+              '.window-close',
+              '.close-btn', 
+              '[data-action="close"]',
+              '.window-controls .close',
+              '.title-bar .close'
+            ];
+            
+            for (const closeSelector of closeSelectors) {
+              const closeButton = page.locator(closeSelector).first();
+              if (await closeButton.count() > 0 && await closeButton.isVisible()) {
+                await closeButton.click();
+                break;
+              }
             }
+            
+            // Wait for window to close
+            await page.waitForTimeout(1000);
+            
           } else {
             console.log(`No window found for ${app.name}, taking page screenshot instead`);
             await page.screenshot({ 
@@ -310,17 +380,17 @@ test.describe('Desktop Applications Documentation', () => {
           const docPath = path.join(docsDir, `${app.name}.md`);
           fs.writeFileSync(docPath, markdownContent);
           
-          console.log(`Documentation generated for ${app.name}`);
+          console.log(`✅ Documentation generated for ${app.name}`);
           
         } else {
-          console.log(`Application ${app.name} not found on desktop`);
+          console.log(`❌ Application ${app.name} not found on desktop`);
         }
         
         // Small delay between applications
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(500);
         
       } catch (error) {
-        console.error(`Error documenting ${app.name}:`, error);
+        console.error(`❌ Error documenting ${app.name}:`, error.message);
       }
     });
   }

@@ -6,20 +6,24 @@
  * and generates comprehensive documentation
  */
 
-const { spawn, exec } = require('child_process');
-const fs = require('fs').promises;
-const path = require('path');
+import { spawn } from 'child_process';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration
 const CONFIG = {
-  baseURL: 'http://localhost:3001',
+  baseURL: 'http://localhost:3002', // Updated to match typical port
   screenshotsDir: path.join(__dirname, '../../docs/screenshots'),
   docsDir: path.join(__dirname, '../../docs/applications'),
   timeout: 30000,
   retries: 3
 };
 
-// Application definitions (subset of working applications)
+// Comprehensive list of all SwissKnife applications based on actual desktop implementation
 const APPLICATIONS = [
   {
     name: 'terminal',
@@ -39,6 +43,16 @@ const APPLICATIONS = [
     backendDependencies: ['Monaco editor', 'Streamlit runtime', 'AI code generation', 'File system'],
     features: ['AI code completion', 'Live preview', 'Template system', 'Multi-panel interface'],
     icon: '🎯',
+    registeredApp: true
+  },
+  {
+    name: 'strudel-ai-daw',
+    selector: '[data-app="strudel-ai-daw"]',
+    title: 'Strudel AI DAW',
+    description: 'Collaborative music creation with AI-powered digital audio workstation',
+    backendDependencies: ['Strudel core', 'WebAudio API', 'Audio workers', 'P2P audio streaming'],
+    features: ['Live coding', 'Pattern composition', 'Collaborative music', 'AI music generation'],
+    icon: '🎵',
     registeredApp: true
   },
   {
@@ -74,11 +88,31 @@ const APPLICATIONS = [
   {
     name: 'model-browser',
     selector: '[data-app="model-browser"]',
-    title: 'Model Browser',
+    title: 'AI Model Manager',
     description: 'Browse and manage AI models with edge deployment',
     backendDependencies: ['Model registry', 'Edge deployment', 'Model caching', 'Version management'],
     features: ['Model discovery', 'Edge deployment', 'Performance monitoring', 'Version control'],
     icon: '🧠',
+    registeredApp: true
+  },
+  {
+    name: 'huggingface',
+    selector: '[data-app="huggingface"]',
+    title: 'Hugging Face Hub',
+    description: 'Access to 100,000+ AI models with edge deployment',
+    backendDependencies: ['Hugging Face API', 'Model hosting', 'Edge deployment', 'Inference engine'],
+    features: ['Model browser', 'Edge deployment', 'Inference playground', 'Dataset access'],
+    icon: '🤗',
+    registeredApp: true
+  },
+  {
+    name: 'openrouter',
+    selector: '[data-app="openrouter"]',
+    title: 'OpenRouter Hub',
+    description: 'Universal access to 100+ premium language models',
+    backendDependencies: ['OpenRouter API', 'Model routing', 'Load balancing', 'Cost optimization'],
+    features: ['Model selection', 'Cost optimization', 'Performance monitoring', 'Multi-provider access'],
+    icon: '🔄',
     registeredApp: true
   },
   {
@@ -89,6 +123,176 @@ const APPLICATIONS = [
     backendDependencies: ['IPFS node', 'Content discovery', 'Pinning service', 'Gateway access'],
     features: ['Content browsing', 'Pin management', 'Peer discovery', 'Content sharing'],
     icon: '🌐',
+    registeredApp: true
+  },
+  {
+    name: 'device-manager',
+    selector: '[data-app="device-manager"]',
+    title: 'Device Manager',
+    description: 'Manage local and remote devices with hardware acceleration',
+    backendDependencies: ['Device detection', 'Hardware abstraction', 'WebGPU', 'Performance monitoring'],
+    features: ['Device detection', 'Hardware acceleration', 'Performance monitoring', 'Resource allocation'],
+    icon: '🔧',
+    registeredApp: true
+  },
+  {
+    name: 'settings',
+    selector: '[data-app="settings"]',
+    title: 'Settings',
+    description: 'System configuration with P2P synchronization',
+    backendDependencies: ['Configuration manager', 'P2P sync', 'Encryption', 'Backup system'],
+    features: ['Configuration sync', 'Security settings', 'Backup/restore', 'Theme management'],
+    icon: '⚙️',
+    registeredApp: true
+  },
+  {
+    name: 'mcp-control',
+    selector: '[data-app="mcp-control"]',
+    title: 'MCP Control',
+    description: 'Model Context Protocol control and management interface',
+    backendDependencies: ['MCP protocol', 'Service discovery', 'Connection management', 'Protocol handlers'],
+    features: ['Service management', 'Protocol inspection', 'Connection monitoring', 'Debug tools'],
+    icon: '🔌',
+    registeredApp: true
+  },
+  {
+    name: 'api-keys',
+    selector: '[data-app="api-keys"]',
+    title: 'API Keys Manager',
+    description: 'Secure API key management with encrypted storage',
+    backendDependencies: ['Encryption service', 'Secure storage', 'Key rotation', 'Access control'],
+    features: ['Secure storage', 'Key rotation', 'Usage tracking', 'Access control'],
+    icon: '🔑',
+    registeredApp: true
+  },
+  {
+    name: 'github',
+    selector: '[data-app="github"]',
+    title: 'GitHub Integration',
+    description: 'GitHub repository management and collaboration tools',
+    backendDependencies: ['GitHub API', 'OAuth authentication', 'Git operations', 'Webhook handlers'],
+    features: ['Repository management', 'Issue tracking', 'Pull requests', 'Code review'],
+    icon: '🐙',
+    registeredApp: true
+  },
+  {
+    name: 'oauth-login',
+    selector: '[data-app="oauth-login"]',
+    title: 'OAuth Authentication',
+    description: 'OAuth login and authentication management system',
+    backendDependencies: ['OAuth providers', 'Token management', 'Session handling', 'Security validation'],
+    features: ['Multi-provider auth', 'Token refresh', 'Session management', 'Security auditing'],
+    icon: '🔐',
+    registeredApp: true
+  },
+  {
+    name: 'cron',
+    selector: '[data-app="cron"]',
+    title: 'AI Cron Scheduler',
+    description: 'AI-powered task scheduling with distributed execution',
+    backendDependencies: ['Cron scheduler', 'AI planning', 'Task distribution', 'Monitoring'],
+    features: ['AI scheduling', 'Distributed tasks', 'Smart timing', 'Resource optimization'],
+    icon: '⏰',
+    registeredApp: true
+  },
+  {
+    name: 'navi',
+    selector: '[data-app="navi"]',
+    title: 'NAVI AI Assistant',
+    description: 'AI navigation assistant for system exploration and guidance',
+    backendDependencies: ['AI navigation', 'System indexing', 'Search engine', 'Context awareness'],
+    features: ['Smart navigation', 'Context search', 'System exploration', 'AI assistance'],
+    icon: '🧭',
+    registeredApp: true
+  },
+  {
+    name: 'strudel',
+    selector: '[data-app="strudel"]',
+    title: 'Music Studio',
+    description: 'Advanced music composition and live coding environment',
+    backendDependencies: ['Strudel engine', 'WebAudio API', 'Pattern compiler', 'Audio synthesis'],
+    features: ['Live coding', 'Pattern sequencing', 'Audio synthesis', 'Real-time composition'],
+    icon: '🎵',
+    registeredApp: true
+  },
+  {
+    name: 'p2p-network',
+    selector: '[data-app="p2p-network"]',
+    title: 'P2P Network Manager',
+    description: 'Peer-to-peer network coordination and task distribution',
+    backendDependencies: ['libp2p', 'Network discovery', 'Task coordination', 'Peer management'],
+    features: ['Peer discovery', 'Task distribution', 'Network monitoring', 'Load balancing'],
+    icon: '🔗',
+    registeredApp: true
+  },
+  {
+    name: 'neural-network-designer',
+    selector: '[data-app="neural-network-designer"]',
+    title: 'Neural Network Designer',
+    description: 'Visual neural network architecture design with collaborative development',
+    backendDependencies: ['Neural network frameworks', 'Training engine', 'Visualization', 'Model export'],
+    features: ['Visual design', 'Real-time training', 'Collaborative development', 'Model export'],
+    icon: '🧠',
+    registeredApp: true
+  },
+  {
+    name: 'training-manager',
+    selector: '[data-app="training-manager"]',
+    title: 'Training Manager',
+    description: 'AI model training coordination with distributed computing',
+    backendDependencies: ['Training frameworks', 'Distributed computing', 'Model registry', 'Progress tracking'],
+    features: ['Training coordination', 'Progress monitoring', 'Resource management', 'Model versioning'],
+    icon: '🎯',
+    registeredApp: true
+  },
+  {
+    name: 'calculator',
+    selector: '[data-app="calculator"]',
+    title: 'Enhanced Calculator',
+    description: 'Professional calculator with multiple modes and collaborative equation sharing',
+    backendDependencies: ['Mathematical engine', 'Expression parser', 'History storage', 'Sharing service'],
+    features: ['Scientific calculations', 'Programmable functions', 'History tracking', 'Equation sharing'],
+    icon: '🧮',
+    registeredApp: true
+  },
+  {
+    name: 'clock',
+    selector: '[data-app="clock"]',
+    title: 'World Clock & Timers',
+    description: 'World clock with timers and collaborative scheduling',
+    backendDependencies: ['Time zone database', 'Timer service', 'Notification system', 'Calendar integration'],
+    features: ['World clock', 'Timer management', 'Alarms', 'Time zone conversion'],
+    icon: '🕐',
+    registeredApp: true
+  },
+  {
+    name: 'image-viewer',
+    selector: '[data-app="image-viewer"]',
+    title: 'Advanced Image Viewer',
+    description: 'Professional image viewer with editing and sharing capabilities',
+    backendDependencies: ['Image processing', 'Format support', 'Editing engine', 'Sharing service'],
+    features: ['Multi-format support', 'Basic editing', 'Batch processing', 'Cloud sharing'],
+    icon: '🖼️',
+    registeredApp: true
+  },
+  {
+    name: 'notes',
+    selector: '[data-app="notes"]',
+    title: 'Professional Notes App',
+    description: 'Collaborative note-taking with real-time synchronization',
+    backendDependencies: ['Document storage', 'Real-time sync', 'Version control', 'Search indexing'],
+    features: ['Real-time collaboration', 'Rich text editing', 'Version history', 'Search functionality'],
+    icon: '📝',
+    registeredApp: true
+  },
+  {
+    name: 'system-monitor',
+    selector: '[data-app="system-monitor"]',
+    title: 'System Monitor',
+    description: 'Comprehensive system monitoring with performance analytics',
+    backendDependencies: ['Performance APIs', 'Monitoring agents', 'Data collection', 'Analytics engine'],
+    features: ['Performance monitoring', 'Resource tracking', 'Alert system', 'Historical data'],
+    icon: '📊',
     registeredApp: true
   }
 ];
@@ -147,7 +351,7 @@ class ScreenshotAutomation {
     return new Promise((resolve, reject) => {
       console.log('🖥️ Starting SwissKnife desktop...');
       
-      this.desktopProcess = spawn('npm', ['run', 'desktop'], {
+      this.desktopProcess = spawn('npm', ['run', 'webgui'], {
         cwd: path.join(__dirname, '../..'),
         stdio: 'pipe'
       });
@@ -156,9 +360,12 @@ class ScreenshotAutomation {
         const output = data.toString();
         console.log(`Desktop: ${output.trim()}`);
         
-        // Look for server ready indication
-        if (output.includes('Local:') || output.includes('localhost:3001')) {
-          resolve();
+        // Look for server ready indication - check for Vite ready message
+        if (output.includes('Local:') || 
+            output.includes('localhost:3001') || 
+            output.includes('ready in')) {
+          // Add a small delay to ensure the server is fully ready
+          setTimeout(() => resolve(), 2000);
         }
       });
 
@@ -178,11 +385,16 @@ class ScreenshotAutomation {
   async waitForDesktop() {
     console.log('⏳ Waiting for desktop to be ready...');
     
+    // Use dynamic import for fetch in Node.js
+    const { default: fetch } = await import('node-fetch');
+    
     for (let i = 0; i < CONFIG.retries; i++) {
       try {
         const response = await fetch(CONFIG.baseURL);
         if (response.ok) {
           console.log('✅ Desktop is ready!');
+          // Additional wait for UI to fully render
+          await new Promise(resolve => setTimeout(resolve, 3000));
           return;
         }
       } catch (error) {
@@ -307,7 +519,7 @@ To enable parallel frontend and backend development:
 
 ![Desktop Overview](https://github.com/user-attachments/assets/523ea3f6-b94b-4ebf-86d7-25fd89a3e9c2)
 
-This directory contains comprehensive documentation for SwissKnife's virtual desktop applications, automatically generated using Playwright automation.
+This directory contains comprehensive documentation for ${APPLICATIONS.length} applications in SwissKnife's virtual desktop environment, automatically generated using Playwright automation.
 
 ## Applications Catalog
 
@@ -459,9 +671,7 @@ ${APPLICATIONS.filter(app => app.features.some(f => f.includes(feature.split(' '
 }
 
 // Run the automation if this script is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const automation = new ScreenshotAutomation();
   automation.run().catch(console.error);
 }
-
-module.exports = ScreenshotAutomation;

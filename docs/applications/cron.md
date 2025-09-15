@@ -1,37 +1,37 @@
-# SwissKnife Terminal
+# AI Cron Scheduler
 
-![terminal Icon](../screenshots/terminal-icon.png)
+![cron Icon](../screenshots/cron-icon.png)
 
 ## Description
-AI-powered terminal with P2P collaboration and distributed task execution
+AI-powered task scheduling with distributed execution
 
 ## Screenshots
-- **Icon**: ![Icon](../screenshots/terminal-icon.png)
-- **Application Window**: ![Window](../screenshots/terminal-window.png)
+- **Icon**: ![Icon](../screenshots/cron-icon.png)
+- **Application Window**: ![Window](../screenshots/cron-window.png)
 
 ## Features
-- AI assistance
-- P2P task sharing
-- Collaborative sessions
-- Enhanced command completion
+- AI scheduling
+- Distributed tasks
+- Smart timing
+- Resource optimization
 
 ## Backend Dependencies
-- **CLI engine**: Core dependency for application functionality
-- **AI providers**: Core dependency for application functionality
-- **P2P networking**: Core dependency for application functionality
+- **Cron scheduler**: Core dependency for application functionality
+- **AI planning**: Core dependency for application functionality
 - **Task distribution**: Core dependency for application functionality
+- **Monitoring**: Core dependency for application functionality
 
 ## Development Considerations
 This application requires the following backend services to be operational:
-- [ ] CLI engine
-- [ ] AI providers
-- [ ] P2P networking
+- [ ] Cron scheduler
+- [ ] AI planning
 - [ ] Task distribution
+- [ ] Monitoring
 
 ## Integration Points
-- **Frontend Component**: `web/js/apps/terminal.js`
-- **Desktop Integration**: Application icon selector `[data-app="terminal"]`
-- **Icon**: 🖥️
+- **Frontend Component**: `web/js/apps/cron.js`
+- **Desktop Integration**: Application icon selector `[data-app="cron"]`
+- **Icon**: ⏰
 - **Registered Application**: ✅ Yes
 
 ## Parallel Development Strategy
