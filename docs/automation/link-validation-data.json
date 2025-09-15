@@ -1,81 +1,18 @@
 {
-  "generated": "2025-09-15T09:46:25.740Z",
+  "generated": "2025-09-15T09:57:16.575Z",
   "summary": {
     "totalFiles": 648,
-    "brokenLinks": 28,
+    "brokenLinks": 19,
     "repairSuggestions": 0,
     "validationStatus": "FAIL"
   },
   "brokenLinks": [
     {
-      "file": "DEVELOPER_GUIDE.md",
-      "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
-      "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
-      "type": "link",
-      "position": 16018
-    },
-    {
-      "file": "DEVELOPER_GUIDE.md",
-      "target": "./test/plans/phase3_tasknet_test_plan.md",
-      "text": "Phase 3 Test Plan",
-      "type": "link",
-      "position": 18831
-    },
-    {
-      "file": "DOCUMENTATION_INDEX.md",
-      "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
-      "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
-      "type": "link",
-      "position": 935
-    },
-    {
-      "file": "DOCUMENTATION_INDEX.md",
-      "target": "../VITE_INTEGRATION_GUIDE.md",
-      "text": "VITE_INTEGRATION_GUIDE.md",
-      "type": "link",
-      "position": 1501
-    },
-    {
-      "file": "DOCUMENTATION_INDEX.md",
-      "target": "../PRODUCTION_DEPLOYMENT.md",
-      "text": "PRODUCTION_DEPLOYMENT.md",
-      "type": "link",
-      "position": 1593
-    },
-    {
       "file": "DOCUMENTATION_INDEX.md",
       "target": "../UNIFIED_INTEGRATION_PLAN.md",
       "text": "UNIFIED_INTEGRATION_PLAN.md",
       "type": "link",
-      "position": 8671
-    },
-    {
-      "file": "DOCUMENTATION_INDEX.md",
-      "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
-      "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
-      "type": "link",
-      "position": 11578
-    },
-    {
-      "file": "GETTING_STARTED.md",
-      "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
-      "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
-      "type": "link",
-      "position": 8659
-    },
-    {
-      "file": "HUGGINGFACE_INTEGRATION.md",
-      "target": "./api-reference.md",
-      "text": "API Reference",
-      "type": "link",
-      "position": 14471
-    },
-    {
-      "file": "UNIFIED_ARCHITECTURE.md",
-      "target": "./test/plans/phase3_tasknet_test_plan.md",
-      "text": "Phase 3 Test Plan",
-      "type": "link",
-      "position": 15807
+      "position": 8633
     },
     {
       "file": "legacy/README.old.md",
@@ -208,7 +145,7 @@
   "recommendations": [
     {
       "priority": "high",
-      "issue": "28 broken links found",
+      "issue": "19 broken links found",
       "action": "Fix broken internal references using repair suggestions",
       "impact": "Critical for documentation accuracy score"
     }

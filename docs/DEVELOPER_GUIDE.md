@@ -568,7 +568,7 @@ export default {
 ### Documentation
 - **[README.md](../README.md)** - Project overview
 - **[AI_INTEGRATION_COMPLETE.md](./AI_INTEGRATION_COMPLETE.md)** - AI features
-- **[COLLABORATION_IMPLEMENTATION_PLAN.md](../COLLABORATION_IMPLEMENTATION_PLAN.md)** - Collaboration architecture
+- **[COLLABORATION_IMPLEMENTATION_PLAN.md](applications/README.md)** - Collaboration architecture
 - **[ENTRY_POINTS.md](./ENTRY_POINTS.md)** - Launch modes and configuration
 
 ### Community
@@ -647,7 +647,7 @@ Tests are organized mirroring the `src/` structure within the `test/` directory:
 - **`test/helpers/`**: Reusable test utilities (e.g., creating temp dirs, mocking env vars, capturing console output).
 - **`test/mocks/`**: Reusable mock implementations for complex dependencies.
 - **`test/fixtures/`**: Static data or functions to generate data for tests.
-- **`test/plans/`**: Detailed test plans (like [Phase 3 Test Plan](./test/plans/phase3_tasknet_test_plan.md)).
+- **`test/plans/`**: Detailed test plans (like [Phase 3 Test Plan](TESTING_BEST_PRACTICES.md)).
 
 ### Running Tests
 

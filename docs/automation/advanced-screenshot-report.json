@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-09-15T09:56:52.303Z",
+  "analytics": {
+    "playwrightAvailable": true,
+    "virtualDisplayAvailable": true,
+    "environment": {
+      "headless": true,
+      "platform": "linux",
+      "nodeVersion": "v20.19.5"
+    },
+    "quality": {
+      "totalApplications": 5,
+      "screenshotsFound": 55,
+      "coveragePercent": 100,
+      "missingScreenshots": []
+    }
+  },
+  "summary": {
+    "totalCaptured": 1,
+    "totalFailed": 0,
+    "coveragePercent": 100,
+    "method": "none"
+  },
+  "captured": [
+    {
+      "type": "documentation",
+      "method": "static",
+      "description": "Generated documentation without live screenshots"
+    }
+  ],
+  "failed": [],
+  "improvements": []
+}

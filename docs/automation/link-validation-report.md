@@ -1,50 +1,23 @@
 # SwissKnife Link Validation Report
 
-**Generated**: 2025-09-15T09:46:25.740Z
+**Generated**: 2025-09-15T09:57:16.575Z
 
 ## 📊 Validation Summary
 
 | Metric | Value | Status |
 |--------|-------|--------|
 | **Total Links** | 648 | ℹ️ |
-| **Broken Links** | 28 | ❌ |
+| **Broken Links** | 19 | ❌ |
 | **Repair Suggestions** | 0 | ℹ️ |
 | **Validation Status** | FAIL | ❌ |
 
 ## 🔗 Broken Links Analysis
 
-Found 28 broken links:
+Found 19 broken links:
 
-- **DEVELOPER_GUIDE.md**: `../COLLABORATION_IMPLEMENTATION_PLAN.md` (link)
-  - Text: "COLLABORATION_IMPLEMENTATION_PLAN.md"
-  - Position: 16018
-- **DEVELOPER_GUIDE.md**: `./test/plans/phase3_tasknet_test_plan.md` (link)
-  - Text: "Phase 3 Test Plan"
-  - Position: 18831
-- **DOCUMENTATION_INDEX.md**: `../COLLABORATION_IMPLEMENTATION_PLAN.md` (link)
-  - Text: "COLLABORATION_IMPLEMENTATION_PLAN.md"
-  - Position: 935
-- **DOCUMENTATION_INDEX.md**: `../VITE_INTEGRATION_GUIDE.md` (link)
-  - Text: "VITE_INTEGRATION_GUIDE.md"
-  - Position: 1501
-- **DOCUMENTATION_INDEX.md**: `../PRODUCTION_DEPLOYMENT.md` (link)
-  - Text: "PRODUCTION_DEPLOYMENT.md"
-  - Position: 1593
 - **DOCUMENTATION_INDEX.md**: `../UNIFIED_INTEGRATION_PLAN.md` (link)
   - Text: "UNIFIED_INTEGRATION_PLAN.md"
-  - Position: 8671
-- **DOCUMENTATION_INDEX.md**: `../COLLABORATION_IMPLEMENTATION_PLAN.md` (link)
-  - Text: "COLLABORATION_IMPLEMENTATION_PLAN.md"
-  - Position: 11578
-- **GETTING_STARTED.md**: `../COLLABORATION_IMPLEMENTATION_PLAN.md` (link)
-  - Text: "COLLABORATION_IMPLEMENTATION_PLAN.md"
-  - Position: 8659
-- **HUGGINGFACE_INTEGRATION.md**: `./api-reference.md` (link)
-  - Text: "API Reference"
-  - Position: 14471
-- **UNIFIED_ARCHITECTURE.md**: `./test/plans/phase3_tasknet_test_plan.md` (link)
-  - Text: "Phase 3 Test Plan"
-  - Position: 15807
+  - Position: 8633
 - **legacy/README.old.md**: `docs/phase2/` (link)
   - Text: "docs/phase2/"
   - Position: 7941
@@ -107,7 +80,7 @@ No automatic repairs available.
 
 ## 🎯 Recommendations
 
-### HIGH Priority: 28 broken links found
+### HIGH Priority: 19 broken links found
 **Action**: Fix broken internal references using repair suggestions
 **Impact**: Critical for documentation accuracy score
 

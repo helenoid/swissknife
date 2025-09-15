@@ -218,69 +218,182 @@ class LinkValidator {
     }
     
     console.log(`✅ Generated ${this.repairs.length} repair suggestions`);
+    
+    // Auto-apply high-confidence repairs
+    const highConfidenceRepairs = this.repairs.filter(r => r.suggestion.confidence >= 85);
+    if (highConfidenceRepairs.length > 0) {
+      console.log(`🔧 Auto-applying ${highConfidenceRepairs.length} high-confidence repairs...`);
+      for (const repair of highConfidenceRepairs) {
+        try {
+          await this.applyRepair(repair);
+        } catch (error) {
+          console.warn(`⚠️ Failed to apply repair for ${repair.original.file}: ${error.message}`);
+        }
+      }
+    }
   }
+
+
 
   async findRepairSuggestion(brokenLink) {
     const { target } = brokenLink;
     const basename = path.basename(target, path.extname(target));
     
-    // Search for similar files
-    const candidates = [];
-    
-    for (const validFile of this.validFiles) {
-      const validBasename = path.basename(validFile, path.extname(validFile));
+    // Handle common broken link patterns
+    const repairStrategies = [
+      // Strategy 1: Direct file name matching
+      () => this.findByDirectMatch(basename),
       
-      // Exact match
-      if (validBasename === basename) {
-        candidates.push({ file: validFile, score: 100 });
-      }
-      // Partial match
-      else if (validBasename.includes(basename) || basename.includes(validBasename)) {
-        candidates.push({ file: validFile, score: 75 });
-      }
-      // Similar name (simple similarity)
-      else if (this.calculateSimilarity(validBasename, basename) > 0.7) {
-        candidates.push({ file: validFile, score: 50 });
-      }
-    }
-    
-    // Sort by score and return best match
-    candidates.sort((a, b) => b.score - a.score);
-    
-    if (candidates.length > 0) {
-      const best = candidates[0];
+      // Strategy 2: Handle legacy file moves
+      () => this.findByLegacyMapping(target),
       
-      // Generate proper relative path
-      const fromDir = path.dirname(path.join(this.docsDir, brokenLink.file));
-      const targetFile = this.findActualFilePath(best.file);
+      // Strategy 3: Handle missing extensions
+      () => this.findByExtensionGuessing(target),
       
-      if (targetFile) {
-        const relativePath = path.relative(fromDir, targetFile);
-        return {
-          newTarget: relativePath.replace(/\\/g, '/'), // Convert to forward slashes
-          confidence: best.score,
-          reason: `Found similar file: ${best.file}`
-        };
+      // Strategy 4: Similar name matching
+      () => this.findBySimilarity(basename),
+      
+      // Strategy 5: Content-based matching (for moved files)
+      () => this.findByContentMatching(brokenLink)
+    ];
+    
+    for (const strategy of repairStrategies) {
+      const result = await strategy();
+      if (result) {
+        const fromDir = path.dirname(path.join(this.docsDir, brokenLink.file));
+        const targetFile = await this.findActualFilePath(result.file);
+        
+        if (targetFile) {
+          const relativePath = path.relative(fromDir, targetFile);
+          return {
+            newTarget: relativePath.replace(/\\/g, '/'),
+            confidence: result.score,
+            reason: result.reason,
+            strategy: result.strategy
+          };
+        }
       }
     }
     
     return null;
   }
 
-  findActualFilePath(validFile) {
+  findByDirectMatch(basename) {
+    for (const validFile of this.validFiles) {
+      const validBasename = path.basename(validFile, path.extname(validFile));
+      if (validBasename === basename) {
+        return {
+          file: validFile,
+          score: 95,
+          reason: `Exact filename match: ${validFile}`,
+          strategy: 'direct-match'
+        };
+      }
+    }
+    return null;
+  }
+
+  findByLegacyMapping(target) {
+    // Common file renames and moves
+    const legacyMappings = {
+      'COLLABORATION_IMPLEMENTATION_PLAN.md': 'applications/README.md',
+      'VITE_INTEGRATION_GUIDE.md': 'DEVELOPER_GUIDE.md',
+      'PRODUCTION_DEPLOYMENT.md': 'BUILD_PROCESS.md',
+      'UNIFIED_INTEGRATION_PLAN.md': 'integration/README.md',
+      'phase3_tasknet_test_plan.md': 'TESTING_BEST_PRACTICES.md',
+      'api-reference.md': 'API_KEY_MANAGEMENT.md'
+    };
+    
+    const filename = path.basename(target);
+    if (legacyMappings[filename]) {
+      const mappedFile = legacyMappings[filename];
+      if (this.validFiles.has(mappedFile)) {
+        return {
+          file: mappedFile,
+          score: 90,
+          reason: `Legacy file mapping: ${filename} → ${mappedFile}`,
+          strategy: 'legacy-mapping'
+        };
+      }
+    }
+    return null;
+  }
+
+  findByExtensionGuessing(target) {
+    const withoutExt = target.replace(/\.[^/.]+$/, "");
+    const extensions = ['.md', '.html', '.txt', '.json'];
+    
+    for (const ext of extensions) {
+      const candidate = withoutExt + ext;
+      if (this.validFiles.has(candidate)) {
+        return {
+          file: candidate,
+          score: 85,
+          reason: `Added missing extension: ${ext}`,
+          strategy: 'extension-guess'
+        };
+      }
+    }
+    return null;
+  }
+
+  findBySimilarity(basename) {
+    const candidates = [];
+    
+    for (const validFile of this.validFiles) {
+      const validBasename = path.basename(validFile, path.extname(validFile));
+      
+      // Partial match
+      if (validBasename.includes(basename) || basename.includes(validBasename)) {
+        candidates.push({ 
+          file: validFile, 
+          score: 75,
+          reason: `Partial name match: ${validBasename}`,
+          strategy: 'similarity'
+        });
+      }
+      // Similar name (Levenshtein similarity)
+      else {
+        const similarity = this.calculateSimilarity(validBasename, basename);
+        if (similarity > 0.7) {
+          candidates.push({ 
+            file: validFile, 
+            score: Math.floor(similarity * 70),
+            reason: `Similar name (${Math.floor(similarity * 100)}% match): ${validBasename}`,
+            strategy: 'similarity'
+          });
+        }
+      }
+    }
+    
+    // Sort by score and return best match
+    candidates.sort((a, b) => b.score - a.score);
+    
+    return candidates.length > 0 ? candidates[0] : null;
+  }
+
+  async findByContentMatching(brokenLink) {
+    // This would analyze file content to find moved files
+    // For now, return null - can be enhanced later
+    return null;
+  }
+
+  async findActualFilePath(validFile) {
     // Try to find the actual file path
     const possiblePaths = [
       path.join(this.docsDir, validFile),
       path.join(this.docsDir, 'applications', validFile),
       path.join(this.docsDir, 'screenshots', validFile),
-      path.join(this.docsDir, 'automation', validFile)
+      path.join(this.docsDir, 'automation', validFile),
+      path.join(this.docsDir, 'api', validFile),
+      path.join(this.docsDir, 'architecture', validFile),
+      path.join(this.docsDir, 'integration', validFile)
     ];
     
     for (const possiblePath of possiblePaths) {
       try {
-        if (fs.access(possiblePath)) {
-          return possiblePath;
-        }
+        await fs.access(possiblePath);
+        return possiblePath;
       } catch {
         continue;
       }
@@ -481,15 +594,48 @@ ${report.recommendations.map(rec =>
 
   async applyRepair(repair) {
     const filePath = path.join(this.docsDir, repair.original.file);
-    const content = await fs.readFile(filePath, 'utf-8');
+    let content = await fs.readFile(filePath, 'utf-8');
     
-    const updatedContent = content.replace(
-      repair.original.fullMatch,
-      repair.original.fullMatch.replace(repair.original.target, repair.suggestion.newTarget)
-    );
+    const originalTarget = repair.original.target;
+    const newTarget = repair.suggestion.newTarget;
     
-    await fs.writeFile(filePath, updatedContent);
-    console.log(`✅ Repaired link in ${repair.original.file}: ${repair.original.target} → ${repair.suggestion.newTarget}`);
+    // Try different link formats to find and replace
+    const linkPatterns = [
+      // Markdown links
+      { pattern: `](${originalTarget})`, replacement: `](${newTarget})` },
+      { pattern: `](./${originalTarget})`, replacement: `](./${newTarget})` },
+      { pattern: `](../${originalTarget})`, replacement: `](../${newTarget})` },
+      
+      // HTML attributes  
+      { pattern: `href="${originalTarget}"`, replacement: `href="${newTarget}"` },
+      { pattern: `src="${originalTarget}"`, replacement: `src="${newTarget}"` },
+      { pattern: `href='${originalTarget}'`, replacement: `href='${newTarget}'` },
+      { pattern: `src='${originalTarget}'`, replacement: `src='${newTarget}'` },
+      
+      // Direct text references
+      { pattern: originalTarget, replacement: newTarget }
+    ];
+    
+    let replacementMade = false;
+    
+    for (const { pattern, replacement } of linkPatterns) {
+      if (content.includes(pattern)) {
+        content = content.replace(new RegExp(this.escapeRegExp(pattern), 'g'), replacement);
+        replacementMade = true;
+      }
+    }
+    
+    if (replacementMade) {
+      await fs.writeFile(filePath, content);
+      console.log(`✅ Repaired link in ${repair.original.file}: ${originalTarget} → ${newTarget}`);
+    } else {
+      console.warn(`⚠️ Could not find pattern to replace in ${repair.original.file}: ${originalTarget}`);
+    }
+  }
+  
+  // Helper function to escape special regex characters
+  escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 }
 

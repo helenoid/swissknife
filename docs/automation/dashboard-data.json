@@ -1,22 +1,22 @@
 {
-  "timestamp": "2025-09-15T09:46:27.057Z",
+  "timestamp": "2025-09-15T09:57:16.865Z",
   "summary": {
-    "qualityScore": 81,
+    "qualityScore": 85,
     "qualityGrade": "B",
     "totalFiles": 30,
-    "brokenLinks": 28,
+    "brokenLinks": 19,
     "missingScreenshots": 0,
-    "generationTime": 1002,
-    "lastUpdate": "2025-09-15T09:46:25.511Z",
+    "generationTime": 29,
+    "lastUpdate": "2025-09-15T09:57:16.351Z",
     "status": "needs-improvement"
   },
   "analytics": {
-    "timestamp": "2025-09-15T09:46:25.511Z",
+    "timestamp": "2025-09-15T09:57:16.351Z",
     "quality": {
-      "overallScore": 81,
+      "overallScore": 85,
       "completeness": 81,
       "consistency": 100,
-      "accuracy": 44,
+      "accuracy": 62,
       "maintainability": 100
     },
     "content": {
@@ -35,13 +35,13 @@
     "changes": {
       "filesModified": 0,
       "contentChanges": 0,
-      "structureChanges": 0,
+      "structureChanges": 108,
       "newFiles": 0,
       "deletedFiles": 0
     },
     "linkValidation": {
       "totalLinks": 648,
-      "brokenLinks": 28,
+      "brokenLinks": 19,
       "repairedLinks": 0,
       "validationStatus": "FAIL"
     },
@@ -53,11 +53,11 @@
     }
   },
   "performance": {
-    "timestamp": "2025-09-15T09:10:01.378Z",
+    "timestamp": "2025-09-15T09:56:51.154Z",
     "documentation": {
       "totalApps": 27,
-      "generationTime": 1002,
-      "averageAppTime": 37.111111111111114,
+      "generationTime": 29,
+      "averageAppTime": 1.0740740740740742,
       "filesGenerated": 30,
       "totalSize": 264407
     },
@@ -70,116 +70,53 @@
     },
     "dependencies": {
       "analysisTime": 0,
-      "totalDependencies": 0,
-      "sharedServices": 0,
+      "totalDependencies": 102,
+      "sharedServices": 6,
       "priorityMatrix": {
         "high": 0,
-        "medium": 0,
-        "low": 0
+        "medium": 6,
+        "low": 96
       }
     },
     "performance": {
       "memoryUsage": {
-        "rss": 46530560,
-        "heapTotal": 4956160,
-        "heapUsed": 4659720,
-        "external": 1708707,
-        "arrayBuffers": 32608
+        "rss": 56004608,
+        "heapTotal": 9412608,
+        "heapUsed": 5768416,
+        "external": 1878484,
+        "arrayBuffers": 48926
       },
       "cpuTime": {
-        "user": 45502,
-        "system": 6924
+        "user": 80974,
+        "system": 10996
       },
       "nodeVersion": "v20.19.5",
       "platform": "linux",
       "totalMemory": 16772579328,
-      "freeMemory": 15231930368,
+      "freeMemory": 15199727616,
       "cpuCount": 4,
       "loadAverage": [
-        0.15,
-        0.22,
-        0.09
+        0.18,
+        0.17,
+        0.1
       ]
     }
   },
   "linkValidation": {
-    "generated": "2025-09-15T09:46:25.740Z",
+    "generated": "2025-09-15T09:57:16.575Z",
     "summary": {
       "totalFiles": 648,
-      "brokenLinks": 28,
+      "brokenLinks": 19,
       "repairSuggestions": 0,
       "validationStatus": "FAIL"
     },
     "brokenLinks": [
       {
-        "file": "DEVELOPER_GUIDE.md",
-        "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
-        "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
-        "type": "link",
-        "position": 16018
-      },
-      {
-        "file": "DEVELOPER_GUIDE.md",
-        "target": "./test/plans/phase3_tasknet_test_plan.md",
-        "text": "Phase 3 Test Plan",
-        "type": "link",
-        "position": 18831
-      },
-      {
-        "file": "DOCUMENTATION_INDEX.md",
-        "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
-        "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
-        "type": "link",
-        "position": 935
-      },
-      {
-        "file": "DOCUMENTATION_INDEX.md",
-        "target": "../VITE_INTEGRATION_GUIDE.md",
-        "text": "VITE_INTEGRATION_GUIDE.md",
-        "type": "link",
-        "position": 1501
-      },
-      {
-        "file": "DOCUMENTATION_INDEX.md",
-        "target": "../PRODUCTION_DEPLOYMENT.md",
-        "text": "PRODUCTION_DEPLOYMENT.md",
-        "type": "link",
-        "position": 1593
-      },
-      {
         "file": "DOCUMENTATION_INDEX.md",
         "target": "../UNIFIED_INTEGRATION_PLAN.md",
         "text": "UNIFIED_INTEGRATION_PLAN.md",
         "type": "link",
-        "position": 8671
-      },
-      {
-        "file": "DOCUMENTATION_INDEX.md",
-        "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
-        "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
-        "type": "link",
-        "position": 11578
-      },
-      {
-        "file": "GETTING_STARTED.md",
-        "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
-        "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
-        "type": "link",
-        "position": 8659
-      },
-      {
-        "file": "HUGGINGFACE_INTEGRATION.md",
-        "target": "./api-reference.md",
-        "text": "API Reference",
-        "type": "link",
-        "position": 14471
-      },
-      {
-        "file": "UNIFIED_ARCHITECTURE.md",
-        "target": "./test/plans/phase3_tasknet_test_plan.md",
-        "text": "Phase 3 Test Plan",
-        "type": "link",
-        "position": 15807
+        "position": 8633
       },
       {
         "file": "legacy/README.old.md",
@@ -312,14 +249,14 @@
     "recommendations": [
       {
         "priority": "high",
-        "issue": "28 broken links found",
+        "issue": "19 broken links found",
         "action": "Fix broken internal references using repair suggestions",
         "impact": "Critical for documentation accuracy score"
       }
     ]
   },
   "screenshots": {
-    "generated": "2025-09-15T09:46:25.797Z",
+    "generated": "2025-09-15T09:57:16.628Z",
     "summary": {
       "totalMissing": 0,
       "availableScreenshots": 1,
@@ -334,12 +271,6 @@
     "recommendations": []
   },
   "trends": [
-    {
-      "timestamp": "2025-09-15T07:19:39.981Z",
-      "qualityScore": 72,
-      "totalFiles": 30,
-      "brokenLinks": 54
-    },
     {
       "timestamp": "2025-09-15T09:10:00.737Z",
       "qualityScore": 72,
@@ -373,6 +304,30 @@
     {
       "timestamp": "2025-09-15T09:46:25.511Z",
       "qualityScore": 81,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:51:39.025Z",
+      "qualityScore": 85,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:56:51.155Z",
+      "qualityScore": 72,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:56:52.493Z",
+      "qualityScore": 72,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:57:16.351Z",
+      "qualityScore": 85,
       "totalFiles": 30,
       "brokenLinks": 54
     }

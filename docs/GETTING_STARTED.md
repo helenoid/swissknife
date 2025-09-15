@@ -283,7 +283,7 @@ npm run desktop:collaborative -- --profile
 ### Documentation
 - **[README.md](../README.md)** - Complete overview
 - **[AI_INTEGRATION_COMPLETE.md](./AI_INTEGRATION_COMPLETE.md)** - AI features guide
-- **[COLLABORATION_IMPLEMENTATION_PLAN.md](../COLLABORATION_IMPLEMENTATION_PLAN.md)** - Collaboration features
+- **[COLLABORATION_IMPLEMENTATION_PLAN.md](applications/README.md)** - Collaboration features
 - **[docs/](.)** - Complete documentation suite
 
 ### Support

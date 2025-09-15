@@ -415,7 +415,7 @@ Testing is crucial and follows a multi-layered approach using Jest:
 2.  **Integration Tests (`test/integration/`)**: Test interactions between related internal services, mocking external boundaries (APIs, network).
 3.  **End-to-End Tests (`test/e2e/`)**: Test full CLI workflows by executing the application as a user would.
 
-*(See [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) and [Phase 3 Test Plan](./test/plans/phase3_tasknet_test_plan.md) for more details)*.
+*(See [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) and [Phase 3 Test Plan](TESTING_BEST_PRACTICES.md) for more details)*.
 
 ## 6. Benefits of this Architecture
 
