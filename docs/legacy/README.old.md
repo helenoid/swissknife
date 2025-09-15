@@ -200,21 +200,21 @@ Add to your MCP client configuration (e.g., Claude VS Code Extension):
 
 Our documentation is organized and easily accessible:
 
-- **📖 Getting Started**: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
-- **👨‍💻 Developer Guide**: [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)
-- **🏗️ Architecture**: [docs/UNIFIED_ARCHITECTURE.md](docs/UNIFIED_ARCHITECTURE.md)
-- **📋 API Reference**: [docs/phase1/api_specifications.md](docs/phase1/api_specifications.md)
-- **🧪 Testing Strategy**: [docs/phase1/cli_test_strategy.md](docs/phase1/cli_test_strategy.md)
-- **🤝 Contributing**: [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
-- **📊 Project Structure**: [PROJECT_STRUCTURE_SUMMARY.md](PROJECT_STRUCTURE_SUMMARY.md)
+- **📖 Getting Started**: [../GETTING_STARTED.md](../GETTING_STARTED.md)
+- **👨‍💻 Developer Guide**: [../DEVELOPER_GUIDE.md](../DEVELOPER_GUIDE.md)
+- **🏗️ Architecture**: [../UNIFIED_ARCHITECTURE.md](../UNIFIED_ARCHITECTURE.md)
+- **📋 API Reference**: [../phase1/api_specifications.md](../phase1/api_specifications.md)
+- **🧪 Testing Strategy**: [../phase1/cli_test_strategy.md](../phase1/cli_test_strategy.md)
+- **🤝 Contributing**: [../CONTRIBUTING.md](../CONTRIBUTING.md)
+- **📊 Project Structure**: [../PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)
 
 ### Phase Documentation
 
 Development is organized into structured phases:
 
-1. **Phase 1**: Analysis & Planning → [docs/phase1/](docs/phase1/)
+1. **Phase 1**: Analysis & Planning → [../integration/phase1-components-guide.md](../integration/phase1-components-guide.md)
 2. **Phase 2**: Core Implementation → [docs/phase2/](docs/phase2/)
-3. **Phase 3**: TaskNet Enhancement → [docs/phase3/](docs/phase3/)
+3. **Phase 3**: TaskNet Enhancement → [phase3-implementation-report.md](phase3-implementation-report.md)
 4. **Phase 4**: CLI Integration → [docs/phase4/](docs/phase4/)
 5. **Phase 5**: Optimization & Finalization → [docs/phase5/](docs/phase5/)
 
@@ -299,7 +299,7 @@ Please report bugs using GitHub Issues. Include:
 
 ### Contributing
 
-We welcome contributions! See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+We welcome contributions! See [../CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ```bash
 # Fork the repository and clone your fork
@@ -353,7 +353,7 @@ This project is distributed under the [AGPL License](LICENSE.md).
 - ✅ **Enhanced Maintainability**: Clear separation of concerns and improved discoverability
 - ✅ **Validated Stability**: All tests pass and builds work after reorganization
 
-See [CLEANUP_COMPLETION_CERTIFICATE.md](CLEANUP_COMPLETION_CERTIFICATE.md) and [PROJECT_STRUCTURE_SUMMARY.md](PROJECT_STRUCTURE_SUMMARY.md) for detailed information about the new organization.
+See [CLEANUP_COMPLETION_CERTIFICATE.md](CLEANUP_COMPLETION_CERTIFICATE.md) and [../PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) for detailed information about the new organization.
 
 ---
 

@@ -13,7 +13,7 @@ AI-powered terminal with P2P collaboration and distributed task execution
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![terminal](../screenshots/terminal-icon.png)
+![terminal](terminal.md)
 
 ### 🎯 [VibeCode - AI Streamlit Editor](vibecode.md)
 Professional AI-powered Streamlit development environment with Monaco editor
@@ -22,7 +22,7 @@ Professional AI-powered Streamlit development environment with Monaco editor
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![vibecode](../screenshots/vibecode-icon.png)
+![vibecode](vibecode.md)
 
 ### 🎵 [Strudel AI DAW](strudel-ai-daw.md)
 Collaborative music creation with AI-powered digital audio workstation
@@ -31,7 +31,7 @@ Collaborative music creation with AI-powered digital audio workstation
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![strudel-ai-daw](../screenshots/strudel-ai-daw-icon.png)
+![strudel-ai-daw](strudel-ai-daw.md)
 
 ### 🤖 [AI Chat](ai-chat.md)
 Multi-provider AI chat with collaborative conversations
@@ -40,7 +40,7 @@ Multi-provider AI chat with collaborative conversations
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![ai-chat](../screenshots/ai-chat-icon.png)
+![ai-chat](ai-chat.md)
 
 ### 📁 [File Manager](file-manager.md)
 Professional file manager with IPFS integration and collaborative features
@@ -49,7 +49,7 @@ Professional file manager with IPFS integration and collaborative features
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![file-manager](../screenshots/file-manager-icon.png)
+![file-manager](file-manager.md)
 
 ### ⚡ [Task Manager](task-manager.md)
 Distributed task management with P2P coordination
@@ -58,7 +58,7 @@ Distributed task management with P2P coordination
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![task-manager](../screenshots/task-manager-icon.png)
+![task-manager](task-manager.md)
 
 ### 🧠 [AI Model Manager](model-browser.md)
 Browse and manage AI models with edge deployment
@@ -67,7 +67,7 @@ Browse and manage AI models with edge deployment
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![model-browser](../screenshots/model-browser-icon.png)
+![model-browser](model-browser.md)
 
 ### 🤗 [Hugging Face Hub](huggingface.md)
 Access to 100,000+ AI models with edge deployment
@@ -76,7 +76,7 @@ Access to 100,000+ AI models with edge deployment
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![huggingface](../screenshots/huggingface-icon.png)
+![huggingface](huggingface.md)
 
 ### 🔄 [OpenRouter Hub](openrouter.md)
 Universal access to 100+ premium language models
@@ -85,7 +85,7 @@ Universal access to 100+ premium language models
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![openrouter](../screenshots/openrouter-icon.png)
+![openrouter](openrouter.md)
 
 ### 🌐 [IPFS Explorer](ipfs-explorer.md)
 Explore and manage IPFS content with collaborative features
@@ -94,7 +94,7 @@ Explore and manage IPFS content with collaborative features
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![ipfs-explorer](../screenshots/ipfs-explorer-icon.png)
+![ipfs-explorer](ipfs-explorer.md)
 
 ### 🔧 [Device Manager](device-manager.md)
 Manage local and remote devices with hardware acceleration
@@ -103,7 +103,7 @@ Manage local and remote devices with hardware acceleration
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![device-manager](../screenshots/device-manager-icon.png)
+![device-manager](device-manager.md)
 
 ### ⚙️ [Settings](settings.md)
 System configuration with P2P synchronization
@@ -112,7 +112,7 @@ System configuration with P2P synchronization
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![settings](../screenshots/settings-icon.png)
+![settings](settings.md)
 
 ### 🔌 [MCP Control](mcp-control.md)
 Model Context Protocol control and management interface
@@ -121,7 +121,7 @@ Model Context Protocol control and management interface
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![mcp-control](../screenshots/mcp-control-icon.png)
+![mcp-control](mcp-control.md)
 
 ### 🔑 [API Keys Manager](api-keys.md)
 Secure API key management with encrypted storage
@@ -130,7 +130,7 @@ Secure API key management with encrypted storage
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![api-keys](../screenshots/api-keys-icon.png)
+![api-keys](api-keys.md)
 
 ### 🐙 [GitHub Integration](github.md)
 GitHub repository management and collaboration tools
@@ -139,7 +139,7 @@ GitHub repository management and collaboration tools
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![github](../screenshots/github-icon.png)
+![github](github.md)
 
 ### 🔐 [OAuth Authentication](oauth-login.md)
 OAuth login and authentication management system
@@ -148,7 +148,7 @@ OAuth login and authentication management system
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![oauth-login](../screenshots/oauth-login-icon.png)
+![oauth-login](oauth-login.md)
 
 ### ⏰ [AI Cron Scheduler](cron.md)
 AI-powered task scheduling with distributed execution
@@ -157,7 +157,7 @@ AI-powered task scheduling with distributed execution
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![cron](../screenshots/cron-icon.png)
+![cron](cron.md)
 
 ### 🧭 [NAVI AI Assistant](navi.md)
 AI navigation assistant for system exploration and guidance
@@ -166,7 +166,7 @@ AI navigation assistant for system exploration and guidance
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![navi](../screenshots/navi-icon.png)
+![navi](navi.md)
 
 ### 🎵 [Music Studio](strudel.md)
 Advanced music composition and live coding environment
@@ -175,7 +175,7 @@ Advanced music composition and live coding environment
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![strudel](../screenshots/strudel-icon.png)
+![strudel](strudel.md)
 
 ### 🔗 [P2P Network Manager](p2p-network.md)
 Peer-to-peer network coordination and task distribution
@@ -184,7 +184,7 @@ Peer-to-peer network coordination and task distribution
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![p2p-network](../screenshots/p2p-network-icon.png)
+![p2p-network](p2p-network.md)
 
 ### 🧠 [Neural Network Designer](neural-network-designer.md)
 Visual neural network architecture design with collaborative development
@@ -193,7 +193,7 @@ Visual neural network architecture design with collaborative development
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![neural-network-designer](../screenshots/neural-network-designer-icon.png)
+![neural-network-designer](neural-network-designer.md)
 
 ### 🎯 [Training Manager](training-manager.md)
 AI model training coordination with distributed computing
@@ -202,7 +202,7 @@ AI model training coordination with distributed computing
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![training-manager](../screenshots/training-manager-icon.png)
+![training-manager](training-manager.md)
 
 ### 🧮 [Enhanced Calculator](calculator.md)
 Professional calculator with multiple modes and collaborative equation sharing
@@ -211,7 +211,7 @@ Professional calculator with multiple modes and collaborative equation sharing
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![calculator](../screenshots/calculator-icon.png)
+![calculator](calculator.md)
 
 ### 🕐 [World Clock & Timers](clock.md)
 World clock with timers and collaborative scheduling
@@ -220,7 +220,7 @@ World clock with timers and collaborative scheduling
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![clock](../screenshots/clock-icon.png)
+![clock](clock.md)
 
 ### 🖼️ [Advanced Image Viewer](image-viewer.md)
 Professional image viewer with editing and sharing capabilities
@@ -229,7 +229,7 @@ Professional image viewer with editing and sharing capabilities
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![image-viewer](../screenshots/image-viewer-icon.png)
+![image-viewer](image-viewer.md)
 
 ### 📝 [Professional Notes App](notes.md)
 Collaborative note-taking with real-time synchronization
@@ -238,7 +238,7 @@ Collaborative note-taking with real-time synchronization
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![notes](../screenshots/notes-icon.png)
+![notes](notes.md)
 
 ### 📊 [System Monitor](system-monitor.md)
 Comprehensive system monitoring with performance analytics
@@ -247,7 +247,7 @@ Comprehensive system monitoring with performance analytics
 **Backend Dependencies:** 4 services required
 **Status:** ✅ Registered
 
-![system-monitor](../screenshots/system-monitor-icon.png)
+![system-monitor](system-monitor.md)
 
 ## Documentation Files
 - **[Backend Dependencies Mapping](backend-dependencies.md)** - Complete mapping of frontend to backend dependencies

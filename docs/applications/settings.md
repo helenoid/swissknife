@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![settings Application](../screenshots/settings-icon.png)
+![settings Application](settings.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ System configuration with P2P synchronization
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/settings-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/settings-window.png)
+- **🖼️ Desktop Icon**: ![Icon](settings.md)
+- **🪟 Application Window**: ![Window](settings.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

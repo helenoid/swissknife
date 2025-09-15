@@ -2,7 +2,7 @@
 
 This directory contains independent TypeScript implementations of functionality equivalent to Goose components, created using a clean room development methodology. These implementations allow tight integration with the SwissKnife system while maintaining complete independence from any Rust code.
 
-For details on our clean room reimplementation strategy, see [../../docs/CLEAN_ROOM_IMPLEMENTATION.md](../../docs/CLEAN_ROOM_IMPLEMENTATION.md).
+For details on our clean room reimplementation strategy, see [../../CLEAN_ROOM_IMPLEMENTATION.md](../../CLEAN_ROOM_IMPLEMENTATION.md).
 
 ## Clean Room Implementation
 

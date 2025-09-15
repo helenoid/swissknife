@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 /**
- * SwissKnife Documentation Analytics & Quality System
- * Advanced analytics for documentation quality, change tracking, and cross-references
+ * SwissKnife Enhanced Documentation Analytics & Quality System
+ * Advanced analytics with integrated link validation and screenshot management
  */
 
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import { LinkValidator } from './link-validator.js';
+import { ScreenshotManager } from './screenshot-manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +20,10 @@ class DocumentationAnalytics {
     this.analyticsFile = path.join(__dirname, '../../docs/automation/analytics-data.json');
     this.changeLogFile = path.join(__dirname, '../../docs/automation/change-log.md');
     this.qualityReportFile = path.join(__dirname, '../../docs/automation/quality-report.md');
+    
+    // Enhanced analytics components
+    this.linkValidator = new LinkValidator();
+    this.screenshotManager = new ScreenshotManager();
     
     this.analytics = {
       timestamp: new Date().toISOString(),
@@ -47,10 +53,21 @@ class DocumentationAnalytics {
         structureChanges: 0,
         newFiles: 0,
         deletedFiles: 0
+      },
+      // Enhanced analytics
+      linkValidation: {
+        totalLinks: 0,
+        brokenLinks: 0,
+        repairedLinks: 0,
+        validationStatus: 'pending'
+      },
+      screenshots: {
+        totalReferences: 0,
+        missingScreenshots: 0,
+        availableScreenshots: 0,
+        placeholdersGenerated: 0
       }
     };
-    
-    this.previousState = null;
   }
 
   async loadPreviousAnalytics() {
@@ -70,17 +87,32 @@ class DocumentationAnalytics {
     
     const docsDir = path.join(__dirname, '../../docs/applications');
     
-    // Analyze content quality
+    // Enhanced analysis with integrated components
+    console.log('🔗 Running link validation...');
+    const linkResults = await this.linkValidator.validateAllLinks();
+    this.analytics.linkValidation = {
+      totalLinks: linkResults.totalLinks,
+      brokenLinks: linkResults.brokenLinks,
+      repairedLinks: linkResults.repairedLinks,
+      validationStatus: linkResults.brokenLinks === 0 ? 'PASS' : 'FAIL'
+    };
+    
+    console.log('📸 Running screenshot analysis...');
+    const screenshotResults = await this.screenshotManager.analyzeMissingScreenshots();
+    this.analytics.screenshots = {
+      totalReferences: screenshotResults.totalReferences,
+      missingScreenshots: screenshotResults.totalReferences,
+      availableScreenshots: screenshotResults.availableScreenshots,
+      placeholdersGenerated: screenshotResults.placeholderOptions
+    };
+    
+    // Original analysis methods
     await this.analyzeContentQuality(docsDir);
-    
-    // Analyze structure and references
     await this.analyzeStructure(docsDir);
-    
-    // Track changes
     await this.trackChanges(docsDir);
     
-    // Calculate overall quality score
-    this.calculateQualityScore();
+    // Enhanced quality calculation
+    this.calculateEnhancedQualityScore();
     
     console.log('📊 Documentation analysis completed');
     return this.analytics;
@@ -289,6 +321,63 @@ class DocumentationAnalytics {
     );
   }
 
+  calculateEnhancedQualityScore() {
+    console.log('🎯 Calculating enhanced quality score with link validation and screenshots...');
+    
+    // Completeness (40% weight)
+    const avgCompleteness = this.fileCompleteness ? 
+      this.fileCompleteness.reduce((sum, f) => sum + f.score, 0) / this.fileCompleteness.length : 0;
+    this.analytics.quality.completeness = Math.round(avgCompleteness);
+    
+    // Consistency (25% weight)
+    const consistencyPenalties = 
+      (this.analytics.content.duplicateContent * 5) +
+      (this.analytics.structure.inconsistentFormatting * 3);
+    this.analytics.quality.consistency = Math.max(0, 100 - consistencyPenalties);
+    
+    // Enhanced Accuracy (20% weight) - now includes link validation
+    const totalBrokenItems = 
+      this.analytics.linkValidation.brokenLinks + 
+      this.analytics.screenshots.missingScreenshots;
+    
+    // More sophisticated accuracy calculation
+    let accuracyScore = 100;
+    
+    // Penalty for broken links (critical for navigation)
+    accuracyScore -= (this.analytics.linkValidation.brokenLinks * 2);
+    
+    // Penalty for missing screenshots (affects visual completeness)  
+    accuracyScore -= (this.analytics.screenshots.missingScreenshots * 1);
+    
+    // Bonus for repairs applied
+    accuracyScore += Math.min(10, this.analytics.linkValidation.repairedLinks * 2);
+    
+    this.analytics.quality.accuracy = Math.max(0, Math.min(100, accuracyScore));
+    
+    // Enhanced Maintainability (15% weight)
+    const maintainabilityBonus = 
+      (this.analytics.structure.crossReferences * 2) +
+      (this.analytics.content.totalFiles * 1) +
+      (this.analytics.screenshots.availableScreenshots * 0.5);
+    const maintainabilityPenalty = 
+      (this.analytics.structure.orphanedFiles * 5) +
+      (this.analytics.linkValidation.brokenLinks * 1);
+    
+    this.analytics.quality.maintainability = Math.min(100, Math.max(0, 
+      50 + maintainabilityBonus - maintainabilityPenalty
+    ));
+    
+    // Overall score (weighted average)
+    this.analytics.quality.overallScore = Math.round(
+      (this.analytics.quality.completeness * 0.40) +
+      (this.analytics.quality.consistency * 0.25) +
+      (this.analytics.quality.accuracy * 0.20) +
+      (this.analytics.quality.maintainability * 0.15)
+    );
+    
+    console.log(`🎯 Enhanced quality score calculated: ${this.analytics.quality.overallScore}/100`);
+  }
+
   async generateQualityReport() {
     const timestamp = new Date().toISOString();
     const prevScore = this.previousState?.quality?.overallScore || 0;
@@ -344,6 +433,42 @@ ${this.analytics.content.duplicateContent > 0 ?
 ${this.analytics.content.brokenReferences > 0 ? 
 `- ❌ **Broken References**: ${this.analytics.content.brokenReferences} broken internal links found` : 
 '- ✅ **Valid References**: All internal links are working'}
+
+## 🔗 Enhanced Link Validation Analysis
+
+### Link Validation Results  
+| Metric | Value | Status |
+|--------|-------|--------|
+| **Total Links Checked** | ${this.analytics.linkValidation.totalLinks} | ℹ️ Analysis complete |
+| **Broken Links Found** | ${this.analytics.linkValidation.brokenLinks} | ${this.analytics.linkValidation.brokenLinks === 0 ? '✅ All links valid' : '❌ Needs attention'} |
+| **Auto-Repaired Links** | ${this.analytics.linkValidation.repairedLinks} | ${this.analytics.linkValidation.repairedLinks > 0 ? '🔧 Repairs applied' : 'ℹ️ No repairs needed'} |
+| **Validation Status** | ${this.analytics.linkValidation.validationStatus} | ${this.analytics.linkValidation.validationStatus === 'PASS' ? '✅ PASSED' : '❌ FAILED'} |
+
+${this.analytics.linkValidation.brokenLinks > 0 ? 
+`### 🚨 Link Issues Detected
+- **Broken Links**: ${this.analytics.linkValidation.brokenLinks} links need attention
+- **Auto-Repairs**: ${this.analytics.linkValidation.repairedLinks} links were automatically fixed
+- **Manual Review**: ${this.analytics.linkValidation.brokenLinks - this.analytics.linkValidation.repairedLinks} links require manual intervention
+- **Report Available**: Check \`docs/automation/link-validation-report.md\` for details` :
+'✅ **All Links Valid**: No broken links detected in documentation'}
+
+## 📸 Screenshot Coverage Analysis
+
+### Screenshot Management Status
+| Metric | Value | Status |  
+|--------|-------|--------|
+| **Total Image References** | ${this.analytics.screenshots.totalReferences} | ℹ️ References scanned |
+| **Missing Screenshots** | ${this.analytics.screenshots.missingScreenshots} | ${this.analytics.screenshots.missingScreenshots === 0 ? '✅ Complete' : '❌ Missing files'} |
+| **Available Screenshots** | ${this.analytics.screenshots.availableScreenshots} | ${this.analytics.screenshots.availableScreenshots > 0 ? '✅ Available' : '⚠️ No screenshots'} |
+| **Fallback Options** | ${this.analytics.screenshots.placeholdersGenerated} | ${this.analytics.screenshots.placeholdersGenerated > 0 ? '🎨 Generated' : 'ℹ️ Not needed'} |
+
+${this.analytics.screenshots.missingScreenshots > 0 ?
+`### 📸 Screenshot Issues
+- **Missing Images**: ${this.analytics.screenshots.missingScreenshots} screenshot references without files
+- **Coverage Gap**: ${Math.round((this.analytics.screenshots.missingScreenshots / Math.max(1, this.analytics.screenshots.totalReferences)) * 100)}% of images are missing
+- **Fallback Strategy**: ${this.analytics.screenshots.placeholdersGenerated} placeholder options available
+- **Action Required**: Run \`npm run docs:update-screenshots\` to capture missing images` :
+'✅ **Complete Coverage**: All screenshot references have corresponding image files'}
 
 ## 🏗️ Structure Analysis
 

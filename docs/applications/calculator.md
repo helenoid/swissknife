@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![calculator Application](../screenshots/calculator-icon.png)
+![calculator Application](calculator.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Professional calculator with multiple modes and collaborative equation sharing
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/calculator-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/calculator-window.png)
+- **🖼️ Desktop Icon**: ![Icon](calculator.md)
+- **🪟 Application Window**: ![Window](calculator.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

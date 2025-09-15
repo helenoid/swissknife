@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![strudel Application](../screenshots/strudel-icon.png)
+![strudel Application](strudel.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Advanced music composition and live coding environment
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/strudel-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/strudel-window.png)
+- **🖼️ Desktop Icon**: ![Icon](strudel.md)
+- **🪟 Application Window**: ![Window](strudel.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

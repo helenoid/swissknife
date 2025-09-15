@@ -1,0 +1,216 @@
+{
+  "generated": "2025-09-15T09:19:25.173Z",
+  "summary": {
+    "totalFiles": 648,
+    "brokenLinks": 28,
+    "repairSuggestions": 0,
+    "validationStatus": "FAIL"
+  },
+  "brokenLinks": [
+    {
+      "file": "DEVELOPER_GUIDE.md",
+      "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
+      "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
+      "type": "link",
+      "position": 16018
+    },
+    {
+      "file": "DEVELOPER_GUIDE.md",
+      "target": "./test/plans/phase3_tasknet_test_plan.md",
+      "text": "Phase 3 Test Plan",
+      "type": "link",
+      "position": 18831
+    },
+    {
+      "file": "DOCUMENTATION_INDEX.md",
+      "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
+      "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
+      "type": "link",
+      "position": 935
+    },
+    {
+      "file": "DOCUMENTATION_INDEX.md",
+      "target": "../VITE_INTEGRATION_GUIDE.md",
+      "text": "VITE_INTEGRATION_GUIDE.md",
+      "type": "link",
+      "position": 1501
+    },
+    {
+      "file": "DOCUMENTATION_INDEX.md",
+      "target": "../PRODUCTION_DEPLOYMENT.md",
+      "text": "PRODUCTION_DEPLOYMENT.md",
+      "type": "link",
+      "position": 1593
+    },
+    {
+      "file": "DOCUMENTATION_INDEX.md",
+      "target": "../UNIFIED_INTEGRATION_PLAN.md",
+      "text": "UNIFIED_INTEGRATION_PLAN.md",
+      "type": "link",
+      "position": 8671
+    },
+    {
+      "file": "DOCUMENTATION_INDEX.md",
+      "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
+      "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
+      "type": "link",
+      "position": 11578
+    },
+    {
+      "file": "GETTING_STARTED.md",
+      "target": "../COLLABORATION_IMPLEMENTATION_PLAN.md",
+      "text": "COLLABORATION_IMPLEMENTATION_PLAN.md",
+      "type": "link",
+      "position": 8659
+    },
+    {
+      "file": "HUGGINGFACE_INTEGRATION.md",
+      "target": "./api-reference.md",
+      "text": "API Reference",
+      "type": "link",
+      "position": 14471
+    },
+    {
+      "file": "UNIFIED_ARCHITECTURE.md",
+      "target": "./test/plans/phase3_tasknet_test_plan.md",
+      "text": "Phase 3 Test Plan",
+      "type": "link",
+      "position": 15807
+    },
+    {
+      "file": "legacy/README.old.md",
+      "target": "docs/phase2/",
+      "text": "docs/phase2/",
+      "type": "link",
+      "position": 7941
+    },
+    {
+      "file": "legacy/README.old.md",
+      "target": "docs/phase4/",
+      "text": "docs/phase4/",
+      "type": "link",
+      "position": 8109
+    },
+    {
+      "file": "legacy/README.old.md",
+      "target": "docs/phase5/",
+      "text": "docs/phase5/",
+      "type": "link",
+      "position": 8184
+    },
+    {
+      "file": "legacy/README.old.md",
+      "target": "LICENSE.md",
+      "text": "AGPL License",
+      "type": "link",
+      "position": 11563
+    },
+    {
+      "file": "legacy/README.old.md",
+      "target": "CLEANUP_COMPLETION_CERTIFICATE.md",
+      "text": "CLEANUP_COMPLETION_CERTIFICATE.md",
+      "type": "link",
+      "position": 12114
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "REPOSITORY_AUDIT_REPORT.md",
+      "text": "REPOSITORY_AUDIT_REPORT.md",
+      "type": "link",
+      "position": 125
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "IMPLEMENTATION_PLAN.md",
+      "text": "IMPLEMENTATION_PLAN.md",
+      "type": "link",
+      "position": 204
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "IMPLEMENTATION_PLAN.md",
+      "text": "IMPLEMENTATION_PLAN.md",
+      "type": "link",
+      "position": 1980
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "REPOSITORY_AUDIT_REPORT.md",
+      "text": "Repository Audit Report",
+      "type": "link",
+      "position": 3605
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "IMPLEMENTATION_PLAN.md",
+      "text": "Implementation Plan",
+      "type": "link",
+      "position": 3686
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "IMPLEMENTATION_PLAN.md",
+      "text": "implementation plan",
+      "type": "link",
+      "position": 4181
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "IMPLEMENTATION_PLAN.md",
+      "text": "IMPLEMENTATION_PLAN.md",
+      "type": "link",
+      "position": 4415
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "LICENSE.md",
+      "text": "AGPL License",
+      "type": "link",
+      "position": 4755
+    },
+    {
+      "file": "legacy/README_UPDATED.md",
+      "target": "REPOSITORY_AUDIT_REPORT.md",
+      "text": "REPOSITORY_AUDIT_REPORT.md",
+      "type": "link",
+      "position": 5227
+    },
+    {
+      "file": "p2p/README.md",
+      "target": "./advanced-p2p-config.md",
+      "text": "Advanced P2P Configuration Guide",
+      "type": "link",
+      "position": 7181
+    },
+    {
+      "file": "phase1/cli_contribution_guidelines.md",
+      "target": "CODE_OF_CONDUCT.md",
+      "text": "Code of Conduct",
+      "type": "link",
+      "position": 1203
+    },
+    {
+      "file": "phase1/implementation_framework.md",
+      "target": "args",
+      "text": "method",
+      "type": "link",
+      "position": 10593
+    },
+    {
+      "file": "phase1/phase1_implementation_details.md",
+      "target": "args",
+      "text": "method",
+      "type": "link",
+      "position": 18982
+    }
+  ],
+  "repairs": [],
+  "recommendations": [
+    {
+      "priority": "high",
+      "issue": "28 broken links found",
+      "action": "Fix broken internal references using repair suggestions",
+      "impact": "Critical for documentation accuracy score"
+    }
+  ]
+}

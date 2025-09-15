@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![vibecode Application](../screenshots/vibecode-icon.png)
+![vibecode Application](vibecode.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Professional AI-powered Streamlit development environment with Monaco editor
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/vibecode-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/vibecode-window.png)
+- **🖼️ Desktop Icon**: ![Icon](vibecode.md)
+- **🪟 Application Window**: ![Window](vibecode.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

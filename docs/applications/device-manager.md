@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![device-manager Application](../screenshots/device-manager-icon.png)
+![device-manager Application](device-manager.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Manage local and remote devices with hardware acceleration
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/device-manager-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/device-manager-window.png)
+- **🖼️ Desktop Icon**: ![Icon](device-manager.md)
+- **🪟 Application Window**: ![Window](device-manager.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![oauth-login Application](../screenshots/oauth-login-icon.png)
+![oauth-login Application](oauth-login.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ OAuth login and authentication management system
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/oauth-login-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/oauth-login-window.png)
+- **🖼️ Desktop Icon**: ![Icon](oauth-login.md)
+- **🪟 Application Window**: ![Window](oauth-login.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

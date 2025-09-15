@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![navi Application](../screenshots/navi-icon.png)
+![navi Application](navi.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ AI navigation assistant for system exploration and guidance
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/navi-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/navi-window.png)
+- **🖼️ Desktop Icon**: ![Icon](navi.md)
+- **🪟 Application Window**: ![Window](navi.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

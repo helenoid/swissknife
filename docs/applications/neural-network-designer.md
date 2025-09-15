@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![neural-network-designer Application](../screenshots/neural-network-designer-icon.png)
+![neural-network-designer Application](neural-network-designer.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Visual neural network architecture design with collaborative development
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/neural-network-designer-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/neural-network-designer-window.png)
+- **🖼️ Desktop Icon**: ![Icon](neural-network-designer.md)
+- **🪟 Application Window**: ![Window](neural-network-designer.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

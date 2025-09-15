@@ -1,14 +1,17 @@
 # SwissKnife Documentation Automation System
 
-This directory contains the **enhanced automated documentation system** for SwissKnife's virtual desktop applications. The system provides comprehensive, always-up-to-date documentation that enables parallel frontend and backend development with advanced analytics and performance monitoring.
+This directory contains the **enhanced automated documentation system** for SwissKnife's virtual desktop applications. The system provides comprehensive, always-up-to-date documentation with **advanced analytics, link validation, screenshot management, and interactive dashboard** that enables parallel frontend and backend development.
 
-## 🚀 System Overview
+## 🚀 Enhanced System Overview
 
 The SwissKnife documentation automation system consists of multiple integrated components:
 
 - **🎯 Enhanced Documentation Generation** - Creates detailed, metadata-rich markdown files
 - **📊 Performance Monitoring** - Tracks system performance and generation metrics
 - **📈 Quality Analytics** - Analyzes documentation quality and provides improvement recommendations
+- **🔗 Link Validation & Repair** - Automatically detects and fixes broken internal references
+- **📸 Screenshot Management** - Smart fallback system for missing images with placeholder generation
+- **📋 Interactive Dashboard** - Real-time monitoring with visual analytics and trend tracking
 - **🔄 Advanced Change Tracking** - Monitors documentation evolution and trends
 - **🔧 CI/CD Integration** - Automated updates with comprehensive error handling and notifications
 
@@ -16,14 +19,24 @@ The SwissKnife documentation automation system consists of multiple integrated c
 
 ### Quick Start Commands
 ```bash
+# Complete enhanced system analysis (RECOMMENDED)
+npm run docs:complete-system
+
 # Generate enhanced documentation with full analytics
 npm run docs:generate-only
 
-# Run comprehensive analysis with all reports
-npm run docs:full-analysis
+# Run comprehensive system check with all validations
+npm run docs:comprehensive-check
 
-# Check documentation quality only
-npm run docs:quality-check
+# Individual component analysis
+npm run docs:validate-links     # Link validation and repair
+npm run docs:manage-screenshots # Screenshot analysis and fallbacks
+npm run docs:analytics          # Quality analytics
+npm run docs:dashboard          # Interactive dashboard
+
+# Performance and quality monitoring
+npm run docs:performance        # Performance monitoring only
+npm run docs:quality-check      # Quality analytics only
 
 # Update screenshots (requires desktop environment)
 npm run docs:update-screenshots
@@ -59,7 +72,49 @@ npm run automation:screenshots
 - 📝 Rich metadata embedding
 - 🎯 Priority-based organization
 
-#### 2. **Performance Monitor** (`performance-monitor.js`)
+#### 2. **Enhanced Link Validation & Repair** (`link-validator.js`)
+- **Comprehensive Link Scanning**: Validates all internal references across documentation
+- **Automatic Repair System**: Smart link fixing with similarity matching
+- **Detailed Reporting**: Comprehensive validation reports with repair suggestions
+- **Fallback Strategies**: Multiple alternative path resolution methods
+- **Real-time Monitoring**: Integration with quality analytics system
+
+**Features:**
+- 🔍 Complete link inventory and validation
+- 🔧 Automatic repair suggestions and application
+- 📊 Detailed validation reports
+- 🎯 Smart similarity-based matching
+- 📈 Integration with quality scoring
+
+#### 3. **Smart Screenshot Management** (`screenshot-manager.js`)
+- **Missing Image Detection**: Scans for references without corresponding files
+- **Placeholder Generation**: Creates informative SVG placeholders
+- **Fallback System**: Suggests similar existing screenshots
+- **Coverage Analysis**: Tracks screenshot completeness metrics
+- **Visual Documentation**: Ensures complete visual coverage
+
+**Features:**
+- 📸 Comprehensive screenshot inventory
+- 🎨 Auto-generated placeholder system  
+- 🔄 Smart fallback recommendations
+- 📊 Coverage metrics and analysis
+- 🖼️ Visual documentation completeness
+
+#### 4. **Interactive Dashboard** (`dashboard-generator.js`)
+- **Real-time Monitoring**: Live quality metrics and system status
+- **Visual Analytics**: Charts and graphs showing trends and performance
+- **Comprehensive Overview**: All system components in one view
+- **Responsive Design**: Works on desktop and mobile devices  
+- **Auto-refresh**: Keeps data current with automatic updates
+
+**Features:**
+- 📊 Real-time quality dashboard
+- 📈 Trend analysis with interactive charts
+- 🎮 System status monitoring
+- 📱 Responsive design
+- 🔄 Auto-refresh capabilities
+
+#### 5. **Enhanced Performance Monitor** (`performance-monitor.js`)
 - **Real-time Metrics**: Generation time, memory usage, system resources
 - **Historical Tracking**: Maintains performance trends over time
 - **Benchmark Validation**: Automated performance threshold checking

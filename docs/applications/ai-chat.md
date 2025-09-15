@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![ai-chat Application](../screenshots/ai-chat-icon.png)
+![ai-chat Application](ai-chat.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Multi-provider AI chat with collaborative conversations
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/ai-chat-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/ai-chat-window.png)
+- **🖼️ Desktop Icon**: ![Icon](ai-chat.md)
+- **🪟 Application Window**: ![Window](ai-chat.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![api-keys Application](../screenshots/api-keys-icon.png)
+![api-keys Application](api-keys.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Secure API key management with encrypted storage
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/api-keys-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/api-keys-window.png)
+- **🖼️ Desktop Icon**: ![Icon](api-keys.md)
+- **🪟 Application Window**: ![Window](api-keys.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

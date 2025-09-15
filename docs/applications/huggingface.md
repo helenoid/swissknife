@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![huggingface Application](../screenshots/huggingface-icon.png)
+![huggingface Application](huggingface.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Access to 100,000+ AI models with edge deployment
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/huggingface-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/huggingface-window.png)
+- **🖼️ Desktop Icon**: ![Icon](huggingface.md)
+- **🪟 Application Window**: ![Window](huggingface.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

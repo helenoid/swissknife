@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![openrouter Application](../screenshots/openrouter-icon.png)
+![openrouter Application](openrouter.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Universal access to 100+ premium language models
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/openrouter-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/openrouter-window.png)
+- **🖼️ Desktop Icon**: ![Icon](openrouter.md)
+- **🪟 Application Window**: ![Window](openrouter.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

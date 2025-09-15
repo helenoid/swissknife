@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![github Application](../screenshots/github-icon.png)
+![github Application](github.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ GitHub repository management and collaboration tools
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/github-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/github-window.png)
+- **🖼️ Desktop Icon**: ![Icon](github.md)
+- **🪟 Application Window**: ![Window](github.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

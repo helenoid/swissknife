@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![file-manager Application](../screenshots/file-manager-icon.png)
+![file-manager Application](file-manager.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Professional file manager with IPFS integration and collaborative features
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/file-manager-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/file-manager-window.png)
+- **🖼️ Desktop Icon**: ![Icon](file-manager.md)
+- **🪟 Application Window**: ![Window](file-manager.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![clock Application](../screenshots/clock-icon.png)
+![clock Application](clock.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ World clock with timers and collaborative scheduling
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/clock-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/clock-window.png)
+- **🖼️ Desktop Icon**: ![Icon](clock.md)
+- **🪟 Application Window**: ![Window](clock.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

@@ -165,15 +165,15 @@ jobs:
           echo "status=completed" >> $GITHUB_OUTPUT
         continue-on-error: true
 
-      - name: 📝 Generate Enhanced Documentation
+      - name: 📝 Generate Enhanced Documentation with Full Analysis
         id: generate-docs
         run: |
-          echo "📝 Generating enhanced documentation with analytics..."
+          echo "📝 Generating enhanced documentation with comprehensive analysis..."
           
-          # Always run documentation generation (with or without screenshots)
-          npm run docs:generate-only
+          # Always run complete system analysis
+          npm run docs:complete-system
           
-          echo "✅ Documentation generation completed"
+          echo "✅ Enhanced documentation generation completed"
           echo "status=success" >> $GITHUB_OUTPUT
         continue-on-error: true
 
@@ -355,6 +355,12 @@ jobs:
             docs/automation/quality-report.md
             docs/automation/performance-metrics.json
             docs/automation/analytics-data.json
+            docs/automation/link-validation-report.md
+            docs/automation/link-validation-data.json
+            docs/automation/screenshot-report.md
+            docs/automation/screenshot-data.json
+            docs/automation/dashboard.html
+            docs/automation/dashboard-data.json
             test-results/
             change-summary.md
           retention-days: 30

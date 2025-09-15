@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![system-monitor Application](../screenshots/system-monitor-icon.png)
+![system-monitor Application](system-monitor.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Comprehensive system monitoring with performance analytics
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/system-monitor-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/system-monitor-window.png)
+- **🖼️ Desktop Icon**: ![Icon](system-monitor.md)
+- **🪟 Application Window**: ![Window](system-monitor.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

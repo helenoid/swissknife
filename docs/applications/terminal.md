@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![terminal Application](../screenshots/terminal-icon.png)
+![terminal Application](terminal.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ AI-powered terminal with P2P collaboration and distributed task execution
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/terminal-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/terminal-window.png)
+- **🖼️ Desktop Icon**: ![Icon](terminal.md)
+- **🪟 Application Window**: ![Window](terminal.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

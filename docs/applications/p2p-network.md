@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![p2p-network Application](../screenshots/p2p-network-icon.png)
+![p2p-network Application](p2p-network.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Peer-to-peer network coordination and task distribution
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/p2p-network-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/p2p-network-window.png)
+- **🖼️ Desktop Icon**: ![Icon](p2p-network.md)
+- **🪟 Application Window**: ![Window](p2p-network.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

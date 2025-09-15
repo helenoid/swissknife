@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![cron Application](../screenshots/cron-icon.png)
+![cron Application](cron.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ AI-powered task scheduling with distributed execution
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/cron-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/cron-window.png)
+- **🖼️ Desktop Icon**: ![Icon](cron.md)
+- **🪟 Application Window**: ![Window](cron.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

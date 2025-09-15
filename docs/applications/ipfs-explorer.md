@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![ipfs-explorer Application](../screenshots/ipfs-explorer-icon.png)
+![ipfs-explorer Application](ipfs-explorer.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Explore and manage IPFS content with collaborative features
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/ipfs-explorer-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/ipfs-explorer-window.png)
+- **🖼️ Desktop Icon**: ![Icon](ipfs-explorer.md)
+- **🪟 Application Window**: ![Window](ipfs-explorer.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

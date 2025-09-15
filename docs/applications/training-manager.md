@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![training-manager Application](../screenshots/training-manager-icon.png)
+![training-manager Application](training-manager.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ AI model training coordination with distributed computing
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/training-manager-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/training-manager-window.png)
+- **🖼️ Desktop Icon**: ![Icon](training-manager.md)
+- **🪟 Application Window**: ![Window](training-manager.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

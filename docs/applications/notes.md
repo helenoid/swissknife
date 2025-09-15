@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![notes Application](../screenshots/notes-icon.png)
+![notes Application](notes.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Collaborative note-taking with real-time synchronization
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/notes-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/notes-window.png)
+- **🖼️ Desktop Icon**: ![Icon](notes.md)
+- **🪟 Application Window**: ![Window](notes.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

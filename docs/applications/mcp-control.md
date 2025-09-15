@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![mcp-control Application](../screenshots/mcp-control-icon.png)
+![mcp-control Application](mcp-control.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Model Context Protocol control and management interface
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/mcp-control-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/mcp-control-window.png)
+- **🖼️ Desktop Icon**: ![Icon](mcp-control.md)
+- **🪟 Application Window**: ![Window](mcp-control.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

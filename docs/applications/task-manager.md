@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![task-manager Application](../screenshots/task-manager-icon.png)
+![task-manager Application](task-manager.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Distributed task management with P2P coordination
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/task-manager-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/task-manager-window.png)
+- **🖼️ Desktop Icon**: ![Icon](task-manager.md)
+- **🪟 Application Window**: ![Window](task-manager.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*

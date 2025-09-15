@@ -11,7 +11,7 @@
 - **Last Updated**: 2025-09-15
 ---
 
-![model-browser Application](../screenshots/model-browser-icon.png)
+![model-browser Application](model-browser.md)
 
 ## 📋 Overview
 
@@ -29,8 +29,8 @@ Browse and manage AI models with edge deployment
 ## 📸 Visual Documentation
 
 ### Application Screenshots
-- **🖼️ Desktop Icon**: ![Icon](../screenshots/model-browser-icon.png)
-- **🪟 Application Window**: ![Window](../screenshots/model-browser-window.png)
+- **🖼️ Desktop Icon**: ![Icon](model-browser.md)
+- **🪟 Application Window**: ![Window](model-browser.md)
 - **🖥️ Full Context**: Shows application in desktop environment
 
 > 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*
