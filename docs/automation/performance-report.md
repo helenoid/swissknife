@@ -1,7 +1,7 @@
 # SwissKnife Documentation Performance Report
 
-**Generated**: 2025-09-15T07:19:40.057Z
-**Total Runs Analyzed**: 2
+**Generated**: 2025-09-15T09:10:02.391Z
+**Total Runs Analyzed**: 4
 
 ## 📊 Latest Performance Summary
 
@@ -9,8 +9,8 @@
 | Metric | Value | Trend |
 |--------|--------|-------|
 | **Total Applications** | 27 | ➡️ 0.0% |
-| **Generation Time** | 30ms | 📈 3.4% |
-| **Avg Time/App** | 1.1ms | 📈 3.4% |
+| **Generation Time** | 1002ms | 📈 3355.2% |
+| **Avg Time/App** | 37.1ms | 📈 3355.2% |
 | **Files Generated** | 30 | ➡️ 0.0% |
 | **Total Size** | 258.2 KB | ➡️ 0.0% |
 
@@ -26,18 +26,20 @@
 ### Dependency Analysis
 | Metric | Value | Trend |
 |--------|--------|-------|
-| **Analysis Time** | 1ms | ➡️ 0.0% |
-| **Total Dependencies** | 102 | ➡️ 0.0% |
-| **Shared Services** | 6 | ➡️ 0.0% |
+| **Analysis Time** | 0ms | N/A |
+| **Total Dependencies** | 0 | 📉 100.0% |
+| **Shared Services** | 0 | 📉 100.0% |
 | **High Priority Deps** | 0 | N/A |
-| **Medium Priority Deps** | 6 | ➡️ 0.0% |
-| **Low Priority Deps** | 96 | ➡️ 0.0% |
+| **Medium Priority Deps** | 0 | 📉 100.0% |
+| **Low Priority Deps** | 0 | 📉 100.0% |
 
 ## 📈 Historical Performance Trends
 
 ### Performance Over Time (Last 10 runs)
 1. **9/15/2025** - Gen: 29ms, Mem: 4MB
 2. **9/15/2025** - Gen: 30ms, Mem: 6MB
+3. **9/15/2025** - Gen: 29ms, Mem: 6MB
+4. **9/15/2025** - Gen: 1002ms, Mem: 4MB
 
 ### Performance Benchmarks
 - **🎯 Target Generation Time**: < 5000ms (✅ PASS)
@@ -47,7 +49,7 @@
 
 ## 🔧 Performance Optimization Recommendations
 
-- 🔗 **Low Service Sharing**: Consider consolidating similar backend dependencies
+- 📈 **Performance Regression**: Generation time increased by >20% since last run
 
 ## 📊 Quality Metrics
 
@@ -56,4 +58,4 @@
 
 ---
 *Report generated automatically by SwissKnife Documentation Performance Monitor*
-*Metrics collected: 2025-09-15T07:19:39.980Z*
+*Metrics collected: 2025-09-15T09:10:01.378Z*
