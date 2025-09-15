@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-15T09:19:25.475Z",
+  "timestamp": "2025-09-15T09:21:08.044Z",
   "summary": {
     "qualityScore": 81,
     "qualityGrade": "B",
@@ -7,11 +7,11 @@
     "brokenLinks": 28,
     "missingScreenshots": 0,
     "generationTime": 1002,
-    "lastUpdate": "2025-09-15T09:19:24.933Z",
+    "lastUpdate": "2025-09-15T09:21:07.538Z",
     "status": "needs-improvement"
   },
   "analytics": {
-    "timestamp": "2025-09-15T09:19:24.933Z",
+    "timestamp": "2025-09-15T09:21:07.538Z",
     "quality": {
       "overallScore": 81,
       "completeness": 81,
@@ -103,7 +103,7 @@
     }
   },
   "linkValidation": {
-    "generated": "2025-09-15T09:19:25.173Z",
+    "generated": "2025-09-15T09:21:07.760Z",
     "summary": {
       "totalFiles": 648,
       "brokenLinks": 28,
@@ -319,7 +319,7 @@
     ]
   },
   "screenshots": {
-    "generated": "2025-09-15T09:19:25.232Z",
+    "generated": "2025-09-15T09:21:07.809Z",
     "summary": {
       "totalMissing": 0,
       "availableScreenshots": 1,
@@ -360,6 +360,12 @@
     },
     {
       "timestamp": "2025-09-15T09:19:24.933Z",
+      "qualityScore": 81,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:21:07.538Z",
       "qualityScore": 81,
       "totalFiles": 30,
       "brokenLinks": 54
