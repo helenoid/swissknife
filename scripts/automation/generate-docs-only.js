@@ -9,6 +9,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { DocumentationPerformanceMonitor } from './performance-monitor.js';
+import { DocumentationAnalytics } from './documentation-analytics.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -301,18 +303,201 @@ class DocumentationGenerator {
     };
   }
 
+  // Enhanced helper methods for better documentation generation
+  calculateComplexity(app) {
+    const baseScore = app.backendDependencies.length * 1.5;
+    const featureScore = app.features.length * 0.8;
+    const integrationScore = app.registeredApp ? 0 : 2;
+    
+    const totalScore = Math.min(10, Math.round(baseScore + featureScore + integrationScore));
+    const level = totalScore <= 3 ? 'Simple' : totalScore <= 6 ? 'Moderate' : totalScore <= 8 ? 'Complex' : 'Very Complex';
+    
+    return { score: totalScore, level };
+  }
+
+  estimateDevelopmentTime(app) {
+    const complexity = this.calculateComplexity(app);
+    const baseHours = complexity.score * 8; // 8 hours per complexity point
+    const days = Math.ceil(baseHours / 8);
+    
+    if (days <= 3) return `1-3 days`;
+    if (days <= 7) return `1 week`;
+    if (days <= 14) return `1-2 weeks`;
+    if (days <= 30) return `2-4 weeks`;
+    return `1+ months`;
+  }
+
+  isMockable(dependency) {
+    const mockableServices = [
+      'AI providers', 'File system', 'Task distribution', 'P2P networking',
+      'WebAudio API', 'Image processing', 'Document storage', 'Search indexing'
+    ];
+    return mockableServices.some(service => dependency.toLowerCase().includes(service.toLowerCase()));
+  }
+
+  getImplementationGuide(dependency) {
+    const guides = {
+      'AI providers': 'Integrate with OpenAI/Anthropic APIs with fallback mocks',
+      'File system': 'Implement IPFS-based file operations with local fallback',
+      'P2P networking': 'Setup libp2p networking with discovery protocols',
+      'Task distribution': 'Create task queue with worker pool management',
+      'WebAudio API': 'Initialize Web Audio context with synthesis capabilities',
+      'Image processing': 'Setup image manipulation with format conversion',
+      'Document storage': 'Implement document CRUD with version control',
+      'Search indexing': 'Create full-text search with real-time indexing'
+    };
+    
+    for (const [key, guide] of Object.entries(guides)) {
+      if (dependency.toLowerCase().includes(key.toLowerCase())) {
+        return guide;
+      }
+    }
+    return `Setup ${dependency} service with appropriate configurations`;
+  }
+
+  generateMockInterface(dependency) {
+    const mockMethods = {
+      'AI providers': 'generateResponse(prompt: string): Promise<string>',
+      'File system': 'readFile(path: string): Promise<Buffer>',
+      'P2P networking': 'broadcastMessage(message: any): Promise<void>',
+      'Task distribution': 'scheduleTask(task: Task): Promise<TaskResult>',
+      'WebAudio API': 'createAudioContext(): Promise<AudioContext>',
+      'Image processing': 'processImage(image: Buffer): Promise<Buffer>',
+      'Document storage': 'saveDocument(doc: Document): Promise<string>',
+      'Search indexing': 'searchIndex(query: string): Promise<SearchResult[]>'
+    };
+    
+    for (const [key, method] of Object.entries(mockMethods)) {
+      if (dependency.toLowerCase().includes(key.toLowerCase())) {
+        return method;
+      }
+    }
+    return `mockMethod(): Promise<any>;`;
+  }
+
+  featureToMethod(feature) {
+    return feature.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/^/, 'handle_');
+  }
+
+  featureToReturnType(feature) {
+    if (feature.toLowerCase().includes('collaborative') || feature.toLowerCase().includes('sharing')) {
+      return 'CollaborationResult';
+    }
+    if (feature.toLowerCase().includes('ai') || feature.toLowerCase().includes('generation')) {
+      return 'AIResponse';
+    }
+    if (feature.toLowerCase().includes('monitoring') || feature.toLowerCase().includes('analytics')) {
+      return 'MetricsData';
+    }
+    return 'OperationResult';
+  }
+
+  getCrossAppDependencies(app) {
+    const crossDeps = [];
+    
+    APPLICATIONS.forEach(otherApp => {
+      if (otherApp.name !== app.name) {
+        const sharedServices = app.backendDependencies.filter(dep => 
+          otherApp.backendDependencies.includes(dep)
+        );
+        
+        if (sharedServices.length > 0) {
+          crossDeps.push({
+            app: otherApp.title,
+            sharedServices
+          });
+        }
+      }
+    });
+    
+    return crossDeps;
+  }
+
+  getRelatedApps(app) {
+    const related = [];
+    
+    // Find apps with shared dependencies
+    const sharedDepApps = APPLICATIONS.filter(otherApp => 
+      otherApp.name !== app.name && 
+      app.backendDependencies.some(dep => otherApp.backendDependencies.includes(dep))
+    );
+    
+    sharedDepApps.forEach(relatedApp => {
+      const sharedDeps = app.backendDependencies.filter(dep => 
+        relatedApp.backendDependencies.includes(dep)
+      );
+      related.push({
+        title: relatedApp.title,
+        name: relatedApp.name,
+        relationship: `Shares ${sharedDeps.length} backend service${sharedDeps.length > 1 ? 's' : ''}`
+      });
+    });
+    
+    // Find apps with similar features
+    const sharedFeatureApps = APPLICATIONS.filter(otherApp => 
+      otherApp.name !== app.name && 
+      app.features.some(feature => otherApp.features.some(f => 
+        f.toLowerCase().includes(feature.split(' ')[0].toLowerCase())
+      ))
+    );
+    
+    sharedFeatureApps.forEach(relatedApp => {
+      if (!related.find(r => r.name === relatedApp.name)) {
+        related.push({
+          title: relatedApp.title,
+          name: relatedApp.name,
+          relationship: `Similar functionality and features`
+        });
+      }
+    });
+    
+    return related.slice(0, 5); // Limit to top 5 related apps
+  }
+
   async run() {
+    const performanceMonitor = new DocumentationPerformanceMonitor();
+    const analytics = new DocumentationAnalytics();
+    
     try {
       console.log('🚀 Starting SwissKnife Documentation Generation...');
+      
+      // Start performance monitoring
+      await performanceMonitor.startDocumentationGeneration();
       
       // Ensure directories exist
       await this.ensureDirectories();
       
-      // Generate documentation
+      // Generate documentation with performance tracking
       await this.generateDocumentation();
+      
+      // Analyze dependencies for metrics
+      await performanceMonitor.analyzeDependencies(APPLICATIONS);
+      
+      // Record system metrics
+      await performanceMonitor.recordSystemMetrics();
+      
+      // End performance monitoring
+      const filesGenerated = this.results.success.length + 3; // +3 for main docs
+      await performanceMonitor.endDocumentationGeneration(APPLICATIONS.length, filesGenerated);
+      
+      // Run comprehensive analytics
+      console.log('📊 Running documentation analytics...');
+      await analytics.analyzeDocumentation();
+      
+      // Generate reports
+      await performanceMonitor.saveMetrics();
+      await analytics.generateQualityReport();
+      await analytics.saveAnalytics();
       
       console.log('✅ Documentation generation completed successfully!');
       console.log(`✅ ${this.results.success.length} applications documented`);
+      console.log(`📊 Performance report: docs/automation/performance-report.md`);
+      console.log(`📊 Quality report: docs/automation/quality-report.md`);
+      console.log(`📊 Overall Quality Score: ${analytics.analytics.quality.overallScore}/100`);
+      
       if (this.results.failed.length > 0) {
         console.log(`❌ ${this.results.failed.length} applications failed`);
       }
@@ -357,43 +542,225 @@ class DocumentationGenerator {
   }
 
   generateAppDocumentation(app) {
+    const priorityLevel = app.backendDependencies.length > 3 ? 'HIGH' : app.backendDependencies.length > 1 ? 'MEDIUM' : 'LOW';
+    const priorityEmoji = app.backendDependencies.length > 3 ? '🔴' : app.backendDependencies.length > 1 ? '🟡' : '🟢';
+    const complexity = this.calculateComplexity(app);
+    const developmentTime = this.estimateDevelopmentTime(app);
+    const generatedDate = new Date().toISOString().split('T')[0];
+
     return `# ${app.title}
 
-![${app.name} Icon](../screenshots/${app.name}-icon.png)
+---
+**🏷️ Metadata**
+- **Application ID**: \`${app.name}\`
+- **Icon**: ${app.icon}
+- **Status**: ${app.registeredApp ? '✅ Registered & Active' : '⚠️ Pending Registration'}
+- **Priority Level**: ${priorityEmoji} ${priorityLevel}
+- **Complexity Score**: ${complexity.score}/10 (${complexity.level})
+- **Est. Development Time**: ${developmentTime}
+- **Last Updated**: ${generatedDate}
+---
 
-## Description
+![${app.name} Application](../screenshots/${app.name}-icon.png)
+
+## 📋 Overview
+
 ${app.description}
 
-## Screenshots
-- **Icon**: ![Icon](../screenshots/${app.name}-icon.png)
-- **Application Window**: ![Window](../screenshots/${app.name}-window.png)
+### Quick Stats
+| Metric | Value |
+|--------|-------|
+| **Features Count** | ${app.features.length} |
+| **Backend Dependencies** | ${app.backendDependencies.length} |
+| **Development Priority** | ${priorityEmoji} ${priorityLevel} |
+| **Complexity** | ${complexity.score}/10 |
+| **Integration Status** | ${app.registeredApp ? '✅ Complete' : '⚠️ Pending'} |
 
-## Features
-${app.features.map(feature => `- ${feature}`).join('\n')}
+## 📸 Visual Documentation
 
-## Backend Dependencies
-${app.backendDependencies.map(dep => `- **${dep}**: Core dependency for application functionality`).join('\n')}
+### Application Screenshots
+- **🖼️ Desktop Icon**: ![Icon](../screenshots/${app.name}-icon.png)
+- **🪟 Application Window**: ![Window](../screenshots/${app.name}-window.png)
+- **🖥️ Full Context**: Shows application in desktop environment
 
-## Development Considerations
-This application requires the following backend services to be operational:
-${app.backendDependencies.map(dep => `- [ ] ${dep}`).join('\n')}
+> 📷 *Screenshots are automatically captured and updated by our CI/CD pipeline to ensure documentation stays current with UI changes.*
 
-## Integration Points
-- **Frontend Component**: \`web/js/apps/${app.name}.js\`
-- **Desktop Integration**: Application icon selector \`${app.selector}\`
-- **Icon**: ${app.icon}
-- **Registered Application**: ${app.registeredApp ? '✅ Yes' : '❌ No (needs registration)'}
+## ✨ Core Features
 
-## Parallel Development Strategy
-To enable parallel frontend and backend development:
+${app.features.map((feature, index) => {
+  const featureApps = APPLICATIONS.filter(a => a.features.includes(feature));
+  const isSharedFeature = featureApps.length > 1;
+  return `${index + 1}. **${feature}**${isSharedFeature ? ` 🔗 *(Shared with ${featureApps.length - 1} other app${featureApps.length > 2 ? 's' : ''})*` : ''}`;
+}).join('\n')}
 
-1. **Mock Backend Services**: Create mock implementations of required backend dependencies
-2. **API Contracts**: Define clear API contracts for all backend services
-3. **Testing Strategy**: Implement comprehensive testing for both frontend and backend components
-4. **Documentation**: Maintain up-to-date documentation of all dependencies and their interactions
+### Feature Implementation Matrix
+| Feature | Implementation Status | Shared Component |
+|---------|---------------------|------------------|
+${app.features.map(feature => {
+  const featureApps = APPLICATIONS.filter(a => a.features.includes(feature));
+  const isShared = featureApps.length > 1;
+  return `| ${feature} | ${app.registeredApp ? '✅ Implemented' : '⏳ Pending'} | ${isShared ? '🔗 Yes' : '❌ No'} |`;
+}).join('\n')}
+
+## 🔧 Backend Infrastructure
+
+### Service Dependencies (${app.backendDependencies.length} total)
+
+${app.backendDependencies.map((dep, index) => {
+  const dependentApps = APPLICATIONS.filter(a => a.backendDependencies.includes(dep));
+  const priority = dependentApps.length > 3 ? '🔴 CRITICAL' : dependentApps.length > 1 ? '🟡 IMPORTANT' : '🟢 LOW';
+  const mockable = this.isMockable(dep);
+  
+  return `${index + 1}. **${dep}**
+   - **Priority**: ${priority} (${dependentApps.length} app${dependentApps.length > 1 ? 's' : ''} depend on this)
+   - **Mock Available**: ${mockable ? '✅ Yes' : '❌ Create needed'}
+   - **Shared Service**: ${dependentApps.length > 1 ? '✅ Yes' : '❌ No'}
+   - **Implementation Status**: ${app.registeredApp ? '✅ Ready' : '⏳ Pending'}`;
+}).join('\n\n')}
+
+### Dependency Graph
+\`\`\`mermaid
+graph TD
+    APP[${app.title}]
+${app.backendDependencies.map(dep => `    APP --> ${dep.replace(/[^a-zA-Z0-9]/g, '_')}`).join('\n')}
+\`\`\`
+
+## 🛠️ Development Guide
+
+### Quick Start Checklist
+${app.backendDependencies.map(dep => `- [ ] **${dep}** - ${this.getImplementationGuide(dep)}`).join('\n')}
+- [ ] **Frontend Component** - Implement \`web/js/apps/${app.name}.js\`
+- [ ] **Desktop Integration** - Register application with selector \`${app.selector}\`
+- [ ] **Testing Suite** - Create comprehensive tests
+- [ ] **Documentation** - Update API documentation
+
+### Implementation Priority
+**${priorityEmoji} Priority Level: ${priorityLevel}**
+
+${priorityLevel === 'HIGH' ? 
+`🚨 **Critical Path Application** - This app blocks other development. Implement immediately.
+
+**Recommended Timeline**: Week 1-2 of development cycle
+**Team Assignment**: Senior developers with backend expertise
+**Parallel Work**: Create mocks immediately for frontend team` :
+priorityLevel === 'MEDIUM' ?
+`⚡ **Important Application** - Moderately impacts overall functionality.
+
+**Recommended Timeline**: Week 3-4 of development cycle  
+**Team Assignment**: Mixed senior/junior developer team
+**Parallel Work**: Can use shared service implementations` :
+`📦 **Specialized Application** - Independent functionality, can be deferred.
+
+**Recommended Timeline**: Week 5+ of development cycle
+**Team Assignment**: Junior developers for learning
+**Parallel Work**: Ideal for concurrent development`}
+
+### Mock Implementation Strategy
+
+For rapid parallel development, create these mock services:
+
+\`\`\`typescript
+// Mock implementation template for ${app.name}
+interface ${app.name.charAt(0).toUpperCase() + app.name.slice(1)}MockService {
+${app.backendDependencies.map(dep => `  // Mock ${dep}
+  ${this.generateMockInterface(dep)}`).join('\n')}
+}
+\`\`\`
+
+### API Contracts
+
+**Frontend ↔ Backend Interface:**
+
+\`\`\`typescript
+// API contract for ${app.title}
+interface ${app.name.charAt(0).toUpperCase() + app.name.slice(1)}API {
+  // Core application methods
+${app.features.map(feature => `  ${this.featureToMethod(feature)}(): Promise<${this.featureToReturnType(feature)}>;`).join('\n')}
+}
+\`\`\`
+
+## 🧪 Testing Strategy
+
+### Test Coverage Requirements
+- [ ] **Unit Tests**: Individual component testing (90%+ coverage)
+- [ ] **Integration Tests**: Backend service integration
+- [ ] **E2E Tests**: Full application workflow testing
+- [ ] **Visual Regression**: Screenshot comparison testing
+- [ ] **Performance Tests**: Load and response time testing
+
+### Automated Test Commands
+\`\`\`bash
+# Run all tests for ${app.name}
+npm run test:app:${app.name}
+
+# Run specific test types  
+npm run test:unit:${app.name}
+npm run test:integration:${app.name}
+npm run test:e2e:${app.name}
+
+# Visual regression testing
+npm run test:visual:${app.name}
+\`\`\`
+
+## 📊 Integration Points
+
+### Frontend Integration
+- **Component Path**: \`web/js/apps/${app.name}.js\`
+- **CSS Styles**: \`web/css/apps/${app.name}.css\`
+- **Desktop Selector**: \`${app.selector}\`
+- **Window Management**: Integrated with desktop window system
+
+### Backend Integration  
+- **Service Registry**: Auto-discovered through dependency injection
+- **API Endpoints**: RESTful APIs following SwissKnife conventions
+- **Event System**: Pub/sub integration for real-time features
+- **Data Persistence**: Integrated with SwissKnife data layer
+
+### Cross-Application Dependencies
+${this.getCrossAppDependencies(app).map(dep => `- **${dep.app}**: Shares ${dep.sharedServices.join(', ')}`).join('\n')}
+
+## 📈 Performance Considerations
+
+### Optimization Targets
+- **Load Time**: < 2s initial load
+- **Response Time**: < 100ms for UI interactions  
+- **Memory Usage**: < 50MB peak usage
+- **Bundle Size**: < 500KB compressed
+
+### Performance Monitoring
+\`\`\`javascript
+// Performance monitoring for ${app.name}
+const monitor = new SwissKnifePerformanceMonitor('${app.name}');
+monitor.trackMetrics(['loadTime', 'responseTime', 'memoryUsage']);
+\`\`\`
+
+## 🔗 Related Documentation
+
+### Application Dependencies
+${this.getRelatedApps(app).map(related => `- [${related.title}](${related.name}.md) - ${related.relationship}`).join('\n')}
+
+### Shared Services Documentation
+${app.backendDependencies.map(dep => {
+  const sharedApps = APPLICATIONS.filter(a => a.backendDependencies.includes(dep) && a.name !== app.name);
+  return sharedApps.length > 0 ? `- **${dep}** - Also used by ${sharedApps.map(a => `[${a.title}](${a.name}.md)`).join(', ')}` : '';
+}).filter(Boolean).join('\n')}
+
+### Development Resources
+- [Backend Dependencies Overview](backend-dependencies.md)
+- [Features Matrix](features-matrix.md)
+- [Development Workflow Guide](../automation/README.md)
+- [Testing Guidelines](../automation/SETUP.md)
 
 ---
-*Generated automatically by SwissKnife documentation system*
+
+**📝 Document Metadata**
+- **Generated**: ${generatedDate} by SwissKnife Documentation System
+- **Version**: 2.0 Enhanced Template
+- **Automation**: Playwright + Custom Documentation Generator
+- **Update Frequency**: On code changes + Weekly scheduled runs
+- **Source**: \`scripts/automation/generate-docs-only.js\`
+
+*This documentation is automatically generated and maintained. Screenshots and dependency information are updated in real-time through our CI/CD pipeline.*
 `;
   }
 

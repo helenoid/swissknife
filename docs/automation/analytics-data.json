@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2025-09-15T07:19:39.981Z",
+    "quality": {
+      "overallScore": 72,
+      "completeness": 81,
+      "consistency": 100,
+      "accuracy": 0,
+      "maintainability": 100
+    },
+    "content": {
+      "totalWords": 37246,
+      "totalFiles": 30,
+      "averageLength": 1242,
+      "duplicateContent": 0,
+      "brokenReferences": 54
+    },
+    "structure": {
+      "crossReferences": 253,
+      "orphanedFiles": 0,
+      "missingScreenshots": 108,
+      "inconsistentFormatting": 0
+    },
+    "changes": {
+      "filesModified": 0,
+      "contentChanges": 0,
+      "structureChanges": 0,
+      "newFiles": 30,
+      "deletedFiles": 0
+    }
+  }
+]
