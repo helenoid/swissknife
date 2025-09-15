@@ -1,15 +1,15 @@
 # SwissKnife Advanced Screenshot Automation Report
 
-**Generated**: 2025-09-15T09:56:52.303Z
+**Generated**: 2025-09-15T16:17:31.038Z
 
 ## 📊 Summary
 
 | Metric | Value |
 |--------|-------|
-| **Screenshots Captured** | 1 |
+| **Screenshots Captured** | 0 |
 | **Coverage Percentage** | 100% |
 | **Method Used** | none |
-| **Failed Attempts** | 0 |
+| **Failed Attempts** | 1 |
 
 ## 🎯 Analytics
 
@@ -31,11 +31,12 @@ No screenshot analytics available
 
 ## 📋 Captured Screenshots
 
-- **documentation**: Generated documentation without live screenshots
+
 
 ## ❌ Failed Attempts
 
-No failures recorded
+- **capture**: Command failed: npx playwright test /home/runner/work/swissknife/swissknife/test/e2e/desktop-applications-documentation.test.ts --project=chromium --reporter=json
+
 
 ## 🚀 Recommended Improvements
 

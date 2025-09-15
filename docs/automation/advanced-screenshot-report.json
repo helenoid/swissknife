@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-15T09:56:52.303Z",
+  "timestamp": "2025-09-15T16:17:31.038Z",
   "analytics": {
     "playwrightAvailable": true,
     "virtualDisplayAvailable": true,
@@ -16,18 +16,17 @@
     }
   },
   "summary": {
-    "totalCaptured": 1,
-    "totalFailed": 0,
+    "totalCaptured": 0,
+    "totalFailed": 1,
     "coveragePercent": 100,
     "method": "none"
   },
-  "captured": [
+  "captured": [],
+  "failed": [
     {
-      "type": "documentation",
-      "method": "static",
-      "description": "Generated documentation without live screenshots"
+      "type": "capture",
+      "error": "Command failed: npx playwright test /home/runner/work/swissknife/swissknife/test/e2e/desktop-applications-documentation.test.ts --project=chromium --reporter=json\n"
     }
   ],
-  "failed": [],
   "improvements": []
 }
