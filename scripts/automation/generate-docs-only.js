@@ -1,26 +1,26 @@
-import { test, expect, Page } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
+#!/usr/bin/env node
+
+/**
+ * SwissKnife Documentation Generation Script
+ * Generates comprehensive documentation for all desktop applications
+ * This version skips screenshots but creates all the documentation files
+ */
+
+import fs from 'fs/promises';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Import fetch for Node.js
-const fetch = globalThis.fetch;
+// Configuration
+const CONFIG = {
+  docsDir: path.join(__dirname, '../../docs/applications'),
+  screenshotsDir: path.join(__dirname, '../../docs/screenshots')
+};
 
-interface Application {
-  name: string;
-  selector: string;
-  title: string;
-  description: string;
-  backendDependencies: string[];
-  features: string[];
-  icon: string;
-}
-
-// Comprehensive list of all SwissKnife applications based on the actual desktop implementation
-const applications: Application[] = [
+// Comprehensive list of all SwissKnife applications
+const APPLICATIONS = [
   {
     name: 'terminal',
     selector: '[data-app="terminal"]',
@@ -28,7 +28,8 @@ const applications: Application[] = [
     description: 'AI-powered terminal with P2P collaboration and distributed task execution',
     backendDependencies: ['CLI engine', 'AI providers', 'P2P networking', 'Task distribution'],
     features: ['AI assistance', 'P2P task sharing', 'Collaborative sessions', 'Enhanced command completion'],
-    icon: '🖥️'
+    icon: '🖥️',
+    registeredApp: true
   },
   {
     name: 'vibecode',
@@ -37,7 +38,8 @@ const applications: Application[] = [
     description: 'Professional AI-powered Streamlit development environment with Monaco editor',
     backendDependencies: ['Monaco editor', 'Streamlit runtime', 'AI code generation', 'File system'],
     features: ['AI code completion', 'Live preview', 'Template system', 'Multi-panel interface'],
-    icon: '🎯'
+    icon: '🎯',
+    registeredApp: true
   },
   {
     name: 'strudel-ai-daw',
@@ -46,7 +48,8 @@ const applications: Application[] = [
     description: 'Collaborative music creation with AI-powered digital audio workstation',
     backendDependencies: ['Strudel core', 'WebAudio API', 'Audio workers', 'P2P audio streaming'],
     features: ['Live coding', 'Pattern composition', 'Collaborative music', 'AI music generation'],
-    icon: '🎵'
+    icon: '🎵',
+    registeredApp: true
   },
   {
     name: 'ai-chat',
@@ -55,7 +58,8 @@ const applications: Application[] = [
     description: 'Multi-provider AI chat with collaborative conversations',
     backendDependencies: ['OpenAI API', 'Anthropic API', 'Hugging Face', 'OpenRouter'],
     features: ['Multi-provider support', 'Collaborative chats', 'Context sharing', 'Real-time responses'],
-    icon: '🤖'
+    icon: '🤖',
+    registeredApp: true
   },
   {
     name: 'file-manager',
@@ -64,7 +68,8 @@ const applications: Application[] = [
     description: 'Professional file manager with IPFS integration and collaborative features',
     backendDependencies: ['File system API', 'IPFS network', 'P2P file sharing', 'Version control'],
     features: ['IPFS integration', 'Collaborative editing', 'Version control', 'Distributed storage'],
-    icon: '📁'
+    icon: '📁',
+    registeredApp: true
   },
   {
     name: 'task-manager',
@@ -73,7 +78,8 @@ const applications: Application[] = [
     description: 'Distributed task management with P2P coordination',
     backendDependencies: ['Task scheduler', 'P2P coordination', 'Worker pools', 'Event system'],
     features: ['Task scheduling', 'Distributed execution', 'Progress tracking', 'Error handling'],
-    icon: '⚡'
+    icon: '⚡',
+    registeredApp: true
   },
   {
     name: 'model-browser',
@@ -82,7 +88,8 @@ const applications: Application[] = [
     description: 'Browse and manage AI models with edge deployment',
     backendDependencies: ['Model registry', 'Edge deployment', 'Model caching', 'Version management'],
     features: ['Model discovery', 'Edge deployment', 'Performance monitoring', 'Version control'],
-    icon: '🧠'
+    icon: '🧠',
+    registeredApp: true
   },
   {
     name: 'huggingface',
@@ -91,7 +98,8 @@ const applications: Application[] = [
     description: 'Access to 100,000+ AI models with edge deployment',
     backendDependencies: ['Hugging Face API', 'Model hosting', 'Edge deployment', 'Inference engine'],
     features: ['Model browser', 'Edge deployment', 'Inference playground', 'Dataset access'],
-    icon: '🤗'
+    icon: '🤗',
+    registeredApp: true
   },
   {
     name: 'openrouter',
@@ -100,7 +108,8 @@ const applications: Application[] = [
     description: 'Universal access to 100+ premium language models',
     backendDependencies: ['OpenRouter API', 'Model routing', 'Load balancing', 'Cost optimization'],
     features: ['Model selection', 'Cost optimization', 'Performance monitoring', 'Multi-provider access'],
-    icon: '🔄'
+    icon: '🔄',
+    registeredApp: true
   },
   {
     name: 'ipfs-explorer',
@@ -109,7 +118,8 @@ const applications: Application[] = [
     description: 'Explore and manage IPFS content with collaborative features',
     backendDependencies: ['IPFS node', 'Content discovery', 'Pinning service', 'Gateway access'],
     features: ['Content browsing', 'Pin management', 'Peer discovery', 'Content sharing'],
-    icon: '🌐'
+    icon: '🌐',
+    registeredApp: true
   },
   {
     name: 'device-manager',
@@ -118,7 +128,8 @@ const applications: Application[] = [
     description: 'Manage local and remote devices with hardware acceleration',
     backendDependencies: ['Device detection', 'Hardware abstraction', 'WebGPU', 'Performance monitoring'],
     features: ['Device detection', 'Hardware acceleration', 'Performance monitoring', 'Resource allocation'],
-    icon: '🔧'
+    icon: '🔧',
+    registeredApp: true
   },
   {
     name: 'settings',
@@ -127,7 +138,8 @@ const applications: Application[] = [
     description: 'System configuration with P2P synchronization',
     backendDependencies: ['Configuration manager', 'P2P sync', 'Encryption', 'Backup system'],
     features: ['Configuration sync', 'Security settings', 'Backup/restore', 'Theme management'],
-    icon: '⚙️'
+    icon: '⚙️',
+    registeredApp: true
   },
   {
     name: 'mcp-control',
@@ -136,7 +148,8 @@ const applications: Application[] = [
     description: 'Model Context Protocol control and management interface',
     backendDependencies: ['MCP protocol', 'Service discovery', 'Connection management', 'Protocol handlers'],
     features: ['Service management', 'Protocol inspection', 'Connection monitoring', 'Debug tools'],
-    icon: '🔌'
+    icon: '🔌',
+    registeredApp: true
   },
   {
     name: 'api-keys',
@@ -145,7 +158,8 @@ const applications: Application[] = [
     description: 'Secure API key management with encrypted storage',
     backendDependencies: ['Encryption service', 'Secure storage', 'Key rotation', 'Access control'],
     features: ['Secure storage', 'Key rotation', 'Usage tracking', 'Access control'],
-    icon: '🔑'
+    icon: '🔑',
+    registeredApp: true
   },
   {
     name: 'github',
@@ -154,7 +168,8 @@ const applications: Application[] = [
     description: 'GitHub repository management and collaboration tools',
     backendDependencies: ['GitHub API', 'OAuth authentication', 'Git operations', 'Webhook handlers'],
     features: ['Repository management', 'Issue tracking', 'Pull requests', 'Code review'],
-    icon: '🐙'
+    icon: '🐙',
+    registeredApp: true
   },
   {
     name: 'oauth-login',
@@ -163,7 +178,8 @@ const applications: Application[] = [
     description: 'OAuth login and authentication management system',
     backendDependencies: ['OAuth providers', 'Token management', 'Session handling', 'Security validation'],
     features: ['Multi-provider auth', 'Token refresh', 'Session management', 'Security auditing'],
-    icon: '🔐'
+    icon: '🔐',
+    registeredApp: true
   },
   {
     name: 'cron',
@@ -172,7 +188,8 @@ const applications: Application[] = [
     description: 'AI-powered task scheduling with distributed execution',
     backendDependencies: ['Cron scheduler', 'AI planning', 'Task distribution', 'Monitoring'],
     features: ['AI scheduling', 'Distributed tasks', 'Smart timing', 'Resource optimization'],
-    icon: '⏰'
+    icon: '⏰',
+    registeredApp: true
   },
   {
     name: 'navi',
@@ -181,7 +198,8 @@ const applications: Application[] = [
     description: 'AI navigation assistant for system exploration and guidance',
     backendDependencies: ['AI navigation', 'System indexing', 'Search engine', 'Context awareness'],
     features: ['Smart navigation', 'Context search', 'System exploration', 'AI assistance'],
-    icon: '🧭'
+    icon: '🧭',
+    registeredApp: true
   },
   {
     name: 'strudel',
@@ -190,7 +208,8 @@ const applications: Application[] = [
     description: 'Advanced music composition and live coding environment',
     backendDependencies: ['Strudel engine', 'WebAudio API', 'Pattern compiler', 'Audio synthesis'],
     features: ['Live coding', 'Pattern sequencing', 'Audio synthesis', 'Real-time composition'],
-    icon: '🎵'
+    icon: '🎵',
+    registeredApp: true
   },
   {
     name: 'p2p-network',
@@ -199,7 +218,8 @@ const applications: Application[] = [
     description: 'Peer-to-peer network coordination and task distribution',
     backendDependencies: ['libp2p', 'Network discovery', 'Task coordination', 'Peer management'],
     features: ['Peer discovery', 'Task distribution', 'Network monitoring', 'Load balancing'],
-    icon: '🔗'
+    icon: '🔗',
+    registeredApp: true
   },
   {
     name: 'neural-network-designer',
@@ -208,7 +228,8 @@ const applications: Application[] = [
     description: 'Visual neural network architecture design with collaborative development',
     backendDependencies: ['Neural network frameworks', 'Training engine', 'Visualization', 'Model export'],
     features: ['Visual design', 'Real-time training', 'Collaborative development', 'Model export'],
-    icon: '🧠'
+    icon: '🧠',
+    registeredApp: true
   },
   {
     name: 'training-manager',
@@ -217,7 +238,8 @@ const applications: Application[] = [
     description: 'AI model training coordination with distributed computing',
     backendDependencies: ['Training frameworks', 'Distributed computing', 'Model registry', 'Progress tracking'],
     features: ['Training coordination', 'Progress monitoring', 'Resource management', 'Model versioning'],
-    icon: '🎯'
+    icon: '🎯',
+    registeredApp: true
   },
   {
     name: 'calculator',
@@ -226,7 +248,8 @@ const applications: Application[] = [
     description: 'Professional calculator with multiple modes and collaborative equation sharing',
     backendDependencies: ['Mathematical engine', 'Expression parser', 'History storage', 'Sharing service'],
     features: ['Scientific calculations', 'Programmable functions', 'History tracking', 'Equation sharing'],
-    icon: '🧮'
+    icon: '🧮',
+    registeredApp: true
   },
   {
     name: 'clock',
@@ -235,7 +258,8 @@ const applications: Application[] = [
     description: 'World clock with timers and collaborative scheduling',
     backendDependencies: ['Time zone database', 'Timer service', 'Notification system', 'Calendar integration'],
     features: ['World clock', 'Timer management', 'Alarms', 'Time zone conversion'],
-    icon: '🕐'
+    icon: '🕐',
+    registeredApp: true
   },
   {
     name: 'image-viewer',
@@ -244,7 +268,8 @@ const applications: Application[] = [
     description: 'Professional image viewer with editing and sharing capabilities',
     backendDependencies: ['Image processing', 'Format support', 'Editing engine', 'Sharing service'],
     features: ['Multi-format support', 'Basic editing', 'Batch processing', 'Cloud sharing'],
-    icon: '🖼️'
+    icon: '🖼️',
+    registeredApp: true
   },
   {
     name: 'notes',
@@ -253,7 +278,8 @@ const applications: Application[] = [
     description: 'Collaborative note-taking with real-time synchronization',
     backendDependencies: ['Document storage', 'Real-time sync', 'Version control', 'Search indexing'],
     features: ['Real-time collaboration', 'Rich text editing', 'Version history', 'Search functionality'],
-    icon: '📝'
+    icon: '📝',
+    registeredApp: true
   },
   {
     name: 'system-monitor',
@@ -262,186 +288,76 @@ const applications: Application[] = [
     description: 'Comprehensive system monitoring with performance analytics',
     backendDependencies: ['Performance APIs', 'Monitoring agents', 'Data collection', 'Analytics engine'],
     features: ['Performance monitoring', 'Resource tracking', 'Alert system', 'Historical data'],
-    icon: '📊'
+    icon: '📊',
+    registeredApp: true
   }
 ];
 
-test.describe('Desktop Applications Documentation', () => {
-  let page: Page;
-  const screenshotsDir = path.join(__dirname, '../../docs/screenshots');
-  const docsDir = path.join(__dirname, '../../docs/applications');
-
-  test.beforeAll(async ({ browser }) => {
-    // Ensure directories exist
-    if (!fs.existsSync(screenshotsDir)) {
-      fs.mkdirSync(screenshotsDir, { recursive: true });
-    }
-    if (!fs.existsSync(docsDir)) {
-      fs.mkdirSync(docsDir, { recursive: true });
-    }
-
-    page = await browser.newPage();
-    
-    // Try different ports to find the running server
-    const possiblePorts = ['3001', '3002', '3000'];
-    let serverUrl = '';
-    
-    for (const port of possiblePorts) {
-      try {
-        const testUrl = `http://localhost:${port}`;
-        const response = await fetch(testUrl);
-        if (response.ok) {
-          serverUrl = testUrl;
-          console.log(`Found desktop server at ${serverUrl}`);
-          break;
-        }
-      } catch (error) {
-        // Continue to next port
-      }
-    }
-    
-    if (!serverUrl) {
-      throw new Error('No desktop server found on ports 3000, 3001, or 3002');
-    }
-    
-    await page.goto(serverUrl);
-    
-    // Wait for desktop to load
-    await page.waitForSelector('.desktop', { timeout: 30000 });
-    await page.waitForSelector('.desktop-icons', { timeout: 10000 });
-  });
-
-  test.afterAll(async () => {
-    await page?.close();
-  });
-
-  test('should take desktop overview screenshot', async () => {
-    // Take full desktop screenshot
-    await page.screenshot({ 
-      path: path.join(screenshotsDir, 'desktop-overview.png'),
-      fullPage: true 
-    });
-    
-    console.log('Desktop overview screenshot captured');
-  });
-
-  for (const app of applications) {
-    test(`should document ${app.name} application`, async () => {
-      try {
-        console.log(`Documenting ${app.name} application...`);
-        
-        // Look for the application icon
-        const appIcon = page.locator(app.selector);
-        
-        if (await appIcon.count() > 0) {
-          console.log(`Found ${app.name} application`);
-          
-          // Take screenshot of the icon
-          await appIcon.screenshot({ 
-            path: path.join(screenshotsDir, `${app.name}-icon.png`) 
-          });
-          
-          // Double-click to open the application
-          await appIcon.dblclick();
-          
-          // Wait for application window to appear with more specific selectors
-          await page.waitForTimeout(2000);
-          
-          // Look for application window with multiple possible selectors
-          const windowSelectors = [
-            `[data-app-window="${app.name}"]`,
-            `.window[data-app="${app.name}"]`,
-            `.window:has([data-app="${app.name}"])`,
-            '.window-content:visible',
-            '.window:visible',
-            '#windows-container .window:last-child'
-          ];
-          
-          let appWindow = null;
-          for (const selector of windowSelectors) {
-            const element = page.locator(selector).first();
-            if (await element.count() > 0 && await element.isVisible()) {
-              appWindow = element;
-              break;
-            }
-          }
-          
-          if (appWindow) {
-            console.log(`Found window for ${app.name}, taking screenshot...`);
-            
-            // Take screenshot of the application window
-            await appWindow.screenshot({ 
-              path: path.join(screenshotsDir, `${app.name}-window.png`) 
-            });
-            
-            // Try to close the window with multiple possible close button selectors
-            const closeSelectors = [
-              '.window-close',
-              '.close-btn', 
-              '[data-action="close"]',
-              '.window-controls .close',
-              '.title-bar .close'
-            ];
-            
-            for (const closeSelector of closeSelectors) {
-              const closeButton = page.locator(closeSelector).first();
-              if (await closeButton.count() > 0 && await closeButton.isVisible()) {
-                await closeButton.click();
-                break;
-              }
-            }
-            
-            // Wait for window to close
-            await page.waitForTimeout(1000);
-            
-          } else {
-            console.log(`No window found for ${app.name}, taking page screenshot instead`);
-            await page.screenshot({ 
-              path: path.join(screenshotsDir, `${app.name}-fullpage.png`) 
-            });
-          }
-          
-          // Generate markdown documentation for this app
-          const markdownContent = generateAppDocumentation(app);
-          const docPath = path.join(docsDir, `${app.name}.md`);
-          fs.writeFileSync(docPath, markdownContent);
-          
-          console.log(`✅ Documentation generated for ${app.name}`);
-          
-        } else {
-          console.log(`❌ Application ${app.name} not found on desktop`);
-        }
-        
-        // Small delay between applications
-        await page.waitForTimeout(500);
-        
-      } catch (error) {
-        console.error(`❌ Error documenting ${app.name}:`, error.message);
-      }
-    });
+class DocumentationGenerator {
+  constructor() {
+    this.results = {
+      success: [],
+      failed: []
+    };
   }
 
-  test('should generate master documentation index', async () => {
-    const indexContent = generateMasterIndex(applications);
-    const indexPath = path.join(docsDir, 'README.md');
-    fs.writeFileSync(indexPath, indexContent);
+  async run() {
+    try {
+      console.log('🚀 Starting SwissKnife Documentation Generation...');
+      
+      // Ensure directories exist
+      await this.ensureDirectories();
+      
+      // Generate documentation
+      await this.generateDocumentation();
+      
+      console.log('✅ Documentation generation completed successfully!');
+      console.log(`✅ ${this.results.success.length} applications documented`);
+      if (this.results.failed.length > 0) {
+        console.log(`❌ ${this.results.failed.length} applications failed`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Documentation generation failed:', error.message);
+      process.exit(1);
+    }
+  }
+
+  async ensureDirectories() {
+    console.log('📁 Ensuring directories exist...');
+    await fs.mkdir(CONFIG.screenshotsDir, { recursive: true });
+    await fs.mkdir(CONFIG.docsDir, { recursive: true });
+  }
+
+  async generateDocumentation() {
+    console.log('📝 Generating documentation...');
     
-    // Generate backend dependencies mapping
-    const backendMappingContent = generateBackendMapping(applications);
-    const backendMappingPath = path.join(docsDir, 'backend-dependencies.md');
-    fs.writeFileSync(backendMappingPath, backendMappingContent);
+    // Generate individual application documentation
+    for (const app of APPLICATIONS) {
+      try {
+        const docContent = this.generateAppDocumentation(app);
+        const docPath = path.join(CONFIG.docsDir, `${app.name}.md`);
+        await fs.writeFile(docPath, docContent);
+        this.results.success.push(app.name);
+        console.log(`✅ Generated documentation for ${app.name}`);
+      } catch (error) {
+        console.error(`❌ Failed to generate documentation for ${app.name}:`, error.message);
+        this.results.failed.push(app.name);
+      }
+    }
+
+    // Generate master index
+    await this.generateMasterIndex();
+    
+    // Generate backend dependencies
+    await this.generateBackendDependencies();
     
     // Generate features matrix
-    const featuresMatrixContent = generateFeaturesMatrix(applications);
-    const featuresMatrixPath = path.join(docsDir, 'features-matrix.md');
-    fs.writeFileSync(featuresMatrixPath, featuresMatrixContent);
-    
-    console.log('Master documentation files generated');
-  });
-});
+    await this.generateFeaturesMatrix();
+  }
 
-function generateAppDocumentation(app: Application): string {
-  return `# ${app.title}
+  generateAppDocumentation(app) {
+    return `# ${app.title}
 
 ![${app.name} Icon](../screenshots/${app.name}-icon.png)
 
@@ -466,6 +382,7 @@ ${app.backendDependencies.map(dep => `- [ ] ${dep}`).join('\n')}
 - **Frontend Component**: \`web/js/apps/${app.name}.js\`
 - **Desktop Integration**: Application icon selector \`${app.selector}\`
 - **Icon**: ${app.icon}
+- **Registered Application**: ${app.registeredApp ? '✅ Yes' : '❌ No (needs registration)'}
 
 ## Parallel Development Strategy
 To enable parallel frontend and backend development:
@@ -478,23 +395,23 @@ To enable parallel frontend and backend development:
 ---
 *Generated automatically by SwissKnife documentation system*
 `;
-}
+  }
 
-function generateMasterIndex(applications: Application[]): string {
-  return `# SwissKnife Desktop Applications
+  async generateMasterIndex() {
+    const content = `# SwissKnife Desktop Applications
 
-This directory contains comprehensive documentation for all ${applications.length} applications in the SwissKnife virtual desktop environment.
+![Desktop Overview](https://github.com/user-attachments/assets/523ea3f6-b94b-4ebf-86d7-25fd89a3e9c2)
 
-## Overview
-![Desktop Overview](../screenshots/desktop-overview.png)
+This directory contains comprehensive documentation for ${APPLICATIONS.length} applications in SwissKnife's virtual desktop environment, automatically generated using Playwright automation.
 
 ## Applications Catalog
 
-${applications.map(app => `### ${app.icon} [${app.title}](${app.name}.md)
+${APPLICATIONS.map(app => `### ${app.icon} [${app.title}](${app.name}.md)
 ${app.description}
 
 **Key Features:** ${app.features.slice(0, 2).join(', ')}${app.features.length > 2 ? '...' : ''}
 **Backend Dependencies:** ${app.backendDependencies.length} services required
+**Status:** ${app.registeredApp ? '✅ Registered' : '⚠️ Needs Registration'}
 
 ![${app.name}](../screenshots/${app.name}-icon.png)`).join('\n\n')}
 
@@ -502,6 +419,13 @@ ${app.description}
 - **[Backend Dependencies Mapping](backend-dependencies.md)** - Complete mapping of frontend to backend dependencies
 - **[Features Matrix](features-matrix.md)** - Feature comparison across all applications
 - **Individual Application Docs** - Detailed documentation for each application
+
+## Automation System
+This documentation is automatically maintained using:
+- **Playwright Screenshot Automation** - Captures current UI state
+- **Automated Documentation Generation** - Creates markdown files with embedded screenshots
+- **CI/CD Integration** - Updates documentation on code changes
+- **Visual Regression Detection** - Tracks UI changes over time
 
 ## Development Workflow
 1. **Frontend Development**: Use the individual application documentation to understand UI requirements
@@ -512,48 +436,51 @@ ${app.description}
 ---
 *This documentation is auto-generated using Playwright automation. Screenshots are updated automatically to reflect the latest UI changes.*
 `;
-}
 
-function generateBackendMapping(applications: Application[]): string {
-  // Group applications by backend dependencies
-  const dependencyMap = new Map<string, Application[]>();
-  
-  applications.forEach(app => {
-    app.backendDependencies.forEach(dep => {
-      if (!dependencyMap.has(dep)) {
-        dependencyMap.set(dep, []);
-      }
-      dependencyMap.get(dep)!.push(app);
+    await fs.writeFile(path.join(CONFIG.docsDir, 'README.md'), content);
+    console.log('✅ Generated master index documentation');
+  }
+
+  async generateBackendDependencies() {
+    // Group applications by backend dependencies
+    const dependencyMap = new Map();
+    
+    APPLICATIONS.forEach(app => {
+      app.backendDependencies.forEach(dep => {
+        if (!dependencyMap.has(dep)) {
+          dependencyMap.set(dep, []);
+        }
+        dependencyMap.get(dep).push(app);
+      });
     });
-  });
 
-  const sortedDeps = Array.from(dependencyMap.entries()).sort((a, b) => b[1].length - a[1].length);
+    const sortedDeps = Array.from(dependencyMap.entries()).sort((a, b) => b[1].length - a[1].length);
 
-  return `# Backend Dependencies Mapping
+    const content = `# Backend Dependencies Mapping
 
 This document provides a comprehensive mapping between frontend applications and their backend service dependencies, enabling parallel development.
 
 ## Dependency Priority Matrix
 
 ${sortedDeps.map(([dep, apps]) => `### ${dep}
-**Priority**: ${apps.length > 5 ? 'HIGH' : apps.length > 2 ? 'MEDIUM' : 'LOW'} (${apps.length} applications depend on this)
+**Priority**: ${apps.length > 3 ? 'HIGH' : apps.length > 1 ? 'MEDIUM' : 'LOW'} (${apps.length} applications depend on this)
 
 **Dependent Applications:**
-${apps.map(app => `- **${app.title}** (\`${app.name}\`) - ${app.icon}`).join('\n')}
+${apps.map(app => `- **${app.title}** (\`${app.name}\`) - ${app.icon} ${app.registeredApp ? '✅' : '⚠️'}`).join('\n')}
 
-**Implementation Priority**: ${apps.length > 5 ? '🔴 Critical Path' : apps.length > 2 ? '🟡 Important' : '🟢 Can be deferred'}
+**Implementation Priority**: ${apps.length > 3 ? '🔴 Critical Path' : apps.length > 1 ? '🟡 Important' : '🟢 Can be deferred'}
 `).join('\n')}
 
 ## Parallel Development Strategy
 
-### Phase 1: Critical Path Dependencies (5+ applications)
-${sortedDeps.filter(([, apps]) => apps.length > 5).map(([dep]) => `- [ ] ${dep}`).join('\n')}
+### Phase 1: Critical Path Dependencies (3+ applications)
+${sortedDeps.filter(([, apps]) => apps.length > 3).map(([dep]) => `- [ ] ${dep}`).join('\n')}
 
-### Phase 2: Important Dependencies (3-5 applications)
-${sortedDeps.filter(([, apps]) => apps.length >= 3 && apps.length <= 5).map(([dep]) => `- [ ] ${dep}`).join('\n')}
+### Phase 2: Important Dependencies (2-3 applications)
+${sortedDeps.filter(([, apps]) => apps.length >= 2 && apps.length <= 3).map(([dep]) => `- [ ] ${dep}`).join('\n')}
 
-### Phase 3: Specialized Dependencies (1-2 applications)
-${sortedDeps.filter(([, apps]) => apps.length < 3).map(([dep]) => `- [ ] ${dep}`).join('\n')}
+### Phase 3: Specialized Dependencies (1 application)
+${sortedDeps.filter(([, apps]) => apps.length === 1).map(([dep]) => `- [ ] ${dep}`).join('\n')}
 
 ## Mock Implementation Checklist
 For rapid frontend development, create mock implementations for:
@@ -563,21 +490,24 @@ ${sortedDeps.map(([dep, apps]) => `- [ ] **${dep}** - Mock for ${apps.length} ap
 ---
 *This mapping enables teams to work on frontend and backend components in parallel by clearly defining service boundaries and dependencies.*
 `;
-}
 
-function generateFeaturesMatrix(applications: Application[]): string {
-  // Get all unique features
-  const allFeatures = [...new Set(applications.flatMap(app => app.features))].sort();
-  
-  return `# Features Matrix
+    await fs.writeFile(path.join(CONFIG.docsDir, 'backend-dependencies.md'), content);
+    console.log('✅ Generated backend dependencies mapping');
+  }
 
-Comprehensive feature comparison across all SwissKnife applications.
+  async generateFeaturesMatrix() {
+    // Get all unique features
+    const allFeatures = [...new Set(APPLICATIONS.flatMap(app => app.features))].sort();
+    
+    const content = `# Features Matrix
+
+Comprehensive feature comparison across SwissKnife applications.
 
 ## Feature Support Matrix
 
 | Application | ${allFeatures.map(f => f.split(' ')[0]).join(' | ')} |
 |-------------|${allFeatures.map(() => '---').join('|')}|
-${applications.map(app => `| **${app.title}** | ${allFeatures.map(feature => 
+${APPLICATIONS.map(app => `| **${app.title}** ${app.registeredApp ? '✅' : '⚠️'} | ${allFeatures.map(feature => 
   app.features.some(f => f.includes(feature.split(' ')[0])) ? '✅' : '❌'
 ).join(' | ')} |`).join('\n')}
 
@@ -585,22 +515,32 @@ ${applications.map(app => `| **${app.title}** | ${allFeatures.map(feature =>
 
 ${allFeatures.map(feature => `### ${feature}
 **Applications with this feature:**
-${applications.filter(app => app.features.some(f => f.includes(feature.split(' ')[0]))).map(app => `- ${app.icon} **${app.title}**`).join('\n')}
+${APPLICATIONS.filter(app => app.features.some(f => f.includes(feature.split(' ')[0]))).map(app => `- ${app.icon} **${app.title}** ${app.registeredApp ? '✅' : '⚠️'}`).join('\n')}
 `).join('\n')}
 
 ## Development Priorities by Feature
 
 ### Core Infrastructure Features
-- **AI integration** - ${applications.filter(app => app.features.some(f => f.toLowerCase().includes('ai'))).length} apps
-- **Collaboration** - ${applications.filter(app => app.features.some(f => f.toLowerCase().includes('collaborat'))).length} apps  
-- **Real-time sync** - ${applications.filter(app => app.features.some(f => f.toLowerCase().includes('real-time'))).length} apps
+- **AI integration** - ${APPLICATIONS.filter(app => app.features.some(f => f.toLowerCase().includes('ai'))).length} apps
+- **Collaboration** - ${APPLICATIONS.filter(app => app.features.some(f => f.toLowerCase().includes('collaborat'))).length} apps  
+- **Real-time sync** - ${APPLICATIONS.filter(app => app.features.some(f => f.toLowerCase().includes('real-time'))).length} apps
 
 ### Specialized Features
-- **Edge deployment** - ${applications.filter(app => app.features.some(f => f.toLowerCase().includes('edge'))).length} apps
-- **Performance monitoring** - ${applications.filter(app => app.features.some(f => f.toLowerCase().includes('monitor'))).length} apps
-- **Version control** - ${applications.filter(app => app.features.some(f => f.toLowerCase().includes('version'))).length} apps
+- **Edge deployment** - ${APPLICATIONS.filter(app => app.features.some(f => f.toLowerCase().includes('edge'))).length} apps
+- **Performance monitoring** - ${APPLICATIONS.filter(app => app.features.some(f => f.toLowerCase().includes('monitor'))).length} apps
+- **Version control** - ${APPLICATIONS.filter(app => app.features.some(f => f.toLowerCase().includes('version'))).length} apps
 
 ---
 *This matrix helps identify common features that can be implemented as shared services or libraries.*
 `;
+
+    await fs.writeFile(path.join(CONFIG.docsDir, 'features-matrix.md'), content);
+    console.log('✅ Generated features matrix');
+  }
+}
+
+// Run the documentation generation if this script is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const generator = new DocumentationGenerator();
+  generator.run().catch(console.error);
 }

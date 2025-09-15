@@ -1,387 +1,214 @@
-# SwissKnife GUI Screenshot Automation & Documentation System
+# SwissKnife Documentation Automation System
 
-This directory contains the automated screenshot capture and documentation generation system for SwissKnife's 27 virtual desktop applications.
+This directory contains the automated documentation system for SwissKnife's virtual desktop applications. The system provides comprehensive, always-up-to-date documentation that enables parallel frontend and backend development.
 
 ## Overview
 
-The automation system provides:
-- **Automatic Screenshot Capture**: Playwright-based screenshots of all applications
-- **Documentation Generation**: Markdown files with embedded screenshots and metadata
-- **CI/CD Integration**: Automated updates on code changes
-- **Visual Regression Detection**: Screenshot comparison for UI changes
-- **Backend Dependency Mapping**: Automatic mapping of frontend-backend dependencies
+The SwissKnife documentation automation system consists of:
+- **Playwright-based screenshot automation** - Captures current UI state
+- **Automated documentation generation** - Creates detailed markdown files
+- **CI/CD integration** - Updates documentation on code changes
+- **Backend dependency mapping** - Guides parallel development
 
-## Architecture
+## System Architecture
+
+### Core Components
+
+1. **Desktop Applications Documentation Test** (`test/e2e/desktop-applications-documentation.test.ts`)
+   - Playwright test suite that automatically discovers and documents all desktop applications
+   - Captures screenshots of each application icon and window
+   - Generates detailed documentation for each application
+
+2. **Screenshot Automation Script** (`scripts/automation/update-screenshots.js`)
+   - Node.js script that orchestrates the entire automation process
+   - Starts the SwissKnife desktop application
+   - Runs Playwright tests to capture screenshots
+   - Generates comprehensive documentation files
+
+3. **Documentation-Only Generator** (`scripts/automation/generate-docs-only.js`)
+   - Fallback script that generates all documentation without screenshots
+   - Useful for CI environments or when screenshot capture isn't available
+   - Creates the same comprehensive documentation structure
+
+4. **GitHub Actions Workflow** (`.github/workflows/documentation-automation.yml`)
+   - Automated CI/CD pipeline for documentation updates
+   - Triggers on code changes, scheduled runs, or manual dispatch
+   - Installs dependencies, captures screenshots, and commits updates
+
+## Available Applications
+
+The system currently documents **27 applications** in the SwissKnife virtual desktop:
+
+### Core Applications
+- **🖥️ SwissKnife Terminal** - AI-powered terminal with P2P collaboration
+- **🎯 VibeCode** - AI Streamlit development environment
+- **🎵 Strudel AI DAW** - Collaborative music creation with AI
+- **🤖 AI Chat** - Multi-provider AI chat interface
+- **📁 File Manager** - IPFS-integrated file management
+
+### Infrastructure & Tools
+- **⚡ Task Manager** - Distributed task coordination
+- **🧠 AI Model Manager** - Model browser and deployment
+- **🌐 IPFS Explorer** - Decentralized content management
+- **🔧 Device Manager** - Hardware acceleration control
+- **⚙️ Settings** - System configuration with P2P sync
+
+### AI & ML Services
+- **🤗 Hugging Face Hub** - Access to 100,000+ AI models
+- **🔄 OpenRouter Hub** - Universal language model access
+- **🧠 Neural Network Designer** - Visual architecture design
+- **🎯 Training Manager** - Distributed training coordination
+
+### Security & Auth
+- **🔑 API Keys Manager** - Secure credential storage
+- **🔐 OAuth Authentication** - Multi-provider auth
+- **🐙 GitHub Integration** - Repository management
+- **🔌 MCP Control** - Model Context Protocol interface
+
+### Utilities & Productivity
+- **⏰ AI Cron Scheduler** - Intelligent task scheduling
+- **🧭 NAVI AI Assistant** - System navigation guide
+- **🎵 Music Studio** - Advanced composition environment
+- **🔗 P2P Network Manager** - Peer coordination
+
+### Standard Applications
+- **🧮 Enhanced Calculator** - Professional calculator
+- **🕐 World Clock & Timers** - Time management tools
+- **🖼️ Advanced Image Viewer** - Multi-format image handling
+- **📝 Professional Notes App** - Collaborative note-taking
+- **📊 System Monitor** - Performance analytics
+
+## Documentation Structure
+
+The automation system generates:
 
 ```
-automation/
-├── playwright/
-│   ├── desktop-applications-documentation.test.ts  # Main screenshot capture test
-│   └── screenshot-comparison.test.ts                # Visual regression testing
-├── scripts/
-│   ├── generate-docs.js                            # Documentation generator
-│   ├── update-screenshots.js                       # Screenshot update automation
-│   └── deploy-docs.js                              # Documentation deployment
-├── configs/
-│   ├── playwright.config.ts                        # Playwright configuration
-│   └── applications.json                           # Application metadata
-└── workflows/
-    ├── screenshot-automation.yml                    # GitHub Actions workflow
-    └── documentation-update.yml                     # Documentation CI/CD
-```
-
-## Screenshot Automation
-
-### Playwright Test Suite
-
-The main automation is implemented in `test/e2e/desktop-applications-documentation.test.ts`:
-
-```typescript
-// Automatically captures screenshots of all 27 applications
-test.describe('Desktop Applications Documentation', () => {
-  // 1. Desktop overview screenshot
-  test('should take desktop overview screenshot', async () => {
-    await page.screenshot({ 
-      path: 'docs/screenshots/desktop-overview.png',
-      fullPage: true 
-    });
-  });
-
-  // 2. Individual application screenshots
-  for (const app of applications) {
-    test(`should document ${app.name} application`, async () => {
-      // Open application
-      await page.click(app.selector);
-      
-      // Take screenshot
-      await page.screenshot({ 
-        path: `docs/screenshots/${app.name}-window.png` 
-      });
-      
-      // Generate documentation
-      generateAppDocumentation(app);
-    });
-  }
-  
-  // 3. Generate master documentation
-  test('should generate master documentation index', async () => {
-    // Creates README.md, backend-dependencies.md, features-matrix.md
-  });
-});
-```
-
-### Application Metadata
-
-Each application is defined with comprehensive metadata:
-
-```typescript
-interface Application {
-  name: string;                    // Application identifier
-  selector: string;                // DOM selector for clicking
-  title: string;                   // Display title
-  description: string;             // Detailed description
-  backendDependencies: string[];   // Required backend services
-  features: string[];              // Key features list
-  icon: string;                    // Emoji icon
-}
-```
-
-### Screenshot Capture Process
-
-1. **Desktop Launch**: Start SwissKnife desktop environment
-2. **Application Discovery**: Automatically detect all available applications
-3. **Individual Capture**: Open each application and capture screenshots
-4. **Documentation Generation**: Create markdown files with embedded screenshots
-5. **Cleanup**: Close applications and reset desktop state
-
-## Documentation Generation
-
-### Automated Documentation Files
-
-The system generates several comprehensive documentation files:
-
-#### 1. Application Catalog (`docs/applications/README.md`)
-- Complete overview of all 27 applications
-- Embedded screenshots for each application
-- Feature descriptions and use cases
-- Backend dependency information
-
-#### 2. Backend Dependencies (`docs/applications/backend-dependencies.md`)
-- Comprehensive frontend-to-backend dependency mapping
-- Implementation priority matrix
-- Parallel development strategy
-- Mock implementation checklist
-
-#### 3. Features Matrix (`docs/applications/features-matrix.md`)
-- Feature comparison across all applications
-- Development priorities by feature
-- Shared service identification
-
-#### 4. Individual Application Documentation
-- Detailed documentation for each application
-- Screenshots and feature descriptions
-- Backend dependencies and integration points
-- Development considerations
-
-### Documentation Templates
-
-Applications are documented using standardized templates:
-
-```markdown
-# ${app.title}
-
-![${app.name} Icon](../screenshots/${app.name}-icon.png)
-
-## Description
-${app.description}
-
-## Screenshots
-- **Application Window**: ![Window](../screenshots/${app.name}-window.png)
-
-## Features
-${app.features.map(feature => `- ${feature}`).join('\n')}
-
-## Backend Dependencies
-${app.backendDependencies.map(dep => `- **${dep}**: Core dependency`).join('\n')}
-
-## Parallel Development Strategy
-[Generated development recommendations]
-```
-
-## CI/CD Integration
-
-### GitHub Actions Workflow
-
-```yaml
-name: Screenshot Automation
-on:
-  push:
-    paths:
-      - 'web/**'
-      - 'src/**'
-  schedule:
-    - cron: '0 0 * * 0'  # Weekly updates
-
-jobs:
-  update-screenshots:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        
-      - name: Install Playwright browsers
-        run: npx playwright install
-        
-      - name: Start desktop application
-        run: npm run desktop &
-        
-      - name: Run screenshot automation
-        run: npx playwright test test/e2e/desktop-applications-documentation.test.ts
-        
-      - name: Commit updated documentation
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add docs/
-          git commit -m "📸 Update application screenshots and documentation" || exit 0
-          git push
-```
-
-### Manual Triggers
-
-```bash
-# Update all screenshots and documentation
-npm run docs:update-screenshots
-
-# Generate documentation only
-npm run docs:generate
-
-# Run visual regression tests
-npm run test:visual-regression
-```
-
-## Visual Regression Detection
-
-### Screenshot Comparison
-
-The system includes visual regression testing:
-
-```typescript
-test('should detect UI changes', async () => {
-  // Take current screenshot
-  const currentScreenshot = await page.screenshot();
-  
-  // Compare with baseline
-  const baselineScreenshot = fs.readFileSync('baseline-screenshot.png');
-  
-  // Calculate difference
-  const diff = pixelmatch(currentScreenshot, baselineScreenshot);
-  
-  // Report changes
-  if (diff > threshold) {
-    console.log(`UI change detected: ${diff} pixels different`);
-    // Update baseline or fail test based on configuration
-  }
-});
-```
-
-### Change Detection Workflow
-
-1. **Baseline Establishment**: Initial screenshot set as baseline
-2. **Automated Comparison**: New screenshots compared to baseline
-3. **Change Reporting**: Visual differences highlighted and reported
-4. **Review Process**: Manual review for intentional vs. unintentional changes
-5. **Baseline Update**: Approved changes update the baseline
-
-## Configuration
-
-### Playwright Configuration
-
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  testDir: './test/e2e',
-  use: {
-    baseURL: 'http://localhost:3001',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure'
-  },
-  webServer: {
-    command: 'npm run desktop',
-    url: 'http://localhost:3001',
-    reuseExistingServer: true
-  }
-});
-```
-
-### Application Configuration
-
-```json
-// configs/applications.json
-{
-  "applications": [
-    {
-      "name": "terminal",
-      "selector": "[data-app=\"terminal\"]",
-      "title": "SwissKnife Terminal",
-      "description": "AI-powered terminal with P2P collaboration",
-      "backendDependencies": ["CLI engine", "AI providers", "P2P networking"],
-      "features": ["AI assistance", "P2P task sharing", "Collaborative sessions"],
-      "icon": "🖥️"
-    }
-    // ... 26 more applications
-  ]
-}
+docs/
+├── applications/
+│   ├── README.md                    # Master application catalog
+│   ├── backend-dependencies.md     # Frontend-backend dependency mapping
+│   ├── features-matrix.md          # Cross-application feature comparison
+│   ├── terminal.md                 # Individual app documentation
+│   ├── vibecode.md                 # (one file per application)
+│   └── ...
+├── screenshots/                    # Automated screenshots
+│   ├── desktop-overview.png        # Full desktop view
+│   ├── terminal-icon.png          # Application icons
+│   ├── terminal-window.png        # Application windows
+│   └── ...
+└── automation/                     # This directory
+    ├── README.md                   # This file
+    └── SETUP.md                    # Setup instructions
 ```
 
 ## Usage
 
-### Running Screenshot Automation
+### Manual Documentation Update
 
+Generate documentation only (without screenshots):
 ```bash
-# Start the desktop application
-npm run desktop
+npm run docs:generate-only
+```
 
-# Run the complete documentation automation
+Full screenshot automation (requires desktop environment):
+```bash
+npm run docs:update-screenshots
+```
+
+### Playwright Test Execution
+
+Run just the Playwright tests:
+```bash
 npx playwright test test/e2e/desktop-applications-documentation.test.ts
-
-# Or use the convenience script
-npm run automation:screenshots
 ```
 
-### Updating Documentation
+### Automated Updates
 
-```bash
-# Regenerate all documentation
-npm run docs:generate
+The system automatically runs on:
+- **Code changes** to `web/` or `src/` directories
+- **Weekly schedule** (Sundays at 2 AM UTC)
+- **Manual workflow dispatch** from GitHub Actions
 
-# Update specific application documentation
-npm run docs:update-app calculator
+## Backend Dependencies Analysis
 
-# Deploy documentation to GitHub Pages
-npm run docs:deploy
-```
+The system performs comprehensive analysis of backend dependencies:
 
-### Development Workflow
+### High Priority Dependencies (3+ applications)
+Dependencies used by multiple applications require immediate attention for parallel development.
 
-1. **Make UI Changes**: Modify application interfaces
-2. **Run Automation**: Execute screenshot capture automation
-3. **Review Changes**: Compare new screenshots with previous versions
-4. **Update Documentation**: Regenerate documentation with new screenshots
-5. **Commit Changes**: Include both code and documentation updates
+### Medium Priority Dependencies (2-3 applications)
+Important for several applications but not blocking critical paths.
+
+### Low Priority Dependencies (1 application)
+Application-specific dependencies that can be deferred or mocked.
+
+## Parallel Development Strategy
+
+The documentation enables parallel frontend and backend development by:
+
+1. **Clear Dependency Mapping** - Explicit frontend-to-backend service relationships
+2. **Mock Implementation Guides** - Strategies for creating backend service mocks  
+3. **API Contract Definitions** - Clear interfaces for service integration
+4. **Priority Matrix** - Development scheduling based on dependency count
+5. **Visual Documentation** - Screenshots showing current UI state
+
+## Integration with Development Workflow
+
+### For Frontend Teams
+- Use individual application docs to understand UI requirements
+- Reference screenshots to see current implementation state
+- Follow mock implementation guides for independent development
+
+### For Backend Teams  
+- Prioritize services based on dependency matrix
+- Implement APIs according to documented contracts
+- Use application docs to understand service requirements
+
+### For DevOps/Integration Teams
+- Use Playwright automation to validate integration points
+- Monitor visual regression through screenshot comparison
+- Automate documentation updates in CI/CD pipelines
 
 ## Benefits
 
-### For Development Teams
+### Always Current Documentation
+- Automatically reflects latest UI changes
+- No manual maintenance required
+- Screenshots stay synchronized with code
 
-1. **Always Up-to-Date**: Documentation automatically reflects current UI state
-2. **Visual Change Tracking**: Immediate detection of unintended UI changes
-3. **Parallel Development**: Clear backend dependencies enable parallel work
-4. **Comprehensive Coverage**: All 27 applications documented consistently
+### Parallel Development Enablement  
+- Clear frontend-backend boundaries
+- Mock implementation strategies
+- Dependency priority guidance
 
-### For Project Management
+### Visual Change Tracking
+- Immediate detection of UI modifications
+- Visual regression testing capability
+- Historical UI state preservation
 
-1. **Progress Visualization**: Screenshots show development progress
-2. **Feature Documentation**: Automatic feature cataloging and comparison
-3. **Dependency Mapping**: Clear understanding of frontend-backend relationships
-4. **Quality Assurance**: Automated visual regression detection
+### Comprehensive Coverage
+- All 27 applications documented
+- Backend dependencies mapped
+- Feature matrix for comparison
 
-### For New Developers
+## Technical Implementation
 
-1. **Complete Overview**: Comprehensive application catalog with visuals
-2. **Clear Dependencies**: Understanding of backend requirements
-3. **Development Guides**: Parallel development strategies and best practices
-4. **Current State**: Always current screenshots and documentation
+### Playwright Configuration
+- Uses Chromium browser for consistent screenshots
+- Headless mode for CI/CD compatibility  
+- Configurable timeouts and retry logic
+- Element selection with multiple fallback strategies
 
-## Troubleshooting
+### Documentation Generation
+- Template-based markdown generation
+- Embedded screenshot references
+- Automatic cross-linking between documents
+- Priority-based dependency analysis
 
-### Common Issues
+### CI/CD Integration
+- GitHub Actions workflow automation
+- Browser installation and setup
+- Virtual display configuration for headless environments
+- Automatic commit and push of updated documentation
 
-#### Desktop Application Won't Start
-```bash
-# Check if port is available
-lsof -i :3001
-
-# Kill existing processes
-pkill -f "vite.*3001"
-
-# Restart desktop
-npm run desktop
-```
-
-#### Playwright Browser Issues
-```bash
-# Reinstall Playwright browsers
-npx playwright install --force
-
-# Clear cache
-rm -rf ~/.cache/ms-playwright
-npx playwright install
-```
-
-#### Screenshot Timing Issues
-```typescript
-// Add wait conditions
-await page.waitForSelector('.desktop-ready');
-await page.waitForTimeout(2000);
-await page.screenshot();
-```
-
-### Performance Optimization
-
-1. **Parallel Execution**: Run tests in parallel where possible
-2. **Screenshot Optimization**: Use appropriate image formats and compression
-3. **Selective Updates**: Only update changed applications
-4. **Caching**: Cache stable screenshots to reduce execution time
-
----
-
-*This automation system ensures that SwissKnife's documentation remains current and comprehensive, supporting parallel frontend and backend development through clear visual documentation and dependency mapping.*
+This system transforms SwissKnife's development process by providing automated, comprehensive documentation that enables efficient parallel development across the complex virtual desktop environment.

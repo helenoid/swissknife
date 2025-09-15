@@ -44,20 +44,39 @@ jobs:
           
       - name: 🎭 Install Playwright Browsers
         run: |
-          npx playwright install chromium
-          npx playwright install-deps chromium
+          npx playwright install chromium --with-deps
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
 
       - name: 🖥️ Start Virtual Display
         run: |
-          sudo apt-get update
+          sudo apt-get update -qq
           sudo apt-get install -y xvfb
           export DISPLAY=:99
           Xvfb :99 -screen 0 1280x720x24 > /dev/null 2>&1 &
 
+      - name: 🚀 Start Web Desktop  
+        run: |
+          export DISPLAY=:99
+          npm run webgui > server.log 2>&1 &
+          # Wait for server to be ready
+          for i in {1..30}; do
+            if curl -s http://localhost:3001 > /dev/null || curl -s http://localhost:3002 > /dev/null; then
+              echo "Desktop server is ready"
+              break
+            fi
+            echo "Waiting for desktop server... ($i/30)"
+            sleep 2
+          done
+
       - name: 📸 Run Screenshot Automation
         run: |
           export DISPLAY=:99
-          timeout 600 npm run docs:update-screenshots || true
+          # Update config to use correct port
+          if curl -s http://localhost:3002 > /dev/null; then
+            sed -i 's/localhost:3001/localhost:3002/g' scripts/automation/update-screenshots.js
+          fi
+          timeout 600 npx playwright test test/e2e/desktop-applications-documentation.test.ts --project=chromium || true
         env:
           CI: true
 

@@ -119,6 +119,7 @@
     "test:production-full": "npm run test:e2e && npm run test:performance && npm run test:security",
     "test:e2e:playwright": "npx playwright test",
     "automation:screenshots": "node scripts/automation/update-screenshots.js",
+    "docs:generate-only": "node scripts/automation/generate-docs-only.js",
     "docs:update-screenshots": "npm run automation:screenshots",
     "docs:generate": "mkdir -p docs/api && echo '# SwissKnife API Documentation' > docs/api/README.md && echo 'API documentation will be generated here.' >> docs/api/README.md",
     "test:performance": "jest test/performance --config=config/jest/jest.config.cjs",
