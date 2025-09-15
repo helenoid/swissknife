@@ -1,0 +1,170 @@
+name: 📸 SwissKnife Documentation Automation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'web/**'
+      - 'src/**'
+      - 'docs/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'web/**'
+      - 'src/**'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update all screenshots'
+        required: false
+        default: 'false'
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sunday at 2 AM UTC
+
+jobs:
+  update-documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: |
+          npm install --legacy-peer-deps
+          
+      - name: 🎭 Install Playwright Browsers
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium
+
+      - name: 🖥️ Start Virtual Display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1280x720x24 > /dev/null 2>&1 &
+
+      - name: 📸 Run Screenshot Automation
+        run: |
+          export DISPLAY=:99
+          timeout 600 npm run docs:update-screenshots || true
+        env:
+          CI: true
+
+      - name: 📊 Check for Changes
+        id: check_changes
+        run: |
+          if git diff --quiet docs/; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔍 Show Changes
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          echo "📋 Documentation changes detected:"
+          git diff --name-only docs/
+          echo ""
+          echo "📈 Change summary:"
+          git diff --stat docs/
+
+      - name: 💾 Commit Updated Documentation
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "SwissKnife Automation"
+          git add docs/
+          git commit -m "📸 Update application screenshots and documentation
+
+          - Automated screenshot capture via Playwright
+          - Updated application documentation
+          - Refreshed backend dependencies mapping
+          - Generated features matrix
+          
+          🤖 This is an automated update from GitHub Actions"
+
+      - name: 🚀 Push Changes
+        if: steps.check_changes.outputs.changes == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      - name: 📝 Create PR Comment (if PR)
+        if: github.event_name == 'pull_request' && steps.check_changes.outputs.changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📸 Documentation Updated
+
+              The SwissKnife documentation has been automatically updated with new screenshots and application information.
+
+              ### Changes Made:
+              - ✅ Captured latest application screenshots
+              - ✅ Updated application documentation
+              - ✅ Refreshed backend dependencies mapping
+              - ✅ Generated features matrix
+
+              ### Screenshots Available:
+              - Desktop Overview
+              - Individual Application Windows
+              - Updated Documentation Files
+
+              The documentation is now synchronized with the latest UI changes.
+
+              *🤖 This comment was generated automatically by the documentation automation system.*`
+            })
+
+      - name: 📤 Upload Screenshots as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swissknife-screenshots
+          path: |
+            docs/screenshots/
+            docs/applications/
+          retention-days: 30
+
+      - name: 📋 Summary Report
+        if: always()
+        run: |
+          echo "## 📸 SwissKnife Documentation Automation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Automation Results" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_changes.outputs.changes }}" == "true" ]; then
+            echo "- ✅ Documentation updated successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- 📸 Screenshots captured and committed" >> $GITHUB_STEP_SUMMARY
+            echo "- 📝 Application documentation regenerated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ℹ️ No changes detected - documentation is up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Documentation Files" >> $GITHUB_STEP_SUMMARY
+          echo "- 🏠 [Main Documentation](docs/applications/README.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔗 [Backend Dependencies](docs/applications/backend-dependencies.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- 📋 [Features Matrix](docs/applications/features-matrix.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🤖 [Automation Guide](docs/automation/README.md)" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🖼️ Screenshots" >> $GITHUB_STEP_SUMMARY
+          echo "All application screenshots are automatically captured and stored in \`docs/screenshots/\`" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "*🤖 Automated by SwissKnife Documentation System*" >> $GITHUB_STEP_SUMMARY
