@@ -125,24 +125,34 @@
 
   async function initializeIPFSAccelerate() {
     try {
-      // Connect to IPFS Accelerate backend via MCP
-      if (window.mcpClient) {
-        console.log('🚀 Connecting to IPFS Accelerate for distributed training...');
+      // Try to load local IPFS Accelerate module first
+      try {
+        console.log('🚀 Loading local IPFS Accelerate module...');
+        const { IPFSAccelerate } = await import('../../../ipfs_accelerate_js/src/index.js');
         
+        const localIPFSAccelerate = new IPFSAccelerate({
+          backend: 'webgl', // Use WebGL for browser acceleration
+          p2p: true,        // Enable P2P coordination
+          storage: 'ipfs'   // Use IPFS for model storage
+        });
+        
+        await localIPFSAccelerate.initialize();
+        console.log('✅ Local IPFS Accelerate initialized successfully');
+        
+        // Wrap local module with expected interface
         ipfsAccelerate = {
-          // IPFS Accelerate integration for distributed ML training
           async createTrainingJob(config) {
-            return await window.mcpClient.request('ipfs_accelerate', 'create_training_job', {
+            return await localIPFSAccelerate.training.create({
               model_config: config.model,
               dataset: config.dataset,
               training_params: config.params,
               distributed: true,
-              backend: config.backend || 'tensorflow'
+              backend: config.backend || 'webgl'
             });
           },
           
           async submitTrainingJob(jobConfig) {
-            return await window.mcpClient.request('ipfs_accelerate', 'submit_job', {
+            return await localIPFSAccelerate.training.submit({
               job_config: jobConfig,
               priority: jobConfig.priority || 'normal',
               nodes_required: jobConfig.nodes || 3
@@ -150,38 +160,30 @@
           },
           
           async getJobStatus(jobId) {
-            return await window.mcpClient.request('ipfs_accelerate', 'get_job_status', {
-              job_id: jobId
-            });
+            return await localIPFSAccelerate.training.getStatus(jobId);
           },
           
           async pauseJob(jobId) {
-            return await window.mcpClient.request('ipfs_accelerate', 'pause_job', {
-              job_id: jobId
-            });
+            return await localIPFSAccelerate.training.pause(jobId);
           },
           
           async resumeJob(jobId) {
-            return await window.mcpClient.request('ipfs_accelerate', 'resume_job', {
-              job_id: jobId
-            });
+            return await localIPFSAccelerate.training.resume(jobId);
           },
           
           async cancelJob(jobId) {
-            return await window.mcpClient.request('ipfs_accelerate', 'cancel_job', {
-              job_id: jobId
-            });
+            return await localIPFSAccelerate.training.cancel(jobId);
           },
           
           async getAvailableNodes() {
-            return await window.mcpClient.request('ipfs_accelerate', 'list_nodes', {
+            return await localIPFSAccelerate.p2p.listNodes({
               status: 'available',
               capabilities: ['training']
             });
           },
           
           async storeTrainedModel(modelData, metadata) {
-            return await window.mcpClient.request('ipfs_accelerate', 'store_model', {
+            return await localIPFSAccelerate.storage.store({
               model_data: modelData,
               metadata: metadata,
               storage: 'ipfs',
@@ -190,14 +192,102 @@
           }
         };
         
-        // Initialize Hugging Face integration as alternative
-        huggingFaceBackend = {
-          async createHFTrainingJob(config) {
+        console.log('✅ Local IPFS Accelerate wrapped for training operations');
+        
+      } catch (importError) {
+        console.log('⚠️ Local IPFS Accelerate module not available:', importError.message);
+        console.log('🔄 Trying MCP fallback...');
+        
+        // Fallback to MCP implementation
+        if (window.mcpClient) {
+          console.log('🚀 Connecting to IPFS Accelerate for distributed training via MCP...');
+          
+          ipfsAccelerate = {
+            // IPFS Accelerate integration for distributed ML training via MCP
+            async createTrainingJob(config) {
+              return await window.mcpClient.request('ipfs_accelerate', 'create_training_job', {
+                model_config: config.model,
+                dataset: config.dataset,
+                training_params: config.params,
+                distributed: true,
+                backend: config.backend || 'tensorflow'
+              });
+            },
+            
+            async submitTrainingJob(jobConfig) {
+              return await window.mcpClient.request('ipfs_accelerate', 'submit_job', {
+                job_config: jobConfig,
+                priority: jobConfig.priority || 'normal',
+                nodes_required: jobConfig.nodes || 3
+              });
+            },
+            
+            async getJobStatus(jobId) {
+              return await window.mcpClient.request('ipfs_accelerate', 'get_job_status', {
+                job_id: jobId
+              });
+            },
+            
+            async pauseJob(jobId) {
+              return await window.mcpClient.request('ipfs_accelerate', 'pause_job', {
+                job_id: jobId
+              });
+            },
+            
+            async resumeJob(jobId) {
+              return await window.mcpClient.request('ipfs_accelerate', 'resume_job', {
+                job_id: jobId
+              });
+            },
+            
+            async cancelJob(jobId) {
+              return await window.mcpClient.request('ipfs_accelerate', 'cancel_job', {
+                job_id: jobId
+              });
+            },
+            
+            async getAvailableNodes() {
+              return await window.mcpClient.request('ipfs_accelerate', 'list_nodes', {
+                status: 'available',
+                capabilities: ['training']
+              });
+            },
+            
+            async storeTrainedModel(modelData, metadata) {
+              return await window.mcpClient.request('ipfs_accelerate', 'store_model', {
+                model_data: modelData,
+                metadata: metadata,
+                storage: 'ipfs',
+                versioning: true
+              });
+            }
+          };
+          
+          console.log('✅ IPFS Accelerate connected via MCP fallback');
+        } else {
+          throw new Error('Neither local module nor MCP available');
+        }
+      }
+      
+      // Initialize Hugging Face integration as alternative
+      huggingFaceBackend = {
+        async createHFTrainingJob(config) {
+          if (window.mcpClient) {
             return await window.mcpClient.request('huggingface', 'create_training_job', {
               model_name: config.model,
               dataset: config.dataset,
               task: config.task || 'text-classification',
               training_args: config.args
+            });
+          } else {
+            // Local fallback simulation
+            return {
+              id: 'hf_job_' + Date.now(),
+              status: 'created',
+              backend: 'huggingface-local'
+            };
+          }
+        },
             });
           },
           

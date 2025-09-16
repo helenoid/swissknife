@@ -315,12 +315,33 @@ export class NeuralNetworkDesignerApp {
 
   async initializeIPFSAccelerate() {
     try {
-      // Connect to IPFS Accelerate for distributed ML compute
+      // Try to load local IPFS Accelerate module first
+      try {
+        console.log('🚀 Loading local IPFS Accelerate module...');
+        const { IPFSAccelerate } = await import('../../../ipfs_accelerate_js/src/index.js');
+        
+        this.ipfsAccelerate = new IPFSAccelerate({
+          backend: 'webgl', // Use WebGL for browser acceleration
+          p2p: true,        // Enable P2P coordination
+          storage: 'ipfs'   // Use IPFS for model storage
+        });
+        
+        await this.ipfsAccelerate.initialize();
+        console.log('✅ Local IPFS Accelerate initialized successfully');
+        this.backendType = 'ipfs-accelerate-local';
+        return true;
+        
+      } catch (importError) {
+        console.log('⚠️ Local IPFS Accelerate module not available:', importError.message);
+        console.log('🔄 Trying MCP fallback...');
+      }
+      
+      // Fallback to MCP if local module is not available
       if (window.mcpClient) {
-        console.log('🚀 Connecting to IPFS Accelerate backend...');
+        console.log('🚀 Connecting to IPFS Accelerate backend via MCP...');
         
         this.ipfsAccelerate = {
-          // IPFS Accelerate JS integration from https://github.com/endomorphosis/ipfs_accelerate_js
+          // IPFS Accelerate JS integration via MCP server
           async createDistributedModel(config) {
             return await window.mcpClient.request('ipfs_accelerate', 'create_model', {
               architecture: config.layers,
@@ -365,10 +386,10 @@ export class NeuralNetworkDesignerApp {
         };
         
         console.log('✅ IPFS Accelerate backend connected via MCP');
-        this.backendType = 'ipfs-accelerate';
+        this.backendType = 'ipfs-accelerate-mcp';
         return true;
       } else {
-        throw new Error('MCP Client not available for IPFS Accelerate');
+        throw new Error('Neither local module nor MCP Client available for IPFS Accelerate');
       }
     } catch (error) {
       console.log('⚠️ IPFS Accelerate not available:', error.message);
