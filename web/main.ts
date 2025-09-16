@@ -3226,6 +3226,360 @@ if __name__ == "__main__":
     const todoList = contentElement.querySelector('.todo-list') as HTMLElement;
     const historyList = contentElement.querySelector('.history-list') as HTMLElement;
     
+    // Virtual Filesystem Implementation
+    class VirtualFileSystem {
+      private providers: { [key: string]: any } = {};
+      private currentProvider = 'local';
+      
+      constructor() {
+        this.initializeProviders();
+      }
+      
+      private async initializeProviders() {
+        // Initialize Local Provider
+        this.providers['local'] = {
+          type: 'local',
+          connected: true,
+          files: this.getDefaultFileStructure()
+        };
+        
+        // Initialize S3 Provider (simulation)
+        this.providers['s3'] = {
+          type: 's3',
+          connected: false,
+          config: { bucket: '', region: 'us-east-1' },
+          files: {}
+        };
+        
+        // Initialize Helia (IPFS) Provider
+        this.providers['helia'] = {
+          type: 'helia',
+          connected: false,
+          node: null,
+          files: {}
+        };
+        
+        // Initialize Storacha Provider
+        this.providers['storacha'] = {
+          type: 'storacha',
+          connected: false,
+          config: { apiKey: '', endpoint: '' },
+          files: {}
+        };
+        
+        this.updateProviderTabs();
+      }
+      
+      private getDefaultFileStructure() {
+        return {
+          'src/': {
+            'app.py': '🐍',
+            'config.py': '⚙️',
+            'components/': {
+              'ui.py': '🐍',
+              'api.py': '🐍',
+              'models.py': '🐍'
+            },
+            'utils/': {
+              'helpers.py': '🐍',
+              'validators.py': '🐍'
+            }
+          },
+          'tests/': {
+            'test_app.py': '🐍',
+            'test_api.py': '🐍',
+            'conftest.py': '🐍'
+          },
+          'docs/': {
+            'README.md': '📝',
+            'API.md': '📝',
+            'CHANGELOG.md': '📝'
+          },
+          'static/': {
+            'css/': {
+              'style.css': '🎨',
+              'bootstrap.css': '🎨'
+            },
+            'js/': {
+              'script.js': '⚡',
+              'utils.js': '⚡'
+            }
+          },
+          'cloud/': {
+            's3_files/': {},
+            'ipfs_content/': {},
+            'storacha_data/': {}
+          },
+          'requirements.txt': '📋',
+          'package.json': '📋',
+          '.env': '⚙️',
+          '.gitignore': '📄'
+        };
+      }
+      
+      async connectProvider(provider: string, config: any = {}) {
+        try {
+          switch (provider) {
+            case 's3':
+              await this.connectS3(config);
+              break;
+            case 'helia':
+              await this.connectHelia(config);
+              break;
+            case 'storacha':
+              await this.connectStoracha(config);
+              break;
+          }
+          this.updateProviderTabs();
+          this.showNotification(`Connected to ${provider.toUpperCase()}`, 'success');
+        } catch (error) {
+          this.showNotification(`Failed to connect to ${provider}: ${error}`, 'error');
+        }
+      }
+      
+      private async connectS3(config: any) {
+        // Simulate S3 connection
+        this.providers['s3'].connected = true;
+        this.providers['s3'].config = config;
+        this.providers['s3'].files = {
+          'my-bucket/': {
+            'uploads/': {
+              'image1.jpg': '🖼️',
+              'document.pdf': '📄'
+            },
+            'backups/': {
+              'backup.zip': '🗃️'
+            },
+            'config.json': '📋'
+          }
+        };
+      }
+      
+      private async connectHelia(config: any) {
+        // Simulate Helia/IPFS connection
+        this.providers['helia'].connected = true;
+        this.providers['helia'].files = {
+          'ipfs/': {
+            'QmHash1.../': {
+              'content.md': '📝',
+              'data.json': '📋'
+            },
+            'QmHash2.../': {
+              'image.png': '🖼️'
+            }
+          }
+        };
+      }
+      
+      private async connectStoracha(config: any) {
+        // Simulate Storacha connection
+        this.providers['storacha'].connected = true;
+        this.providers['storacha'].config = config;
+        this.providers['storacha'].files = {
+          'storacha/': {
+            'encrypted/': {
+              'sensitive.enc': '🔒',
+              'backup.enc': '🔒'
+            },
+            'public/': {
+              'readme.txt': '📄'
+            }
+          }
+        };
+      }
+      
+      private updateProviderTabs() {
+        const providerTabs = contentElement.querySelector('.provider-tabs');
+        if (providerTabs) {
+          providerTabs.innerHTML = Object.keys(this.providers).map(provider => {
+            const p = this.providers[provider];
+            const status = p.connected ? '🟢' : '🔴';
+            const active = provider === this.currentProvider ? 'active' : '';
+            return `
+              <button class="provider-tab ${active}" data-provider="${provider}">
+                ${status} ${provider.toUpperCase()}
+              </button>
+            `;
+          }).join('');
+          
+          // Add event listeners
+          providerTabs.querySelectorAll('.provider-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+              this.switchProvider((tab as HTMLElement).dataset.provider!);
+            });
+          });
+        }
+      }
+      
+      private switchProvider(provider: string) {
+        this.currentProvider = provider;
+        this.updateProviderTabs();
+        this.refreshFileTree();
+      }
+      
+      private refreshFileTree() {
+        const fileTree = contentElement.querySelector('.file-tree');
+        if (fileTree) {
+          const files = this.providers[this.currentProvider].files;
+          fileTree.innerHTML = this.renderFileTree(files, '/');
+          this.addFileTreeListeners();
+        }
+      }
+      
+      private renderFileTree(files: any, basePath: string, level: number = 0): string {
+        if (!files || typeof files !== 'object') return '';
+        
+        return Object.entries(files).map(([name, content]) => {
+          const isFolder = typeof content === 'object' && !name.includes('.');
+          const icon = isFolder ? '📁' : (content as string);
+          const path = basePath + name;
+          const indent = '  '.repeat(level);
+          
+          if (isFolder) {
+            const folderId = `folder-${Math.random().toString(36).substr(2, 9)}`;
+            const folderContent = this.renderFileTree(content, path + '/', level + 1);
+            return `
+              <div class="file-item folder" data-path="${path}">
+                <span class="folder-toggle" data-target="${folderId}" style="margin-left: ${level * 20}px; cursor: pointer;">
+                  ${icon} ${name}
+                </span>
+                <div class="folder-content" id="${folderId}" style="display: block;">
+                  ${folderContent}
+                </div>
+              </div>
+            `;
+          } else {
+            return `
+              <div class="file-item file" data-path="${path}" style="margin-left: ${(level + 1) * 20}px; padding: 4px 8px; cursor: pointer; border-radius: 4px;">
+                ${icon} ${name}
+              </div>
+            `;
+          }
+        }).join('');
+      }
+      
+      private addFileTreeListeners() {
+        // Folder toggle listeners
+        contentElement.querySelectorAll('.folder-toggle').forEach(toggle => {
+          toggle.addEventListener('click', () => {
+            const targetId = (toggle as HTMLElement).dataset.target;
+            const content = contentElement.querySelector(`#${targetId}`);
+            if (content) {
+              const isVisible = (content as HTMLElement).style.display !== 'none';
+              (content as HTMLElement).style.display = isVisible ? 'none' : 'block';
+              const icon = toggle.textContent?.charAt(0);
+              toggle.textContent = toggle.textContent?.replace(icon!, isVisible ? '📁' : '📂') || '';
+            }
+          });
+        });
+        
+        // File selection listeners
+        contentElement.querySelectorAll('.file-item.file').forEach(fileItem => {
+          fileItem.addEventListener('click', () => {
+            // Remove previous selection
+            contentElement.querySelectorAll('.file-item.selected').forEach(item => {
+              item.classList.remove('selected');
+            });
+            
+            // Add selection to clicked item
+            fileItem.classList.add('selected');
+            
+            // Load file content
+            const path = (fileItem as HTMLElement).dataset.path;
+            this.loadFileContent(path!);
+          });
+        });
+      }
+      
+      private async loadFileContent(path: string) {
+        const fileName = path.split('/').pop() || '';
+        let content = '';
+        
+        // Generate sample content based on file type
+        if (fileName.endsWith('.py')) {
+          content = `# ${fileName}\nimport streamlit as st\nimport pandas as pd\n\ndef main():\n    st.title("${fileName.replace('.py', '').replace('_', ' ').toUpperCase()}")\n    st.write("Hello from ${fileName}!")\n\nif __name__ == "__main__":\n    main()`;
+        } else if (fileName.endsWith('.md')) {
+          content = `# ${fileName.replace('.md', '').replace('_', ' ').toUpperCase()}\n\nThis is a markdown file for ${fileName}.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3\n\n## Usage\n\n\`\`\`python\n# Example usage\nprint("Hello World")\n\`\`\``;
+        } else if (fileName.endsWith('.js')) {
+          content = `// ${fileName}\nconst ${fileName.replace('.js', '').replace('-', '_')} = {\n    init: function() {\n        console.log('${fileName} initialized');\n    },\n    \n    run: function() {\n        this.init();\n    }\n};\n\n${fileName.replace('.js', '').replace('-', '_')}.run();`;
+        } else if (fileName.endsWith('.json')) {
+          content = `{\n  "name": "${fileName.replace('.json', '')}",\n  "version": "1.0.0",\n  "description": "Generated configuration file",\n  "main": "index.js",\n  "scripts": {\n    "start": "node index.js",\n    "test": "jest"\n  }\n}`;
+        } else {
+          content = `Content of ${fileName}\n\nThis file is located at: ${path}\nProvider: ${this.currentProvider.toUpperCase()}\n\nLast modified: ${new Date().toLocaleString()}`;
+        }
+        
+        codeEditor.value = content;
+        this.updateStatusBar(`Loaded: ${fileName} from ${this.currentProvider.toUpperCase()}`);
+      }
+      
+      private showNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 12px 20px;
+          border-radius: 6px;
+          color: white;
+          font-weight: 500;
+          z-index: 10000;
+          animation: slideIn 0.3s ease-out;
+          background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 3000);
+      }
+      
+      private updateStatusBar(message: string) {
+        const statusBar = contentElement.querySelector('.status-bar');
+        if (statusBar) {
+          statusBar.textContent = message;
+        }
+      }
+      
+      async uploadFile(file: File, path: string) {
+        try {
+          const provider = this.providers[this.currentProvider];
+          // Simulate file upload
+          this.showNotification(`Uploading ${file.name} to ${this.currentProvider.toUpperCase()}...`, 'info');
+          
+          // Simulate upload delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          this.showNotification(`Successfully uploaded ${file.name}`, 'success');
+          this.refreshFileTree();
+        } catch (error) {
+          this.showNotification(`Upload failed: ${error}`, 'error');
+        }
+      }
+      
+      async syncBetweenProviders(fromProvider: string, toProvider: string, path: string) {
+        try {
+          this.showNotification(`Syncing from ${fromProvider} to ${toProvider}...`, 'info');
+          
+          // Simulate sync delay
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          this.showNotification(`Sync completed successfully`, 'success');
+        } catch (error) {
+          this.showNotification(`Sync failed: ${error}`, 'error');
+        }
+      }
+    }
+    
+    // Initialize Virtual Filesystem
+    const vfs = new VirtualFileSystem();
+    
     // Voice recognition setup
     let isVoiceActive = false;
     let recognition: any = null;
