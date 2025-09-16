@@ -1467,11 +1467,205 @@ class SwissKnifeDesktop {
   
   loadFileManagerApp(contentElement: HTMLElement) {
     contentElement.innerHTML = `
-      <div class="app-placeholder">
-        <h2>📁 File Manager</h2>
-        <p>File management functionality will be implemented here.</p>
-        <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+      <div class="file-manager-container" style="height: 100%; display: flex; flex-direction: column; background: #f8f9fa;">
+        <!-- Toolbar -->
+        <div class="file-manager-toolbar" style="display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid #dee2e6; background: white;">
+          <div class="toolbar-left" style="display: flex; align-items: center; gap: 8px;">
+            <button class="nav-btn" id="back-btn" title="Back" style="padding: 6px 10px; border: 1px solid #ced4da; background: white; border-radius: 4px; cursor: pointer;">◀</button>
+            <button class="nav-btn" id="forward-btn" title="Forward" style="padding: 6px 10px; border: 1px solid #ced4da; background: white; border-radius: 4px; cursor: pointer;">▶</button>
+            <button class="nav-btn" id="up-btn" title="Up" style="padding: 6px 10px; border: 1px solid #ced4da; background: white; border-radius: 4px; cursor: pointer;">⬆</button>
+            <button class="refresh-btn" id="refresh-btn" title="Refresh" style="padding: 6px 10px; border: 1px solid #ced4da; background: white; border-radius: 4px; cursor: pointer;">🔄</button>
+          </div>
+          <div class="address-bar" style="flex: 1; margin: 0 12px;">
+            <input type="text" id="address-input" value="/home/user/documents" 
+                   style="width: 100%; padding: 6px 10px; border: 1px solid #ced4da; border-radius: 4px; font-family: monospace;">
+          </div>
+          <div class="toolbar-right" style="display: flex; align-items: center; gap: 8px;">
+            <select id="view-mode" style="padding: 6px; border: 1px solid #ced4da; border-radius: 4px;">
+              <option value="list">List View</option>
+              <option value="grid">Grid View</option>
+              <option value="details">Details View</option>
+            </select>
+            <button class="new-folder-btn" title="New Folder" style="padding: 6px 10px; border: 1px solid #ced4da; background: white; border-radius: 4px; cursor: pointer;">📁+</button>
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="file-manager-main" style="flex: 1; display: flex;">
+          <!-- Sidebar -->
+          <div class="file-manager-sidebar" style="width: 200px; border-right: 1px solid #dee2e6; background: white; padding: 12px; overflow-y: auto;">
+            <h6 style="margin: 0 0 8px 0; color: #6c757d; font-size: 12px; text-transform: uppercase;">Quick Access</h6>
+            <div class="sidebar-item" data-path="/home/user" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+              🏠 Home
+            </div>
+            <div class="sidebar-item" data-path="/home/user/documents" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px; background: #e3f2fd;">
+              📄 Documents
+            </div>
+            <div class="sidebar-item" data-path="/home/user/downloads" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+              📥 Downloads
+            </div>
+            <div class="sidebar-item" data-path="/home/user/pictures" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+              🖼️ Pictures
+            </div>
+            <div class="sidebar-item" data-path="/home/user/music" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+              🎵 Music
+            </div>
+            <div class="sidebar-item" data-path="/home/user/videos" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+              🎬 Videos
+            </div>
+            
+            <h6 style="margin: 16px 0 8px 0; color: #6c757d; font-size: 12px; text-transform: uppercase;">Recent</h6>
+            <div class="sidebar-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px; font-size: 12px; color: #6c757d;">
+              📝 project-notes.md
+            </div>
+            <div class="sidebar-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px; font-size: 12px; color: #6c757d;">
+              💻 app.py
+            </div>
+          </div>
+
+          <!-- File List Area -->
+          <div class="file-list-container" style="flex: 1; padding: 12px; overflow-y: auto;">
+            <div class="file-list" id="file-list">
+              <!-- File items will be populated here -->
+              <div class="file-item" data-type="folder" style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+                <span class="file-icon" style="margin-right: 8px; font-size: 16px;">📁</span>
+                <span class="file-name" style="flex: 1;">Projects</span>
+                <span class="file-date" style="color: #6c757d; font-size: 12px;">Today</span>
+              </div>
+              <div class="file-item" data-type="folder" style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+                <span class="file-icon" style="margin-right: 8px; font-size: 16px;">📁</span>
+                <span class="file-name" style="flex: 1;">Archive</span>
+                <span class="file-date" style="color: #6c757d; font-size: 12px;">3 days ago</span>
+              </div>
+              <div class="file-item" data-type="file" data-ext="md" style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+                <span class="file-icon" style="margin-right: 8px; font-size: 16px;">📝</span>
+                <span class="file-name" style="flex: 1;">README.md</span>
+                <span class="file-size" style="color: #6c757d; font-size: 12px; margin-right: 8px;">2.4 KB</span>
+                <span class="file-date" style="color: #6c757d; font-size: 12px;">Yesterday</span>
+              </div>
+              <div class="file-item" data-type="file" data-ext="py" style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+                <span class="file-icon" style="margin-right: 8px; font-size: 16px;">🐍</span>
+                <span class="file-name" style="flex: 1;">main.py</span>
+                <span class="file-size" style="color: #6c757d; font-size: 12px; margin-right: 8px;">15.2 KB</span>
+                <span class="file-date" style="color: #6c757d; font-size: 12px;">2 hours ago</span>
+              </div>
+              <div class="file-item" data-type="file" data-ext="js" style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+                <span class="file-icon" style="margin-right: 8px; font-size: 16px;">💛</span>
+                <span class="file-name" style="flex: 1;">script.js</span>
+                <span class="file-size" style="color: #6c757d; font-size: 12px; margin-right: 8px;">8.9 KB</span>
+                <span class="file-date" style="color: #6c757d; font-size: 12px;">1 hour ago</span>
+              </div>
+              <div class="file-item" data-type="file" data-ext="json" style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+                <span class="file-icon" style="margin-right: 8px; font-size: 16px;">📋</span>
+                <span class="file-name" style="flex: 1;">package.json</span>
+                <span class="file-size" style="color: #6c757d; font-size: 12px; margin-right: 8px;">1.1 KB</span>
+                <span class="file-date" style="color: #6c757d; font-size: 12px;">3 hours ago</span>
+              </div>
+              <div class="file-item" data-type="file" data-ext="txt" style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px;">
+                <span class="file-icon" style="margin-right: 8px; font-size: 16px;">📄</span>
+                <span class="file-name" style="flex: 1;">notes.txt</span>
+                <span class="file-size" style="color: #6c757d; font-size: 12px; margin-right: 8px;">3.7 KB</span>
+                <span class="file-date" style="color: #6c757d; font-size: 12px;">5 hours ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="file-manager-status" style="padding: 6px 12px; border-top: 1px solid #dee2e6; background: #f8f9fa; font-size: 12px; color: #6c757d;">
+          <span id="status-text">7 items (2 folders, 5 files) • 31.4 KB selected</span>
+        </div>
       </div>
+
+      <style>
+        .file-item:hover {
+          background-color: #f8f9fa;
+        }
+        .file-item.selected {
+          background-color: #e3f2fd;
+        }
+        .sidebar-item:hover {
+          background-color: #f8f9fa;
+        }
+        .nav-btn:hover, .refresh-btn:hover, .new-folder-btn:hover {
+          background-color: #e9ecef;
+        }
+      </style>
+
+      <script>
+        // Add file manager functionality
+        (function() {
+          const fileItems = document.querySelectorAll('.file-item');
+          const sidebarItems = document.querySelectorAll('.sidebar-item');
+          const addressInput = document.getElementById('address-input');
+          
+          // File item click handlers
+          fileItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+              // Clear previous selections
+              fileItems.forEach(f => f.classList.remove('selected'));
+              // Select current item
+              this.classList.add('selected');
+              
+              // Double-click to open
+              if (e.detail === 2) {
+                const type = this.dataset.type;
+                const name = this.querySelector('.file-name').textContent;
+                
+                if (type === 'folder') {
+                  // Navigate to folder
+                  const currentPath = addressInput.value;
+                  addressInput.value = currentPath + '/' + name;
+                  console.log('Navigate to:', addressInput.value);
+                } else {
+                  // Open file
+                  console.log('Open file:', name);
+                  alert('Opening file: ' + name);
+                }
+              }
+            });
+          });
+          
+          // Sidebar navigation
+          sidebarItems.forEach(item => {
+            if (item.dataset.path) {
+              item.addEventListener('click', function() {
+                sidebarItems.forEach(s => s.style.backgroundColor = '');
+                this.style.backgroundColor = '#e3f2fd';
+                addressInput.value = this.dataset.path;
+                console.log('Navigate to:', this.dataset.path);
+              });
+            }
+          });
+          
+          // Refresh button
+          document.getElementById('refresh-btn').addEventListener('click', function() {
+            console.log('Refreshing file list...');
+            this.style.transform = 'rotate(360deg)';
+            this.style.transition = 'transform 0.5s';
+            setTimeout(() => {
+              this.style.transform = '';
+              this.style.transition = '';
+            }, 500);
+          });
+          
+          // New folder button
+          document.querySelector('.new-folder-btn').addEventListener('click', function() {
+            const name = prompt('Enter folder name:', 'New Folder');
+            if (name) {
+              console.log('Creating folder:', name);
+              alert('Created folder: ' + name);
+            }
+          });
+          
+          // Address bar enter key
+          addressInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              console.log('Navigate to:', this.value);
+            }
+          });
+        })();
+      </script>
     `;
   }
   
@@ -1931,11 +2125,364 @@ def load_and_process_data(file):
   
   loadTaskManagerApp(contentElement: HTMLElement) {
     contentElement.innerHTML = `
-      <div class="app-placeholder">
-        <h2>⚡ Task Manager</h2>
-        <p>System performance monitoring will be implemented here.</p>
-        <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+      <div class="task-manager-container" style="height: 100%; display: flex; flex-direction: column; background: #f8f9fa;">
+        <!-- Header with Tabs -->
+        <div class="task-manager-header" style="border-bottom: 1px solid #dee2e6; background: white;">
+          <div class="tab-container" style="display: flex;">
+            <button class="tab-btn active" data-tab="processes" style="padding: 12px 24px; border: none; background: transparent; cursor: pointer; border-bottom: 2px solid #007bff; color: #007bff; font-weight: 500;">
+              Processes
+            </button>
+            <button class="tab-btn" data-tab="performance" style="padding: 12px 24px; border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; color: #6c757d;">
+              Performance
+            </button>
+            <button class="tab-btn" data-tab="services" style="padding: 12px 24px; border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; color: #6c757d;">
+              Services
+            </button>
+            <button class="tab-btn" data-tab="network" style="padding: 12px 24px; border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; color: #6c757d;">
+              Network
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content-container" style="flex: 1; overflow: hidden;">
+          
+          <!-- Processes Tab -->
+          <div class="tab-content active" id="processes-tab" style="height: 100%; display: flex; flex-direction: column;">
+            <div class="processes-toolbar" style="padding: 12px; border-bottom: 1px solid #dee2e6; background: white; display: flex; justify-content: space-between; align-items: center;">
+              <div class="toolbar-left">
+                <button class="action-btn" id="end-task-btn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">End Task</button>
+                <button class="action-btn" id="refresh-processes" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh</button>
+              </div>
+              <div class="toolbar-right">
+                <input type="text" placeholder="Search processes..." style="padding: 6px 10px; border: 1px solid #ced4da; border-radius: 4px; width: 200px;">
+              </div>
+            </div>
+            
+            <div class="processes-table" style="flex: 1; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; background: white;">
+                <thead style="background: #f8f9fa; position: sticky; top: 0;">
+                  <tr>
+                    <th style="padding: 8px 12px; text-align: left; border-bottom: 1px solid #dee2e6; font-size: 12px; color: #6c757d;">Process Name</th>
+                    <th style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #dee2e6; font-size: 12px; color: #6c757d;">PID</th>
+                    <th style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #dee2e6; font-size: 12px; color: #6c757d;">CPU %</th>
+                    <th style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #dee2e6; font-size: 12px; color: #6c757d;">Memory</th>
+                    <th style="padding: 8px 12px; text-align: left; border-bottom: 1px solid #dee2e6; font-size: 12px; color: #6c757d;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="processes-list">
+                  <tr class="process-row" style="cursor: pointer;" data-pid="1234">
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;">🌐 Chrome Browser</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">1234</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa; color: #fd7e14;">15.2%</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">256 MB</td>
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;"><span class="status-badge running">Running</span></td>
+                  </tr>
+                  <tr class="process-row" style="cursor: pointer;" data-pid="5678">
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;">💻 VS Code</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">5678</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa; color: #dc3545;">8.7%</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">512 MB</td>
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;"><span class="status-badge running">Running</span></td>
+                  </tr>
+                  <tr class="process-row" style="cursor: pointer;" data-pid="9012">
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;">🖥️ SwissKnife Desktop</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">9012</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa; color: #28a745;">3.4%</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">128 MB</td>
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;"><span class="status-badge running">Running</span></td>
+                  </tr>
+                  <tr class="process-row" style="cursor: pointer;" data-pid="3456">
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;">🛡️ System Security</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">3456</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa; color: #28a745;">1.2%</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">64 MB</td>
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;"><span class="status-badge running">Running</span></td>
+                  </tr>
+                  <tr class="process-row" style="cursor: pointer;" data-pid="7890">
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;">📁 File Explorer</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">7890</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa; color: #28a745;">0.8%</td>
+                    <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f8f9fa;">32 MB</td>
+                    <td style="padding: 8px 12px; border-bottom: 1px solid #f8f9fa;"><span class="status-badge running">Running</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Performance Tab -->
+          <div class="tab-content" id="performance-tab" style="height: 100%; padding: 20px; display: none;">
+            <div class="performance-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 100%;">
+              <div class="performance-card" style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #dee2e6;">
+                <h4 style="margin: 0 0 16px 0; color: #495057;">CPU Usage</h4>
+                <div class="metric-display" style="text-align: center; margin-bottom: 20px;">
+                  <div class="metric-value" style="font-size: 48px; font-weight: bold; color: #007bff;" id="cpu-usage">27%</div>
+                  <div class="metric-label" style="color: #6c757d;">Current Usage</div>
+                </div>
+                <div class="metric-details">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Base Speed:</span>
+                    <span>2.4 GHz</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Cores:</span>
+                    <span>4</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Threads:</span>
+                    <span>8</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span>Cache:</span>
+                    <span>8 MB</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="performance-card" style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #dee2e6;">
+                <h4 style="margin: 0 0 16px 0; color: #495057;">Memory Usage</h4>
+                <div class="metric-display" style="text-align: center; margin-bottom: 20px;">
+                  <div class="metric-value" style="font-size: 48px; font-weight: bold; color: #28a745;" id="memory-usage">4.2 GB</div>
+                  <div class="metric-label" style="color: #6c757d;">of 16 GB used</div>
+                </div>
+                <div class="memory-bar" style="background: #e9ecef; height: 8px; border-radius: 4px; margin-bottom: 16px;">
+                  <div style="background: #28a745; height: 100%; width: 26%; border-radius: 4px;"></div>
+                </div>
+                <div class="metric-details">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Available:</span>
+                    <span>11.8 GB</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Cached:</span>
+                    <span>2.1 GB</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span>Swap Used:</span>
+                    <span>256 MB</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="performance-card" style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #dee2e6;">
+                <h4 style="margin: 0 0 16px 0; color: #495057;">Disk Usage</h4>
+                <div class="disk-list">
+                  <div class="disk-item" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                      <span>💾 System (C:)</span>
+                      <span>68% used</span>
+                    </div>
+                    <div class="disk-bar" style="background: #e9ecef; height: 6px; border-radius: 3px;">
+                      <div style="background: #fd7e14; height: 100%; width: 68%; border-radius: 3px;"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">342 GB of 500 GB</div>
+                  </div>
+                  <div class="disk-item" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                      <span>📁 Data (D:)</span>
+                      <span>45% used</span>
+                    </div>
+                    <div class="disk-bar" style="background: #e9ecef; height: 6px; border-radius: 3px;">
+                      <div style="background: #28a745; height: 100%; width: 45%; border-radius: 3px;"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">450 GB of 1 TB</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="performance-card" style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #dee2e6;">
+                <h4 style="margin: 0 0 16px 0; color: #495057;">Network Activity</h4>
+                <div class="network-stats">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span>📡 WiFi Adapter</span>
+                    <span class="status-badge connected">Connected</span>
+                  </div>
+                  <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                      <span>Download:</span>
+                      <span style="color: #28a745;" id="download-speed">1.2 MB/s</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                      <span>Upload:</span>
+                      <span style="color: #007bff;" id="upload-speed">0.3 MB/s</span>
+                    </div>
+                  </div>
+                  <div style="font-size: 12px; color: #6c757d;">
+                    <div>Signal Strength: Excellent</div>
+                    <div>IP Address: 192.168.1.102</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Services Tab -->
+          <div class="tab-content" id="services-tab" style="height: 100%; display: none; padding: 12px;">
+            <div style="background: white; height: 100%; border-radius: 8px; padding: 20px;">
+              <h4 style="margin: 0 0 16px 0;">System Services</h4>
+              <div class="services-list">
+                <div class="service-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f8f9fa;">
+                  <div>
+                    <strong>SwissKnife Desktop Service</strong>
+                    <div style="font-size: 12px; color: #6c757d;">Core desktop functionality</div>
+                  </div>
+                  <span class="status-badge running">Running</span>
+                </div>
+                <div class="service-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f8f9fa;">
+                  <div>
+                    <strong>AI Assistant Service</strong>
+                    <div style="font-size: 12px; color: #6c757d;">AI integration and processing</div>
+                  </div>
+                  <span class="status-badge running">Running</span>
+                </div>
+                <div class="service-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f8f9fa;">
+                  <div>
+                    <strong>P2P Network Service</strong>
+                    <div style="font-size: 12px; color: #6c757d;">Peer-to-peer connectivity</div>
+                  </div>
+                  <span class="status-badge stopped">Stopped</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Network Tab -->
+          <div class="tab-content" id="network-tab" style="height: 100%; display: none; padding: 12px;">
+            <div style="background: white; height: 100%; border-radius: 8px; padding: 20px;">
+              <h4 style="margin: 0 0 16px 0;">Network Connections</h4>
+              <p style="color: #6c757d;">Network monitoring functionality will be implemented here.</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <style>
+        .status-badge {
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 500;
+          text-transform: uppercase;
+        }
+        .status-badge.running { background: #d4edda; color: #155724; }
+        .status-badge.stopped { background: #f8d7da; color: #721c24; }
+        .status-badge.connected { background: #d1ecf1; color: #0c5460; }
+        
+        .process-row:hover {
+          background-color: #f8f9fa;
+        }
+        .process-row.selected {
+          background-color: #e3f2fd;
+        }
+        
+        .tab-btn:hover {
+          background-color: #f8f9fa;
+        }
+        .tab-btn.active {
+          border-bottom-color: #007bff !important;
+          color: #007bff !important;
+          font-weight: 500;
+        }
+        
+        .action-btn:hover {
+          opacity: 0.9;
+        }
+      </style>
+
+      <script>
+        (function() {
+          // Tab functionality
+          const tabBtns = document.querySelectorAll('.tab-btn');
+          const tabContents = document.querySelectorAll('.tab-content');
+          
+          tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+              const targetTab = this.dataset.tab;
+              
+              // Update tab buttons
+              tabBtns.forEach(b => {
+                b.classList.remove('active');
+                b.style.borderBottomColor = 'transparent';
+                b.style.color = '#6c757d';
+              });
+              this.classList.add('active');
+              this.style.borderBottomColor = '#007bff';
+              this.style.color = '#007bff';
+              
+              // Update tab content
+              tabContents.forEach(content => {
+                content.style.display = 'none';
+                content.classList.remove('active');
+              });
+              const targetContent = document.getElementById(targetTab + '-tab');
+              if (targetContent) {
+                targetContent.style.display = 'block';
+                targetContent.classList.add('active');
+              }
+            });
+          });
+          
+          // Process selection
+          const processRows = document.querySelectorAll('.process-row');
+          processRows.forEach(row => {
+            row.addEventListener('click', function() {
+              processRows.forEach(r => r.classList.remove('selected'));
+              this.classList.add('selected');
+            });
+          });
+          
+          // Refresh processes
+          document.getElementById('refresh-processes').addEventListener('click', function() {
+            console.log('Refreshing process list...');
+            // Update CPU and memory values randomly
+            processRows.forEach(row => {
+              const cpuCell = row.children[2];
+              const memoryCell = row.children[3];
+              
+              const newCpu = (Math.random() * 20).toFixed(1) + '%';
+              const newMemory = Math.floor(Math.random() * 300 + 50) + ' MB';
+              
+              cpuCell.textContent = newCpu;
+              memoryCell.textContent = newMemory;
+              
+              // Update color based on usage
+              const usage = parseFloat(newCpu);
+              if (usage > 10) cpuCell.style.color = '#fd7e14';
+              else if (usage > 5) cpuCell.style.color = '#dc3545';
+              else cpuCell.style.color = '#28a745';
+            });
+          });
+          
+          // Update performance metrics periodically
+          setInterval(() => {
+            const cpuUsage = document.getElementById('cpu-usage');
+            const memoryUsage = document.getElementById('memory-usage');
+            const downloadSpeed = document.getElementById('download-speed');
+            const uploadSpeed = document.getElementById('upload-speed');
+            
+            if (cpuUsage) {
+              const newCpu = Math.floor(Math.random() * 40 + 20);
+              cpuUsage.textContent = newCpu + '%';
+            }
+            
+            if (memoryUsage) {
+              const newMemory = (Math.random() * 2 + 3.5).toFixed(1);
+              memoryUsage.textContent = newMemory + ' GB';
+            }
+            
+            if (downloadSpeed) {
+              const newDown = (Math.random() * 2 + 0.5).toFixed(1);
+              downloadSpeed.textContent = newDown + ' MB/s';
+            }
+            
+            if (uploadSpeed) {
+              const newUp = (Math.random() * 0.5 + 0.1).toFixed(1);
+              uploadSpeed.textContent = newUp + ' MB/s';
+            }
+          }, 3000);
+        })();
+      </script>
     `;
   }
   
