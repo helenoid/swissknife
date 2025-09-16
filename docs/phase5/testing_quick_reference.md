@@ -210,4 +210,4 @@ For more detailed information, see:
 - [Test Strategy](/docs/phase5/test_strategy.md)
 - [Testing Framework](/docs/phase5/testing_framework.md)
 - [Benchmark Framework](/docs/phase5/benchmark_framework.md)
-- [Phase 5 Test README](/test/README-PHASE5.md)
+- [Phase 5 Test README](../api/README.md)

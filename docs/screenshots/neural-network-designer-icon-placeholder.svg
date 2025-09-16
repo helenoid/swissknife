@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" 
+     xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="url(#bgGradient)" stroke="#dee2e6" stroke-width="2"/>
+  
+  <!-- Icon -->
+  <circle cx="400" cy="250" r="60" 
+          fill="#6c757d" opacity="0.3"/>
+  <text x="400" y="260" 
+        text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="48" fill="#495057">📸</text>
+  
+  <!-- Title -->
+  <text x="400" y="330" 
+        text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="24" font-weight="bold" fill="#343a40">Icon</text>
+  
+  <!-- Subtitle -->
+  <text x="400" y="360" 
+        text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="16" fill="#6c757d">Screenshot: neural-network-designer-icon</text>
+  
+  <!-- Status -->
+  <text x="400" y="390" 
+        text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="14" fill="#dc3545">⚠️ Screenshot will be captured automatically</text>
+</svg>

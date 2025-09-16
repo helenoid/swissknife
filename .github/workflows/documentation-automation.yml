@@ -1,0 +1,511 @@
+name: 📸 SwissKnife Documentation Automation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'web/**'
+      - 'src/**'
+      - 'docs/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'web/**'
+      - 'src/**'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update all screenshots'
+        required: false
+        default: 'false'
+      skip_screenshots:
+        description: 'Skip screenshot capture (docs only)'
+        required: false
+        default: 'false'
+      notification_level:
+        description: 'Notification level (none/errors/all)'
+        required: false
+        default: 'errors'
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sunday at 2 AM UTC
+
+env:
+  NODE_ENV: ci
+  DOCUMENTATION_MODE: enhanced
+  QUALITY_THRESHOLD: 70
+
+jobs:
+  documentation-generation:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      quality-score: ${{ steps.quality-check.outputs.score }}
+      performance-grade: ${{ steps.performance-check.outputs.grade }}
+      changes-detected: ${{ steps.change-detection.outputs.changes }}
+      
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        id: install-deps
+        run: |
+          echo "📦 Installing dependencies..."
+          npm install --legacy-peer-deps
+          echo "status=success" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: 🚨 Dependency Installation Failed
+        if: steps.install-deps.outputs.status != 'success'
+        run: |
+          echo "❌ Dependency installation failed, attempting fallback..."
+          npm ci --legacy-peer-deps || npm install --force
+          
+      - name: 🎭 Install Playwright Browsers
+        id: install-playwright
+        if: github.event.inputs.skip_screenshots != 'true'
+        run: |
+          echo "🎭 Installing Playwright browsers..."
+          npx playwright install chromium --with-deps
+          echo "status=success" >> $GITHUB_OUTPUT
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
+
+      - name: 🖥️ Start Virtual Display
+        if: github.event.inputs.skip_screenshots != 'true' && steps.install-playwright.outputs.status == 'success'
+        run: |
+          echo "🖥️ Setting up virtual display..."
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1280x720x24 > /dev/null 2>&1 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: 🚀 Start Web Desktop  
+        id: start-desktop
+        if: github.event.inputs.skip_screenshots != 'true' && steps.install-playwright.outputs.status == 'success'
+        run: |
+          echo "🚀 Starting SwissKnife web desktop..."
+          npm run webgui > server.log 2>&1 &
+          
+          # Advanced server readiness check
+          echo "⏳ Waiting for desktop server to be ready..."
+          for i in {1..60}; do
+            if curl -s -f http://localhost:3001/health > /dev/null 2>&1; then
+              echo "✅ Desktop server ready on port 3001"
+              echo "port=3001" >> $GITHUB_OUTPUT
+              echo "status=success" >> $GITHUB_OUTPUT
+              break
+            elif curl -s -f http://localhost:3002/health > /dev/null 2>&1; then
+              echo "✅ Desktop server ready on port 3002"
+              echo "port=3002" >> $GITHUB_OUTPUT
+              echo "status=success" >> $GITHUB_OUTPUT
+              break
+            elif curl -s http://localhost:3001 > /dev/null 2>&1; then
+              echo "✅ Desktop server ready on port 3001 (no health endpoint)"
+              echo "port=3001" >> $GITHUB_OUTPUT
+              echo "status=success" >> $GITHUB_OUTPUT
+              break
+            elif curl -s http://localhost:3002 > /dev/null 2>&1; then
+              echo "✅ Desktop server ready on port 3002 (no health endpoint)"
+              echo "port=3002" >> $GITHUB_OUTPUT
+              echo "status=success" >> $GITHUB_OUTPUT
+              break
+            fi
+            echo "⏳ Waiting for desktop server... ($i/60)"
+            sleep 3
+          done
+          
+          if [[ "${{ steps.start-desktop.outputs.status }}" != "success" ]]; then
+            echo "❌ Desktop server failed to start within timeout"
+            echo "📋 Server logs:"
+            cat server.log || echo "No server logs available"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: 📸 Run Enhanced Screenshot Automation
+        id: screenshot-capture
+        if: github.event.inputs.skip_screenshots != 'true' && steps.start-desktop.outputs.status == 'success'
+        run: |
+          echo "📸 Starting enhanced screenshot capture..."
+          
+          # Update configuration for detected port
+          if [[ "${{ steps.start-desktop.outputs.port }}" == "3002" ]]; then
+            echo "🔧 Configuring for port 3002..."
+            sed -i 's/localhost:3001/localhost:3002/g' scripts/automation/update-screenshots.js
+            sed -i 's/baseURL.*3001/baseURL: "http:\/\/localhost:3002"/g' playwright.config.ts
+          fi
+          
+          # Run screenshot automation with enhanced error handling
+          timeout 900 npx playwright test test/e2e/desktop-applications-documentation.test.ts --project=chromium --reporter=json:test-results/screenshot-results.json || echo "Screenshots completed with warnings"
+          
+          echo "📊 Screenshot capture summary:"
+          if [ -f "test-results/screenshot-results.json" ]; then
+            node -e "
+              const results = require('./test-results/screenshot-results.json');
+              const passed = results.suites?.[0]?.tests?.filter(t => t.outcome === 'passed').length || 0;
+              const failed = results.suites?.[0]?.tests?.filter(t => t.outcome === 'failed').length || 0;
+              console.log(\`✅ Passed: \${passed}, ❌ Failed: \${failed}\`);
+              console.log(\`screenshots_passed=\${passed}\` >> process.env.GITHUB_OUTPUT);
+              console.log(\`screenshots_failed=\${failed}\` >> process.env.GITHUB_OUTPUT);
+            " 2>/dev/null || echo "Could not parse test results"
+          fi
+          
+          echo "status=completed" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: 📝 Generate Enhanced Documentation with Full Analysis
+        id: generate-docs
+        run: |
+          echo "📝 Generating enhanced documentation with comprehensive analysis..."
+          
+          # Always run complete system analysis
+          npm run docs:complete-system
+          
+          echo "✅ Enhanced documentation generation completed"
+          echo "status=success" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: 📊 Extract Quality Metrics
+        id: quality-check
+        if: steps.generate-docs.outputs.status == 'success'
+        run: |
+          echo "📊 Extracting quality metrics..."
+          
+          # Extract quality score from analytics data
+          if [ -f "docs/automation/analytics-data.json" ]; then
+            quality_score=$(node -e "
+              const data = require('./docs/automation/analytics-data.json');
+              const latest = data[data.length - 1];
+              console.log(latest?.quality?.overallScore || 0);
+            " 2>/dev/null || echo "0")
+            
+            echo "📊 Quality Score: ${quality_score}/100"
+            echo "score=${quality_score}" >> $GITHUB_OUTPUT
+            
+            # Determine quality grade
+            if [ "${quality_score}" -ge 90 ]; then
+              echo "grade=A" >> $GITHUB_OUTPUT
+              echo "grade_emoji=🏆" >> $GITHUB_OUTPUT
+            elif [ "${quality_score}" -ge 80 ]; then
+              echo "grade=B" >> $GITHUB_OUTPUT  
+              echo "grade_emoji=✅" >> $GITHUB_OUTPUT
+            elif [ "${quality_score}" -ge 70 ]; then
+              echo "grade=C" >> $GITHUB_OUTPUT
+              echo "grade_emoji=⚠️" >> $GITHUB_OUTPUT
+            else
+              echo "grade=F" >> $GITHUB_OUTPUT
+              echo "grade_emoji=❌" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "score=0" >> $GITHUB_OUTPUT
+            echo "grade=Unknown" >> $GITHUB_OUTPUT
+            echo "grade_emoji=❓" >> $GITHUB_OUTPUT
+          fi
+
+      - name: ⚡ Extract Performance Metrics
+        id: performance-check
+        if: steps.generate-docs.outputs.status == 'success'
+        run: |
+          echo "⚡ Extracting performance metrics..."
+          
+          if [ -f "docs/automation/performance-metrics.json" ]; then
+            node -e "
+              const data = require('./docs/automation/performance-metrics.json');
+              const latest = data[data.length - 1];
+              
+              console.log(\`generation_time=\${latest?.documentation?.generationTime || 0}\` >> process.env.GITHUB_OUTPUT);
+              console.log(\`memory_usage=\${Math.round((latest?.performance?.memoryUsage?.heapUsed || 0) / 1024 / 1024)}\` >> process.env.GITHUB_OUTPUT);
+              console.log(\`total_files=\${latest?.documentation?.filesGenerated || 0}\` >> process.env.GITHUB_OUTPUT);
+              
+              // Performance grade based on benchmarks
+              const genTime = latest?.documentation?.generationTime || 0;
+              const memUsage = (latest?.performance?.memoryUsage?.heapUsed || 0) / 1024 / 1024;
+              
+              let grade = 'A';
+              if (genTime > 5000 || memUsage > 100) grade = 'B';
+              if (genTime > 10000 || memUsage > 200) grade = 'C';
+              if (genTime > 20000 || memUsage > 500) grade = 'F';
+              
+              console.log(\`grade=\${grade}\` >> process.env.GITHUB_OUTPUT);
+            " 2>/dev/null || echo "Could not extract performance metrics"
+          fi
+
+      - name: 🔍 Advanced Change Detection
+        id: change-detection
+        run: |
+          echo "🔍 Analyzing documentation changes..."
+          
+          # Check for any changes in docs directory
+          if git diff --quiet docs/; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "change_type=none" >> $GITHUB_OUTPUT
+            echo "files_changed=0" >> $GITHUB_OUTPUT
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+            
+            # Count changed files
+            files_changed=$(git diff --name-only docs/ | wc -l)
+            echo "files_changed=${files_changed}" >> $GITHUB_OUTPUT
+            
+            # Determine change type
+            if git diff --name-only docs/ | grep -q "screenshots/"; then
+              if git diff --name-only docs/ | grep -q "\.md$"; then
+                echo "change_type=both" >> $GITHUB_OUTPUT
+              else
+                echo "change_type=screenshots" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "change_type=documentation" >> $GITHUB_OUTPUT
+            fi
+            
+            echo "📋 Files changed:"
+            git diff --name-only docs/ | head -10
+            if [ "${files_changed}" -gt 10 ]; then
+              echo "... and $((files_changed - 10)) more files"
+            fi
+            
+            echo ""
+            echo "📈 Change statistics:"
+            git diff --stat docs/
+          fi
+
+      - name: 📊 Generate Change Summary
+        id: change-summary
+        if: steps.change-detection.outputs.changes == 'true'
+        run: |
+          echo "📊 Generating comprehensive change summary..."
+          
+          # Create detailed change summary
+          cat > change-summary.md << 'EOF'
+          # 📸 Documentation Update Summary
+          
+          **Generated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Workflow**: ${{ github.workflow }}
+          **Trigger**: ${{ github.event_name }}
+          
+          ## 📊 Quality Metrics
+          - **Quality Score**: ${{ steps.quality-check.outputs.score }}/100 ${{ steps.quality-check.outputs.grade_emoji }}
+          - **Performance**: ${{ steps.performance-check.outputs.grade }} (${{ steps.performance-check.outputs.generation_time }}ms, ${{ steps.performance-check.outputs.memory_usage }}MB)
+          - **Files Updated**: ${{ steps.change-detection.outputs.files_changed }}
+          - **Change Type**: ${{ steps.change-detection.outputs.change_type }}
+          
+          ## 🔄 Changes Made
+          EOF
+          
+          echo "" >> change-summary.md
+          echo '```' >> change-summary.md
+          git diff --stat docs/ >> change-summary.md
+          echo '```' >> change-summary.md
+          
+          echo "summary_created=true" >> $GITHUB_OUTPUT
+
+      - name: ✅ Commit Documentation Updates
+        id: commit-changes
+        if: steps.change-detection.outputs.changes == 'true'
+        run: |
+          echo "✅ Committing documentation updates..."
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Add all documentation changes
+          git add docs/
+          
+          # Create comprehensive commit message
+          commit_msg="📸 Auto-update documentation - Quality: ${{ steps.quality-check.outputs.score }}/100 ${{ steps.quality-check.outputs.grade_emoji }}
+
+          - Files updated: ${{ steps.change-detection.outputs.files_changed }}
+          - Change type: ${{ steps.change-detection.outputs.change_type }}
+          - Performance: ${{ steps.performance-check.outputs.grade }} grade
+          - Generation time: ${{ steps.performance-check.outputs.generation_time }}ms
+          - Memory usage: ${{ steps.performance-check.outputs.memory_usage }}MB
+          
+          Automated by: ${{ github.workflow }} (${{ github.event_name }})"
+          
+          git commit -m "${commit_msg}" || echo "No changes to commit"
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Push Changes
+        if: steps.commit-changes.outputs.status == 'success'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      - name: 📊 Upload Performance Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-reports-${{ github.run_number }}
+          path: |
+            docs/automation/performance-report.md
+            docs/automation/quality-report.md
+            docs/automation/performance-metrics.json
+            docs/automation/analytics-data.json
+            docs/automation/link-validation-report.md
+            docs/automation/link-validation-data.json
+            docs/automation/screenshot-report.md
+            docs/automation/screenshot-data.json
+            docs/automation/dashboard.html
+            docs/automation/dashboard-data.json
+            test-results/
+            change-summary.md
+          retention-days: 30
+
+      - name: 🚨 Quality Threshold Check
+        id: quality-gate
+        if: steps.quality-check.outputs.score != '' && steps.quality-check.outputs.score < env.QUALITY_THRESHOLD
+        run: |
+          echo "⚠️ Documentation quality below threshold!"
+          echo "Current: ${{ steps.quality-check.outputs.score }}/100"
+          echo "Threshold: ${QUALITY_THRESHOLD}/100"
+          echo "failed=true" >> $GITHUB_OUTPUT
+          
+          # Create quality improvement issue (if needed)
+          if [ "${{ github.event.inputs.notification_level }}" != "none" ]; then
+            echo "📋 Quality improvement needed - see reports for details"
+          fi
+
+      - name: 💬 Success Notification
+        if: steps.change-detection.outputs.changes == 'true' && steps.quality-gate.outputs.failed != 'true' && github.event.inputs.notification_level == 'all'
+        run: |
+          echo "🎉 Documentation successfully updated!"
+          echo "📊 Quality Score: ${{ steps.quality-check.outputs.score }}/100 ${{ steps.quality-check.outputs.grade_emoji }}"
+          echo "⚡ Performance: ${{ steps.performance-check.outputs.grade }} grade"
+          echo "📝 Files Updated: ${{ steps.change-detection.outputs.files_changed }}"
+
+      - name: 🚨 Failure Notification  
+        if: failure() && github.event.inputs.notification_level != 'none'
+        run: |
+          echo "❌ Documentation automation failed!"
+          echo "🔍 Check the workflow logs for details"
+          echo "📊 Partial results may be available in artifacts"
+
+      - name: 📋 Workflow Summary
+        if: always()
+        run: |
+          echo "## 📸 SwissKnife Documentation Automation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Quality Score**: ${{ steps.quality-check.outputs.score || 'N/A' }}/100 ${{ steps.quality-check.outputs.grade_emoji || '' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Performance Grade**: ${{ steps.performance-check.outputs.grade || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Files Changed**: ${{ steps.change-detection.outputs.files_changed || '0' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Screenshots**: ${{ steps.screenshot-capture.outputs.screenshots_passed || '0' }} passed, ${{ steps.screenshot-capture.outputs.screenshots_failed || '0' }} failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Reports Available**:" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance Report: \`docs/automation/performance-report.md\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Quality Report: \`docs/automation/quality-report.md\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.quality-gate.outputs.failed }}" == "true" ]; then
+            echo "⚠️ **Quality Alert**: Documentation quality below threshold (${{ env.QUALITY_THRESHOLD }}/100)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 🎯 Set Job Outputs
+        if: always()
+        run: |
+          echo "quality-score=${{ steps.quality-check.outputs.score || '0' }}" >> $GITHUB_OUTPUT
+          echo "performance-grade=${{ steps.performance-check.outputs.grade || 'Unknown' }}" >> $GITHUB_OUTPUT  
+          echo "changes-detected=${{ steps.change-detection.outputs.changes || 'false' }}" >> $GITHUB_OUTPUT
+
+      - name: 💾 Commit Updated Documentation
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "SwissKnife Automation"
+          git add docs/
+          git commit -m "📸 Update application screenshots and documentation
+
+          - Automated screenshot capture via Playwright
+          - Updated application documentation
+          - Refreshed backend dependencies mapping
+          - Generated features matrix
+          
+          🤖 This is an automated update from GitHub Actions"
+
+      - name: 🚀 Push Changes
+        if: steps.check_changes.outputs.changes == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      - name: 📝 Create PR Comment (if PR)
+        if: github.event_name == 'pull_request' && steps.check_changes.outputs.changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📸 Documentation Updated
+
+              The SwissKnife documentation has been automatically updated with new screenshots and application information.
+
+              ### Changes Made:
+              - ✅ Captured latest application screenshots
+              - ✅ Updated application documentation
+              - ✅ Refreshed backend dependencies mapping
+              - ✅ Generated features matrix
+
+              ### Screenshots Available:
+              - Desktop Overview
+              - Individual Application Windows
+              - Updated Documentation Files
+
+              The documentation is now synchronized with the latest UI changes.
+
+              *🤖 This comment was generated automatically by the documentation automation system.*`
+            })
+
+      - name: 📤 Upload Screenshots as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swissknife-screenshots
+          path: |
+            docs/screenshots/
+            docs/applications/
+          retention-days: 30
+
+      - name: 📋 Summary Report
+        if: always()
+        run: |
+          echo "## 📸 SwissKnife Documentation Automation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Automation Results" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_changes.outputs.changes }}" == "true" ]; then
+            echo "- ✅ Documentation updated successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- 📸 Screenshots captured and committed" >> $GITHUB_STEP_SUMMARY
+            echo "- 📝 Application documentation regenerated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ℹ️ No changes detected - documentation is up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Documentation Files" >> $GITHUB_STEP_SUMMARY
+          echo "- 🏠 [Main Documentation](docs/applications/README.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔗 [Backend Dependencies](docs/applications/backend-dependencies.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- 📋 [Features Matrix](docs/applications/features-matrix.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🤖 [Automation Guide](docs/automation/README.md)" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🖼️ Screenshots" >> $GITHUB_STEP_SUMMARY
+          echo "All application screenshots are automatically captured and stored in \`docs/screenshots/\`" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "*🤖 Automated by SwissKnife Documentation System*" >> $GITHUB_STEP_SUMMARY

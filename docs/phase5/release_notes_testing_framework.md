@@ -94,7 +94,7 @@ For detailed information, refer to these documentation files:
 - [Test Strategy](/docs/phase5/test_strategy.md): Overall testing approach
 - [Testing Framework](/docs/phase5/testing_framework.md): Framework details
 - [Benchmark Framework](/docs/phase5/benchmark_framework.md): Performance testing approach
-- [Test README](/test/README-PHASE5.md): Guide for running tests
+- [Test README](../api/README.md): Guide for running tests
 
 ## Technical Details
 

@@ -1,0 +1,252 @@
+[
+  {
+    "timestamp": "2025-09-15T07:17:39.207Z",
+    "documentation": {
+      "totalApps": 27,
+      "generationTime": 29,
+      "averageAppTime": 1.0740740740740742,
+      "filesGenerated": 30,
+      "totalSize": 264407
+    },
+    "screenshots": {
+      "totalScreenshots": 0,
+      "captureTime": 0,
+      "averageScreenshotTime": 0,
+      "totalImageSize": 0,
+      "failedCaptures": 0
+    },
+    "dependencies": {
+      "analysisTime": 1,
+      "totalDependencies": 102,
+      "sharedServices": 6,
+      "priorityMatrix": {
+        "high": 0,
+        "medium": 6,
+        "low": 96
+      }
+    },
+    "performance": {
+      "memoryUsage": {
+        "rss": 53620736,
+        "heapTotal": 6791168,
+        "heapUsed": 4621592,
+        "external": 1718881,
+        "arrayBuffers": 42782
+      },
+      "cpuTime": {
+        "user": 74133,
+        "system": 11019
+      },
+      "nodeVersion": "v20.19.5",
+      "platform": "linux",
+      "totalMemory": 16772579328,
+      "freeMemory": 15223746560,
+      "cpuCount": 4,
+      "loadAverage": [
+        0.09,
+        0.09,
+        0.07
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-15T07:19:39.980Z",
+    "documentation": {
+      "totalApps": 27,
+      "generationTime": 30,
+      "averageAppTime": 1.1111111111111112,
+      "filesGenerated": 30,
+      "totalSize": 264407
+    },
+    "screenshots": {
+      "totalScreenshots": 0,
+      "captureTime": 0,
+      "averageScreenshotTime": 0,
+      "totalImageSize": 0,
+      "failedCaptures": 0
+    },
+    "dependencies": {
+      "analysisTime": 1,
+      "totalDependencies": 102,
+      "sharedServices": 6,
+      "priorityMatrix": {
+        "high": 0,
+        "medium": 6,
+        "low": 96
+      }
+    },
+    "performance": {
+      "memoryUsage": {
+        "rss": 55914496,
+        "heapTotal": 9150464,
+        "heapUsed": 6458624,
+        "external": 1919234,
+        "arrayBuffers": 78153
+      },
+      "cpuTime": {
+        "user": 74782,
+        "system": 15366
+      },
+      "nodeVersion": "v20.19.5",
+      "platform": "linux",
+      "totalMemory": 16772579328,
+      "freeMemory": 15214927872,
+      "cpuCount": 4,
+      "loadAverage": [
+        0.06,
+        0.1,
+        0.08
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-15T09:10:00.736Z",
+    "documentation": {
+      "totalApps": 27,
+      "generationTime": 29,
+      "averageAppTime": 1.0740740740740742,
+      "filesGenerated": 30,
+      "totalSize": 264407
+    },
+    "screenshots": {
+      "totalScreenshots": 0,
+      "captureTime": 0,
+      "averageScreenshotTime": 0,
+      "totalImageSize": 0,
+      "failedCaptures": 0
+    },
+    "dependencies": {
+      "analysisTime": 0,
+      "totalDependencies": 102,
+      "sharedServices": 6,
+      "priorityMatrix": {
+        "high": 0,
+        "medium": 6,
+        "low": 96
+      }
+    },
+    "performance": {
+      "memoryUsage": {
+        "rss": 55836672,
+        "heapTotal": 9150464,
+        "heapUsed": 6452328,
+        "external": 1919234,
+        "arrayBuffers": 78153
+      },
+      "cpuTime": {
+        "user": 69319,
+        "system": 20218
+      },
+      "nodeVersion": "v20.19.5",
+      "platform": "linux",
+      "totalMemory": 16772579328,
+      "freeMemory": 15228145664,
+      "cpuCount": 4,
+      "loadAverage": [
+        0.16,
+        0.22,
+        0.09
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-15T09:10:01.378Z",
+    "documentation": {
+      "totalApps": 27,
+      "generationTime": 1002,
+      "averageAppTime": 37.111111111111114,
+      "filesGenerated": 30,
+      "totalSize": 264407
+    },
+    "screenshots": {
+      "totalScreenshots": 0,
+      "captureTime": 0,
+      "averageScreenshotTime": 0,
+      "totalImageSize": 0,
+      "failedCaptures": 0
+    },
+    "dependencies": {
+      "analysisTime": 0,
+      "totalDependencies": 0,
+      "sharedServices": 0,
+      "priorityMatrix": {
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    "performance": {
+      "memoryUsage": {
+        "rss": 46530560,
+        "heapTotal": 4956160,
+        "heapUsed": 4659720,
+        "external": 1708707,
+        "arrayBuffers": 32608
+      },
+      "cpuTime": {
+        "user": 45502,
+        "system": 6924
+      },
+      "nodeVersion": "v20.19.5",
+      "platform": "linux",
+      "totalMemory": 16772579328,
+      "freeMemory": 15231930368,
+      "cpuCount": 4,
+      "loadAverage": [
+        0.15,
+        0.22,
+        0.09
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-15T09:56:51.154Z",
+    "documentation": {
+      "totalApps": 27,
+      "generationTime": 29,
+      "averageAppTime": 1.0740740740740742,
+      "filesGenerated": 30,
+      "totalSize": 264407
+    },
+    "screenshots": {
+      "totalScreenshots": 0,
+      "captureTime": 0,
+      "averageScreenshotTime": 0,
+      "totalImageSize": 0,
+      "failedCaptures": 0
+    },
+    "dependencies": {
+      "analysisTime": 0,
+      "totalDependencies": 102,
+      "sharedServices": 6,
+      "priorityMatrix": {
+        "high": 0,
+        "medium": 6,
+        "low": 96
+      }
+    },
+    "performance": {
+      "memoryUsage": {
+        "rss": 56004608,
+        "heapTotal": 9412608,
+        "heapUsed": 5768416,
+        "external": 1878484,
+        "arrayBuffers": 48926
+      },
+      "cpuTime": {
+        "user": 80974,
+        "system": 10996
+      },
+      "nodeVersion": "v20.19.5",
+      "platform": "linux",
+      "totalMemory": 16772579328,
+      "freeMemory": 15199727616,
+      "cpuCount": 4,
+      "loadAverage": [
+        0.18,
+        0.17,
+        0.1
+      ]
+    }
+  }
+]

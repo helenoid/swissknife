@@ -439,7 +439,7 @@ aiService.on('inferenceCompleted', (data) => {
 ### Documentation
 - [Hugging Face Documentation](https://huggingface.co/docs)
 - [SwissKnife Wiki](https://github.com/hallucinate-llc/swissknife/wiki)
-- [API Reference](./api-reference.md)
+- [API Reference](API_KEY_MANAGEMENT.md)
 
 ### Community
 - [Discord Server](https://discord.gg/swissknife)

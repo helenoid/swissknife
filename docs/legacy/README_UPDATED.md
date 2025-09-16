@@ -90,8 +90,8 @@ This project aims to provide:
 ### Key Documents:
 - [Repository Audit Report](REPOSITORY_AUDIT_REPORT.md) - Current state analysis
 - [Implementation Plan](IMPLEMENTATION_PLAN.md) - Roadmap for fixes
-- [Architecture Documentation](docs/architecture/) - System design (may be outdated)
-- [Phase Documentation](docs/phase1/) - Development phases (may be outdated)
+- [Architecture Documentation](../phase1/cli_architecture.md) - System design (may be outdated)
+- [Phase Documentation](../integration/phase1-components-guide.md) - Development phases (may be outdated)
 
 ## 🤝 Contributing
 

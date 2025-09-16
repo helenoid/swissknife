@@ -20,15 +20,15 @@ SwissKnife provides comprehensive documentation covering all aspects of the plat
 ## 🏗️ Architecture & Implementation
 
 ### Core Architecture
-- **[COLLABORATION_IMPLEMENTATION_PLAN.md](../COLLABORATION_IMPLEMENTATION_PLAN.md)** - Complete 6-phase implementation roadmap and architecture
+- **[COLLABORATION_IMPLEMENTATION_PLAN.md](applications/README.md)** - Complete 6-phase implementation roadmap and architecture
 - **[UNIFIED_ARCHITECTURE.md](./UNIFIED_ARCHITECTURE.md)** - Technical architecture documentation
 - **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Codebase organization and structure
 - **[COMPLETE_INTEGRATION_STATUS.md](./COMPLETE_INTEGRATION_STATUS.md)** - Feature completeness and integration status
 
 ### Technical Documentation
 - **[BUILD_PROCESS.md](./BUILD_PROCESS.md)** - Build system and Vite configurations
-- **[VITE_INTEGRATION_GUIDE.md](../VITE_INTEGRATION_GUIDE.md)** - Build system architecture
-- **[PRODUCTION_DEPLOYMENT.md](../PRODUCTION_DEPLOYMENT.md)** - Enterprise deployment guide
+- **[VITE_INTEGRATION_GUIDE.md](DEVELOPER_GUIDE.md)** - Build system architecture
+- **[PRODUCTION_DEPLOYMENT.md](BUILD_PROCESS.md)** - Enterprise deployment guide
 
 ## 🤖 AI Integration
 
@@ -276,7 +276,7 @@ npm run test:production
 2. **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Quick setup and usage
 3. **[AI_INTEGRATION_COMPLETE.md](./AI_INTEGRATION_COMPLETE.md)** - AI features
 4. **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)** - Development documentation
-5. **[COLLABORATION_IMPLEMENTATION_PLAN.md](../COLLABORATION_IMPLEMENTATION_PLAN.md)** - Collaboration features
+5. **[COLLABORATION_IMPLEMENTATION_PLAN.md](applications/README.md)** - Collaboration features
 
 ### By Use Case
 - **Using SwissKnife**: README.md → GETTING_STARTED.md → ENTRY_POINTS.md

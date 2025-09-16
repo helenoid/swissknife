@@ -1,0 +1,335 @@
+{
+  "timestamp": "2025-09-15T16:17:31.711Z",
+  "summary": {
+    "qualityScore": 85,
+    "qualityGrade": "B",
+    "totalFiles": 30,
+    "brokenLinks": 19,
+    "missingScreenshots": 0,
+    "generationTime": 29,
+    "lastUpdate": "2025-09-15T16:17:31.229Z",
+    "status": "needs-improvement"
+  },
+  "analytics": {
+    "timestamp": "2025-09-15T16:17:31.229Z",
+    "quality": {
+      "overallScore": 85,
+      "completeness": 82,
+      "consistency": 100,
+      "accuracy": 62,
+      "maintainability": 100
+    },
+    "content": {
+      "totalWords": 37402,
+      "totalFiles": 30,
+      "averageLength": 1247,
+      "duplicateContent": 0,
+      "brokenReferences": 54
+    },
+    "structure": {
+      "crossReferences": 361,
+      "orphanedFiles": 0,
+      "missingScreenshots": 0,
+      "inconsistentFormatting": 0
+    },
+    "changes": {
+      "filesModified": 0,
+      "contentChanges": 156,
+      "structureChanges": 0,
+      "newFiles": 0,
+      "deletedFiles": 0
+    },
+    "linkValidation": {
+      "totalLinks": 648,
+      "brokenLinks": 19,
+      "repairedLinks": 0,
+      "validationStatus": "FAIL"
+    },
+    "screenshots": {
+      "totalReferences": 0,
+      "missingScreenshots": 0,
+      "availableScreenshots": 2,
+      "placeholdersGenerated": 0
+    }
+  },
+  "performance": {
+    "timestamp": "2025-09-15T09:56:51.154Z",
+    "documentation": {
+      "totalApps": 27,
+      "generationTime": 29,
+      "averageAppTime": 1.0740740740740742,
+      "filesGenerated": 30,
+      "totalSize": 264407
+    },
+    "screenshots": {
+      "totalScreenshots": 0,
+      "captureTime": 0,
+      "averageScreenshotTime": 0,
+      "totalImageSize": 0,
+      "failedCaptures": 0
+    },
+    "dependencies": {
+      "analysisTime": 0,
+      "totalDependencies": 102,
+      "sharedServices": 6,
+      "priorityMatrix": {
+        "high": 0,
+        "medium": 6,
+        "low": 96
+      }
+    },
+    "performance": {
+      "memoryUsage": {
+        "rss": 56004608,
+        "heapTotal": 9412608,
+        "heapUsed": 5768416,
+        "external": 1878484,
+        "arrayBuffers": 48926
+      },
+      "cpuTime": {
+        "user": 80974,
+        "system": 10996
+      },
+      "nodeVersion": "v20.19.5",
+      "platform": "linux",
+      "totalMemory": 16772579328,
+      "freeMemory": 15199727616,
+      "cpuCount": 4,
+      "loadAverage": [
+        0.18,
+        0.17,
+        0.1
+      ]
+    }
+  },
+  "linkValidation": {
+    "generated": "2025-09-15T16:17:31.436Z",
+    "summary": {
+      "totalFiles": 648,
+      "brokenLinks": 19,
+      "repairSuggestions": 0,
+      "validationStatus": "FAIL"
+    },
+    "brokenLinks": [
+      {
+        "file": "DOCUMENTATION_INDEX.md",
+        "target": "../UNIFIED_INTEGRATION_PLAN.md",
+        "text": "UNIFIED_INTEGRATION_PLAN.md",
+        "type": "link",
+        "position": 8633
+      },
+      {
+        "file": "legacy/README.old.md",
+        "target": "docs/phase2/",
+        "text": "docs/phase2/",
+        "type": "link",
+        "position": 7941
+      },
+      {
+        "file": "legacy/README.old.md",
+        "target": "docs/phase4/",
+        "text": "docs/phase4/",
+        "type": "link",
+        "position": 8109
+      },
+      {
+        "file": "legacy/README.old.md",
+        "target": "docs/phase5/",
+        "text": "docs/phase5/",
+        "type": "link",
+        "position": 8184
+      },
+      {
+        "file": "legacy/README.old.md",
+        "target": "LICENSE.md",
+        "text": "AGPL License",
+        "type": "link",
+        "position": 11563
+      },
+      {
+        "file": "legacy/README.old.md",
+        "target": "CLEANUP_COMPLETION_CERTIFICATE.md",
+        "text": "CLEANUP_COMPLETION_CERTIFICATE.md",
+        "type": "link",
+        "position": 12114
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "REPOSITORY_AUDIT_REPORT.md",
+        "text": "REPOSITORY_AUDIT_REPORT.md",
+        "type": "link",
+        "position": 125
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "IMPLEMENTATION_PLAN.md",
+        "text": "IMPLEMENTATION_PLAN.md",
+        "type": "link",
+        "position": 204
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "IMPLEMENTATION_PLAN.md",
+        "text": "IMPLEMENTATION_PLAN.md",
+        "type": "link",
+        "position": 1980
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "REPOSITORY_AUDIT_REPORT.md",
+        "text": "Repository Audit Report",
+        "type": "link",
+        "position": 3605
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "IMPLEMENTATION_PLAN.md",
+        "text": "Implementation Plan",
+        "type": "link",
+        "position": 3686
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "IMPLEMENTATION_PLAN.md",
+        "text": "implementation plan",
+        "type": "link",
+        "position": 4181
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "IMPLEMENTATION_PLAN.md",
+        "text": "IMPLEMENTATION_PLAN.md",
+        "type": "link",
+        "position": 4415
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "LICENSE.md",
+        "text": "AGPL License",
+        "type": "link",
+        "position": 4755
+      },
+      {
+        "file": "legacy/README_UPDATED.md",
+        "target": "REPOSITORY_AUDIT_REPORT.md",
+        "text": "REPOSITORY_AUDIT_REPORT.md",
+        "type": "link",
+        "position": 5227
+      },
+      {
+        "file": "p2p/README.md",
+        "target": "./advanced-p2p-config.md",
+        "text": "Advanced P2P Configuration Guide",
+        "type": "link",
+        "position": 7181
+      },
+      {
+        "file": "phase1/cli_contribution_guidelines.md",
+        "target": "CODE_OF_CONDUCT.md",
+        "text": "Code of Conduct",
+        "type": "link",
+        "position": 1203
+      },
+      {
+        "file": "phase1/implementation_framework.md",
+        "target": "args",
+        "text": "method",
+        "type": "link",
+        "position": 10593
+      },
+      {
+        "file": "phase1/phase1_implementation_details.md",
+        "target": "args",
+        "text": "method",
+        "type": "link",
+        "position": 18982
+      }
+    ],
+    "repairs": [],
+    "recommendations": [
+      {
+        "priority": "high",
+        "issue": "19 broken links found",
+        "action": "Fix broken internal references using repair suggestions",
+        "impact": "Critical for documentation accuracy score"
+      }
+    ]
+  },
+  "screenshots": {
+    "generated": "2025-09-15T16:17:31.484Z",
+    "summary": {
+      "totalMissing": 0,
+      "availableScreenshots": 1,
+      "placeholdersGenerated": 0,
+      "fallbacksAvailable": 0
+    },
+    "missingScreenshots": [],
+    "availableScreenshots": [
+      "desktop-overview.png"
+    ],
+    "fallbackOptions": [],
+    "recommendations": []
+  },
+  "trends": [
+    {
+      "timestamp": "2025-09-15T09:10:02.587Z",
+      "qualityScore": 72,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:17:17.932Z",
+      "qualityScore": 81,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:19:24.933Z",
+      "qualityScore": 81,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:21:07.538Z",
+      "qualityScore": 81,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:46:25.511Z",
+      "qualityScore": 81,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:51:39.025Z",
+      "qualityScore": 85,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:56:51.155Z",
+      "qualityScore": 72,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:56:52.493Z",
+      "qualityScore": 72,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T09:57:16.351Z",
+      "qualityScore": 85,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-15T16:17:31.229Z",
+      "qualityScore": 85,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    }
+  ]
+}
