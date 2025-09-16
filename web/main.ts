@@ -2025,20 +2025,992 @@ class SwissKnifeDesktop {
                 📁 Project Files
                 <button class="new-file-btn" style="background: none; border: none; font-size: 16px; cursor: pointer;" title="New File">+</button>
               </div>
-              <div class="file-tree" style="padding: 4px;">
-                <div class="file-item" data-file="app.py" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                  <span style="margin-right: 6px;">🐍</span>app.py
-                </div>
-                <div class="file-item" data-file="requirements.txt" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                  <span style="margin-right: 6px;">📄</span>requirements.txt
-                </div>
-                <div class="file-item" data-file="config.py" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                  <span style="margin-right: 6px;">⚙️</span>config.py
-                </div>
-                <div class="file-item" data-file="README.md" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                  <span style="margin-right: 6px;">📝</span>README.md
+              <div class="file-tree" style="padding: 0; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px;">
+                <!-- Root folder -->
+                <div class="folder-item" data-path="/" style="user-select: none;">
+                  <div class="folder-header" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center; hover: background: #e9ecef;" onclick="toggleFolder(event, '/')">
+                    <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▼</span>
+                    <span style="margin-right: 6px;">📁</span>
+                    <span>swissknife-project</span>
+                  </div>
+                  <div class="folder-content" style="margin-left: 16px;">
+                    
+                    <!-- Source folder -->
+                    <div class="folder-item" data-path="/src">
+                      <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/src')">
+                        <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▼</span>
+                        <span style="margin-right: 6px;">📂</span>
+                        <span>src</span>
+                      </div>
+                      <div class="folder-content" style="margin-left: 16px;">
+                        <div class="file-item" data-file="src/app.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/app.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🐍</span>app.py
+                        </div>
+                        <div class="file-item" data-file="src/config.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/config.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">⚙️</span>config.py
+                        </div>
+                        <div class="file-item" data-file="src/utils.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/utils.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🔧</span>utils.py
+                        </div>
+                        
+                        <!-- Components subfolder -->
+                        <div class="folder-item" data-path="/src/components">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/src/components')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>components</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="src/components/chat.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/components/chat.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">💬</span>chat.py
+                            </div>
+                            <div class="file-item" data-file="src/components/dashboard.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/components/dashboard.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">📊</span>dashboard.py
+                            </div>
+                            <div class="file-item" data-file="src/components/ai_models.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/components/ai_models.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🤖</span>ai_models.py
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <!-- API subfolder -->
+                        <div class="folder-item" data-path="/src/api">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/src/api')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>api</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="src/api/routes.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/api/routes.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🛣️</span>routes.py
+                            </div>
+                            <div class="file-item" data-file="src/api/auth.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/api/auth.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🔐</span>auth.py
+                            </div>
+                            <div class="file-item" data-file="src/api/middleware.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/api/middleware.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">⚡</span>middleware.py
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Tests folder -->
+                    <div class="folder-item" data-path="/tests">
+                      <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/tests')">
+                        <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                        <span style="margin-right: 6px;">📂</span>
+                        <span>tests</span>
+                      </div>
+                      <div class="folder-content" style="margin-left: 16px; display: none;">
+                        <div class="file-item" data-file="tests/test_app.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'tests/test_app.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🧪</span>test_app.py
+                        </div>
+                        <div class="file-item" data-file="tests/test_api.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'tests/test_api.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🧪</span>test_api.py
+                        </div>
+                        <div class="file-item" data-file="tests/conftest.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'tests/conftest.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">⚙️</span>conftest.py
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Static folder -->
+                    <div class="folder-item" data-path="/static">
+                      <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/static')">
+                        <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                        <span style="margin-right: 6px;">📂</span>
+                        <span>static</span>
+                      </div>
+                      <div class="folder-content" style="margin-left: 16px; display: none;">
+                        <div class="folder-item" data-path="/static/css">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/static/css')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>css</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="static/css/main.css" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/css/main.css')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🎨</span>main.css
+                            </div>
+                            <div class="file-item" data-file="static/css/components.css" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/css/components.css')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🎨</span>components.css
+                            </div>
+                          </div>
+                        </div>
+                        <div class="folder-item" data-path="/static/js">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/static/js')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>js</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="static/js/app.js" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/js/app.js')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">📜</span>app.js
+                            </div>
+                            <div class="file-item" data-file="static/js/utils.js" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/js/utils.js')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🔧</span>utils.js
+                            </div>
+                          </div>
+                        </div>
+                        <div class="folder-item" data-path="/static/images">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/static/images')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>images</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="static/images/logo.png" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/images/logo.png')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🖼️</span>logo.png
+                            </div>
+                            <div class="file-item" data-file="static/images/background.jpg" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/images/background.jpg')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🖼️</span>background.jpg
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Docs folder -->
+                    <div class="folder-item" data-path="/docs">
+                      <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/docs')">
+                        <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                        <span style="margin-right: 6px;">📂</span>
+                        <span>docs</span>
+                      </div>
+                      <div class="folder-content" style="margin-left: 16px; display: none;">
+                        <div class="file-item" data-file="docs/README.md" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'docs/README.md')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">📝</span>README.md
+                        </div>
+                        <div class="file-item" data-file="docs/API.md" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'docs/API.md')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">📋</span>API.md
+                        </div>
+                        <div class="file-item" data-file="docs/CONTRIBUTING.md" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'docs/CONTRIBUTING.md')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🤝</span>CONTRIBUTING.md
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Root level files -->
+                    <div class="file-item" data-file="requirements.txt" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'requirements.txt')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">📄</span>requirements.txt
+                    </div>
+                    <div class="file-item" data-file="setup.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'setup.py')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">⚙️</span>setup.py
+                    </div>
+                    <div class="file-item" data-file="Dockerfile" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'Dockerfile')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">🐳</span>Dockerfile
+                    </div>
+                    <div class="file-item" data-file=".gitignore" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, '.gitignore')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">🚫</span>.gitignore
+                    </div>
+                    <div class="file-item" data-file="README.md" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'README.md')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">📝</span>README.md
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              <style>
+                .file-tree .folder-header:hover, 
+                .file-tree .file-item:hover {
+                  background: #e9ecef !important;
+                }
+                
+                .file-tree .file-item.selected {
+                  background: #007acc !important;
+                  color: white;
+                }
+                
+                .file-tree .folder-arrow {
+                  display: inline-block;
+                  width: 12px;
+                  text-align: center;
+                }
+                
+                .file-tree .folder-item[data-expanded="true"] .folder-arrow {
+                  transform: rotate(90deg);
+                }
+                
+                .file-tree {
+                  scrollbar-width: thin;
+                  scrollbar-color: #ccc transparent;
+                }
+                
+                .file-tree::-webkit-scrollbar {
+                  width: 6px;
+                }
+                
+                .file-tree::-webkit-scrollbar-track {
+                  background: transparent;
+                }
+                
+                .file-tree::-webkit-scrollbar-thumb {
+                  background: #ccc;
+                  border-radius: 3px;
+                }
+              </style>
+              
+              <script>
+                // Global functions for file tree interaction
+                window.toggleFolder = function(event, folderPath) {
+                  event.stopPropagation();
+                  const folderItem = event.target.closest('.folder-item');
+                  const content = folderItem.querySelector('.folder-content');
+                  const arrow = folderItem.querySelector('.folder-arrow');
+                  
+                  if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    arrow.innerHTML = '▼';
+                    folderItem.setAttribute('data-expanded', 'true');
+                  } else {
+                    content.style.display = 'none';
+                    arrow.innerHTML = '▶';
+                    folderItem.setAttribute('data-expanded', 'false');
+                  }
+                };
+                
+                window.selectFile = function(event, filePath) {
+                  event.stopPropagation();
+                  
+                  // Remove previous selection
+                  const prevSelected = document.querySelector('.file-item.selected');
+                  if (prevSelected) {
+                    prevSelected.classList.remove('selected');
+                  }
+                  
+                  // Add selection to clicked file
+                  const fileItem = event.target.closest('.file-item');
+                  fileItem.classList.add('selected');
+                  
+                  // Load file content (simulate file switching)
+                  switchToFile(filePath);
+                };
+                
+                function switchToFile(filePath) {
+                  // Get file content based on file type
+                  const content = getFileContent(filePath);
+                  const codeEditor = document.querySelector('.code-editor');
+                  if (codeEditor) {
+                    codeEditor.value = content;
+                  }
+                  
+                  // Update tab
+                  updateEditorTab(filePath);
+                  
+                  // Update status bar
+                  const fileName = filePath.split('/').pop();
+                  const language = getLanguageFromFile(fileName);
+                  updateStatusBarFile(fileName, language);
+                }
+                
+                function getFileContent(filePath) {
+                  // Sample content based on file type
+                  const fileName = filePath.split('/').pop();
+                  
+                  if (fileName.endsWith('.py')) {
+                    if (fileName.includes('test_')) {
+                      return \`import pytest
+import unittest
+from unittest.mock import patch, MagicMock
+
+from src.app import main
+from src.config import Config
+
+class TestApp(unittest.TestCase):
+    def setUp(self):
+        self.config = Config()
+    
+    def test_main_function(self):
+        """Test the main application function"""
+        result = main()
+        self.assertIsNotNone(result)
+    
+    def test_config_loading(self):
+        """Test configuration loading"""
+        self.assertIsNotNone(self.config.api_key)
+        self.assertTrue(self.config.debug_mode)
+    
+    @patch('src.app.st')
+    def test_streamlit_integration(self, mock_st):
+        """Test Streamlit integration"""
+        main()
+        mock_st.title.assert_called()
+
+if __name__ == '__main__':
+    unittest.main()
+\`;
+                    } else if (fileName === 'config.py') {
+                      return \`import os
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class Config:
+    """SwissKnife Application Configuration"""
+    
+    # API Configuration
+    api_key: str = os.getenv('SWISSKNIFE_API_KEY', '')
+    openai_api_key: str = os.getenv('OPENAI_API_KEY', '')
+    huggingface_token: str = os.getenv('HUGGINGFACE_TOKEN', '')
+    
+    # App Settings
+    debug_mode: bool = os.getenv('DEBUG', 'False').lower() == 'true'
+    host: str = os.getenv('HOST', '0.0.0.0')
+    port: int = int(os.getenv('PORT', '8501'))
+    
+    # P2P Configuration
+    p2p_enabled: bool = True
+    p2p_port: int = int(os.getenv('P2P_PORT', '9000'))
+    
+    # IPFS Configuration
+    ipfs_gateway: str = os.getenv('IPFS_GATEWAY', 'https://ipfs.io/ipfs/')
+    ipfs_api_url: str = os.getenv('IPFS_API_URL', 'http://localhost:5001')
+    
+    # AI Model Configuration
+    default_model: str = 'gpt-3.5-turbo'
+    max_tokens: int = 2048
+    temperature: float = 0.7
+    
+    def __post_init__(self):
+        """Validate configuration after initialization"""
+        if not self.api_key and not self.debug_mode:
+            raise ValueError("API key is required for production mode")
+
+# Global config instance
+config = Config()
+\`;
+                    } else if (fileName === 'utils.py') {
+                      return \`import hashlib
+import json
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+def generate_hash(data: Union[str, bytes]) -> str:
+    """Generate SHA256 hash of data"""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    return hashlib.sha256(data).hexdigest()
+
+def load_json_file(file_path: Path) -> Optional[Dict[str, Any]]:
+    """Load JSON file safely"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.error(f"Error loading JSON file {file_path}: {e}")
+        return None
+
+def save_json_file(data: Dict[str, Any], file_path: Path) -> bool:
+    """Save data to JSON file"""
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        logger.error(f"Error saving JSON file {file_path}: {e}")
+        return False
+
+def format_timestamp(timestamp: Optional[datetime] = None) -> str:
+    """Format timestamp for display"""
+    if timestamp is None:
+        timestamp = datetime.now()
+    return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+def sanitize_filename(filename: str) -> str:
+    """Remove invalid characters from filename"""
+    invalid_chars = '<>:"/\\|?*'
+    for char in invalid_chars:
+        filename = filename.replace(char, '_')
+    return filename.strip()
+
+class AIAssistant:
+    """AI Assistant utilities for SwissKnife"""
+    
+    def __init__(self, config):
+        self.config = config
+    
+    def analyze_code(self, code: str) -> Dict[str, Any]:
+        """Analyze code and provide suggestions"""
+        # This would integrate with actual AI models
+        return {
+            "suggestions": ["Add type hints", "Improve error handling"],
+            "complexity": "medium",
+            "score": 85
+        }
+    
+    def generate_tests(self, code: str) -> str:
+        """Generate unit tests for given code"""
+        # This would use AI to generate appropriate tests
+        return "# Generated test cases\\n# TODO: Implement AI-generated tests"
+\`;
+                    } else {
+                      return \`import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+
+# SwissKnife AI-Enhanced Streamlit Application
+st.set_page_config(
+    page_title="SwissKnife AI App",
+    page_icon="🔧",
+    layout="wide"
+)
+
+def main():
+    st.title("🔧 SwissKnife AI Application")
+    st.sidebar.header("Navigation")
+    
+    # AI-powered features
+    page = st.sidebar.selectbox("Choose a feature:", [
+        "Dashboard", 
+        "Data Analysis", 
+        "AI Chat", 
+        "Model Browser",
+        "P2P Collaboration"
+    ])
+    
+    if page == "Dashboard":
+        st.header("📊 AI Dashboard")
+        
+        # Sample metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Active Models", "12", "+2")
+        with col2:
+            st.metric("API Calls", "1,234", "+15%")
+        with col3:
+            st.metric("P2P Peers", "8", "+1")
+        with col4:
+            st.metric("GPU Usage", "76%", "-5%")
+
+if __name__ == "__main__":
+    main()
+\`;
+                    }
+                  } else if (fileName.endsWith('.js')) {
+                    return \`// SwissKnife JavaScript Utilities
+class SwissKnifeUtils {
+    constructor() {
+        this.version = '1.0.0';
+        this.initialized = false;
+    }
+    
+    async initialize() {
+        console.log('Initializing SwissKnife utilities...');
+        this.initialized = true;
+        return true;
+    }
+    
+    generateId() {
+        return Math.random().toString(36).substr(2, 9);
+    }
+    
+    formatDate(date = new Date()) {
+        return date.toISOString().split('T')[0];
+    }
+    
+    async makeApiCall(endpoint, options = {}) {
+        try {
+            const response = await fetch(endpoint, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            
+            if (!response.ok) {
+                throw new Error(\`HTTP error! status: \${response.status}\`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API call failed:', error);
+            throw error;
+        }
+    }
+}
+
+// Export for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SwissKnifeUtils;
+} else {
+    window.SwissKnifeUtils = SwissKnifeUtils;
+}
+\`;
+                  } else if (fileName.endsWith('.css')) {
+                    return \`/* SwissKnife CSS Styles */
+
+:root {
+    --primary-color: #007acc;
+    --secondary-color: #6f42c1;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-dark: #343a40;
+    
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-light: #ffffff;
+    
+    --border-color: #dee2e6;
+    --border-radius: 4px;
+    
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+}
+
+body {
+    font-family: var(--font-family);
+    line-height: 1.5;
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 4px;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.code {
+    font-family: var(--font-family-mono);
+    background: #f4f4f4;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 10px;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}
+\`;
+                  } else if (fileName.endsWith('.md')) {
+                    if (fileName === 'README.md') {
+                      return \`# SwissKnife AI Project
+
+A comprehensive AI-powered development toolkit with voice control, collaborative features, and advanced automation capabilities.
+
+## Features
+
+- 🎤 **Voice Control**: Natural language commands for coding
+- 🤖 **AI Assistant**: Intelligent code analysis and suggestions  
+- 🌐 **P2P Collaboration**: Real-time collaborative development
+- 📊 **Analytics Dashboard**: Performance monitoring and insights
+- 🔧 **Multi-tool Integration**: 28+ integrated applications
+- 🏗️ **Modular Architecture**: Easy to extend and customize
+
+## Quick Start
+
+1. **Installation**
+   \\\`\\\`\\\`bash
+   pip install -r requirements.txt
+   \\\`\\\`\\\`
+
+2. **Configuration**
+   \\\`\\\`\\\`bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   \\\`\\\`\\\`
+
+3. **Run the Application**
+   \\\`\\\`\\\`bash
+   streamlit run src/app.py
+   \\\`\\\`\\\`
+
+## Voice Commands
+
+- "Create new file" - Creates a new file
+- "Add todo: [task]" - Adds a task to the AI todo system
+- "Run the code" - Executes the current code
+- "Explain this code" - Get AI explanation of code
+- "Fix errors" - AI-assisted error resolution
+- "Generate tests" - Auto-generate unit tests
+
+## Project Structure
+
+\\\`\\\`\\\`
+swissknife-project/
+├── src/                    # Source code
+│   ├── components/         # UI components
+│   ├── api/               # API routes and handlers
+│   ├── app.py             # Main application
+│   └── config.py          # Configuration
+├── tests/                 # Test files
+├── static/                # Static assets
+├── docs/                  # Documentation
+└── requirements.txt       # Dependencies
+\\\`\\\`\\\`
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Support
+
+- 📧 Email: support@swissknife.ai
+- 💬 Discord: [SwissKnife Community](https://discord.gg/swissknife)
+- 📖 Docs: [docs.swissknife.ai](https://docs.swissknife.ai)
+\`;
+                    } else if (fileName === 'API.md') {
+                      return \`# SwissKnife API Documentation
+
+## Overview
+
+The SwissKnife API provides programmatic access to all AI-powered features including voice control, code analysis, and collaborative development tools.
+
+## Authentication
+
+All API requests require an API key passed in the Authorization header:
+
+\\\`\\\`\\\`
+Authorization: Bearer YOUR_API_KEY
+\\\`\\\`\\\`
+
+## Base URL
+
+\\\`\\\`\\\`
+https://api.swissknife.ai/v1
+\\\`\\\`\\\`
+
+## Endpoints
+
+### AI Assistant
+
+#### POST /ai/analyze
+Analyze code and get AI suggestions.
+
+**Request:**
+\\\`\\\`\\\`json
+{
+    "code": "def hello_world():\\n    print('Hello!')",
+    "language": "python"
+}
+\\\`\\\`\\\`
+
+**Response:**
+\\\`\\\`\\\`json
+{
+    "suggestions": ["Add type hints", "Add docstring"],
+    "complexity": "low",
+    "score": 92
+}
+\\\`\\\`\\\`
+
+#### POST /ai/generate-tests
+Generate unit tests for given code.
+
+#### POST /ai/explain
+Get AI explanation of code.
+
+### Voice Control
+
+#### POST /voice/command
+Process voice commands.
+
+#### GET /voice/history
+Get voice command history.
+
+### Collaboration
+
+#### POST /p2p/connect
+Connect to P2P network.
+
+#### GET /p2p/peers
+List connected peers.
+
+### Files
+
+#### GET /files/list
+List project files.
+
+#### POST /files/create
+Create new file.
+
+## Error Codes
+
+- 400: Bad Request
+- 401: Unauthorized  
+- 403: Forbidden
+- 404: Not Found
+- 429: Rate Limited
+- 500: Internal Server Error
+
+## Rate Limits
+
+- 1000 requests per hour for free tier
+- 10000 requests per hour for pro tier
+- No limits for enterprise tier
+\`;
+                    } else {
+                      return \`# ${fileName.replace('.md', '').replace('_', ' ').replace('-', ' ')}
+
+This is a sample markdown file for the SwissKnife project.
+
+## Overview
+
+Add your content here...
+
+## Getting Started
+
+1. First step
+2. Second step
+3. Third step
+
+## Code Examples
+
+\\\`\\\`\\\`python
+def example():
+    return "Hello, World!"
+\\\`\\\`\\\`
+
+## Notes
+
+- Add important notes here
+- Remember to update documentation
+- Keep examples current
+\`;
+                    }
+                  } else if (fileName === 'requirements.txt') {
+                    return \`# SwissKnife Project Dependencies
+
+# Core Framework
+streamlit>=1.28.0
+pandas>=1.5.0
+numpy>=1.24.0
+
+# AI and ML
+openai>=1.0.0
+anthropics>=0.8.1
+transformers>=4.35.0
+torch>=2.0.0
+scikit-learn>=1.3.0
+
+# Data Visualization
+plotly>=5.17.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# API and Web
+requests>=2.31.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+websockets>=12.0
+
+# Voice Processing
+SpeechRecognition>=3.10.0
+pydub>=0.25.1
+pyaudio>=0.2.11
+
+# P2P and Networking
+libp2p>=0.1.0
+ipfshttpclient>=0.8.0
+
+# Development Tools
+pytest>=7.4.0
+black>=23.9.0
+flake8>=6.1.0
+mypy>=1.6.0
+pre-commit>=3.5.0
+
+# Utilities
+python-dotenv>=1.0.0
+click>=8.1.0
+rich>=13.6.0
+loguru>=0.7.0
+\`;
+                  } else if (fileName === 'setup.py') {
+                    return \`from setuptools import setup, find_packages
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+with open("requirements.txt", "r", encoding="utf-8") as fh:
+    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+
+setup(
+    name="swissknife",
+    version="1.0.0",
+    author="SwissKnife Team",
+    author_email="team@swissknife.ai",
+    description="AI-powered development toolkit with voice control and collaboration",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/swissknife/swissknife",
+    project_urls={
+        "Bug Tracker": "https://github.com/swissknife/swissknife/issues",
+        "Documentation": "https://docs.swissknife.ai",
+    },
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    ],
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
+    python_requires=">=3.8",
+    install_requires=requirements,
+    extras_require={
+        "dev": [
+            "pytest>=7.4.0",
+            "black>=23.9.0",
+            "flake8>=6.1.0",
+            "mypy>=1.6.0",
+        ],
+        "docs": [
+            "sphinx>=7.1.0",
+            "sphinx-rtd-theme>=1.3.0",
+        ],
+    },
+    entry_points={
+        "console_scripts": [
+            "swissknife=swissknife.cli:main",
+        ],
+    },
+    include_package_data=True,
+    zip_safe=False,
+)
+\`;
+                  } else {
+                    return \`# Sample file content for ${fileName}
+# This is a placeholder file created by the SwissKnife IDE
+
+# TODO: Add actual content for this file
+print("Hello from ${fileName}")
+\`;
+                  }
+                }
+                
+                function updateEditorTab(filePath) {
+                  const fileName = filePath.split('/').pop();
+                  const tab = document.querySelector('.editor-tab');
+                  if (tab) {
+                    const icon = getFileIcon(fileName);
+                    tab.innerHTML = \`\${icon} \${fileName} <span class="close-tab" style="margin-left: 8px; cursor: pointer;">×</span>\`;
+                    tab.setAttribute('data-file', filePath);
+                  }
+                }
+                
+                function getFileIcon(fileName) {
+                  if (fileName.endsWith('.py')) return '🐍';
+                  if (fileName.endsWith('.js')) return '📜';
+                  if (fileName.endsWith('.css')) return '🎨';
+                  if (fileName.endsWith('.html')) return '🌐';
+                  if (fileName.endsWith('.md')) return '📝';
+                  if (fileName.endsWith('.json')) return '📊';
+                  if (fileName.endsWith('.txt')) return '📄';
+                  if (fileName.endsWith('.png') || fileName.endsWith('.jpg')) return '🖼️';
+                  if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) return '⚙️';
+                  return '📄';
+                }
+                
+                function getLanguageFromFile(fileName) {
+                  if (fileName.endsWith('.py')) return 'Python';
+                  if (fileName.endsWith('.js')) return 'JavaScript';
+                  if (fileName.endsWith('.css')) return 'CSS';
+                  if (fileName.endsWith('.html')) return 'HTML';
+                  if (fileName.endsWith('.md')) return 'Markdown';
+                  if (fileName.endsWith('.json')) return 'JSON';
+                  return 'Text';
+                }
+                
+                function updateStatusBarFile(fileName, language) {
+                  const statusBar = document.querySelector('.status-bar span');
+                  if (statusBar) {
+                    const currentStatus = statusBar.textContent;
+                    const updatedStatus = currentStatus.replace(/File: [^|]*/, \`File: \${fileName}\`).replace(/Language: [^|]*/, \`Language: \${language}\`);
+                    statusBar.textContent = updatedStatus;
+                  }
+                }
+              </script>
             </div>
             
             <!-- AI Todo System -->
@@ -2373,18 +3345,51 @@ if __name__ == "__main__":
     function createNewFile(fileName: string) {
       const fileTree = contentElement.querySelector('.file-tree');
       if (fileTree) {
-        const newFileItem = document.createElement('div');
-        newFileItem.className = 'file-item';
-        newFileItem.dataset.file = fileName;
-        newFileItem.style.cssText = 'padding: 4px 8px; cursor: pointer; display: flex; align-items: center;';
-        
-        const icon = fileName.endsWith('.py') ? '🐍' : fileName.endsWith('.js') ? '📜' : '📄';
-        newFileItem.innerHTML = `<span style="margin-right: 6px;">${icon}</span>${fileName}`;
-        
-        fileTree.appendChild(newFileItem);
-        
-        // Add click handler
-        newFileItem.addEventListener('click', () => switchToFile(fileName));
+        // Find the root folder content to add the new file
+        const rootFolderContent = fileTree.querySelector('[data-path="/"] .folder-content');
+        if (rootFolderContent) {
+          const newFileItem = document.createElement('div');
+          newFileItem.className = 'file-item';
+          newFileItem.dataset.file = fileName;
+          newFileItem.style.cssText = 'padding: 2px 8px; cursor: pointer; display: flex; align-items: center;';
+          newFileItem.setAttribute('onclick', `selectFile(event, '${fileName}')`);
+          
+          const icon = getFileIcon(fileName);
+          newFileItem.innerHTML = `
+            <span style="margin-right: 10px;"></span>
+            <span style="margin-right: 6px;">${icon}</span>${fileName}
+          `;
+          
+          // Insert before the last root-level file to maintain order
+          const rootFiles = rootFolderContent.children;
+          let insertBefore = null;
+          for (let i = rootFiles.length - 1; i >= 0; i--) {
+            if (rootFiles[i].classList.contains('file-item')) {
+              insertBefore = rootFiles[i].nextSibling;
+              break;
+            }
+          }
+          
+          if (insertBefore) {
+            rootFolderContent.insertBefore(newFileItem, insertBefore);
+          } else {
+            rootFolderContent.appendChild(newFileItem);
+          }
+        }
+      }
+      
+      // Helper function to get file icon (moved inside for scope)
+      function getFileIcon(fileName: string): string {
+        if (fileName.endsWith('.py')) return '🐍';
+        if (fileName.endsWith('.js')) return '📜';
+        if (fileName.endsWith('.css')) return '🎨';
+        if (fileName.endsWith('.html')) return '🌐';
+        if (fileName.endsWith('.md')) return '📝';
+        if (fileName.endsWith('.json')) return '📊';
+        if (fileName.endsWith('.txt')) return '📄';
+        if (fileName.endsWith('.png') || fileName.endsWith('.jpg')) return '🖼️';
+        if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) return '⚙️';
+        return '📄';
       }
     }
     
@@ -2697,29 +3702,7 @@ The system tracks and learns from your voice patterns to provide:
     return fileTemplates[fileName] || `# New file: ${fileName}\n\n# Add your content here...`;
     }
     
-    // File switching
-    fileItems.forEach(item => {
-      item.addEventListener('click', () => {
-        const fileName = item.dataset.file!;
-        
-        // Update active file
-        fileItems.forEach(f => f.style.background = 'transparent');
-        item.style.background = '#007acc';
-        item.style.color = 'white';
-        
-        // Load file content
-        codeEditor.value = getFileContent(fileName);
-        
-        // Update tab
-        const tab = contentElement.querySelector('.editor-tab') as HTMLElement;
-        const icon = fileName.endsWith('.py') ? '🐍' : fileName.endsWith('.md') ? '📝' : '📄';
-        tab.innerHTML = `${icon} ${fileName} <span class="close-tab" style="margin-left: 8px; cursor: pointer;">×</span>`;
-        
-        // Update status
-        const statusBar = contentElement.querySelector('.status-bar span') as HTMLElement;
-        statusBar.textContent = `Status: Ready | File: ${fileName} | Language: ${fileName.endsWith('.py') ? 'Python' : fileName.endsWith('.md') ? 'Markdown' : 'Text'}`;
-      });
-    });
+    // File items are now handled by inline onclick events in the tree structure
     
     // Run code button
     runBtn.addEventListener('click', () => {
