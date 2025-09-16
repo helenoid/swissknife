@@ -1984,10 +1984,12 @@ class SwissKnifeDesktop {
       <div class="enhanced-vibecode-app" style="height: 100%; display: flex; flex-direction: column;">
         <div class="vibecode-header" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #ddd; background: #f8f9fa;">
           <div class="header-left">
-            <h2 style="margin: 0; font-size: 16px;">💻 VibeCode AI Editor</h2>
-            <span style="font-size: 12px; color: #666;">Streamlit & Python Development Environment</span>
+            <h2 style="margin: 0; font-size: 16px;">🎯 VibeCode AI - Maximally Agentic IDE</h2>
+            <span style="font-size: 12px; color: #666;">Voice-Controlled AI Development Environment</span>
           </div>
           <div class="header-controls">
+            <button class="voice-control-btn" id="voice-btn" style="margin-right: 8px; padding: 4px 8px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">🎤 Voice</button>
+            <button class="todo-btn" style="margin-right: 8px; padding: 4px 8px; background: #6f42c1; color: white; border: none; border-radius: 3px; cursor: pointer;">📋 Todo</button>
             <select class="editor-language" style="margin-right: 8px; padding: 4px;">
               <option value="python">Python</option>
               <option value="javascript">JavaScript</option>
@@ -1996,29 +1998,70 @@ class SwissKnifeDesktop {
               <option value="css">CSS</option>
               <option value="markdown">Markdown</option>
             </select>
-            <button class="ai-assist-btn" style="margin-right: 8px; padding: 4px 8px; background: #007acc; color: white; border: none; border-radius: 3px; cursor: pointer;">AI Assist</button>
+            <button class="ai-assist-btn" style="margin-right: 8px; padding: 4px 8px; background: #007acc; color: white; border: none; border-radius: 3px; cursor: pointer;">🤖 AI Assist</button>
             <button class="run-code-btn" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer;">▶ Run</button>
           </div>
         </div>
         
         <div class="vibecode-main" style="flex: 1; display: flex; height: calc(100% - 60px);">
-          <!-- File Explorer Panel -->
-          <div class="file-explorer" style="width: 200px; border-right: 1px solid #ddd; background: #f8f9fa; overflow-y: auto;">
-            <div class="explorer-header" style="padding: 8px; font-weight: bold; border-bottom: 1px solid #ddd;">
-              📁 Project Files
+          <!-- Enhanced Left Panel with Files & Todo -->
+          <div class="left-panel" style="width: 250px; border-right: 1px solid #ddd; background: #f8f9fa; overflow-y: auto; display: flex; flex-direction: column;">
+            <!-- File Explorer -->
+            <div class="file-explorer" style="flex: 0 0 auto;">
+              <div class="explorer-header" style="padding: 8px; font-weight: bold; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                📁 Project Files
+                <button class="new-file-btn" style="background: none; border: none; font-size: 16px; cursor: pointer;" title="New File">+</button>
+              </div>
+              <div class="file-tree" style="padding: 4px;">
+                <div class="file-item" data-file="app.py" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
+                  <span style="margin-right: 6px;">🐍</span>app.py
+                </div>
+                <div class="file-item" data-file="requirements.txt" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
+                  <span style="margin-right: 6px;">📄</span>requirements.txt
+                </div>
+                <div class="file-item" data-file="config.py" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
+                  <span style="margin-right: 6px;">⚙️</span>config.py
+                </div>
+                <div class="file-item" data-file="README.md" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
+                  <span style="margin-right: 6px;">📝</span>README.md
+                </div>
+              </div>
             </div>
-            <div class="file-tree" style="padding: 4px;">
-              <div class="file-item" data-file="app.py" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                <span style="margin-right: 6px;">🐍</span>app.py
+            
+            <!-- AI Todo System -->
+            <div class="todo-system" style="flex: 1; border-top: 1px solid #ddd;">
+              <div class="todo-header" style="padding: 8px; font-weight: bold; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                🤖 AI Todo
+                <button class="add-todo-btn" style="background: none; border: none; font-size: 16px; cursor: pointer;" title="Add Todo">+</button>
               </div>
-              <div class="file-item" data-file="requirements.txt" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                <span style="margin-right: 6px;">📄</span>requirements.txt
+              <div class="todo-input" style="padding: 8px; border-bottom: 1px solid #ddd;">
+                <input type="text" class="new-todo-input" placeholder="Tell AI what to do..." style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px;">
+                <div class="ai-priority" style="margin-top: 4px; font-size: 10px; color: #666;">
+                  🧠 AI will prioritize and suggest tasks
+                </div>
               </div>
-              <div class="file-item" data-file="config.py" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                <span style="margin-right: 6px;">⚙️</span>config.py
-              </div>
-              <div class="file-item" data-file="README.md" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                <span style="margin-right: 6px;">📝</span>README.md
+              <div class="todo-list" style="flex: 1; overflow-y: auto; padding: 4px;">
+                <div class="todo-item high-priority" style="padding: 6px; margin: 2px 0; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 3px; font-size: 12px;">
+                  <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                    <input type="checkbox" style="margin-right: 6px;">
+                    <span style="font-weight: bold;">🔥 Fix API integration</span>
+                  </div>
+                  <div style="color: #666; font-size: 11px;">AI Priority: High • Voice: "Fix the API"</div>
+                </div>
+                <div class="todo-item medium-priority" style="padding: 6px; margin: 2px 0; background: #d1ecf1; border-left: 3px solid #17a2b8; border-radius: 3px; font-size: 12px;">
+                  <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                    <input type="checkbox" style="margin-right: 6px;">
+                    <span>📊 Add data visualization</span>
+                  </div>
+                  <div style="color: #666; font-size: 11px;">AI Priority: Medium • Voice: "Add charts"</div>
+                </div>
+                <div class="todo-item low-priority" style="padding: 6px; margin: 2px 0; background: #d4edda; border-left: 3px solid #28a745; border-radius: 3px; font-size: 12px;">
+                  <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                    <input type="checkbox" checked style="margin-right: 6px;">
+                    <span style="text-decoration: line-through;">✅ Setup project structure</span>
+                  </div>
+                  <div style="color: #666; font-size: 11px;">AI Priority: Completed • Voice: "Setup done"</div>
+                </div>
               </div>
             </div>
           </div>
@@ -2121,104 +2164,525 @@ if __name__ == "__main__":
             </div>
           </div>
           
-          <!-- Output/Preview Panel -->
+          <!-- Enhanced Output/Preview Panel -->
           <div class="preview-panel" style="width: 300px; border-left: 1px solid #ddd; background: #f8f9fa; display: flex; flex-direction: column;">
             <div class="preview-header" style="padding: 8px; font-weight: bold; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between;">
               <span>🔍 Live Preview</span>
-              <button class="refresh-preview" style="background: none; border: none; cursor: pointer;">🔄</button>
+              <div>
+                <button class="voice-status" id="voice-status" style="background: none; border: none; cursor: pointer; margin-right: 4px;" title="Voice Control Status">🔴</button>
+                <button class="refresh-preview" style="background: none; border: none; cursor: pointer;">🔄</button>
+              </div>
             </div>
             <div class="preview-content" style="flex: 1; padding: 12px; overflow-y: auto;">
               <div class="preview-placeholder" style="text-align: center; color: #666; padding: 20px;">
-                <div style="font-size: 48px; margin-bottom: 12px;">🔧</div>
+                <div style="font-size: 48px; margin-bottom: 12px;">🎯</div>
                 <div>SwissKnife AI App Preview</div>
-                <div style="font-size: 12px; margin-top: 8px;">Click "Run" to see your Streamlit app</div>
+                <div style="font-size: 12px; margin-top: 8px;">Say "Run the code" or click "Run"</div>
                 <div style="margin-top: 16px; padding: 12px; background: #e3f2fd; border-radius: 4px; font-size: 12px;">
-                  <strong>AI Features Ready:</strong><br>
+                  <strong>🎤 Voice Commands:</strong><br>
+                  • "Create new file"<br>
+                  • "Add todo: [task]"<br>
+                  • "Run the code"<br>
+                  • "Explain this code"<br>
+                  • "Fix errors"<br>
+                  • "Generate tests"
+                </div>
+                <div style="margin-top: 12px; padding: 12px; background: #f3e5f5; border-radius: 4px; font-size: 12px;">
+                  <strong>🤖 AI Features:</strong><br>
                   • Real-time code analysis<br>
                   • Smart autocompletion<br>
-                  • Error detection<br>
-                  • Performance optimization<br>
-                  • P2P collaboration
+                  • Voice-to-code generation<br>
+                  • Intelligent task prioritization<br>
+                  • Collaborative development
+                </div>
+              </div>
+            </div>
+            
+            <!-- Voice Command History -->
+            <div class="voice-history" style="border-top: 1px solid #ddd; max-height: 120px; overflow-y: auto;">
+              <div class="history-header" style="padding: 4px 8px; font-size: 11px; font-weight: bold; color: #666;">
+                🎤 Voice History
+              </div>
+              <div class="history-list" style="padding: 4px;">
+                <div class="history-item" style="font-size: 10px; color: #888; padding: 2px 4px;">
+                  "Create a new Python file" → ✅ app.py created
+                </div>
+                <div class="history-item" style="font-size: 10px; color: #888; padding: 2px 4px;">
+                  "Add todo fix the API" → ✅ Todo added with high priority
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        <!-- Status Bar -->
+        <!-- Enhanced Status Bar -->
         <div class="status-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 12px; background: #007acc; color: white; font-size: 12px;">
-          <span>Status: Ready | File: app.py | Language: Python</span>
-          <span>AI Assistant: Available | Line 1, Col 1 | WebGPU: Enabled</span>
+          <span>Status: Ready | File: app.py | Language: Python | Voice: 🔴 Inactive</span>
+          <span>🤖 AI Assistant: Available | 📋 Todos: 2 pending | 🎤 Voice: Ready | WebGPU: Enabled</span>
         </div>
       </div>
     `;
     
-    // Add VibeCode functionality
-    this.setupVibeCodeEditor(contentElement);
+    // Add enhanced VibeCode functionality with voice control
+    this.setupEnhancedVibeCodeEditor(contentElement);
   }
   
-  setupVibeCodeEditor(contentElement: HTMLElement) {
+  setupEnhancedVibeCodeEditor(contentElement: HTMLElement) {
     const codeEditor = contentElement.querySelector('.code-editor') as HTMLTextAreaElement;
     const runBtn = contentElement.querySelector('.run-code-btn') as HTMLButtonElement;
     const aiBtn = contentElement.querySelector('.ai-assist-btn') as HTMLButtonElement;
+    const voiceBtn = contentElement.querySelector('#voice-btn') as HTMLButtonElement;
+    const todoBtn = contentElement.querySelector('.todo-btn') as HTMLButtonElement;
+    const voiceStatus = contentElement.querySelector('#voice-status') as HTMLButtonElement;
     const previewContent = contentElement.querySelector('.preview-content') as HTMLElement;
     const fileItems = contentElement.querySelectorAll('.file-item') as NodeListOf<HTMLElement>;
     const languageSelect = contentElement.querySelector('.editor-language') as HTMLSelectElement;
+    const newTodoInput = contentElement.querySelector('.new-todo-input') as HTMLInputElement;
+    const todoList = contentElement.querySelector('.todo-list') as HTMLElement;
+    const historyList = contentElement.querySelector('.history-list') as HTMLElement;
     
-    // File templates
-    const fileTemplates: { [key: string]: string } = {
-      'app.py': codeEditor.value, // Current Streamlit code
-      'requirements.txt': `streamlit
-pandas
-numpy
-plotly
-scikit-learn
-openai
-requests`,
-      'config.py': `# SwissKnife Configuration
+    // Voice recognition setup
+    let isVoiceActive = false;
+    let recognition: any = null;
+    
+    // Check for Web Speech API support
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        isVoiceActive = true;
+        voiceBtn.style.background = '#28a745';
+        voiceBtn.innerHTML = '🎤 Listening...';
+        voiceStatus.innerHTML = '🟢';
+        voiceStatus.title = 'Voice Control Active';
+        updateStatusBar('Voice: 🟢 Active');
+      };
+      
+      recognition.onend = () => {
+        isVoiceActive = false;
+        voiceBtn.style.background = '#dc3545';
+        voiceBtn.innerHTML = '🎤 Voice';
+        voiceStatus.innerHTML = '🔴';
+        voiceStatus.title = 'Voice Control Inactive';
+        updateStatusBar('Voice: 🔴 Inactive');
+      };
+      
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            transcript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (transcript.trim()) {
+          processVoiceCommand(transcript.trim());
+        }
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        addToHistory(`Voice error: ${event.error}`, false);
+      };
+    } else {
+      voiceBtn.disabled = true;
+      voiceBtn.innerHTML = '🎤 Unsupported';
+      voiceBtn.title = 'Speech recognition not supported in this browser';
+    }
+    
+    // Voice control button
+    voiceBtn.addEventListener('click', () => {
+      if (!recognition) return;
+      
+      if (isVoiceActive) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    });
+    
+    // Process voice commands
+    function processVoiceCommand(command: string) {
+      const cmd = command.toLowerCase();
+      let success = false;
+      let response = '';
+      
+      if (cmd.includes('run') && (cmd.includes('code') || cmd.includes('app'))) {
+        runBtn.click();
+        response = 'Code executed';
+        success = true;
+      } else if (cmd.includes('new file') || cmd.includes('create file')) {
+        const fileName = extractFileName(cmd) || 'new_file.py';
+        createNewFile(fileName);
+        response = `${fileName} created`;
+        success = true;
+      } else if (cmd.includes('add todo') || cmd.includes('todo')) {
+        const todoText = cmd.replace(/add todo:?|todo:?/g, '').trim();
+        if (todoText) {
+          addTodoItem(todoText, 'medium');
+          response = 'Todo added';
+          success = true;
+        }
+      } else if (cmd.includes('explain') || cmd.includes('what does')) {
+        aiBtn.click();
+        response = 'AI explanation requested';
+        success = true;
+      } else if (cmd.includes('fix') && cmd.includes('error')) {
+        addTodoItem('Fix errors in code', 'high');
+        response = 'Error fix added to todos';
+        success = true;
+      } else if (cmd.includes('generate test') || cmd.includes('create test')) {
+        addTodoItem('Generate unit tests', 'medium');
+        response = 'Test generation added to todos';
+        success = true;
+      } else if (cmd.includes('save') || cmd.includes('save file')) {
+        // Simulate save
+        updateStatusBar('Status: Saved');
+        response = 'File saved';
+        success = true;
+      } else {
+        response = `Unknown command: "${command}"`;
+      }
+      
+      addToHistory(`"${command}" → ${success ? '✅' : '❌'} ${response}`, success);
+    }
+    
+    // Helper functions
+    function extractFileName(command: string): string | null {
+      const match = command.match(/(?:file|create)\s+(\w+\.?\w*)/i);
+      return match ? match[1] : null;
+    }
+    
+    function createNewFile(fileName: string) {
+      const fileTree = contentElement.querySelector('.file-tree');
+      if (fileTree) {
+        const newFileItem = document.createElement('div');
+        newFileItem.className = 'file-item';
+        newFileItem.dataset.file = fileName;
+        newFileItem.style.cssText = 'padding: 4px 8px; cursor: pointer; display: flex; align-items: center;';
+        
+        const icon = fileName.endsWith('.py') ? '🐍' : fileName.endsWith('.js') ? '📜' : '📄';
+        newFileItem.innerHTML = `<span style="margin-right: 6px;">${icon}</span>${fileName}`;
+        
+        fileTree.appendChild(newFileItem);
+        
+        // Add click handler
+        newFileItem.addEventListener('click', () => switchToFile(fileName));
+      }
+    }
+    
+    function addTodoItem(text: string, priority: 'high' | 'medium' | 'low') {
+      const priorityColors = {
+        high: { bg: '#fff3cd', border: '#ffc107', icon: '🔥' },
+        medium: { bg: '#d1ecf1', border: '#17a2b8', icon: '📋' },
+        low: { bg: '#d4edda', border: '#28a745', icon: '💡' }
+      };
+      
+      const color = priorityColors[priority];
+      const todoItem = document.createElement('div');
+      todoItem.className = `todo-item ${priority}-priority`;
+      todoItem.style.cssText = `padding: 6px; margin: 2px 0; background: ${color.bg}; border-left: 3px solid ${color.border}; border-radius: 3px; font-size: 12px;`;
+      
+      todoItem.innerHTML = `
+        <div style="display: flex; align-items: center; margin-bottom: 2px;">
+          <input type="checkbox" style="margin-right: 6px;">
+          <span>${color.icon} ${text}</span>
+        </div>
+        <div style="color: #666; font-size: 11px;">AI Priority: ${priority} • Voice: Added via voice</div>
+      `;
+      
+      // Add to top of todo list
+      const firstTodo = todoList.querySelector('.todo-item');
+      if (firstTodo) {
+        todoList.insertBefore(todoItem, firstTodo);
+      } else {
+        todoList.appendChild(todoItem);
+      }
+      
+      // Update todo count in status bar
+      const todoCount = todoList.querySelectorAll('.todo-item input:not(:checked)').length;
+      updateStatusBar(`📋 Todos: ${todoCount} pending`);
+    }
+    
+    function addToHistory(message: string, success: boolean) {
+      const historyItem = document.createElement('div');
+      historyItem.className = 'history-item';
+      historyItem.style.cssText = 'font-size: 10px; color: #888; padding: 2px 4px;';
+      historyItem.textContent = message;
+      
+      historyList.insertBefore(historyItem, historyList.firstChild);
+      
+      // Keep only last 10 history items
+      while (historyList.children.length > 10) {
+        historyList.removeChild(historyList.lastChild!);
+      }
+    }
+    
+    function updateStatusBar(update: string) {
+      const statusBar = contentElement.querySelector('.status-bar span') as HTMLElement;
+      if (statusBar) {
+        const currentText = statusBar.textContent || '';
+        if (update.includes('Voice:')) {
+          statusBar.textContent = currentText.replace(/Voice: [^|]+/, update);
+        } else if (update.includes('Status:')) {
+          statusBar.textContent = currentText.replace(/Status: [^|]+/, update);
+        } else if (update.includes('Todos:')) {
+          const rightStatus = contentElement.querySelector('.status-bar span:last-child') as HTMLElement;
+          if (rightStatus) {
+            rightStatus.textContent = rightStatus.textContent?.replace(/📋 Todos: \d+ pending/, update) || '';
+          }
+        }
+      }
+    }
+    
+    function switchToFile(fileName: string) {
+      // Update active file visual indicator
+      fileItems.forEach(f => {
+        f.style.background = 'transparent';
+        f.style.color = '';
+      });
+      
+      const activeFile = Array.from(fileItems).find(item => item.dataset.file === fileName);
+      if (activeFile) {
+        activeFile.style.background = '#007acc';
+        activeFile.style.color = 'white';
+      }
+      
+      // Load file content (using templates or creating new content)
+      codeEditor.value = getFileContent(fileName);
+      
+      // Update tab and status
+      const tab = contentElement.querySelector('.editor-tab') as HTMLElement;
+      const icon = getFileIcon(fileName);
+      tab.innerHTML = `${icon} ${fileName} <span class="close-tab" style="margin-left: 8px; cursor: pointer;">×</span>`;
+      
+      updateStatusBar(`Status: Ready | File: ${fileName}`);
+    }
+    
+    function getFileIcon(fileName: string): string {
+      if (fileName.endsWith('.py')) return '🐍';
+      if (fileName.endsWith('.js')) return '📜';
+      if (fileName.endsWith('.md')) return '📝';
+      if (fileName.endsWith('.json')) return '⚙️';
+      return '📄';
+    }
+    
+    function getFileContent(fileName: string): string {
+      // File templates with enhanced AI-powered content
+      const fileTemplates: { [key: string]: string } = {
+      'app.py': `import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+
+# SwissKnife AI-Enhanced Streamlit Application
+st.set_page_config(
+    page_title="SwissKnife AI App",
+    page_icon="🎯",
+    layout="wide"
+)
+
+def main():
+    st.title("🎯 SwissKnife AI Application")
+    st.sidebar.header("Navigation")
+    
+    # AI-powered features
+    page = st.sidebar.selectbox("Choose a feature:", [
+        "Dashboard", 
+        "Data Analysis", 
+        "AI Chat", 
+        "Voice Commands",
+        "P2P Collaboration"
+    ])
+    
+    if page == "Dashboard":
+        st.header("📊 AI Dashboard")
+        
+        # Sample metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Active Models", "12", "+2")
+        with col2:
+            st.metric("API Calls", "1,234", "+15%")
+        with col3:
+            st.metric("P2P Peers", "8", "+1")
+        with col4:
+            st.metric("Voice Commands", "24", "+8")
+        
+        # Sample chart
+        data = pd.DataFrame(
+            np.random.randn(20, 3),
+            columns=['AI Models', 'Performance', 'Usage']
+        )
+        
+        fig = px.line(data, title="AI System Performance")
+        st.plotly_chart(fig, use_container_width=True)
+        
+    elif page == "Voice Commands":
+        st.header("🎤 Voice Control Integration")
+        st.write("Voice commands processed by VibeCode AI")
+        
+        # Voice command history
+        voice_commands = [
+            {"command": "Create new file", "status": "✅", "time": "2 min ago"},
+            {"command": "Add todo fix API", "status": "✅", "time": "5 min ago"},
+            {"command": "Run the code", "status": "✅", "time": "8 min ago"}
+        ]
+        
+        st.dataframe(pd.DataFrame(voice_commands))
+
+if __name__ == "__main__":
+    main()`,
+      'requirements.txt': `streamlit>=1.28.0
+pandas>=1.5.0
+plotly>=5.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+openai>=1.0.0
+anthropic>=0.8.0
+requests>=2.31.0
+# Voice processing
+SpeechRecognition>=3.10.0
+pydub>=0.25.1
+# AI and ML
+torch>=2.0.0
+transformers>=4.35.0
+sentence-transformers>=2.2.0`,
+      'config.py': `# SwissKnife Enhanced Configuration
+
+# AI Providers with voice integration
 AI_PROVIDERS = {
-    'openai': {'api_key': 'your-api-key'},
-    'anthropic': {'api_key': 'your-api-key'},
-    'huggingface': {'token': 'your-token'}
+    'openai': {
+        'api_key': 'your-openai-api-key',
+        'voice_model': 'whisper-1',
+        'chat_model': 'gpt-4'
+    },
+    'anthropic': {
+        'api_key': 'your-anthropic-api-key',
+        'model': 'claude-3-sonnet-20240229'
+    },
+    'huggingface': {
+        'token': 'your-huggingface-token',
+        'voice_model': 'facebook/wav2vec2-large-960h',
+        'text_model': 'microsoft/DialoGPT-large'
+    }
 }
 
+# Voice Control Configuration
+VOICE_CONFIG = {
+    'enabled': True,
+    'language': 'en-US',
+    'continuous': True,
+    'auto_todo_priority': True,
+    'voice_to_code': True,
+    'commands': {
+        'create_file': ['create file', 'new file', 'make file'],
+        'run_code': ['run code', 'execute', 'run app'],
+        'add_todo': ['add todo', 'create task', 'todo'],
+        'explain_code': ['explain', 'what does this do', 'describe'],
+        'fix_errors': ['fix errors', 'debug', 'fix bugs'],
+        'generate_tests': ['create tests', 'generate tests', 'test this']
+    }
+}
+
+# P2P Configuration with voice collaboration
 P2P_CONFIG = {
     'enable_collaboration': True,
     'max_peers': 10,
-    'share_models': True
+    'share_models': True,
+    'voice_chat': True,
+    'sync_todos': True,
+    'collaborative_coding': True
 }
 
+# Performance Configuration
 PERFORMANCE_CONFIG = {
     'use_webgpu': True,
     'cache_models': True,
-    'optimize_inference': True
+    'optimize_inference': True,
+    'voice_processing_threads': 2,
+    'real_time_analysis': True
+}
+
+# Todo System Configuration
+TODO_CONFIG = {
+    'ai_prioritization': True,
+    'voice_input': True,
+    'smart_suggestions': True,
+    'auto_categorization': True,
+    'deadline_prediction': True
 }`,
-      'README.md': `# SwissKnife AI Application
+      'README.md': `# 🎯 SwissKnife AI Application - Voice-Enabled IDE
 
-This is an AI-enhanced Streamlit application built with SwissKnife.
+This is a maximally agentic AI-enhanced Streamlit application built with SwissKnife VibeCode.
 
-## Features
+## 🎤 Voice Control Features
 
-- 🤖 AI-powered data analysis
-- 📊 Interactive dashboards
-- 🔗 P2P collaboration
-- 🚀 WebGPU acceleration
-- 🧠 Multi-model AI support
+### Voice Commands
+- **"Create new file"** - Creates a new file in the project
+- **"Add todo: [task]"** - Adds a new todo item with AI prioritization  
+- **"Run the code"** - Executes the current application
+- **"Explain this code"** - Gets AI explanation of selected code
+- **"Fix errors"** - Analyzes and suggests error fixes
+- **"Generate tests"** - Creates unit tests for your code
 
-## Getting Started
+### AI Todo System
+- 🧠 **Intelligent Prioritization** - AI automatically prioritizes tasks
+- 🎤 **Voice Input** - Add todos via voice commands
+- 📊 **Smart Categories** - Auto-categorizes tasks by type and urgency
+- ⏰ **Deadline Prediction** - AI estimates completion times
 
-1. Install requirements: \`pip install -r requirements.txt\`
-2. Configure API keys in \`config.py\`
-3. Run the app: \`streamlit run app.py\`
+## 🤖 AI Features
 
-## AI Capabilities
+- **Real-time code analysis** with voice feedback
+- **Smart autocompletion** based on voice context
+- **Voice-to-code generation** for rapid development
+- **Intelligent task prioritization** using ML algorithms
+- **Collaborative development** with voice chat
+- **Multi-model AI support** (OpenAI, Anthropic, Hugging Face)
 
-- Real-time code analysis
-- Smart suggestions
-- Automated testing
-- Performance optimization
-- Collaborative development`
+## 🔧 Getting Started
+
+1. **Install requirements**: \`pip install -r requirements.txt\`
+2. **Configure API keys** in \`config.py\`
+3. **Enable microphone** permissions in your browser
+4. **Run the app**: \`streamlit run app.py\`
+5. **Start voice control** by clicking the 🎤 Voice button
+
+## 🌐 P2P Collaboration
+
+- **Voice Chat** - Talk with team members while coding
+- **Shared Todos** - Synchronized todo lists across peers
+- **Collaborative Coding** - Real-time code sharing and editing
+- **Distributed AI** - Share AI processing across the network
+
+## 🚀 Advanced Features
+
+- **WebGPU Acceleration** for AI inference
+- **Real-time Performance Monitoring**
+- **Automated Testing** with voice commands
+- **Smart Error Detection** and fixes
+- **Context-aware Code Suggestions**
+
+## 📊 Voice Analytics
+
+The system tracks and learns from your voice patterns to provide:
+- Better command recognition
+- Personalized task prioritization  
+- Improved code suggestions
+- Context-aware AI responses
+
+---
+
+*Built with Swiss precision for maximally agentic development* 🇨🇭`
     };
+    
+    return fileTemplates[fileName] || `# New file: ${fileName}\n\n# Add your content here...`;
+    }
     
     // File switching
     fileItems.forEach(item => {
@@ -2231,7 +2695,7 @@ This is an AI-enhanced Streamlit application built with SwissKnife.
         item.style.color = 'white';
         
         // Load file content
-        codeEditor.value = fileTemplates[fileName] || `# Content for ${fileName}`;
+        codeEditor.value = getFileContent(fileName);
         
         // Update tab
         const tab = contentElement.querySelector('.editor-tab') as HTMLElement;
@@ -2334,6 +2798,127 @@ def load_and_process_data(file):
         statusBar.textContent = currentText.replace('Status: Ready', 'Status: Saved');
       }, 1000);
     });
+    
+    // Todo system event handlers
+    newTodoInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const todoText = newTodoInput.value.trim();
+        if (todoText) {
+          // AI-powered priority assessment
+          const priority = assessTodoPriority(todoText);
+          addTodoItem(todoText, priority);
+          newTodoInput.value = '';
+        }
+      }
+    });
+    
+    // Todo button to show/hide todo panel
+    todoBtn.addEventListener('click', () => {
+      const todoSystem = contentElement.querySelector('.todo-system') as HTMLElement;
+      const currentDisplay = getComputedStyle(todoSystem).display;
+      todoSystem.style.display = currentDisplay === 'none' ? 'flex' : 'none';
+    });
+    
+    // Add todo button
+    const addTodoBtn = contentElement.querySelector('.add-todo-btn') as HTMLButtonElement;
+    addTodoBtn?.addEventListener('click', () => {
+      newTodoInput.focus();
+    });
+    
+    // New file button
+    const newFileBtn = contentElement.querySelector('.new-file-btn') as HTMLButtonElement;
+    newFileBtn?.addEventListener('click', () => {
+      const fileName = prompt('Enter file name:');
+      if (fileName) {
+        createNewFile(fileName);
+      }
+    });
+    
+    // Enhanced AI Assist with voice context
+    aiBtn.addEventListener('click', () => {
+      const currentCode = codeEditor.value;
+      const suggestion = generateAISuggestion(currentCode);
+      
+      // Add AI suggestions to code
+      codeEditor.value = suggestion + currentCode;
+      
+      // Add AI assistance todo
+      addTodoItem('Review AI suggestions in code', 'medium');
+      addToHistory('AI assistance requested → ✅ Suggestions added', true);
+      
+      // Show AI notification
+      showNotification('🤖 AI suggestions added to your code!', 'success');
+    });
+    
+    // Helper function to assess todo priority using simple AI logic
+    function assessTodoPriority(todoText: string): 'high' | 'medium' | 'low' {
+      const text = todoText.toLowerCase();
+      if (text.includes('fix') || text.includes('error') || text.includes('bug') || text.includes('urgent')) {
+        return 'high';
+      } else if (text.includes('test') || text.includes('review') || text.includes('optimize')) {
+        return 'medium';
+      } else {
+        return 'low';
+      }
+    }
+    
+    // Generate AI code suggestions
+    function generateAISuggestion(code: string): string {
+      const suggestions = [
+        `# 🤖 AI Suggestion: Error Handling Enhancement
+try:
+    # Your existing code here
+    pass
+except Exception as e:
+    st.error(f"An error occurred: {str(e)}")
+    
+`,
+        `# 🤖 AI Suggestion: Performance Optimization
+@st.cache_data
+def cached_computation(data):
+    # Add caching for expensive operations
+    return processed_data
+    
+`,
+        `# 🤖 AI Suggestion: User Input Validation
+if uploaded_file is not None:
+    if uploaded_file.size > 50 * 1024 * 1024:  # 50MB limit
+        st.error("File too large. Please upload a smaller file.")
+        return
+    
+`,
+        `# 🤖 AI Suggestion: Real-time Updates
+placeholder = st.empty()
+with placeholder.container():
+    # Add real-time updates for better UX
+    pass
+    
+`
+      ];
+      
+      return suggestions[Math.floor(Math.random() * suggestions.length)];
+    }
+    
+    // Show notification helper
+    function showNotification(message: string, type: string = 'info') {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007acc'};
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      `;
+      notification.textContent = message;
+      contentElement.appendChild(notification);
+      
+      setTimeout(() => notification.remove(), 3000);
+    }
     
     // Language selection
     languageSelect.addEventListener('change', (e) => {
