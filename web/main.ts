@@ -1457,11 +1457,321 @@ class SwissKnifeDesktop {
   
   loadAIChatApp(contentElement: HTMLElement) {
     contentElement.innerHTML = `
-      <div class="app-placeholder">
-        <h2>🤖 AI Chat</h2>
-        <p>AI Chat functionality will be implemented here.</p>
-        <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+      <div class="ai-chat-container" style="height: 100%; display: flex; flex-direction: column; background: #f5f5f5;">
+        <!-- Header -->
+        <div class="chat-header" style="padding: 12px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-bottom: 1px solid #ddd;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="status-indicator" style="width: 12px; height: 12px; background: #4caf50; border-radius: 50%; animation: pulse 2s infinite;"></div>
+              <div>
+                <h3 style="margin: 0; font-size: 16px;">🤖 SwissKnife AI Assistant</h3>
+                <p style="margin: 0; font-size: 12px; opacity: 0.9;">Intelligent conversation partner</p>
+              </div>
+            </div>
+            <div class="chat-controls" style="display: flex; gap: 8px;">
+              <button class="control-btn" id="clear-chat" title="Clear Chat" style="padding: 6px 10px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 4px; cursor: pointer;">🗑️</button>
+              <button class="control-btn" id="export-chat" title="Export Chat" style="padding: 6px 10px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 4px; cursor: pointer;">💾</button>
+              <button class="control-btn" id="settings-btn" title="Settings" style="padding: 6px 10px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 4px; cursor: pointer;">⚙️</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-messages" id="chat-messages" style="flex: 1; overflow-y: auto; padding: 16px; background: white;">
+          <!-- Welcome Message -->
+          <div class="message ai-message" style="display: flex; margin-bottom: 16px; align-items: flex-start; gap: 12px;">
+            <div class="avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; flex-shrink: 0;">🤖</div>
+            <div class="message-content" style="background: #f0f0f0; padding: 12px 16px; border-radius: 18px; max-width: 70%; word-wrap: break-word;">
+              <div class="message-text">Hello! I'm your SwissKnife AI Assistant. I can help you with coding, writing, analysis, and general questions. How can I assist you today?</div>
+              <div class="message-time" style="font-size: 11px; color: #666; margin-top: 4px;">Just now</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typing-indicator" style="display: none; padding: 0 16px 8px; background: white;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;">🤖</div>
+            <div style="background: #f0f0f0; padding: 12px 16px; border-radius: 18px;">
+              <div class="typing-dots" style="display: flex; gap: 4px;">
+                <span style="width: 8px; height: 8px; background: #999; border-radius: 50%; animation: typing 1.4s infinite;"></span>
+                <span style="width: 8px; height: 8px; background: #999; border-radius: 50%; animation: typing 1.4s infinite 0.2s;"></span>
+                <span style="width: 8px; height: 8px; background: #999; border-radius: 50%; animation: typing 1.4s infinite 0.4s;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area" style="padding: 16px; background: white; border-top: 1px solid #eee;">
+          <div class="input-container" style="display: flex; align-items: flex-end; gap: 12px; background: #f8f9fa; border-radius: 24px; padding: 8px 16px; border: 1px solid #ddd;">
+            <button class="attachment-btn" id="attachment-btn" title="Attach File" style="padding: 6px; background: none; border: none; font-size: 18px; color: #666; cursor: pointer;">📎</button>
+            <textarea 
+              id="message-input" 
+              placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
+              style="flex: 1; border: none; outline: none; background: transparent; resize: none; font-family: inherit; font-size: 14px; line-height: 1.4; max-height: 120px; min-height: 24px;"
+              rows="1"
+            ></textarea>
+            <button class="send-btn" id="send-btn" title="Send Message" style="padding: 8px 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 18px; cursor: pointer; font-size: 14px;">
+              ➤ Send
+            </button>
+          </div>
+          
+          <!-- Quick Actions -->
+          <div class="quick-actions" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+            <button class="quick-action" data-action="explain" style="padding: 4px 8px; background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; border-radius: 12px; font-size: 12px; cursor: pointer;">💡 Explain</button>
+            <button class="quick-action" data-action="code" style="padding: 4px 8px; background: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; border-radius: 12px; font-size: 12px; cursor: pointer;">💻 Code</button>
+            <button class="quick-action" data-action="translate" style="padding: 4px 8px; background: #e8f5e8; color: #388e3c; border: 1px solid #c8e6c9; border-radius: 12px; font-size: 12px; cursor: pointer;">🌐 Translate</button>
+            <button class="quick-action" data-action="summarize" style="padding: 4px 8px; background: #fff3e0; color: #f57c00; border: 1px solid #ffcc02; border-radius: 12px; font-size: 12px; cursor: pointer;">📋 Summarize</button>
+          </div>
+        </div>
       </div>
+
+      <style>
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+
+        @keyframes typing {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-10px); }
+        }
+
+        .ai-chat-container .control-btn:hover {
+          background: rgba(255,255,255,0.3) !important;
+        }
+
+        .ai-chat-container .quick-action:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .ai-chat-container .send-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .ai-chat-container .message.user-message {
+          flex-direction: row-reverse;
+        }
+
+        .ai-chat-container .message.user-message .message-content {
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+        }
+
+        .ai-chat-container .message.user-message .avatar {
+          background: #333;
+        }
+
+        .ai-chat-container #message-input:focus {
+          outline: none;
+        }
+
+        .ai-chat-container .chat-messages {
+          scrollbar-width: thin;
+          scrollbar-color: #ccc transparent;
+        }
+
+        .ai-chat-container .chat-messages::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .ai-chat-container .chat-messages::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .ai-chat-container .chat-messages::-webkit-scrollbar-thumb {
+          background: #ccc;
+          border-radius: 3px;
+        }
+      </style>
+
+      <script>
+        (function() {
+          const messagesContainer = document.getElementById('chat-messages');
+          const messageInput = document.getElementById('message-input');
+          const sendBtn = document.getElementById('send-btn');
+          const typingIndicator = document.getElementById('typing-indicator');
+          const clearBtn = document.getElementById('clear-chat');
+          const exportBtn = document.getElementById('export-chat');
+          const quickActions = document.querySelectorAll('.quick-action');
+
+          let messageHistory = [];
+
+          // AI response templates
+          const aiResponses = {
+            greeting: [
+              "Hello! How can I help you today?",
+              "Hi there! What would you like to know?",
+              "Greetings! I'm here to assist you."
+            ],
+            explain: [
+              "I'd be happy to explain that concept. Could you provide more details about what you'd like me to explain?",
+              "Sure! I can break that down for you. What specific topic would you like explained?",
+              "I love explaining things! What would you like to understand better?"
+            ],
+            code: [
+              "I can help you with coding! What programming language or problem are you working with?",
+              "Let's code something together! What kind of program or function do you need?",
+              "Programming assistance coming right up! What's your coding challenge?"
+            ],
+            translate: [
+              "I can help with translations! What would you like to translate and to which language?",
+              "Translation services ready! Which languages are we working with?",
+              "Happy to help translate! What text needs translation?"
+            ],
+            summarize: [
+              "I can create summaries for you! Please share the text you'd like me to summarize.",
+              "Summarization is one of my strengths! What content would you like condensed?",
+              "Ready to summarize! What material should I break down for you?"
+            ],
+            default: [
+              "That's an interesting question! Let me think about that...",
+              "I understand what you're asking. Here's my take on it...",
+              "Great question! Based on my knowledge...",
+              "I can help with that! Here's what I know...",
+              "That's a thoughtful inquiry. My response would be..."
+            ]
+          };
+
+          function addMessage(text, isUser = false, timestamp = new Date()) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = \`message \${isUser ? 'user-message' : 'ai-message'}\`;
+            messageDiv.style.cssText = 'display: flex; margin-bottom: 16px; align-items: flex-start; gap: 12px;';
+            
+            const timeStr = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = \`
+              <div class="avatar" style="width: 40px; height: 40px; background: \${isUser ? '#333' : 'linear-gradient(135deg, #667eea, #764ba2)'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; flex-shrink: 0;">
+                \${isUser ? '👤' : '🤖'}
+              </div>
+              <div class="message-content" style="background: \${isUser ? 'linear-gradient(135deg, #667eea, #764ba2)' : '#f0f0f0'}; color: \${isUser ? 'white' : 'black'}; padding: 12px 16px; border-radius: 18px; max-width: 70%; word-wrap: break-word;">
+                <div class="message-text">\${text}</div>
+                <div class="message-time" style="font-size: 11px; color: \${isUser ? 'rgba(255,255,255,0.8)' : '#666'}; margin-top: 4px;">\${timeStr}</div>
+              </div>
+            \`;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            messageHistory.push({ text, isUser, timestamp });
+          }
+
+          function getAIResponse(userMessage) {
+            const lowerMessage = userMessage.toLowerCase();
+            
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+              return getRandomResponse(aiResponses.greeting);
+            } else if (lowerMessage.includes('explain') || lowerMessage.includes('what is') || lowerMessage.includes('how does')) {
+              return getRandomResponse(aiResponses.explain);
+            } else if (lowerMessage.includes('code') || lowerMessage.includes('program') || lowerMessage.includes('function')) {
+              return getRandomResponse(aiResponses.code);
+            } else if (lowerMessage.includes('translate') || lowerMessage.includes('language')) {
+              return getRandomResponse(aiResponses.translate);
+            } else if (lowerMessage.includes('summarize') || lowerMessage.includes('summary')) {
+              return getRandomResponse(aiResponses.summarize);  
+            } else {
+              return getRandomResponse(aiResponses.default) + " Unfortunately, I'm currently running in demo mode and can't access external AI services, but I'd love to help you with: coding questions, explanations, translations, summaries, and general assistance!";
+            }
+          }
+
+          function getRandomResponse(responses) {
+            return responses[Math.floor(Math.random() * responses.length)];
+          }
+
+          function showTypingIndicator() {
+            typingIndicator.style.display = 'block';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }
+
+          function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+          }
+
+          function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, true);
+            messageInput.value = '';
+            adjustTextareaHeight();
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Simulate AI response delay
+            setTimeout(() => {
+              hideTypingIndicator();
+              const response = getAIResponse(message);
+              addMessage(response, false);
+            }, 1000 + Math.random() * 2000);
+          }
+
+          function adjustTextareaHeight() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+          }
+
+          // Event listeners
+          sendBtn.addEventListener('click', sendMessage);
+
+          messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          });
+
+          messageInput.addEventListener('input', adjustTextareaHeight);
+
+          clearBtn.addEventListener('click', () => {
+            if (confirm('Clear all chat messages?')) {
+              messagesContainer.innerHTML = '';
+              messageHistory = [];
+              // Re-add welcome message
+              addMessage("Hello! I'm your SwissKnife AI Assistant. I can help you with coding, writing, analysis, and general questions. How can I assist you today?", false);
+            }
+          });
+
+          exportBtn.addEventListener('click', () => {
+            const chatText = messageHistory.map(msg => 
+              \`[\${msg.timestamp.toLocaleString()}] \${msg.isUser ? 'You' : 'AI'}: \${msg.text}\`
+            ).join('\\n\\n');
+            
+            const blob = new Blob([chatText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = \`swissknife-chat-\${new Date().toISOString().split('T')[0]}.txt\`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          });
+
+          quickActions.forEach(btn => {
+            btn.addEventListener('click', () => {
+              const action = btn.dataset.action;
+              const prompts = {
+                explain: "Can you explain ",
+                code: "Help me write code for ",
+                translate: "Please translate this to English: ",
+                summarize: "Please summarize: "
+              };
+              messageInput.value = prompts[action] || "";
+              messageInput.focus();
+              adjustTextareaHeight();
+            });
+          });
+
+          // Focus input on load
+          messageInput.focus();
+        })();
+      </script>
     `;
   }
   
@@ -3650,14 +3960,290 @@ def load_and_process_data(file):
   // Placeholder methods for other apps
   loadImageViewerApp(contentElement: HTMLElement) {
     contentElement.innerHTML = `
-      <div style="padding: 20px; text-align: center;">
-        <h3>🖼️ Image Viewer</h3>
-        <p>Image viewing and basic editing functionality</p>
-        <div style="background: #f0f0f0; border-radius: 8px; padding: 40px; margin: 20px 0;">
-          <div>📸 Drag and drop images here</div>
+      <div class="image-viewer-container" style="height: 100%; display: flex; flex-direction: column; background: #2b2b2b;">
+        <!-- Toolbar -->
+        <div class="image-viewer-toolbar" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #3c3c3c; border-bottom: 1px solid #555;">
+          <div class="toolbar-left" style="display: flex; align-items: center; gap: 8px;">
+            <button class="tool-btn" id="open-btn" title="Open Image" style="padding: 6px 12px; background: #0078d4; color: white; border: none; border-radius: 4px; cursor: pointer;">📁 Open</button>
+            <button class="tool-btn" id="prev-btn" title="Previous" style="padding: 6px 10px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">◀</button>
+            <button class="tool-btn" id="next-btn" title="Next" style="padding: 6px 10px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">▶</button>
+            <span class="image-info" id="image-info" style="color: #ccc; margin-left: 12px;">No image loaded</span>
+          </div>
+          <div class="toolbar-center" style="display: flex; align-items: center; gap: 8px;">
+            <button class="tool-btn" id="zoom-out" title="Zoom Out" style="padding: 6px 10px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">−</button>
+            <span class="zoom-level" id="zoom-level" style="color: #ccc; min-width: 50px; text-align: center;">100%</span>
+            <button class="tool-btn" id="zoom-in" title="Zoom In" style="padding: 6px 10px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">+</button>
+            <button class="tool-btn" id="fit-screen" title="Fit to Screen" style="padding: 6px 10px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">⬜</button>
+          </div>
+          <div class="toolbar-right" style="display: flex; align-items: center; gap: 8px;">
+            <button class="tool-btn" id="rotate-left" title="Rotate Left" style="padding: 6px 10px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">↺</button>
+            <button class="tool-btn" id="rotate-right" title="Rotate Right" style="padding: 6px 10px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">↻</button>
+            <button class="tool-btn" id="fullscreen-btn" title="Fullscreen" style="padding: 6px 10px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">⛶</button>
+          </div>
         </div>
-        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+
+        <!-- Main Viewer Area -->
+        <div class="viewer-area" style="flex: 1; position: relative; overflow: hidden; background: #1e1e1e;">
+          <!-- Drop Zone -->
+          <div class="drop-zone" id="drop-zone" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #555; margin: 20px; border-radius: 8px; color: #888; text-align: center; transition: all 0.3s ease;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🖼️</div>
+            <h3 style="margin: 0 0 8px 0; color: #ccc;">Drop images here or click Open</h3>
+            <p style="margin: 0; font-size: 14px;">Supports: JPG, PNG, GIF, BMP, SVG, WebP</p>
+            <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+          </div>
+
+          <!-- Image Display -->
+          <div class="image-display" id="image-display" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: none; align-items: center; justify-content: center; overflow: hidden;">
+            <img id="main-image" style="max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s ease; cursor: grab;">
+          </div>
+
+          <!-- Image Gallery -->
+          <div class="image-gallery" id="image-gallery" style="position: absolute; bottom: 0; left: 0; right: 0; height: 120px; background: rgba(0,0,0,0.8); display: none; padding: 10px; overflow-x: auto; white-space: nowrap;">
+            <!-- Thumbnails will be populated here -->
+          </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar" style="padding: 4px 12px; background: #3c3c3c; border-top: 1px solid #555; font-size: 12px; color: #ccc; display: flex; justify-content: space-between;">
+          <span id="status-left">Ready</span>
+          <span id="status-right">Image Viewer v1.0</span>
+        </div>
       </div>
+
+      <style>
+        .image-viewer-container .tool-btn:hover {
+          background-color: #666 !important;
+          transform: translateY(-1px);
+        }
+        
+        .image-viewer-container .drop-zone.drag-over {
+          border-color: #0078d4;
+          background-color: rgba(0, 120, 212, 0.1);
+        }
+
+        .image-viewer-container #main-image:active {
+          cursor: grabbing;
+        }
+
+        .image-viewer-container .gallery-thumb {
+          width: 80px;
+          height: 80px;
+          object-fit: cover;
+          margin-right: 8px;
+          border: 2px solid transparent;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: border-color 0.3s ease;
+        }
+
+        .image-viewer-container .gallery-thumb:hover {
+          border-color: #0078d4;
+        }
+
+        .image-viewer-container .gallery-thumb.active {
+          border-color: #ffd700;
+        }
+      </style>
+
+      <script>
+        (function() {
+          let currentImages = [];
+          let currentIndex = 0;
+          let zoomLevel = 1;
+          let rotation = 0;
+          
+          const dropZone = document.getElementById('drop-zone');
+          const fileInput = document.getElementById('file-input');
+          const imageDisplay = document.getElementById('image-display');
+          const mainImage = document.getElementById('main-image');
+          const imageGallery = document.getElementById('image-gallery');
+          const imageInfo = document.getElementById('image-info');
+          const zoomLevelSpan = document.getElementById('zoom-level');
+          const statusLeft = document.getElementById('status-left');
+
+          // Sample images for demo
+          const sampleImages = [
+            { name: 'sample1.jpg', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAw' + 'IiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIg' + 'aGVpZ2h0PSIxMDAlIiBmaWxsPSIjNDE2OWU5Ii8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlh' + 'bCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2Vt' + 'Ij5TYW1wbGUgSW1hZ2UgMTwvdGV4dD4KPC9zdmc+', size: '15.2 KB', dimensions: '400x300' },
+            { name: 'sample2.jpg', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAw' + 'IiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIg' + 'aGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGNhZjUwIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlh' + 'bCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2Vt' + 'Ij5TYW1wbGUgSW1hZ2UgMjwvdGV4dD4KPC9zdmc+', size: '12.8 KB', dimensions: '400x300' },
+            { name: 'sample3.jpg', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAw' + 'IiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIg' + 'aGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmY5ODAwIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlh' + 'bCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2Vt' + 'Ij5TYW1wbGUgSW1hZ2UgMzwvdGV4dD4KPC9zdmc+', size: '18.5 KB', dimensions: '400x300' }
+          ];
+
+          // Load sample images
+          currentImages = sampleImages;
+          loadImage(0);
+
+          function loadImage(index) {
+            if (index < 0 || index >= currentImages.length) return;
+            
+            currentIndex = index;
+            const image = currentImages[index];
+            
+            mainImage.src = image.url;
+            mainImage.onload = function() {
+              dropZone.style.display = 'none';
+              imageDisplay.style.display = 'flex';
+              imageGallery.style.display = 'block';
+              
+              imageInfo.textContent = image.name + ' (' + (index + 1) + '/' + currentImages.length + ')';
+              statusLeft.textContent = image.dimensions + ' • ' + image.size;
+              
+              updateZoom();
+              updateGallery();
+            };
+          }
+
+          function updateZoom() {
+            mainImage.style.transform = \`scale(\${zoomLevel}) rotate(\${rotation}deg)\`;
+            zoomLevelSpan.textContent = Math.round(zoomLevel * 100) + '%';
+          }
+
+          function updateGallery() {
+            imageGallery.innerHTML = '';
+            currentImages.forEach((img, index) => {
+              const thumb = document.createElement('img');
+              thumb.src = img.url;
+              thumb.className = 'gallery-thumb' + (index === currentIndex ? ' active' : '');
+              thumb.onclick = () => loadImage(index);
+              imageGallery.appendChild(thumb);
+            });
+          }
+
+          // Event listeners
+          document.getElementById('open-btn').onclick = () => fileInput.click();
+          
+          document.getElementById('prev-btn').onclick = () => {
+            if (currentIndex > 0) loadImage(currentIndex - 1);
+          };
+          
+          document.getElementById('next-btn').onclick = () => {
+            if (currentIndex < currentImages.length - 1) loadImage(currentIndex + 1);
+          };
+
+          document.getElementById('zoom-in').onclick = () => {
+            zoomLevel = Math.min(zoomLevel * 1.2, 5);
+            updateZoom();
+          };
+
+          document.getElementById('zoom-out').onclick = () => {
+            zoomLevel = Math.max(zoomLevel / 1.2, 0.1);
+            updateZoom();
+          };
+
+          document.getElementById('fit-screen').onclick = () => {
+            zoomLevel = 1;
+            rotation = 0;
+            updateZoom();
+          };
+
+          document.getElementById('rotate-left').onclick = () => {
+            rotation -= 90;
+            updateZoom();
+          };
+
+          document.getElementById('rotate-right').onclick = () => {
+            rotation += 90;
+            updateZoom();
+          };
+
+          // Drag and drop
+          dropZone.ondragover = (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+          };
+
+          dropZone.ondragleave = () => {
+            dropZone.classList.remove('drag-over');
+          };
+
+          dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+          };
+
+          fileInput.onchange = (e) => {
+            handleFiles(e.target.files);
+          };
+
+          function handleFiles(files) {
+            const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+            if (imageFiles.length === 0) return;
+
+            currentImages = [];
+            let loadedCount = 0;
+
+            imageFiles.forEach((file, index) => {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                currentImages.push({
+                  name: file.name,
+                  url: e.target.result,
+                  size: (file.size / 1024).toFixed(1) + ' KB',
+                  dimensions: 'Loading...'
+                });
+                
+                loadedCount++;
+                if (loadedCount === imageFiles.length) {
+                  loadImage(0);
+                }
+              };
+              reader.readAsDataURL(file);
+            });
+          }
+
+          // Pan functionality
+          let isPanning = false;
+          let startX = 0, startY = 0;
+          let currentX = 0, currentY = 0;
+
+          mainImage.onmousedown = (e) => {
+            if (zoomLevel > 1) {
+              isPanning = true;
+              startX = e.clientX - currentX;
+              startY = e.clientY - currentY;
+              mainImage.style.cursor = 'grabbing';
+            }
+          };
+
+          document.onmousemove = (e) => {
+            if (isPanning) {
+              currentX = e.clientX - startX;
+              currentY = e.clientY - startY;
+              mainImage.style.transform = \`translate(\${currentX}px, \${currentY}px) scale(\${zoomLevel}) rotate(\${rotation}deg)\`;
+            }
+          };
+
+          document.onmouseup = () => {
+            isPanning = false;
+            if (mainImage) mainImage.style.cursor = 'grab';
+          };
+
+          // Keyboard shortcuts
+          document.addEventListener('keydown', (e) => {
+            if (!imageDisplay.style.display || imageDisplay.style.display === 'none') return;
+            
+            switch(e.key) {
+              case 'ArrowLeft':
+                document.getElementById('prev-btn').click();
+                break;
+              case 'ArrowRight':
+                document.getElementById('next-btn').click();
+                break;
+              case '+':
+              case '=':
+                document.getElementById('zoom-in').click();
+                break;
+              case '-':
+                document.getElementById('zoom-out').click();
+                break;
+              case '0':
+                document.getElementById('fit-screen').click();
+                break;
+            }
+          });
+        })();
+      </script>
     `;
   }
 
