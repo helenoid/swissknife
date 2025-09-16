@@ -540,6 +540,14 @@ class SwissKnifeDesktop {
       component: 'StrudelAIDAWApp',
       singleton: false
     });
+
+    // New standalone Todo app (separate from task manager)
+    this.apps.set('todo', {
+      name: 'Todo & Goals',
+      icon: '📋',
+      component: 'TodoApp',
+      singleton: true
+    });
     
     console.log('📱 Total apps registered:', this.apps.size);
     console.log('📱 Apps list:', Array.from(this.apps.keys()));
@@ -804,6 +812,11 @@ class SwissKnifeDesktop {
           
         case 'taskmanagerapp':
           this.loadTaskManagerApp(contentElement);
+          break;
+          
+        case 'todoapp':
+          console.log('📋 Loading Todo app...');
+          this.loadTodoApp(contentElement);
           break;
           
         case 'modelbrowserapp':
@@ -3379,6 +3392,47 @@ with placeholder.container():
         })();
       </script>
     `;
+  }
+  
+  loadTodoApp(contentElement: HTMLElement) {
+    // Import and initialize the Todo app
+    import('./js/apps/todo.js').then(module => {
+      const todoApp = new (module.TodoApp || window.TodoApp)(this);
+      const content = todoApp.createWindowConfig();
+      contentElement.innerHTML = content;
+      
+      // Setup todo event listeners  
+      todoApp.setupEventListeners(contentElement);
+      
+      // Initialize the app
+      todoApp.initialize();
+    }).catch(error => {
+      console.error('Failed to load Todo app:', error);
+      
+      // Fallback: try to load via script tag
+      const script = document.createElement('script');
+      script.src = './js/apps/todo.js';
+      script.onload = () => {
+        if (window.TodoApp) {
+          const todoApp = new window.TodoApp(this);
+          const content = todoApp.createWindowConfig();
+          contentElement.innerHTML = content;
+          todoApp.setupEventListeners(contentElement);
+          todoApp.initialize();
+        }
+      };
+      script.onerror = () => {
+        contentElement.innerHTML = `
+          <div style="padding: 20px; text-align: center;">
+            <h2>📋 Todo & Goals</h2>
+            <p>Failed to load Todo application.</p>
+            <p>Error: ${error.message}</p>
+            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+          </div>
+        `;
+      };
+      document.head.appendChild(script);
+    });
   }
   
   loadModelBrowserApp(contentElement: HTMLElement) {
