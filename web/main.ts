@@ -455,6 +455,91 @@ class SwissKnifeDesktop {
       component: 'GrandmaStrudelDAW',
       singleton: false
     });
+
+    // Additional applications
+    this.apps.set('calculator', {
+      name: 'Calculator',
+      icon: '🧮',
+      component: 'CalculatorApp',
+      singleton: false
+    });
+
+    this.apps.set('clock', {
+      name: 'Clock & Timers',
+      icon: '🕐',
+      component: 'ClockApp',
+      singleton: false
+    });
+
+    this.apps.set('notes', {
+      name: 'Notes',
+      icon: '📝',
+      component: 'NotesApp',
+      singleton: false
+    });
+
+    this.apps.set('system-monitor', {
+      name: 'System Monitor',
+      icon: '📊',
+      component: 'SystemMonitorApp',
+      singleton: true
+    });
+
+    this.apps.set('image-viewer', {
+      name: 'Image Viewer',
+      icon: '🖼️',
+      component: 'ImageViewerApp',
+      singleton: false
+    });
+
+    this.apps.set('huggingface', {
+      name: 'Hugging Face Hub',
+      icon: '🤗',
+      component: 'HuggingFaceApp',
+      singleton: true
+    });
+
+    this.apps.set('openrouter', {
+      name: 'OpenRouter Hub',
+      icon: '🔄',
+      component: 'OpenRouterApp',
+      singleton: true
+    });
+
+    this.apps.set('github', {
+      name: 'GitHub',
+      icon: '🐙',
+      component: 'GitHubApp',
+      singleton: true
+    });
+
+    this.apps.set('oauth-login', {
+      name: 'OAuth Login',
+      icon: '🔐',
+      component: 'OAuthLoginApp',
+      singleton: true
+    });
+
+    this.apps.set('neural-network-designer', {
+      name: 'Neural Network Designer',
+      icon: '🧠',
+      component: 'NeuralNetworkDesignerApp',
+      singleton: false
+    });
+
+    this.apps.set('training-manager', {
+      name: 'Training Manager',
+      icon: '🎯',
+      component: 'TrainingManagerApp',
+      singleton: true
+    });
+
+    this.apps.set('strudel-ai-daw', {
+      name: 'Strudel AI DAW',
+      icon: '🎵',
+      component: 'StrudelAIDAWApp',
+      singleton: false
+    });
     
     console.log('📱 Total apps registered:', this.apps.size);
     console.log('📱 Apps list:', Array.from(this.apps.keys()));
@@ -741,6 +826,66 @@ class SwissKnifeDesktop {
         case 'grandmastrudeldaw':
           console.log('🎵 Loading Music Studio...');
           this.loadMusicStudioPlaceholder(contentElement);
+          break;
+
+        case 'calculatorapp':
+          console.log('🧮 Loading Calculator app...');
+          this.loadCalculatorApp(contentElement);
+          break;
+
+        case 'clockapp':
+          console.log('🕐 Loading Clock app...');
+          this.loadClockApp(contentElement);
+          break;
+
+        case 'notesapp':
+          console.log('📝 Loading Notes app...');
+          this.loadNotesApp(contentElement);
+          break;
+
+        case 'systemmonitorapp':
+          console.log('📊 Loading System Monitor app...');
+          this.loadSystemMonitorApp(contentElement);
+          break;
+
+        case 'imageviewerapp':
+          console.log('🖼️ Loading Image Viewer app...');
+          this.loadImageViewerApp(contentElement);
+          break;
+
+        case 'huggingfaceapp':
+          console.log('🤗 Loading Hugging Face app...');
+          this.loadHuggingFaceApp(contentElement);
+          break;
+
+        case 'openrouterapp':
+          console.log('🔄 Loading OpenRouter app...');
+          this.loadOpenRouterApp(contentElement);
+          break;
+
+        case 'githubapp':
+          console.log('🐙 Loading GitHub app...');
+          this.loadGitHubApp(contentElement);
+          break;
+
+        case 'oauthloginapp':
+          console.log('🔐 Loading OAuth Login app...');
+          this.loadOAuthLoginApp(contentElement);
+          break;
+
+        case 'neuralnetworkdesignerapp':
+          console.log('🧠 Loading Neural Network Designer app...');
+          this.loadNeuralNetworkDesignerApp(contentElement);
+          break;
+
+        case 'trainingmanagerapp':
+          console.log('🎯 Loading Training Manager app...');
+          this.loadTrainingManagerApp(contentElement);
+          break;
+
+        case 'strudelaidawapp':
+          console.log('🎵 Loading Strudel AI DAW app...');
+          this.loadStrudelAIDAWApp(contentElement);
           break;
           
         default:
@@ -2836,6 +2981,228 @@ def load_and_process_data(file):
       
       return originalFetch(url, options);
     };
+  }
+
+  // App loading methods for additional applications
+  loadCalculatorApp(contentElement: HTMLElement) {
+    // Import and initialize the Calculator app
+    import('./js/apps/calculator.js').then(module => {
+      const calculatorApp = new module.CalculatorApp(this);
+      const content = calculatorApp.createWindowConfig();
+      contentElement.innerHTML = content;
+      
+      // Setup calculator event listeners
+      this.setupCalculatorEventListeners(contentElement, calculatorApp);
+    }).catch(error => {
+      console.error('Failed to load Calculator app:', error);
+      contentElement.innerHTML = `
+        <div style="padding: 20px; text-align: center;">
+          <h3>🧮 Calculator</h3>
+          <p>Professional calculator with scientific functions</p>
+          <div style="background: #f0f0f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <div style="font-size: 24px; margin-bottom: 10px;">Calculator functionality will be implemented here.</div>
+            <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  setupCalculatorEventListeners(contentElement: HTMLElement, calculatorApp: any) {
+    // Add event listeners for calculator buttons and functionality
+    const buttons = contentElement.querySelectorAll('.calc-btn');
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        const value = (e.target as HTMLElement).dataset.value;
+        if (value && calculatorApp.handleInput) {
+          calculatorApp.handleInput(value);
+        }
+      });
+    });
+  }
+
+  loadClockApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; height: 100%;">
+        <h3>🕐 Clock & Timers</h3>
+        <p>World clock, timers, and stopwatch functionality</p>
+        <div style="font-size: 48px; margin: 40px 0; font-family: monospace;">
+          <div id="current-time">${new Date().toLocaleTimeString()}</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <p>Clock functionality will be enhanced here</p>
+          <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+        </div>
+      </div>
+    `;
+    
+    // Update time every second
+    const timeElement = contentElement.querySelector('#current-time');
+    setInterval(() => {
+      if (timeElement) {
+        timeElement.textContent = new Date().toLocaleTimeString();
+      }
+    }, 1000);
+  }
+
+  loadNotesApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; height: 100%; display: flex; flex-direction: column;">
+        <h3>📝 Notes</h3>
+        <textarea placeholder="Start typing your notes here..." 
+                  style="flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 10px; font-family: Arial, sans-serif; resize: none;"></textarea>
+        <div style="margin-top: 10px; text-align: right;">
+          <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+        </div>
+      </div>
+    `;
+  }
+
+  loadSystemMonitorApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; background: #1a1a1a; color: #00ff00; height: 100%; font-family: monospace;">
+        <h3>📊 System Monitor</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+          <div>
+            <h4>CPU Usage</h4>
+            <div style="background: #333; padding: 10px; border-radius: 4px;">
+              <div>Usage: <span id="cpu-usage">0%</span></div>
+            </div>
+          </div>
+          <div>
+            <h4>Memory</h4>
+            <div style="background: #333; padding: 10px; border-radius: 4px;">
+              <div>Used: <span id="memory-usage">0 MB</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 20px; text-align: right;">
+          <button onclick="this.closest('.window').remove()" style="padding: 8px 16px; background: #333; color: white; border: none;">Close</button>
+        </div>
+      </div>
+    `;
+    
+    // Simulate system monitoring
+    this.startSystemMonitoring(contentElement);
+  }
+
+  startSystemMonitoring(contentElement: HTMLElement) {
+    const cpuElement = contentElement.querySelector('#cpu-usage');
+    const memoryElement = contentElement.querySelector('#memory-usage');
+    
+    setInterval(() => {
+      if (cpuElement) {
+        cpuElement.textContent = Math.floor(Math.random() * 100) + '%';
+      }
+      if (memoryElement) {
+        memoryElement.textContent = Math.floor(Math.random() * 8000) + ' MB';
+      }
+    }, 2000);
+  }
+
+  // Placeholder methods for other apps
+  loadImageViewerApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <h3>🖼️ Image Viewer</h3>
+        <p>Image viewing and basic editing functionality</p>
+        <div style="background: #f0f0f0; border-radius: 8px; padding: 40px; margin: 20px 0;">
+          <div>📸 Drag and drop images here</div>
+        </div>
+        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+      </div>
+    `;
+  }
+
+  loadHuggingFaceApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <h3>🤗 Hugging Face Hub</h3>
+        <p>AI model browser and integration</p>
+        <div style="background: #ffeb3b; color: #333; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div>Hugging Face integration will be implemented here</div>
+        </div>
+        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+      </div>
+    `;
+  }
+
+  loadOpenRouterApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <h3>🔄 OpenRouter Hub</h3>
+        <p>AI router and model switching</p>
+        <div style="background: #2196f3; color: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div>OpenRouter integration will be implemented here</div>
+        </div>
+        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+      </div>
+    `;
+  }
+
+  loadGitHubApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <h3>🐙 GitHub</h3>
+        <p>GitHub integration and repository management</p>
+        <div style="background: #333; color: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div>GitHub integration will be implemented here</div>
+        </div>
+        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+      </div>
+    `;
+  }
+
+  loadOAuthLoginApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <h3>🔐 OAuth Login</h3>
+        <p>Authentication and OAuth management</p>
+        <div style="background: #4caf50; color: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div>OAuth functionality will be implemented here</div>
+        </div>
+        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+      </div>
+    `;
+  }
+
+  loadNeuralNetworkDesignerApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <h3>🧠 Neural Network Designer</h3>
+        <p>Visual neural network design and training</p>
+        <div style="background: #9c27b0; color: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div>Neural network designer will be implemented here</div>
+        </div>
+        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+      </div>
+    `;
+  }
+
+  loadTrainingManagerApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <h3>🎯 Training Manager</h3>
+        <p>ML model training and monitoring</p>
+        <div style="background: #ff5722; color: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div>Training manager will be implemented here</div>
+        </div>
+        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+      </div>
+    `;
+  }
+
+  loadStrudelAIDAWApp(contentElement: HTMLElement) {
+    contentElement.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <h3>🎵 Strudel AI DAW</h3>
+        <p>AI-powered digital audio workstation</p>
+        <div style="background: #e91e63; color: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div>Strudel AI DAW will be implemented here</div>
+        </div>
+        <button onclick="this.closest('.window').remove()" style="padding: 8px 16px;">Close</button>
+      </div>
+    `;
   }
 }
 
