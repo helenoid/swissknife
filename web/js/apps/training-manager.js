@@ -14,6 +14,8 @@
   let p2pSystem = null;
   let ipfsStorage = null;
   let modelServer = null;
+  let ipfsAccelerate = null;
+  let huggingFaceBackend = null;
 
   // Training configuration templates
   const trainingTemplates = {
@@ -98,17 +100,133 @@
 
   async function initializeP2PSystem() {
     try {
+      // Initialize IPFS Accelerate backend for distributed ML compute
+      await initializeIPFSAccelerate();
+      
+      // Initialize traditional P2P system as fallback
       if (window.initializeP2PMLSystem) {
         p2pSystem = window.initializeP2PMLSystem({
           enableModelSharing: true,
           enableIPFS: true,
-          enableDistributedTraining: true
+          enableDistributedTraining: true,
+          ipfsAccelerate: ipfsAccelerate || null
         });
         ipfsStorage = p2pSystem?.getIPFSStorage();
         modelServer = p2pSystem?.getModelServer();
+        
+        console.log('✅ P2P system initialized with IPFS Accelerate integration');
+      } else {
+        console.log('⚠️ Traditional P2P system not available, using IPFS Accelerate only');
       }
     } catch (error) {
-      console.warn('P2P system not available for Training Manager:', error);
+      console.warn('P2P system initialization failed:', error);
+    }
+  }
+
+  async function initializeIPFSAccelerate() {
+    try {
+      // Connect to IPFS Accelerate backend via MCP
+      if (window.mcpClient) {
+        console.log('🚀 Connecting to IPFS Accelerate for distributed training...');
+        
+        ipfsAccelerate = {
+          // IPFS Accelerate integration for distributed ML training
+          async createTrainingJob(config) {
+            return await window.mcpClient.request('ipfs_accelerate', 'create_training_job', {
+              model_config: config.model,
+              dataset: config.dataset,
+              training_params: config.params,
+              distributed: true,
+              backend: config.backend || 'tensorflow'
+            });
+          },
+          
+          async submitTrainingJob(jobConfig) {
+            return await window.mcpClient.request('ipfs_accelerate', 'submit_job', {
+              job_config: jobConfig,
+              priority: jobConfig.priority || 'normal',
+              nodes_required: jobConfig.nodes || 3
+            });
+          },
+          
+          async getJobStatus(jobId) {
+            return await window.mcpClient.request('ipfs_accelerate', 'get_job_status', {
+              job_id: jobId
+            });
+          },
+          
+          async pauseJob(jobId) {
+            return await window.mcpClient.request('ipfs_accelerate', 'pause_job', {
+              job_id: jobId
+            });
+          },
+          
+          async resumeJob(jobId) {
+            return await window.mcpClient.request('ipfs_accelerate', 'resume_job', {
+              job_id: jobId
+            });
+          },
+          
+          async cancelJob(jobId) {
+            return await window.mcpClient.request('ipfs_accelerate', 'cancel_job', {
+              job_id: jobId
+            });
+          },
+          
+          async getAvailableNodes() {
+            return await window.mcpClient.request('ipfs_accelerate', 'list_nodes', {
+              status: 'available',
+              capabilities: ['training']
+            });
+          },
+          
+          async storeTrainedModel(modelData, metadata) {
+            return await window.mcpClient.request('ipfs_accelerate', 'store_model', {
+              model_data: modelData,
+              metadata: metadata,
+              storage: 'ipfs',
+              versioning: true
+            });
+          }
+        };
+        
+        // Initialize Hugging Face integration as alternative
+        huggingFaceBackend = {
+          async createHFTrainingJob(config) {
+            return await window.mcpClient.request('huggingface', 'create_training_job', {
+              model_name: config.model,
+              dataset: config.dataset,
+              task: config.task || 'text-classification',
+              training_args: config.args
+            });
+          },
+          
+          async getHFJobStatus(jobId) {
+            return await window.mcpClient.request('huggingface', 'get_job_status', {
+              job_id: jobId
+            });
+          },
+          
+          async downloadHFModel(modelId) {
+            return await window.mcpClient.request('huggingface', 'download_model', {
+              model_id: modelId,
+              local_path: './models/'
+            });
+          }
+        };
+        
+        console.log('✅ IPFS Accelerate backend connected for distributed training');
+        console.log('✅ Hugging Face backend available as alternative');
+        
+        return true;
+      } else {
+        throw new Error('MCP Client not available');
+      }
+    } catch (error) {
+      console.log('⚠️ IPFS Accelerate not available:', error.message);
+      ipfsAccelerate = null;
+      huggingFaceBackend = null;
+      return false;
     }
   }
 
@@ -124,12 +242,16 @@
           </div>
           <div class="toolbar-section">
             <div class="status-indicator">
-              <span class="status-dot ${p2pSystem ? 'connected' : 'disconnected'}"></span>
-              <span class="status-text">P2P: ${p2pSystem ? 'Connected' : 'Disconnected'}</span>
+              <span class="status-dot ${ipfsAccelerate ? 'connected' : 'disconnected'}"></span>
+              <span class="status-text">IPFS Accelerate: ${ipfsAccelerate ? 'Connected' : 'Disconnected'}</span>
             </div>
             <div class="status-indicator">
-              <span class="status-dot ${ipfsStorage ? 'connected' : 'disconnected'}"></span>
-              <span class="status-text">IPFS: ${ipfsStorage ? 'Available' : 'Unavailable'}</span>
+              <span class="status-dot ${huggingFaceBackend ? 'connected' : 'disconnected'}"></span>
+              <span class="status-text">Hugging Face: ${huggingFaceBackend ? 'Available' : 'Unavailable'}</span>
+            </div>
+            <div class="status-indicator">
+              <span class="status-dot ${p2pSystem ? 'connected' : 'disconnected'}"></span>
+              <span class="status-text">P2P: ${p2pSystem ? 'Connected' : 'Fallback'}</span>
             </div>
           </div>
           <div class="toolbar-section">
