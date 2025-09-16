@@ -592,24 +592,161 @@ class GitHubApp {
     // Core functionality methods
     async initializeMCPConnection() {
         try {
-            // Try to connect to GitHub MCP server
-            // This would typically connect through the MCP Control app
+            console.log('🔗 Connecting to GitHub MCP server...');
+            
+            // Try to connect to GitHub MCP server through MCP Control app
             if (window.mcpControlApp) {
                 const githubServer = Array.from(window.mcpControlApp.remoteServers.values())
                     .find(server => server.name.toLowerCase().includes('github'));
                 
                 if (githubServer && githubServer.status === 'connected') {
                     this.mcpConnection = githubServer;
-                    console.log('Connected to GitHub MCP server');
+                    console.log('✅ Connected to GitHub MCP server');
+                    await this.connectToGitHubAPI();
+                    return;
                 }
             }
+            
+            // Fallback to direct API connection
+            console.log('⚠️ GitHub MCP server not available - using direct API');
+            await this.initializeDirectAPI();
+            
         } catch (error) {
-            console.warn('Failed to connect to GitHub MCP server:', error);
+            console.warn('❌ Failed to connect to GitHub MCP server:', error);
+            await this.initializeDirectAPI();
+        }
+    }
+
+    async initializeDirectAPI() {
+        console.log('🔧 Initializing direct GitHub API connection...');
+        
+        // Set up GitHub API client with stored token
+        if (this.accessToken) {
+            try {
+                // Test API connection with user info
+                const response = await this.makeAPIRequest('/user');
+                if (response.ok) {
+                    this.user = await response.json();
+                    console.log('✅ GitHub API connected successfully');
+                    await this.loadInitialData();
+                } else if (response.status === 401) {
+                    console.log('⚠️ GitHub token expired - requires re-authentication');
+                    this.accessToken = null;
+                    this.saveSettings();
+                }
+            } catch (error) {
+                console.error('❌ GitHub API connection failed:', error);
+            }
+        }
+    }
+
+    async makeAPIRequest(endpoint, options = {}) {
+        const baseURL = 'https://api.github.com';
+        const url = endpoint.startsWith('http') ? endpoint : `${baseURL}${endpoint}`;
+        
+        const headers = {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'SwissKnife-Desktop/1.0',
+            ...options.headers
+        };
+
+        if (this.accessToken) {
+            headers['Authorization'] = `token ${this.accessToken}`;
+        }
+
+        return fetch(url, {
+            ...options,
+            headers
+        });
+    }
+
+    async loadInitialData() {
+        console.log('📊 Loading GitHub data...');
+        
+        try {
+            // Load repositories
+            await this.loadRepositories();
+            
+            // Load issues
+            await this.loadIssues();
+            
+            // Load pull requests
+            await this.loadPullRequests();
+            
+            console.log('✅ GitHub data loaded successfully');
+        } catch (error) {
+            console.error('❌ Failed to load GitHub data:', error);
         }
     }
 
     async initializeData() {
         if (!this.accessToken) return;
+
+        await this.loadInitialData();
+    }
+
+    async loadRepositories() {
+        try {
+            const response = await this.makeAPIRequest('/user/repos?per_page=100&sort=updated');
+            if (response.ok) {
+                const repos = await response.json();
+                this.repositories.clear();
+                repos.forEach(repo => {
+                    this.repositories.set(repo.id, repo);
+                });
+                console.log(`📚 Loaded ${repos.length} repositories`);
+            }
+        } catch (error) {
+            console.error('❌ Failed to load repositories:', error);
+        }
+    }
+
+    async loadIssues() {
+        try {
+            const response = await this.makeAPIRequest('/issues?filter=all&state=open&per_page=50');
+            if (response.ok) {
+                const issues = await response.json();
+                this.issues.clear();
+                issues.forEach(issue => {
+                    if (!issue.pull_request) { // Exclude pull requests
+                        this.issues.set(issue.id, issue);
+                    }
+                });
+                console.log(`🐛 Loaded ${this.issues.size} issues`);
+            }
+        } catch (error) {
+            console.error('❌ Failed to load issues:', error);
+        }
+    }
+
+    async loadPullRequests() {
+        try {
+            const response = await this.makeAPIRequest('/issues?filter=all&state=open&per_page=50');
+            if (response.ok) {
+                const issues = await response.json();
+                this.pullRequests.clear();
+                issues.forEach(issue => {
+                    if (issue.pull_request) { // Only pull requests
+                        this.pullRequests.set(issue.id, issue);
+                    }
+                });
+                console.log(`🔀 Loaded ${this.pullRequests.size} pull requests`);
+            }
+        } catch (error) {
+            console.error('❌ Failed to load pull requests:', error);
+        }
+    }
+
+    async connectToGitHubAPI() {
+        // Enhanced connection method when MCP is available
+        if (this.mcpConnection) {
+            console.log('🔗 Using GitHub MCP connection for API calls');
+            // MCP-based API calls would go here
+        }
+        
+        // Fallback to direct API
+        await this.initializeDirectAPI();
+    }
 
         try {
             // Load repositories

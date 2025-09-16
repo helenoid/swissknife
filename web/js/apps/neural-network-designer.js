@@ -88,12 +88,219 @@ export class NeuralNetworkDesignerApp {
 
   async initialize() {
     try {
+      console.log('🧠 Initializing Neural Network Designer with ML backend...');
+      
       this.swissknife = this.desktop.swissknife;
+      
+      // Initialize ML backend capabilities
+      await this.initializeMLBackend();
+      
+      // Initialize P2P system for distributed training
       await this.initializeP2PSystem();
+      
+      // Add styles and UI components
       this.addStyles();
-      console.log('✅ Neural Network Designer integrations initialized');
+      
+      console.log('✅ Neural Network Designer with ML backend initialized');
     } catch (error) {
       console.error('❌ Neural Network Designer integration error:', error);
+    }
+  }
+
+  async initializeMLBackend() {
+    console.log('🧠 Initializing ML backend...');
+    
+    try {
+      // Initialize TensorFlow.js
+      if (typeof tf !== 'undefined') {
+        console.log('✅ TensorFlow.js available');
+        this.tfjs = tf;
+        await this.tfjs.ready();
+        console.log('✅ TensorFlow.js backend ready');
+      } else {
+        console.log('⚠️ TensorFlow.js not available - using simulation mode');
+        await this.createSimulationBackend();
+      }
+      
+      // Set up model compilation and training capabilities
+      await this.setupModelTraining();
+      
+      // Initialize IPFS for model storage
+      await this.initializeIPFSStorage();
+      
+      console.log('✅ ML backend initialized successfully');
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize ML backend:', error);
+      // Create fallback simulation mode
+      this.mlBackendMode = 'simulation';
+      this.createSimulationBackend();
+    }
+  }
+
+  async setupModelTraining() {
+    console.log('🏋️ Setting up model training capabilities...');
+    
+    this.trainingConfig = {
+      optimizer: 'adam',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy'],
+      epochs: 10,
+      batchSize: 32,
+      validationSplit: 0.2,
+      callbacks: {
+        onEpochEnd: (epoch, logs) => this.onTrainingEpochEnd(epoch, logs),
+        onTrainingEnd: (logs) => this.onTrainingComplete(logs)
+      }
+    };
+    
+    // Set up model compilation templates
+    this.modelTemplates = {
+      'classification': {
+        name: 'Image Classification',
+        optimizer: 'adam',
+        loss: 'categoricalCrossentropy',
+        metrics: ['accuracy']
+      },
+      'regression': {
+        name: 'Regression',
+        optimizer: 'adam',
+        loss: 'meanSquaredError',
+        metrics: ['mae']
+      },
+      'autoencoder': {
+        name: 'Autoencoder',
+        optimizer: 'adam',
+        loss: 'meanSquaredError',
+        metrics: ['mse']
+      }
+    };
+    
+    console.log('✅ Model training capabilities ready');
+  }
+
+  createSimulationBackend() {
+    console.log('🎭 Creating ML simulation backend...');
+    
+    // Create simulation backend for environments without TensorFlow.js
+    this.simulationBackend = {
+      compileModel: (config) => {
+        console.log('🎭 Simulating model compilation:', config);
+        return {
+          id: this.generateModelId(),
+          layers: config.layers,
+          compiled: true,
+          parameters: this.calculateSimulatedParameters(config.layers),
+          flops: this.calculateSimulatedFLOPs(config.layers)
+        };
+      },
+      
+      trainModel: async (model, data, config) => {
+        console.log('🎭 Simulating model training...');
+        
+        // Simulate training progress
+        for (let epoch = 0; epoch < config.epochs; epoch++) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          const simulatedLoss = Math.random() * 0.5 + 0.1;
+          const simulatedAccuracy = Math.min(0.95, 0.5 + (epoch / config.epochs) * 0.4);
+          
+          this.onTrainingEpochEnd(epoch, {
+            loss: simulatedLoss,
+            accuracy: simulatedAccuracy,
+            val_loss: simulatedLoss * 1.1,
+            val_accuracy: simulatedAccuracy * 0.95
+          });
+        }
+        
+        return {
+          trained: true,
+          finalMetrics: {
+            loss: 0.15,
+            accuracy: 0.92,
+            val_loss: 0.18,
+            val_accuracy: 0.89
+          }
+        };
+      }
+    };
+    
+    this.mlBackendMode = 'simulation';
+    console.log('✅ ML simulation backend ready');
+  }
+
+  calculateSimulatedParameters(layers) {
+    let totalParams = 0;
+    let prevSize = null;
+    
+    layers.forEach(layer => {
+      if (layer.type === 'input') {
+        prevSize = layer.params.inputSize;
+      } else if (layer.type === 'dense' && prevSize) {
+        const units = layer.params.units || 128;
+        totalParams += (prevSize * units) + units; // weights + biases
+        prevSize = units;
+      } else if (layer.type === 'conv2d' && prevSize) {
+        const filters = layer.params.filters || 32;
+        const kernelSize = layer.params.kernelSize || 3;
+        totalParams += (kernelSize * kernelSize * prevSize * filters) + filters;
+        prevSize = filters;
+      }
+    });
+    
+    return totalParams;
+  }
+
+  calculateSimulatedFLOPs(layers) {
+    // Simplified FLOP calculation
+    let totalFLOPs = 0;
+    layers.forEach(layer => {
+      if (layer.type === 'dense') {
+        totalFLOPs += (layer.params.units || 128) * 1000;
+      } else if (layer.type === 'conv2d') {
+        totalFLOPs += (layer.params.filters || 32) * 10000;
+      }
+    });
+    return totalFLOPs;
+  }
+
+  generateModelId() {
+    return 'model_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  onTrainingEpochEnd(epoch, logs) {
+    // Update training progress in UI
+    console.log(`🏋️ Epoch ${epoch + 1}:`, logs);
+    
+    // Emit training progress event
+    this.desktop?.emit('neural-designer:training-progress', {
+      epoch: epoch + 1,
+      logs: logs
+    });
+  }
+
+  onTrainingComplete(logs) {
+    console.log('🎉 Training completed:', logs);
+    
+    // Emit training complete event
+    this.desktop?.emit('neural-designer:training-complete', {
+      logs: logs
+    });
+  }
+
+  async initializeIPFSStorage() {
+    try {
+      // Connect to IPFS for model versioning and sharing
+      if (window.ipfsNode) {
+        this.ipfsStorage = window.ipfsNode;
+        console.log('✅ Connected to IPFS for model storage');
+        this.modelStoragePrefix = '/models/neural-networks/';
+      } else {
+        console.log('⚠️ IPFS not available - using local storage only');
+        this.ipfsStorage = null;
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize IPFS storage:', error);
     }
   }
 

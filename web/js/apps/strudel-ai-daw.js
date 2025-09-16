@@ -548,6 +548,8 @@ stack(
 
     async initializeAudioEngine(window) {
         try {
+            console.log('🎵 Initializing advanced audio engine...');
+            
             // Initialize Web Audio Context
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             
@@ -561,7 +563,244 @@ stack(
             this.masterGain.gain.value = this.masterVolume;
             this.masterGain.connect(this.analyser);
             
-            console.log('🎵 Audio engine initialized');
+            // Initialize Strudel engine
+            await this.initializeStrudelEngine();
+            
+            // Load default samples and patterns
+            await this.loadDefaultSamples();
+            await this.loadDefaultPatterns();
+            
+            // Set up real-time processing
+            await this.setupRealTimeProcessing();
+            
+            console.log('✅ Advanced audio engine initialized successfully');
+            
+        } catch (error) {
+            console.error('❌ Failed to initialize audio engine:', error);
+            throw error;
+        }
+    }
+
+    async initializeStrudelEngine() {
+        try {
+            console.log('🎼 Initializing Strudel engine...');
+            
+            // Check if Strudel is available globally
+            if (window.strudel) {
+                this.strudelEngine = window.strudel;
+                console.log('✅ Using global Strudel engine');
+            } else {
+                // Initialize basic pattern engine
+                this.strudelEngine = {
+                    Pattern: this.createPatternClass(),
+                    samples: new Map(),
+                    oscillators: new Map(),
+                    effects: new Map()
+                };
+                console.log('✅ Using built-in pattern engine');
+            }
+            
+        } catch (error) {
+            console.error('❌ Failed to initialize Strudel engine:', error);
+            throw error;
+        }
+    }
+
+    createPatternClass() {
+        // Basic pattern implementation
+        return class Pattern {
+            constructor(patternString = '') {
+                this.pattern = patternString;
+                this.isPlaying = false;
+                this.context = null;
+            }
+            
+            play(context) {
+                this.context = context;
+                this.isPlaying = true;
+                return this;
+            }
+            
+            stop() {
+                this.isPlaying = false;
+                return this;
+            }
+            
+            sound(soundName) {
+                // Connect to audio samples
+                return this;
+            }
+        };
+    }
+
+    async loadDefaultSamples() {
+        console.log('🥁 Loading default samples...');
+        
+        // Default sample library with synthesized fallbacks
+        const defaultSamples = {
+            'kick': { category: 'drums' },
+            'snare': { category: 'drums' },
+            'hihat': { category: 'drums' },
+            'openhat': { category: 'drums' },
+            'clap': { category: 'drums' },
+            'bass': { category: 'bass' },
+            'lead': { category: 'synth' },
+            'pad': { category: 'synth' }
+        };
+        
+        // Create synthesized samples
+        for (const [name, config] of Object.entries(defaultSamples)) {
+            const synthBuffer = await this.createSynthesizedSample(name);
+            this.strudelEngine.samples.set(name, {
+                buffer: synthBuffer,
+                category: config.category,
+                loaded: true,
+                synthesized: true
+            });
+        }
+        
+        console.log(`✅ Loaded ${this.strudelEngine.samples.size} synthesized samples`);
+    }
+
+    async createSynthesizedSample(name) {
+        // Create basic synthesized sounds as working samples
+        const sampleRate = this.audioContext.sampleRate;
+        const duration = 0.5; // 500ms
+        const frames = Math.floor(duration * sampleRate);
+        const buffer = this.audioContext.createBuffer(1, frames, sampleRate);
+        const data = buffer.getChannelData(0);
+        
+        switch (name) {
+            case 'kick':
+                // Synthesize kick drum
+                for (let i = 0; i < frames; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 30);
+                    const freq = 60 * Math.exp(-t * 10);
+                    data[i] = envelope * Math.sin(2 * Math.PI * freq * t) * 0.8;
+                }
+                break;
+                
+            case 'snare':
+                // Synthesize snare drum
+                for (let i = 0; i < frames; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 20);
+                    const noise = (Math.random() - 0.5) * 2;
+                    const tone = Math.sin(2 * Math.PI * 200 * t);
+                    data[i] = envelope * (noise * 0.7 + tone * 0.3) * 0.6;
+                }
+                break;
+                
+            case 'hihat':
+                // Synthesize hihat
+                for (let i = 0; i < frames * 0.1; i++) { // Shorter duration
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 80);
+                    const noise = (Math.random() - 0.5) * 2;
+                    data[i] = envelope * noise * 0.4;
+                }
+                break;
+                
+            default:
+                // Generic tone
+                for (let i = 0; i < frames; i++) {
+                    const t = i / sampleRate;
+                    const envelope = Math.exp(-t * 5);
+                    data[i] = envelope * Math.sin(2 * Math.PI * 440 * t) * 0.3;
+                }
+        }
+        
+        return buffer;
+    }
+
+    async setupRealTimeProcessing() {
+        console.log('⚡ Setting up real-time audio processing...');
+        
+        // Set up script processor for audio generation
+        try {
+            this.scriptProcessor = this.audioContext.createScriptProcessor(4096, 0, 2);
+            this.scriptProcessor.onaudioprocess = (event) => {
+                this.processAudio(event);
+            };
+            this.scriptProcessor.connect(this.masterGain);
+            console.log('✅ Real-time audio processing enabled');
+        } catch (error) {
+            console.warn('⚠️ Real-time processing not available:', error);
+        }
+    }
+
+    processAudio(event) {
+        // Real-time audio processing
+        const outputBuffer = event.outputBuffer;
+        const leftChannel = outputBuffer.getChannelData(0);
+        const rightChannel = outputBuffer.getChannelData(1);
+        
+        // Apply current pattern to audio buffer
+        if (this.isPlaying && this.currentPattern) {
+            this.renderPatternToBuffer(leftChannel, rightChannel);
+        }
+    }
+
+    renderPatternToBuffer(leftChannel, rightChannel) {
+        // Render current pattern to audio buffer
+        const bufferLength = leftChannel.length;
+        
+        for (let i = 0; i < bufferLength; i++) {
+            // Basic pattern rendering
+            const time = (this.audioContext.currentTime + i / this.audioContext.sampleRate);
+            const sample = this.generateSampleAtTime(time);
+            
+            leftChannel[i] = sample;
+            rightChannel[i] = sample;
+        }
+    }
+
+    generateSampleAtTime(time) {
+        // Generate audio sample for given time
+        if (!this.currentPattern) return 0;
+        
+        // Basic pattern playback
+        const beatTime = (time * this.bpm / 60) % 4; // 4/4 time
+        const amplitude = 0.3;
+        
+        // Simple kick on beats 1 and 3
+        if (Math.floor(beatTime) % 2 === 0 && beatTime % 1 < 0.1) {
+            return amplitude * Math.sin(2 * Math.PI * 60 * time) * Math.exp(-(beatTime % 1) * 20);
+        }
+        
+        return 0;
+    }
+
+    async loadDefaultPatterns() {
+        console.log('🎼 Loading default patterns...');
+        
+        // Default patterns
+        const defaultPatterns = {
+            'main': {
+                name: 'Main Pattern',
+                code: 'kick.every(4).sound("kick")\nsnare.every(4, 1).sound("snare")\nhihat.every(1).sound("hihat")',
+                description: 'Basic 4/4 drum pattern'
+            },
+            'bassline': {
+                name: 'Bass Line',
+                code: 'bass.every(2).sound("bass").freq([60, 65, 67, 62])',
+                description: 'Simple bass progression'
+            },
+            'lead': {
+                name: 'Lead Synth',
+                code: 'lead.every(0.5).sound("lead").freq([440, 523, 659, 784])',
+                description: 'Melodic lead pattern'
+            }
+        };
+        
+        this.patterns.clear();
+        for (const [id, pattern] of Object.entries(defaultPatterns)) {
+            this.patterns.set(id, pattern);
+        }
+        
+        console.log(`✅ Loaded ${this.patterns.size} default patterns`);
+    }
             this.updateStatus(window, 'Audio engine ready');
             
         } catch (error) {
