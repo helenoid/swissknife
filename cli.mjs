@@ -145,7 +145,7 @@ SwissKnife Vibe Coding App Status
   ✅ AI Code Assistance
   ✅ Live Preview System
 
-🎨 Neural Photoshop Components:
+🎨 Art Components:
   ✅ AI-Powered Image Manipulation (web/js/apps/neural-photoshop.js)
   ✅ Professional Multi-Panel Interface
   ✅ 13 Professional Tools (Brush, Selection, Text, AI, etc.)
@@ -167,7 +167,7 @@ SwissKnife Vibe Coding App Status
 
 📊 Advanced Features Ready:
   🎯 Professional AI-powered Streamlit development
-  🎨 Neural Photoshop - AI image manipulation suite
+  🎨 Art - AI image manipulation suite
   🧠 Complex reasoning with Graph-of-Thought
   ⚡ Priority-based task scheduling with Fibonacci heaps  
   🤖 AI agent conversations with tool integration
@@ -294,7 +294,7 @@ Features:
     return;
   }
   
-  // Neural Photoshop - AI Image Manipulation
+  // Art - AI Image Manipulation
   if (input.includes('photoshop') || input.includes('neural') || input.includes('image') || input.includes('edit image') || 
       input.includes('segmentation') || input.includes('mask') || input.includes('inpaint') || input.includes('upscale')) {
     
@@ -305,7 +305,7 @@ Features:
         console.log(`
 🎯 AI Smart Segmentation
 
-Launching Neural Photoshop with AI segmentation...
+Launching Art with AI segmentation...
 
 Features:
   ✅ SAM (Segment Anything Model) integration
@@ -313,7 +313,7 @@ Features:
   ✅ Automatic mask generation
   ✅ Interactive refinement tools
 
-💡 Neural Photoshop: Professional AI-powered image manipulation
+💡 Art: Professional AI-powered image manipulation
         `);
         break;
         
@@ -321,7 +321,7 @@ Features:
         console.log(`
 🎭 AI Background Removal
 
-Launching Neural Photoshop with background removal...
+Launching Art with background removal...
 
 Features:
   ✅ U2Net background removal model
@@ -337,7 +337,7 @@ Features:
         console.log(`
 📈 AI Image Upscaling
 
-Launching Neural Photoshop with AI upscaling...
+Launching Art with AI upscaling...
 
 Models available:
   ✅ Real-ESRGAN for photorealistic upscaling
@@ -353,7 +353,7 @@ Models available:
         console.log(`
 🖌️ AI Inpainting
 
-Launching Neural Photoshop with AI inpainting...
+Launching Art with AI inpainting...
 
 Features:
   ✅ LaMa inpainting model
@@ -369,7 +369,7 @@ Features:
         console.log(`
 🌈 AI Colorization
 
-Launching Neural Photoshop with AI colorization...
+Launching Art with AI colorization...
 
 Features:
   ✅ DeOldify colorization model
@@ -385,7 +385,7 @@ Features:
         console.log(`
 👤 AI Face Restoration
 
-Launching Neural Photoshop with face restoration...
+Launching Art with face restoration...
 
 Features:
   ✅ GFPGAN face restoration model
@@ -401,7 +401,7 @@ Features:
         console.log(`
 📝 Text Placement Tool
 
-Launching Neural Photoshop with text editing capabilities...
+Launching Art with text editing capabilities...
 
 Features:
   ✅ Professional font selection (Arial, Helvetica, Times, Georgia, Monospace)
@@ -418,7 +418,7 @@ Features:
         
       case 'gui':
         console.log(`
-🖥️ Neural Photoshop GUI Mode
+🖥️ Art GUI Mode
 
 Launching full graphical interface...
 
@@ -438,12 +438,12 @@ GUI Features:
         
       default:
         console.log(`
-🎨 Neural Photoshop - AI-Powered Image Manipulation
+🎨 Art - AI-Powered Image Manipulation
 
 Understood: "${args.join(' ')}"
 
 Available commands:
-  photoshop                 # Launch Neural Photoshop IDE
+  photoshop                 # Launch Art IDE
   photoshop segment         # AI Smart Segmentation
   photoshop remove-bg       # Remove Background with AI
   photoshop upscale         # AI Image Upscaling
@@ -469,11 +469,11 @@ Available commands:
   → Selection & masking tools
   → Text placement with fonts and styles
 
-💡 Neural Photoshop combines traditional image editing with cutting-edge AI
+💡 Art combines traditional image editing with cutting-edge AI
 
 🖥️ GUI MODE: Type 'photoshop gui' to launch the visual interface
 🖥️ DESKTOP MODE: Available in SwissKnife Virtual Desktop as native app
-📍 Look for Neural Photoshop icon (🎨) in the virtual desktop environment
+📍 Look for Art icon (🎨) in the virtual desktop environment
         `);
     }
     return;
