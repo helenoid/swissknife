@@ -401,6 +401,14 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered notes app');
         
+        this.apps.set('neural-photoshop', {
+            name: 'Neural Photoshop - AI Image Editor',
+            icon: '🎨',
+            component: 'NeuralPhotoshopApp',
+            singleton: false
+        });
+        console.log('✅ Registered neural-photoshop app');
+        
         this.apps.set('system-monitor', {
             name: 'System Monitor',
             icon: '📊',
@@ -1145,6 +1153,28 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>🔐 OAuth Login</h2>
                                 <p>OAuth authentication and login management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'neuralphotoshopapp':
+                    console.log('🎨 Loading Neural Photoshop app...');
+                    // Import and instantiate Neural Photoshop app
+                    try {
+                        const NeuralPhotoshopModule = await import('./apps/neural-photoshop.js');
+                        const NeuralPhotoshopApp = NeuralPhotoshopModule.NeuralPhotoshopApp;
+                        appInstance = new NeuralPhotoshopApp(contentElement, this);
+                        await appInstance.initialize();
+                        console.log('✅ Neural Photoshop app loaded successfully');
+                    } catch (error) {
+                        console.error('Failed to load Neural Photoshop app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎨 Neural Photoshop</h2>
+                                <p>AI-powered image manipulation application.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>

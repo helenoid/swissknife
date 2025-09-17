@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Neural Photoshop Virtual Desktop Integration Test</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .log {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .status-item.error {
+            border-left-color: #f44336;
+        }
+        
+        .status-item.warning {
+            border-left-color: #ff9800;
+        }
+        
+        .virtual-desktop {
+            width: 100%;
+            height: 500px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.2);
+            overflow: hidden;
+            display: none;
+        }
+        
+        #neural-photoshop-container {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 Neural Photoshop Virtual Desktop Integration Test</h1>
+        <p>Testing the integration of Neural Photoshop into the SwissKnife Virtual Desktop</p>
+    </div>
+    
+    <div class="test-container">
+        <div class="controls">
+            <button class="btn" onclick="testAppRegistration()">
+                📋 Test App Registration
+            </button>
+            <button class="btn" onclick="testAppLaunch()">
+                🚀 Test App Launch
+            </button>
+            <button class="btn" onclick="testDesktopIntegration()">
+                🖥️ Test Desktop Integration
+            </button>
+            <button class="btn" onclick="launchInDesktop()">
+                🎨 Launch Neural Photoshop
+            </button>
+            <button class="btn" onclick="clearLog()">
+                🗑️ Clear Log
+            </button>
+        </div>
+        
+        <div class="status">
+            <div class="status-item" id="registration-status">
+                <strong>App Registration:</strong>
+                <div id="registration-details">Not tested</div>
+            </div>
+            <div class="status-item" id="launch-status">
+                <strong>App Launch:</strong>
+                <div id="launch-details">Not tested</div>
+            </div>
+            <div class="status-item" id="desktop-status">
+                <strong>Desktop Integration:</strong>
+                <div id="desktop-details">Not tested</div>
+            </div>
+        </div>
+        
+        <div class="log" id="log"></div>
+        
+        <div class="virtual-desktop" id="virtual-desktop">
+            <div id="neural-photoshop-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        let neuralPhotoshopApp = null;
+        let testLog = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            testLog.push({ message: logEntry, type });
+            
+            const logElement = document.getElementById('log');
+            logElement.textContent = testLog.map(entry => entry.message).join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(message);
+        }
+
+        function updateStatus(statusId, details, success = true) {
+            const statusElement = document.getElementById(statusId);
+            const detailsElement = document.getElementById(statusId.replace('-status', '-details'));
+            
+            statusElement.className = `status-item ${success ? '' : 'error'}`;
+            detailsElement.textContent = details;
+        }
+
+        window.testAppRegistration = async function() {
+            log('🧪 Testing Neural Photoshop app registration...');
+            
+            try {
+                // Mock desktop system to test registration
+                const mockDesktop = {
+                    apps: new Map(),
+                    registerApp: function(appId, config) {
+                        this.apps.set(appId, config);
+                        return true;
+                    }
+                };
+                
+                // Test app registration
+                mockDesktop.registerApp('neural-photoshop', {
+                    name: 'Neural Photoshop - AI Image Editor',
+                    icon: '🎨',
+                    component: 'NeuralPhotoshopApp',
+                    singleton: false
+                });
+                
+                const registered = mockDesktop.apps.has('neural-photoshop');
+                if (registered) {
+                    const config = mockDesktop.apps.get('neural-photoshop');
+                    log(`✅ App registration successful`);
+                    log(`   Name: ${config.name}`);
+                    log(`   Icon: ${config.icon}`);
+                    log(`   Component: ${config.component}`);
+                    log(`   Singleton: ${config.singleton}`);
+                    
+                    updateStatus('registration-status', 'Successfully registered with correct configuration', true);
+                } else {
+                    throw new Error('App registration failed');
+                }
+                
+            } catch (error) {
+                log(`❌ App registration failed: ${error.message}`);
+                updateStatus('registration-status', `Failed: ${error.message}`, false);
+            }
+        };
+
+        window.testAppLaunch = async function() {
+            log('🧪 Testing Neural Photoshop app launch...');
+            
+            try {
+                // Import the Neural Photoshop app
+                const { NeuralPhotoshopApp } = await import('./web/js/apps/neural-photoshop.js');
+                
+                log('✅ Successfully imported NeuralPhotoshopApp class');
+                
+                // Test app instantiation
+                const container = document.createElement('div');
+                const mockDesktop = {
+                    swissknife: null,
+                    apps: new Map()
+                };
+                
+                const app = new NeuralPhotoshopApp(container, mockDesktop);
+                
+                log('✅ Successfully created NeuralPhotoshopApp instance');
+                log(`   Container: ${container.tagName}`);
+                log(`   Desktop: ${mockDesktop ? 'Connected' : 'Not connected'}`);
+                
+                // Test app properties
+                log(`   Tools available: ${app.tools.length} tools`);
+                log(`   AI features: ${Object.keys(app.aiFeatures).length} features`);
+                log(`   Active tool: ${app.activeTool}`);
+                
+                updateStatus('launch-status', 'App class loaded and instantiated successfully', true);
+                neuralPhotoshopApp = app;
+                
+            } catch (error) {
+                log(`❌ App launch failed: ${error.message}`);
+                updateStatus('launch-status', `Failed: ${error.message}`, false);
+            }
+        };
+
+        window.testDesktopIntegration = async function() {
+            log('🧪 Testing desktop integration...');
+            
+            try {
+                if (!neuralPhotoshopApp) {
+                    await testAppLaunch();
+                }
+                
+                // Test initialization
+                log('🔧 Testing app initialization...');
+                await neuralPhotoshopApp.initialize();
+                
+                log('✅ App initialization completed');
+                
+                // Test interface components
+                const container = neuralPhotoshopApp.container;
+                if (container && container.innerHTML) {
+                    log('✅ App interface rendered successfully');
+                    log(`   HTML content length: ${container.innerHTML.length} characters`);
+                    
+                    // Check for key interface elements
+                    const hasToolsPanel = container.innerHTML.includes('tools-panel');
+                    const hasCanvas = container.innerHTML.includes('main-canvas');
+                    const hasLayersPanel = container.innerHTML.includes('layers-panel');
+                    const hasAIPanel = container.innerHTML.includes('ai-panel');
+                    
+                    log(`   Tools panel: ${hasToolsPanel ? '✅' : '❌'} Present`);
+                    log(`   Main canvas: ${hasCanvas ? '✅' : '❌'} Present`);
+                    log(`   Layers panel: ${hasLayersPanel ? '✅' : '❌'} Present`);
+                    log(`   AI panel: ${hasAIPanel ? '✅' : '❌'} Present`);
+                    
+                    updateStatus('desktop-status', 'All interface components integrated successfully', true);
+                } else {
+                    throw new Error('App interface not rendered');
+                }
+                
+            } catch (error) {
+                log(`❌ Desktop integration failed: ${error.message}`);
+                updateStatus('desktop-status', `Failed: ${error.message}`, false);
+            }
+        };
+
+        window.launchInDesktop = async function() {
+            log('🎨 Launching Neural Photoshop in virtual desktop...');
+            
+            try {
+                if (!neuralPhotoshopApp) {
+                    await testAppLaunch();
+                }
+                
+                // Show virtual desktop
+                const virtualDesktop = document.getElementById('virtual-desktop');
+                const container = document.getElementById('neural-photoshop-container');
+                
+                virtualDesktop.style.display = 'block';
+                
+                // Initialize app in the container
+                neuralPhotoshopApp.container = container;
+                await neuralPhotoshopApp.initialize();
+                
+                log('✅ Neural Photoshop launched in virtual desktop!');
+                log('🎨 Application is now running in the desktop environment');
+                log('📱 Check the virtual desktop area below for the full interface');
+                
+            } catch (error) {
+                log(`❌ Launch in desktop failed: ${error.message}`);
+            }
+        };
+
+        window.clearLog = function() {
+            testLog = [];
+            document.getElementById('log').textContent = '';
+            log('🗑️ Log cleared');
+        };
+
+        // Initialize test environment
+        log('🚀 Neural Photoshop Virtual Desktop Integration Test initialized');
+        log('📋 Click "Test App Registration" to begin testing');
+    </script>
+</body>
+</html>

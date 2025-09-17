@@ -4,9 +4,10 @@
  */
 
 export class NeuralPhotoshopApp {
-  constructor(desktop) {
+  constructor(container, desktop) {
+    this.container = container;
     this.desktop = desktop;
-    this.swissknife = null;
+    this.swissknife = desktop?.swissknife || null;
     
     // Core application state
     this.currentProject = null;
@@ -71,11 +72,11 @@ export class NeuralPhotoshopApp {
       ai: true
     };
     
-    this.initializeApp();
+    // The app will be initialized by the desktop system calling initialize()
   }
 
-  async initializeApp() {
-    console.log('🎨 Initializing Neural Photoshop...');
+  async initialize() {
+    console.log('🎨 Initializing Neural Photoshop for virtual desktop...');
     
     // Initialize canvas and WebGL context for AI processing
     await this.initializeCanvas();
@@ -83,6 +84,17 @@ export class NeuralPhotoshopApp {
     
     // Create default project
     this.createNewProject();
+    
+    // Render the application interface
+    if (this.container) {
+      this.container.innerHTML = this.createWindow();
+      
+      // Set up event handlers after a short delay
+      setTimeout(() => {
+        this.setupEventHandlers(this.container);
+        console.log('✅ Neural Photoshop initialized in virtual desktop');
+      }, 100);
+    }
   }
 
   async initializeCanvas() {
