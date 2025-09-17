@@ -540,6 +540,14 @@ class SwissKnifeDesktop {
       component: 'StrudelAIDAWApp',
       singleton: false
     });
+
+    // New standalone Todo app (separate from task manager)
+    this.apps.set('todo', {
+      name: 'Todo & Goals',
+      icon: '📋',
+      component: 'TodoApp',
+      singleton: true
+    });
     
     console.log('📱 Total apps registered:', this.apps.size);
     console.log('📱 Apps list:', Array.from(this.apps.keys()));
@@ -804,6 +812,11 @@ class SwissKnifeDesktop {
           
         case 'taskmanagerapp':
           this.loadTaskManagerApp(contentElement);
+          break;
+          
+        case 'todoapp':
+          console.log('📋 Loading Todo app...');
+          this.loadTodoApp(contentElement);
           break;
           
         case 'modelbrowserapp':
@@ -1984,10 +1997,12 @@ class SwissKnifeDesktop {
       <div class="enhanced-vibecode-app" style="height: 100%; display: flex; flex-direction: column;">
         <div class="vibecode-header" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #ddd; background: #f8f9fa;">
           <div class="header-left">
-            <h2 style="margin: 0; font-size: 16px;">💻 VibeCode AI Editor</h2>
-            <span style="font-size: 12px; color: #666;">Streamlit & Python Development Environment</span>
+            <h2 style="margin: 0; font-size: 16px;">🎯 VibeCode AI - Maximally Agentic IDE</h2>
+            <span style="font-size: 12px; color: #666;">Voice-Controlled AI Development Environment</span>
           </div>
           <div class="header-controls">
+            <button class="voice-control-btn" id="voice-btn" style="margin-right: 8px; padding: 4px 8px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">🎤 Voice</button>
+            <button class="todo-btn" style="margin-right: 8px; padding: 4px 8px; background: #6f42c1; color: white; border: none; border-radius: 3px; cursor: pointer;">📋 Todo</button>
             <select class="editor-language" style="margin-right: 8px; padding: 4px;">
               <option value="python">Python</option>
               <option value="javascript">JavaScript</option>
@@ -1996,29 +2011,1042 @@ class SwissKnifeDesktop {
               <option value="css">CSS</option>
               <option value="markdown">Markdown</option>
             </select>
-            <button class="ai-assist-btn" style="margin-right: 8px; padding: 4px 8px; background: #007acc; color: white; border: none; border-radius: 3px; cursor: pointer;">AI Assist</button>
+            <button class="ai-assist-btn" style="margin-right: 8px; padding: 4px 8px; background: #007acc; color: white; border: none; border-radius: 3px; cursor: pointer;">🤖 AI Assist</button>
             <button class="run-code-btn" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer;">▶ Run</button>
           </div>
         </div>
         
         <div class="vibecode-main" style="flex: 1; display: flex; height: calc(100% - 60px);">
-          <!-- File Explorer Panel -->
-          <div class="file-explorer" style="width: 200px; border-right: 1px solid #ddd; background: #f8f9fa; overflow-y: auto;">
-            <div class="explorer-header" style="padding: 8px; font-weight: bold; border-bottom: 1px solid #ddd;">
-              📁 Project Files
+          <!-- Enhanced Left Panel with Files & Todo -->
+          <div class="left-panel" style="width: 250px; border-right: 1px solid #ddd; background: #f8f9fa; overflow-y: auto; display: flex; flex-direction: column;">
+            <!-- File Explorer -->
+            <div class="file-explorer" style="flex: 0 0 auto;">
+              <div class="explorer-header" style="padding: 8px; font-weight: bold; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                📁 Project Files
+                <button class="new-file-btn" style="background: none; border: none; font-size: 16px; cursor: pointer;" title="New File">+</button>
+              </div>
+              <div class="file-tree" style="padding: 0; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px;">
+                <!-- Root folder -->
+                <div class="folder-item" data-path="/" style="user-select: none;">
+                  <div class="folder-header" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center; hover: background: #e9ecef;" onclick="toggleFolder(event, '/')">
+                    <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▼</span>
+                    <span style="margin-right: 6px;">📁</span>
+                    <span>swissknife-project</span>
+                  </div>
+                  <div class="folder-content" style="margin-left: 16px;">
+                    
+                    <!-- Source folder -->
+                    <div class="folder-item" data-path="/src">
+                      <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/src')">
+                        <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▼</span>
+                        <span style="margin-right: 6px;">📂</span>
+                        <span>src</span>
+                      </div>
+                      <div class="folder-content" style="margin-left: 16px;">
+                        <div class="file-item" data-file="src/app.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/app.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🐍</span>app.py
+                        </div>
+                        <div class="file-item" data-file="src/config.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/config.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">⚙️</span>config.py
+                        </div>
+                        <div class="file-item" data-file="src/utils.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/utils.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🔧</span>utils.py
+                        </div>
+                        
+                        <!-- Components subfolder -->
+                        <div class="folder-item" data-path="/src/components">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/src/components')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>components</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="src/components/chat.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/components/chat.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">💬</span>chat.py
+                            </div>
+                            <div class="file-item" data-file="src/components/dashboard.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/components/dashboard.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">📊</span>dashboard.py
+                            </div>
+                            <div class="file-item" data-file="src/components/ai_models.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/components/ai_models.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🤖</span>ai_models.py
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <!-- API subfolder -->
+                        <div class="folder-item" data-path="/src/api">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/src/api')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>api</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="src/api/routes.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/api/routes.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🛣️</span>routes.py
+                            </div>
+                            <div class="file-item" data-file="src/api/auth.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/api/auth.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🔐</span>auth.py
+                            </div>
+                            <div class="file-item" data-file="src/api/middleware.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'src/api/middleware.py')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">⚡</span>middleware.py
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Tests folder -->
+                    <div class="folder-item" data-path="/tests">
+                      <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/tests')">
+                        <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                        <span style="margin-right: 6px;">📂</span>
+                        <span>tests</span>
+                      </div>
+                      <div class="folder-content" style="margin-left: 16px; display: none;">
+                        <div class="file-item" data-file="tests/test_app.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'tests/test_app.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🧪</span>test_app.py
+                        </div>
+                        <div class="file-item" data-file="tests/test_api.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'tests/test_api.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🧪</span>test_api.py
+                        </div>
+                        <div class="file-item" data-file="tests/conftest.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'tests/conftest.py')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">⚙️</span>conftest.py
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Static folder -->
+                    <div class="folder-item" data-path="/static">
+                      <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/static')">
+                        <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                        <span style="margin-right: 6px;">📂</span>
+                        <span>static</span>
+                      </div>
+                      <div class="folder-content" style="margin-left: 16px; display: none;">
+                        <div class="folder-item" data-path="/static/css">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/static/css')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>css</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="static/css/main.css" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/css/main.css')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🎨</span>main.css
+                            </div>
+                            <div class="file-item" data-file="static/css/components.css" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/css/components.css')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🎨</span>components.css
+                            </div>
+                          </div>
+                        </div>
+                        <div class="folder-item" data-path="/static/js">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/static/js')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>js</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="static/js/app.js" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/js/app.js')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">📜</span>app.js
+                            </div>
+                            <div class="file-item" data-file="static/js/utils.js" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/js/utils.js')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🔧</span>utils.js
+                            </div>
+                          </div>
+                        </div>
+                        <div class="folder-item" data-path="/static/images">
+                          <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/static/images')">
+                            <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                            <span style="margin-right: 6px;">📂</span>
+                            <span>images</span>
+                          </div>
+                          <div class="folder-content" style="margin-left: 16px; display: none;">
+                            <div class="file-item" data-file="static/images/logo.png" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/images/logo.png')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🖼️</span>logo.png
+                            </div>
+                            <div class="file-item" data-file="static/images/background.jpg" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'static/images/background.jpg')">
+                              <span style="margin-right: 10px;"></span>
+                              <span style="margin-right: 6px;">🖼️</span>background.jpg
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Docs folder -->
+                    <div class="folder-item" data-path="/docs">
+                      <div class="folder-header" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="toggleFolder(event, '/docs')">
+                        <span class="folder-arrow" style="margin-right: 4px; font-size: 10px; transition: transform 0.2s;">▶</span>
+                        <span style="margin-right: 6px;">📂</span>
+                        <span>docs</span>
+                      </div>
+                      <div class="folder-content" style="margin-left: 16px; display: none;">
+                        <div class="file-item" data-file="docs/README.md" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'docs/README.md')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">📝</span>README.md
+                        </div>
+                        <div class="file-item" data-file="docs/API.md" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'docs/API.md')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">📋</span>API.md
+                        </div>
+                        <div class="file-item" data-file="docs/CONTRIBUTING.md" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'docs/CONTRIBUTING.md')">
+                          <span style="margin-right: 10px;"></span>
+                          <span style="margin-right: 6px;">🤝</span>CONTRIBUTING.md
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Root level files -->
+                    <div class="file-item" data-file="requirements.txt" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'requirements.txt')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">📄</span>requirements.txt
+                    </div>
+                    <div class="file-item" data-file="setup.py" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'setup.py')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">⚙️</span>setup.py
+                    </div>
+                    <div class="file-item" data-file="Dockerfile" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'Dockerfile')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">🐳</span>Dockerfile
+                    </div>
+                    <div class="file-item" data-file=".gitignore" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, '.gitignore')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">🚫</span>.gitignore
+                    </div>
+                    <div class="file-item" data-file="README.md" style="padding: 2px 8px; cursor: pointer; display: flex; align-items: center;" onclick="selectFile(event, 'README.md')">
+                      <span style="margin-right: 10px;"></span>
+                      <span style="margin-right: 6px;">📝</span>README.md
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <style>
+                .file-tree .folder-header:hover, 
+                .file-tree .file-item:hover {
+                  background: #e9ecef !important;
+                }
+                
+                .file-tree .file-item.selected {
+                  background: #007acc !important;
+                  color: white;
+                }
+                
+                .file-tree .folder-arrow {
+                  display: inline-block;
+                  width: 12px;
+                  text-align: center;
+                }
+                
+                .file-tree .folder-item[data-expanded="true"] .folder-arrow {
+                  transform: rotate(90deg);
+                }
+                
+                .file-tree {
+                  scrollbar-width: thin;
+                  scrollbar-color: #ccc transparent;
+                }
+                
+                .file-tree::-webkit-scrollbar {
+                  width: 6px;
+                }
+                
+                .file-tree::-webkit-scrollbar-track {
+                  background: transparent;
+                }
+                
+                .file-tree::-webkit-scrollbar-thumb {
+                  background: #ccc;
+                  border-radius: 3px;
+                }
+              </style>
+              
+              <script>
+                // Global functions for file tree interaction
+                window.toggleFolder = function(event, folderPath) {
+                  event.stopPropagation();
+                  const folderItem = event.target.closest('.folder-item');
+                  const content = folderItem.querySelector('.folder-content');
+                  const arrow = folderItem.querySelector('.folder-arrow');
+                  
+                  if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    arrow.innerHTML = '▼';
+                    folderItem.setAttribute('data-expanded', 'true');
+                  } else {
+                    content.style.display = 'none';
+                    arrow.innerHTML = '▶';
+                    folderItem.setAttribute('data-expanded', 'false');
+                  }
+                };
+                
+                window.selectFile = function(event, filePath) {
+                  event.stopPropagation();
+                  
+                  // Remove previous selection
+                  const prevSelected = document.querySelector('.file-item.selected');
+                  if (prevSelected) {
+                    prevSelected.classList.remove('selected');
+                  }
+                  
+                  // Add selection to clicked file
+                  const fileItem = event.target.closest('.file-item');
+                  fileItem.classList.add('selected');
+                  
+                  // Load file content (simulate file switching)
+                  switchToFile(filePath);
+                };
+                
+                function switchToFile(filePath) {
+                  // Get file content based on file type
+                  const content = getFileContent(filePath);
+                  const codeEditor = document.querySelector('.code-editor');
+                  if (codeEditor) {
+                    codeEditor.value = content;
+                  }
+                  
+                  // Update tab
+                  updateEditorTab(filePath);
+                  
+                  // Update status bar
+                  const fileName = filePath.split('/').pop();
+                  const language = getLanguageFromFile(fileName);
+                  updateStatusBarFile(fileName, language);
+                }
+                
+                function getFileContent(filePath) {
+                  // Sample content based on file type
+                  const fileName = filePath.split('/').pop();
+                  
+                  if (fileName.endsWith('.py')) {
+                    if (fileName.includes('test_')) {
+                      return \`import pytest
+import unittest
+from unittest.mock import patch, MagicMock
+
+from src.app import main
+from src.config import Config
+
+class TestApp(unittest.TestCase):
+    def setUp(self):
+        self.config = Config()
+    
+    def test_main_function(self):
+        """Test the main application function"""
+        result = main()
+        self.assertIsNotNone(result)
+    
+    def test_config_loading(self):
+        """Test configuration loading"""
+        self.assertIsNotNone(self.config.api_key)
+        self.assertTrue(self.config.debug_mode)
+    
+    @patch('src.app.st')
+    def test_streamlit_integration(self, mock_st):
+        """Test Streamlit integration"""
+        main()
+        mock_st.title.assert_called()
+
+if __name__ == '__main__':
+    unittest.main()
+\`;
+                    } else if (fileName === 'config.py') {
+                      return \`import os
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class Config:
+    """SwissKnife Application Configuration"""
+    
+    # API Configuration
+    api_key: str = os.getenv('SWISSKNIFE_API_KEY', '')
+    openai_api_key: str = os.getenv('OPENAI_API_KEY', '')
+    huggingface_token: str = os.getenv('HUGGINGFACE_TOKEN', '')
+    
+    # App Settings
+    debug_mode: bool = os.getenv('DEBUG', 'False').lower() == 'true'
+    host: str = os.getenv('HOST', '0.0.0.0')
+    port: int = int(os.getenv('PORT', '8501'))
+    
+    # P2P Configuration
+    p2p_enabled: bool = True
+    p2p_port: int = int(os.getenv('P2P_PORT', '9000'))
+    
+    # IPFS Configuration
+    ipfs_gateway: str = os.getenv('IPFS_GATEWAY', 'https://ipfs.io/ipfs/')
+    ipfs_api_url: str = os.getenv('IPFS_API_URL', 'http://localhost:5001')
+    
+    # AI Model Configuration
+    default_model: str = 'gpt-3.5-turbo'
+    max_tokens: int = 2048
+    temperature: float = 0.7
+    
+    def __post_init__(self):
+        """Validate configuration after initialization"""
+        if not self.api_key and not self.debug_mode:
+            raise ValueError("API key is required for production mode")
+
+# Global config instance
+config = Config()
+\`;
+                    } else if (fileName === 'utils.py') {
+                      return \`import hashlib
+import json
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+def generate_hash(data: Union[str, bytes]) -> str:
+    """Generate SHA256 hash of data"""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    return hashlib.sha256(data).hexdigest()
+
+def load_json_file(file_path: Path) -> Optional[Dict[str, Any]]:
+    """Load JSON file safely"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.error(f"Error loading JSON file {file_path}: {e}")
+        return None
+
+def save_json_file(data: Dict[str, Any], file_path: Path) -> bool:
+    """Save data to JSON file"""
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        logger.error(f"Error saving JSON file {file_path}: {e}")
+        return False
+
+def format_timestamp(timestamp: Optional[datetime] = None) -> str:
+    """Format timestamp for display"""
+    if timestamp is None:
+        timestamp = datetime.now()
+    return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+def sanitize_filename(filename: str) -> str:
+    """Remove invalid characters from filename"""
+    invalid_chars = '<>:"/\\|?*'
+    for char in invalid_chars:
+        filename = filename.replace(char, '_')
+    return filename.strip()
+
+class AIAssistant:
+    """AI Assistant utilities for SwissKnife"""
+    
+    def __init__(self, config):
+        self.config = config
+    
+    def analyze_code(self, code: str) -> Dict[str, Any]:
+        """Analyze code and provide suggestions"""
+        # This would integrate with actual AI models
+        return {
+            "suggestions": ["Add type hints", "Improve error handling"],
+            "complexity": "medium",
+            "score": 85
+        }
+    
+    def generate_tests(self, code: str) -> str:
+        """Generate unit tests for given code"""
+        # This would use AI to generate appropriate tests
+        return "# Generated test cases\\n# TODO: Implement AI-generated tests"
+\`;
+                    } else {
+                      return \`import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+
+# SwissKnife AI-Enhanced Streamlit Application
+st.set_page_config(
+    page_title="SwissKnife AI App",
+    page_icon="🔧",
+    layout="wide"
+)
+
+def main():
+    st.title("🔧 SwissKnife AI Application")
+    st.sidebar.header("Navigation")
+    
+    # AI-powered features
+    page = st.sidebar.selectbox("Choose a feature:", [
+        "Dashboard", 
+        "Data Analysis", 
+        "AI Chat", 
+        "Model Browser",
+        "P2P Collaboration"
+    ])
+    
+    if page == "Dashboard":
+        st.header("📊 AI Dashboard")
+        
+        # Sample metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Active Models", "12", "+2")
+        with col2:
+            st.metric("API Calls", "1,234", "+15%")
+        with col3:
+            st.metric("P2P Peers", "8", "+1")
+        with col4:
+            st.metric("GPU Usage", "76%", "-5%")
+
+if __name__ == "__main__":
+    main()
+\`;
+                    }
+                  } else if (fileName.endsWith('.js')) {
+                    return \`// SwissKnife JavaScript Utilities
+class SwissKnifeUtils {
+    constructor() {
+        this.version = '1.0.0';
+        this.initialized = false;
+    }
+    
+    async initialize() {
+        console.log('Initializing SwissKnife utilities...');
+        this.initialized = true;
+        return true;
+    }
+    
+    generateId() {
+        return Math.random().toString(36).substr(2, 9);
+    }
+    
+    formatDate(date = new Date()) {
+        return date.toISOString().split('T')[0];
+    }
+    
+    async makeApiCall(endpoint, options = {}) {
+        try {
+            const response = await fetch(endpoint, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            
+            if (!response.ok) {
+                throw new Error(\`HTTP error! status: \${response.status}\`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API call failed:', error);
+            throw error;
+        }
+    }
+}
+
+// Export for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SwissKnifeUtils;
+} else {
+    window.SwissKnifeUtils = SwissKnifeUtils;
+}
+\`;
+                  } else if (fileName.endsWith('.css')) {
+                    return \`/* SwissKnife CSS Styles */
+
+:root {
+    --primary-color: #007acc;
+    --secondary-color: #6f42c1;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-dark: #343a40;
+    
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-light: #ffffff;
+    
+    --border-color: #dee2e6;
+    --border-radius: 4px;
+    
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+}
+
+body {
+    font-family: var(--font-family);
+    line-height: 1.5;
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 4px;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.code {
+    font-family: var(--font-family-mono);
+    background: #f4f4f4;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 10px;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}
+\`;
+                  } else if (fileName.endsWith('.md')) {
+                    if (fileName === 'README.md') {
+                      return \`# SwissKnife AI Project
+
+A comprehensive AI-powered development toolkit with voice control, collaborative features, and advanced automation capabilities.
+
+## Features
+
+- 🎤 **Voice Control**: Natural language commands for coding
+- 🤖 **AI Assistant**: Intelligent code analysis and suggestions  
+- 🌐 **P2P Collaboration**: Real-time collaborative development
+- 📊 **Analytics Dashboard**: Performance monitoring and insights
+- 🔧 **Multi-tool Integration**: 28+ integrated applications
+- 🏗️ **Modular Architecture**: Easy to extend and customize
+
+## Quick Start
+
+1. **Installation**
+   \\\`\\\`\\\`bash
+   pip install -r requirements.txt
+   \\\`\\\`\\\`
+
+2. **Configuration**
+   \\\`\\\`\\\`bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   \\\`\\\`\\\`
+
+3. **Run the Application**
+   \\\`\\\`\\\`bash
+   streamlit run src/app.py
+   \\\`\\\`\\\`
+
+## Voice Commands
+
+- "Create new file" - Creates a new file
+- "Add todo: [task]" - Adds a task to the AI todo system
+- "Run the code" - Executes the current code
+- "Explain this code" - Get AI explanation of code
+- "Fix errors" - AI-assisted error resolution
+- "Generate tests" - Auto-generate unit tests
+
+## Project Structure
+
+\\\`\\\`\\\`
+swissknife-project/
+├── src/                    # Source code
+│   ├── components/         # UI components
+│   ├── api/               # API routes and handlers
+│   ├── app.py             # Main application
+│   └── config.py          # Configuration
+├── tests/                 # Test files
+├── static/                # Static assets
+├── docs/                  # Documentation
+└── requirements.txt       # Dependencies
+\\\`\\\`\\\`
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Support
+
+- 📧 Email: support@swissknife.ai
+- 💬 Discord: [SwissKnife Community](https://discord.gg/swissknife)
+- 📖 Docs: [docs.swissknife.ai](https://docs.swissknife.ai)
+\`;
+                    } else if (fileName === 'API.md') {
+                      return \`# SwissKnife API Documentation
+
+## Overview
+
+The SwissKnife API provides programmatic access to all AI-powered features including voice control, code analysis, and collaborative development tools.
+
+## Authentication
+
+All API requests require an API key passed in the Authorization header:
+
+\\\`\\\`\\\`
+Authorization: Bearer YOUR_API_KEY
+\\\`\\\`\\\`
+
+## Base URL
+
+\\\`\\\`\\\`
+https://api.swissknife.ai/v1
+\\\`\\\`\\\`
+
+## Endpoints
+
+### AI Assistant
+
+#### POST /ai/analyze
+Analyze code and get AI suggestions.
+
+**Request:**
+\\\`\\\`\\\`json
+{
+    "code": "def hello_world():\\n    print('Hello!')",
+    "language": "python"
+}
+\\\`\\\`\\\`
+
+**Response:**
+\\\`\\\`\\\`json
+{
+    "suggestions": ["Add type hints", "Add docstring"],
+    "complexity": "low",
+    "score": 92
+}
+\\\`\\\`\\\`
+
+#### POST /ai/generate-tests
+Generate unit tests for given code.
+
+#### POST /ai/explain
+Get AI explanation of code.
+
+### Voice Control
+
+#### POST /voice/command
+Process voice commands.
+
+#### GET /voice/history
+Get voice command history.
+
+### Collaboration
+
+#### POST /p2p/connect
+Connect to P2P network.
+
+#### GET /p2p/peers
+List connected peers.
+
+### Files
+
+#### GET /files/list
+List project files.
+
+#### POST /files/create
+Create new file.
+
+## Error Codes
+
+- 400: Bad Request
+- 401: Unauthorized  
+- 403: Forbidden
+- 404: Not Found
+- 429: Rate Limited
+- 500: Internal Server Error
+
+## Rate Limits
+
+- 1000 requests per hour for free tier
+- 10000 requests per hour for pro tier
+- No limits for enterprise tier
+\`;
+                    } else {
+                      return \`# ${fileName.replace('.md', '').replace('_', ' ').replace('-', ' ')}
+
+This is a sample markdown file for the SwissKnife project.
+
+## Overview
+
+Add your content here...
+
+## Getting Started
+
+1. First step
+2. Second step
+3. Third step
+
+## Code Examples
+
+\\\`\\\`\\\`python
+def example():
+    return "Hello, World!"
+\\\`\\\`\\\`
+
+## Notes
+
+- Add important notes here
+- Remember to update documentation
+- Keep examples current
+\`;
+                    }
+                  } else if (fileName === 'requirements.txt') {
+                    return \`# SwissKnife Project Dependencies
+
+# Core Framework
+streamlit>=1.28.0
+pandas>=1.5.0
+numpy>=1.24.0
+
+# AI and ML
+openai>=1.0.0
+anthropics>=0.8.1
+transformers>=4.35.0
+torch>=2.0.0
+scikit-learn>=1.3.0
+
+# Data Visualization
+plotly>=5.17.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# API and Web
+requests>=2.31.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+websockets>=12.0
+
+# Voice Processing
+SpeechRecognition>=3.10.0
+pydub>=0.25.1
+pyaudio>=0.2.11
+
+# P2P and Networking
+libp2p>=0.1.0
+ipfshttpclient>=0.8.0
+
+# Development Tools
+pytest>=7.4.0
+black>=23.9.0
+flake8>=6.1.0
+mypy>=1.6.0
+pre-commit>=3.5.0
+
+# Utilities
+python-dotenv>=1.0.0
+click>=8.1.0
+rich>=13.6.0
+loguru>=0.7.0
+\`;
+                  } else if (fileName === 'setup.py') {
+                    return \`from setuptools import setup, find_packages
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+with open("requirements.txt", "r", encoding="utf-8") as fh:
+    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+
+setup(
+    name="swissknife",
+    version="1.0.0",
+    author="SwissKnife Team",
+    author_email="team@swissknife.ai",
+    description="AI-powered development toolkit with voice control and collaboration",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/swissknife/swissknife",
+    project_urls={
+        "Bug Tracker": "https://github.com/swissknife/swissknife/issues",
+        "Documentation": "https://docs.swissknife.ai",
+    },
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    ],
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
+    python_requires=">=3.8",
+    install_requires=requirements,
+    extras_require={
+        "dev": [
+            "pytest>=7.4.0",
+            "black>=23.9.0",
+            "flake8>=6.1.0",
+            "mypy>=1.6.0",
+        ],
+        "docs": [
+            "sphinx>=7.1.0",
+            "sphinx-rtd-theme>=1.3.0",
+        ],
+    },
+    entry_points={
+        "console_scripts": [
+            "swissknife=swissknife.cli:main",
+        ],
+    },
+    include_package_data=True,
+    zip_safe=False,
+)
+\`;
+                  } else {
+                    return \`# Sample file content for ${fileName}
+# This is a placeholder file created by the SwissKnife IDE
+
+# TODO: Add actual content for this file
+print("Hello from ${fileName}")
+\`;
+                  }
+                }
+                
+                function updateEditorTab(filePath) {
+                  const fileName = filePath.split('/').pop();
+                  const tab = document.querySelector('.editor-tab');
+                  if (tab) {
+                    const icon = getFileIcon(fileName);
+                    tab.innerHTML = \`\${icon} \${fileName} <span class="close-tab" style="margin-left: 8px; cursor: pointer;">×</span>\`;
+                    tab.setAttribute('data-file', filePath);
+                  }
+                }
+                
+                function getFileIcon(fileName) {
+                  if (fileName.endsWith('.py')) return '🐍';
+                  if (fileName.endsWith('.js')) return '📜';
+                  if (fileName.endsWith('.css')) return '🎨';
+                  if (fileName.endsWith('.html')) return '🌐';
+                  if (fileName.endsWith('.md')) return '📝';
+                  if (fileName.endsWith('.json')) return '📊';
+                  if (fileName.endsWith('.txt')) return '📄';
+                  if (fileName.endsWith('.png') || fileName.endsWith('.jpg')) return '🖼️';
+                  if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) return '⚙️';
+                  return '📄';
+                }
+                
+                function getLanguageFromFile(fileName) {
+                  if (fileName.endsWith('.py')) return 'Python';
+                  if (fileName.endsWith('.js')) return 'JavaScript';
+                  if (fileName.endsWith('.css')) return 'CSS';
+                  if (fileName.endsWith('.html')) return 'HTML';
+                  if (fileName.endsWith('.md')) return 'Markdown';
+                  if (fileName.endsWith('.json')) return 'JSON';
+                  return 'Text';
+                }
+                
+                function updateStatusBarFile(fileName, language) {
+                  const statusBar = document.querySelector('.status-bar span');
+                  if (statusBar) {
+                    const currentStatus = statusBar.textContent;
+                    const updatedStatus = currentStatus.replace(/File: [^|]*/, \`File: \${fileName}\`).replace(/Language: [^|]*/, \`Language: \${language}\`);
+                    statusBar.textContent = updatedStatus;
+                  }
+                }
+              </script>
             </div>
-            <div class="file-tree" style="padding: 4px;">
-              <div class="file-item" data-file="app.py" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                <span style="margin-right: 6px;">🐍</span>app.py
+            
+            <!-- AI Todo System -->
+            <div class="todo-system" style="flex: 1; border-top: 1px solid #ddd;">
+              <div class="todo-header" style="padding: 8px; font-weight: bold; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                🤖 AI Todo
+                <button class="add-todo-btn" style="background: none; border: none; font-size: 16px; cursor: pointer;" title="Add Todo">+</button>
               </div>
-              <div class="file-item" data-file="requirements.txt" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                <span style="margin-right: 6px;">📄</span>requirements.txt
+              <div class="todo-input" style="padding: 8px; border-bottom: 1px solid #ddd;">
+                <input type="text" class="new-todo-input" placeholder="Tell AI what to do..." style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px;">
+                <div class="ai-priority" style="margin-top: 4px; font-size: 10px; color: #666;">
+                  🧠 AI will prioritize and suggest tasks
+                </div>
               </div>
-              <div class="file-item" data-file="config.py" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                <span style="margin-right: 6px;">⚙️</span>config.py
-              </div>
-              <div class="file-item" data-file="README.md" style="padding: 4px 8px; cursor: pointer; display: flex; align-items: center;">
-                <span style="margin-right: 6px;">📝</span>README.md
+              <div class="todo-list" style="flex: 1; overflow-y: auto; padding: 4px;">
+                <div class="todo-item high-priority" style="padding: 6px; margin: 2px 0; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 3px; font-size: 12px;">
+                  <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                    <input type="checkbox" style="margin-right: 6px;">
+                    <span style="font-weight: bold;">🔥 Fix API integration</span>
+                  </div>
+                  <div style="color: #666; font-size: 11px;">AI Priority: High • Voice: "Fix the API"</div>
+                </div>
+                <div class="todo-item medium-priority" style="padding: 6px; margin: 2px 0; background: #d1ecf1; border-left: 3px solid #17a2b8; border-radius: 3px; font-size: 12px;">
+                  <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                    <input type="checkbox" style="margin-right: 6px;">
+                    <span>📊 Add data visualization</span>
+                  </div>
+                  <div style="color: #666; font-size: 11px;">AI Priority: Medium • Voice: "Add charts"</div>
+                </div>
+                <div class="todo-item low-priority" style="padding: 6px; margin: 2px 0; background: #d4edda; border-left: 3px solid #28a745; border-radius: 3px; font-size: 12px;">
+                  <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                    <input type="checkbox" checked style="margin-right: 6px;">
+                    <span style="text-decoration: line-through;">✅ Setup project structure</span>
+                  </div>
+                  <div style="color: #666; font-size: 11px;">AI Priority: Completed • Voice: "Setup done"</div>
+                </div>
               </div>
             </div>
           </div>
@@ -2121,128 +3149,914 @@ if __name__ == "__main__":
             </div>
           </div>
           
-          <!-- Output/Preview Panel -->
+          <!-- Enhanced Output/Preview Panel -->
           <div class="preview-panel" style="width: 300px; border-left: 1px solid #ddd; background: #f8f9fa; display: flex; flex-direction: column;">
             <div class="preview-header" style="padding: 8px; font-weight: bold; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between;">
               <span>🔍 Live Preview</span>
-              <button class="refresh-preview" style="background: none; border: none; cursor: pointer;">🔄</button>
+              <div>
+                <button class="voice-status" id="voice-status" style="background: none; border: none; cursor: pointer; margin-right: 4px;" title="Voice Control Status">🔴</button>
+                <button class="refresh-preview" style="background: none; border: none; cursor: pointer;">🔄</button>
+              </div>
             </div>
             <div class="preview-content" style="flex: 1; padding: 12px; overflow-y: auto;">
               <div class="preview-placeholder" style="text-align: center; color: #666; padding: 20px;">
-                <div style="font-size: 48px; margin-bottom: 12px;">🔧</div>
+                <div style="font-size: 48px; margin-bottom: 12px;">🎯</div>
                 <div>SwissKnife AI App Preview</div>
-                <div style="font-size: 12px; margin-top: 8px;">Click "Run" to see your Streamlit app</div>
+                <div style="font-size: 12px; margin-top: 8px;">Say "Run the code" or click "Run"</div>
                 <div style="margin-top: 16px; padding: 12px; background: #e3f2fd; border-radius: 4px; font-size: 12px;">
-                  <strong>AI Features Ready:</strong><br>
+                  <strong>🎤 Voice Commands:</strong><br>
+                  • "Create new file"<br>
+                  • "Add todo: [task]"<br>
+                  • "Run the code"<br>
+                  • "Explain this code"<br>
+                  • "Fix errors"<br>
+                  • "Generate tests"
+                </div>
+                <div style="margin-top: 12px; padding: 12px; background: #f3e5f5; border-radius: 4px; font-size: 12px;">
+                  <strong>🤖 AI Features:</strong><br>
                   • Real-time code analysis<br>
                   • Smart autocompletion<br>
-                  • Error detection<br>
-                  • Performance optimization<br>
-                  • P2P collaboration
+                  • Voice-to-code generation<br>
+                  • Intelligent task prioritization<br>
+                  • Collaborative development
+                </div>
+              </div>
+            </div>
+            
+            <!-- Voice Command History -->
+            <div class="voice-history" style="border-top: 1px solid #ddd; max-height: 120px; overflow-y: auto;">
+              <div class="history-header" style="padding: 4px 8px; font-size: 11px; font-weight: bold; color: #666;">
+                🎤 Voice History
+              </div>
+              <div class="history-list" style="padding: 4px;">
+                <div class="history-item" style="font-size: 10px; color: #888; padding: 2px 4px;">
+                  "Create a new Python file" → ✅ app.py created
+                </div>
+                <div class="history-item" style="font-size: 10px; color: #888; padding: 2px 4px;">
+                  "Add todo fix the API" → ✅ Todo added with high priority
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        <!-- Status Bar -->
+        <!-- Enhanced Status Bar -->
         <div class="status-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 12px; background: #007acc; color: white; font-size: 12px;">
-          <span>Status: Ready | File: app.py | Language: Python</span>
-          <span>AI Assistant: Available | Line 1, Col 1 | WebGPU: Enabled</span>
+          <span>Status: Ready | File: app.py | Language: Python | Voice: 🔴 Inactive</span>
+          <span>🤖 AI Assistant: Available | 📋 Todos: 2 pending | 🎤 Voice: Ready | WebGPU: Enabled</span>
         </div>
       </div>
     `;
     
-    // Add VibeCode functionality
-    this.setupVibeCodeEditor(contentElement);
+    // Add enhanced VibeCode functionality with voice control
+    this.setupEnhancedVibeCodeEditor(contentElement);
   }
   
-  setupVibeCodeEditor(contentElement: HTMLElement) {
+  setupEnhancedVibeCodeEditor(contentElement: HTMLElement) {
     const codeEditor = contentElement.querySelector('.code-editor') as HTMLTextAreaElement;
     const runBtn = contentElement.querySelector('.run-code-btn') as HTMLButtonElement;
     const aiBtn = contentElement.querySelector('.ai-assist-btn') as HTMLButtonElement;
+    const voiceBtn = contentElement.querySelector('#voice-btn') as HTMLButtonElement;
+    const todoBtn = contentElement.querySelector('.todo-btn') as HTMLButtonElement;
+    const voiceStatus = contentElement.querySelector('#voice-status') as HTMLButtonElement;
     const previewContent = contentElement.querySelector('.preview-content') as HTMLElement;
     const fileItems = contentElement.querySelectorAll('.file-item') as NodeListOf<HTMLElement>;
     const languageSelect = contentElement.querySelector('.editor-language') as HTMLSelectElement;
+    const newTodoInput = contentElement.querySelector('.new-todo-input') as HTMLInputElement;
+    const todoList = contentElement.querySelector('.todo-list') as HTMLElement;
+    const historyList = contentElement.querySelector('.history-list') as HTMLElement;
     
-    // File templates
-    const fileTemplates: { [key: string]: string } = {
-      'app.py': codeEditor.value, // Current Streamlit code
-      'requirements.txt': `streamlit
-pandas
-numpy
-plotly
-scikit-learn
-openai
-requests`,
-      'config.py': `# SwissKnife Configuration
+    // Virtual Filesystem Implementation
+    class VirtualFileSystem {
+      private providers: { [key: string]: any } = {};
+      private currentProvider = 'local';
+      
+      constructor() {
+        this.initializeProviders();
+      }
+      
+      private async initializeProviders() {
+        // Initialize Local Provider
+        this.providers['local'] = {
+          type: 'local',
+          connected: true,
+          files: this.getDefaultFileStructure()
+        };
+        
+        // Initialize S3 Provider (simulation)
+        this.providers['s3'] = {
+          type: 's3',
+          connected: false,
+          config: { bucket: '', region: 'us-east-1' },
+          files: {}
+        };
+        
+        // Initialize Helia (IPFS) Provider
+        this.providers['helia'] = {
+          type: 'helia',
+          connected: false,
+          node: null,
+          files: {}
+        };
+        
+        // Initialize Storacha Provider
+        this.providers['storacha'] = {
+          type: 'storacha',
+          connected: false,
+          config: { apiKey: '', endpoint: '' },
+          files: {}
+        };
+        
+        this.updateProviderTabs();
+      }
+      
+      private getDefaultFileStructure() {
+        return {
+          'src/': {
+            'app.py': '🐍',
+            'config.py': '⚙️',
+            'components/': {
+              'ui.py': '🐍',
+              'api.py': '🐍',
+              'models.py': '🐍'
+            },
+            'utils/': {
+              'helpers.py': '🐍',
+              'validators.py': '🐍'
+            }
+          },
+          'tests/': {
+            'test_app.py': '🐍',
+            'test_api.py': '🐍',
+            'conftest.py': '🐍'
+          },
+          'docs/': {
+            'README.md': '📝',
+            'API.md': '📝',
+            'CHANGELOG.md': '📝'
+          },
+          'static/': {
+            'css/': {
+              'style.css': '🎨',
+              'bootstrap.css': '🎨'
+            },
+            'js/': {
+              'script.js': '⚡',
+              'utils.js': '⚡'
+            }
+          },
+          'cloud/': {
+            's3_files/': {},
+            'ipfs_content/': {},
+            'storacha_data/': {}
+          },
+          'requirements.txt': '📋',
+          'package.json': '📋',
+          '.env': '⚙️',
+          '.gitignore': '📄'
+        };
+      }
+      
+      async connectProvider(provider: string, config: any = {}) {
+        try {
+          switch (provider) {
+            case 's3':
+              await this.connectS3(config);
+              break;
+            case 'helia':
+              await this.connectHelia(config);
+              break;
+            case 'storacha':
+              await this.connectStoracha(config);
+              break;
+          }
+          this.updateProviderTabs();
+          this.showNotification(`Connected to ${provider.toUpperCase()}`, 'success');
+        } catch (error) {
+          this.showNotification(`Failed to connect to ${provider}: ${error}`, 'error');
+        }
+      }
+      
+      private async connectS3(config: any) {
+        // Simulate S3 connection
+        this.providers['s3'].connected = true;
+        this.providers['s3'].config = config;
+        this.providers['s3'].files = {
+          'my-bucket/': {
+            'uploads/': {
+              'image1.jpg': '🖼️',
+              'document.pdf': '📄'
+            },
+            'backups/': {
+              'backup.zip': '🗃️'
+            },
+            'config.json': '📋'
+          }
+        };
+      }
+      
+      private async connectHelia(config: any) {
+        // Simulate Helia/IPFS connection
+        this.providers['helia'].connected = true;
+        this.providers['helia'].files = {
+          'ipfs/': {
+            'QmHash1.../': {
+              'content.md': '📝',
+              'data.json': '📋'
+            },
+            'QmHash2.../': {
+              'image.png': '🖼️'
+            }
+          }
+        };
+      }
+      
+      private async connectStoracha(config: any) {
+        // Simulate Storacha connection
+        this.providers['storacha'].connected = true;
+        this.providers['storacha'].config = config;
+        this.providers['storacha'].files = {
+          'storacha/': {
+            'encrypted/': {
+              'sensitive.enc': '🔒',
+              'backup.enc': '🔒'
+            },
+            'public/': {
+              'readme.txt': '📄'
+            }
+          }
+        };
+      }
+      
+      private updateProviderTabs() {
+        const providerTabs = contentElement.querySelector('.provider-tabs');
+        if (providerTabs) {
+          providerTabs.innerHTML = Object.keys(this.providers).map(provider => {
+            const p = this.providers[provider];
+            const status = p.connected ? '🟢' : '🔴';
+            const active = provider === this.currentProvider ? 'active' : '';
+            return `
+              <button class="provider-tab ${active}" data-provider="${provider}">
+                ${status} ${provider.toUpperCase()}
+              </button>
+            `;
+          }).join('');
+          
+          // Add event listeners
+          providerTabs.querySelectorAll('.provider-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+              this.switchProvider((tab as HTMLElement).dataset.provider!);
+            });
+          });
+        }
+      }
+      
+      private switchProvider(provider: string) {
+        this.currentProvider = provider;
+        this.updateProviderTabs();
+        this.refreshFileTree();
+      }
+      
+      private refreshFileTree() {
+        const fileTree = contentElement.querySelector('.file-tree');
+        if (fileTree) {
+          const files = this.providers[this.currentProvider].files;
+          fileTree.innerHTML = this.renderFileTree(files, '/');
+          this.addFileTreeListeners();
+        }
+      }
+      
+      private renderFileTree(files: any, basePath: string, level: number = 0): string {
+        if (!files || typeof files !== 'object') return '';
+        
+        return Object.entries(files).map(([name, content]) => {
+          const isFolder = typeof content === 'object' && !name.includes('.');
+          const icon = isFolder ? '📁' : (content as string);
+          const path = basePath + name;
+          const indent = '  '.repeat(level);
+          
+          if (isFolder) {
+            const folderId = `folder-${Math.random().toString(36).substr(2, 9)}`;
+            const folderContent = this.renderFileTree(content, path + '/', level + 1);
+            return `
+              <div class="file-item folder" data-path="${path}">
+                <span class="folder-toggle" data-target="${folderId}" style="margin-left: ${level * 20}px; cursor: pointer;">
+                  ${icon} ${name}
+                </span>
+                <div class="folder-content" id="${folderId}" style="display: block;">
+                  ${folderContent}
+                </div>
+              </div>
+            `;
+          } else {
+            return `
+              <div class="file-item file" data-path="${path}" style="margin-left: ${(level + 1) * 20}px; padding: 4px 8px; cursor: pointer; border-radius: 4px;">
+                ${icon} ${name}
+              </div>
+            `;
+          }
+        }).join('');
+      }
+      
+      private addFileTreeListeners() {
+        // Folder toggle listeners
+        contentElement.querySelectorAll('.folder-toggle').forEach(toggle => {
+          toggle.addEventListener('click', () => {
+            const targetId = (toggle as HTMLElement).dataset.target;
+            const content = contentElement.querySelector(`#${targetId}`);
+            if (content) {
+              const isVisible = (content as HTMLElement).style.display !== 'none';
+              (content as HTMLElement).style.display = isVisible ? 'none' : 'block';
+              const icon = toggle.textContent?.charAt(0);
+              toggle.textContent = toggle.textContent?.replace(icon!, isVisible ? '📁' : '📂') || '';
+            }
+          });
+        });
+        
+        // File selection listeners
+        contentElement.querySelectorAll('.file-item.file').forEach(fileItem => {
+          fileItem.addEventListener('click', () => {
+            // Remove previous selection
+            contentElement.querySelectorAll('.file-item.selected').forEach(item => {
+              item.classList.remove('selected');
+            });
+            
+            // Add selection to clicked item
+            fileItem.classList.add('selected');
+            
+            // Load file content
+            const path = (fileItem as HTMLElement).dataset.path;
+            this.loadFileContent(path!);
+          });
+        });
+      }
+      
+      private async loadFileContent(path: string) {
+        const fileName = path.split('/').pop() || '';
+        let content = '';
+        
+        // Generate sample content based on file type
+        if (fileName.endsWith('.py')) {
+          content = `# ${fileName}\nimport streamlit as st\nimport pandas as pd\n\ndef main():\n    st.title("${fileName.replace('.py', '').replace('_', ' ').toUpperCase()}")\n    st.write("Hello from ${fileName}!")\n\nif __name__ == "__main__":\n    main()`;
+        } else if (fileName.endsWith('.md')) {
+          content = `# ${fileName.replace('.md', '').replace('_', ' ').toUpperCase()}\n\nThis is a markdown file for ${fileName}.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3\n\n## Usage\n\n\`\`\`python\n# Example usage\nprint("Hello World")\n\`\`\``;
+        } else if (fileName.endsWith('.js')) {
+          content = `// ${fileName}\nconst ${fileName.replace('.js', '').replace('-', '_')} = {\n    init: function() {\n        console.log('${fileName} initialized');\n    },\n    \n    run: function() {\n        this.init();\n    }\n};\n\n${fileName.replace('.js', '').replace('-', '_')}.run();`;
+        } else if (fileName.endsWith('.json')) {
+          content = `{\n  "name": "${fileName.replace('.json', '')}",\n  "version": "1.0.0",\n  "description": "Generated configuration file",\n  "main": "index.js",\n  "scripts": {\n    "start": "node index.js",\n    "test": "jest"\n  }\n}`;
+        } else {
+          content = `Content of ${fileName}\n\nThis file is located at: ${path}\nProvider: ${this.currentProvider.toUpperCase()}\n\nLast modified: ${new Date().toLocaleString()}`;
+        }
+        
+        codeEditor.value = content;
+        this.updateStatusBar(`Loaded: ${fileName} from ${this.currentProvider.toUpperCase()}`);
+      }
+      
+      private showNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 12px 20px;
+          border-radius: 6px;
+          color: white;
+          font-weight: 500;
+          z-index: 10000;
+          animation: slideIn 0.3s ease-out;
+          background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 3000);
+      }
+      
+      private updateStatusBar(message: string) {
+        const statusBar = contentElement.querySelector('.status-bar');
+        if (statusBar) {
+          statusBar.textContent = message;
+        }
+      }
+      
+      async uploadFile(file: File, path: string) {
+        try {
+          const provider = this.providers[this.currentProvider];
+          // Simulate file upload
+          this.showNotification(`Uploading ${file.name} to ${this.currentProvider.toUpperCase()}...`, 'info');
+          
+          // Simulate upload delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          this.showNotification(`Successfully uploaded ${file.name}`, 'success');
+          this.refreshFileTree();
+        } catch (error) {
+          this.showNotification(`Upload failed: ${error}`, 'error');
+        }
+      }
+      
+      async syncBetweenProviders(fromProvider: string, toProvider: string, path: string) {
+        try {
+          this.showNotification(`Syncing from ${fromProvider} to ${toProvider}...`, 'info');
+          
+          // Simulate sync delay
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          this.showNotification(`Sync completed successfully`, 'success');
+        } catch (error) {
+          this.showNotification(`Sync failed: ${error}`, 'error');
+        }
+      }
+    }
+    
+    // Initialize Virtual Filesystem
+    const vfs = new VirtualFileSystem();
+    
+    // Voice recognition setup
+    let isVoiceActive = false;
+    let recognition: any = null;
+    
+    // Check for Web Speech API support
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        isVoiceActive = true;
+        voiceBtn.style.background = '#28a745';
+        voiceBtn.innerHTML = '🎤 Listening...';
+        voiceStatus.innerHTML = '🟢';
+        voiceStatus.title = 'Voice Control Active';
+        updateStatusBar('Voice: 🟢 Active');
+      };
+      
+      recognition.onend = () => {
+        isVoiceActive = false;
+        voiceBtn.style.background = '#dc3545';
+        voiceBtn.innerHTML = '🎤 Voice';
+        voiceStatus.innerHTML = '🔴';
+        voiceStatus.title = 'Voice Control Inactive';
+        updateStatusBar('Voice: 🔴 Inactive');
+      };
+      
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            transcript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (transcript.trim()) {
+          processVoiceCommand(transcript.trim());
+        }
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        addToHistory(`Voice error: ${event.error}`, false);
+      };
+    } else {
+      voiceBtn.disabled = true;
+      voiceBtn.innerHTML = '🎤 Unsupported';
+      voiceBtn.title = 'Speech recognition not supported in this browser';
+    }
+    
+    // Voice control button
+    voiceBtn.addEventListener('click', () => {
+      if (!recognition) return;
+      
+      if (isVoiceActive) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    });
+    
+    // Process voice commands
+    function processVoiceCommand(command: string) {
+      const cmd = command.toLowerCase();
+      let success = false;
+      let response = '';
+      
+      if (cmd.includes('run') && (cmd.includes('code') || cmd.includes('app'))) {
+        runBtn.click();
+        response = 'Code executed';
+        success = true;
+      } else if (cmd.includes('new file') || cmd.includes('create file')) {
+        const fileName = extractFileName(cmd) || 'new_file.py';
+        createNewFile(fileName);
+        response = `${fileName} created`;
+        success = true;
+      } else if (cmd.includes('add todo') || cmd.includes('todo')) {
+        const todoText = cmd.replace(/add todo:?|todo:?/g, '').trim();
+        if (todoText) {
+          addTodoItem(todoText, 'medium');
+          response = 'Todo added';
+          success = true;
+        }
+      } else if (cmd.includes('explain') || cmd.includes('what does')) {
+        aiBtn.click();
+        response = 'AI explanation requested';
+        success = true;
+      } else if (cmd.includes('fix') && cmd.includes('error')) {
+        addTodoItem('Fix errors in code', 'high');
+        response = 'Error fix added to todos';
+        success = true;
+      } else if (cmd.includes('generate test') || cmd.includes('create test')) {
+        addTodoItem('Generate unit tests', 'medium');
+        response = 'Test generation added to todos';
+        success = true;
+      } else if (cmd.includes('save') || cmd.includes('save file')) {
+        // Simulate save
+        updateStatusBar('Status: Saved');
+        response = 'File saved';
+        success = true;
+      } else {
+        response = `Unknown command: "${command}"`;
+      }
+      
+      addToHistory(`"${command}" → ${success ? '✅' : '❌'} ${response}`, success);
+    }
+    
+    // Helper functions
+    function extractFileName(command: string): string | null {
+      const match = command.match(/(?:file|create)\s+(\w+\.?\w*)/i);
+      return match ? match[1] : null;
+    }
+    
+    function createNewFile(fileName: string) {
+      const fileTree = contentElement.querySelector('.file-tree');
+      if (fileTree) {
+        // Find the root folder content to add the new file
+        const rootFolderContent = fileTree.querySelector('[data-path="/"] .folder-content');
+        if (rootFolderContent) {
+          const newFileItem = document.createElement('div');
+          newFileItem.className = 'file-item';
+          newFileItem.dataset.file = fileName;
+          newFileItem.style.cssText = 'padding: 2px 8px; cursor: pointer; display: flex; align-items: center;';
+          newFileItem.setAttribute('onclick', `selectFile(event, '${fileName}')`);
+          
+          const icon = getFileIcon(fileName);
+          newFileItem.innerHTML = `
+            <span style="margin-right: 10px;"></span>
+            <span style="margin-right: 6px;">${icon}</span>${fileName}
+          `;
+          
+          // Insert before the last root-level file to maintain order
+          const rootFiles = rootFolderContent.children;
+          let insertBefore = null;
+          for (let i = rootFiles.length - 1; i >= 0; i--) {
+            if (rootFiles[i].classList.contains('file-item')) {
+              insertBefore = rootFiles[i].nextSibling;
+              break;
+            }
+          }
+          
+          if (insertBefore) {
+            rootFolderContent.insertBefore(newFileItem, insertBefore);
+          } else {
+            rootFolderContent.appendChild(newFileItem);
+          }
+        }
+      }
+      
+      // Helper function to get file icon (moved inside for scope)
+      function getFileIcon(fileName: string): string {
+        if (fileName.endsWith('.py')) return '🐍';
+        if (fileName.endsWith('.js')) return '📜';
+        if (fileName.endsWith('.css')) return '🎨';
+        if (fileName.endsWith('.html')) return '🌐';
+        if (fileName.endsWith('.md')) return '📝';
+        if (fileName.endsWith('.json')) return '📊';
+        if (fileName.endsWith('.txt')) return '📄';
+        if (fileName.endsWith('.png') || fileName.endsWith('.jpg')) return '🖼️';
+        if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) return '⚙️';
+        return '📄';
+      }
+    }
+    
+    function addTodoItem(text: string, priority: 'high' | 'medium' | 'low') {
+      const priorityColors = {
+        high: { bg: '#fff3cd', border: '#ffc107', icon: '🔥' },
+        medium: { bg: '#d1ecf1', border: '#17a2b8', icon: '📋' },
+        low: { bg: '#d4edda', border: '#28a745', icon: '💡' }
+      };
+      
+      const color = priorityColors[priority];
+      const todoItem = document.createElement('div');
+      todoItem.className = `todo-item ${priority}-priority`;
+      todoItem.style.cssText = `padding: 6px; margin: 2px 0; background: ${color.bg}; border-left: 3px solid ${color.border}; border-radius: 3px; font-size: 12px;`;
+      
+      todoItem.innerHTML = `
+        <div style="display: flex; align-items: center; margin-bottom: 2px;">
+          <input type="checkbox" style="margin-right: 6px;">
+          <span>${color.icon} ${text}</span>
+        </div>
+        <div style="color: #666; font-size: 11px;">AI Priority: ${priority} • Voice: Added via voice</div>
+      `;
+      
+      // Add to top of todo list
+      const firstTodo = todoList.querySelector('.todo-item');
+      if (firstTodo) {
+        todoList.insertBefore(todoItem, firstTodo);
+      } else {
+        todoList.appendChild(todoItem);
+      }
+      
+      // Update todo count in status bar
+      const todoCount = todoList.querySelectorAll('.todo-item input:not(:checked)').length;
+      updateStatusBar(`📋 Todos: ${todoCount} pending`);
+    }
+    
+    function addToHistory(message: string, success: boolean) {
+      const historyItem = document.createElement('div');
+      historyItem.className = 'history-item';
+      historyItem.style.cssText = 'font-size: 10px; color: #888; padding: 2px 4px;';
+      historyItem.textContent = message;
+      
+      historyList.insertBefore(historyItem, historyList.firstChild);
+      
+      // Keep only last 10 history items
+      while (historyList.children.length > 10) {
+        historyList.removeChild(historyList.lastChild!);
+      }
+    }
+    
+    function updateStatusBar(update: string) {
+      const statusBar = contentElement.querySelector('.status-bar span') as HTMLElement;
+      if (statusBar) {
+        const currentText = statusBar.textContent || '';
+        if (update.includes('Voice:')) {
+          statusBar.textContent = currentText.replace(/Voice: [^|]+/, update);
+        } else if (update.includes('Status:')) {
+          statusBar.textContent = currentText.replace(/Status: [^|]+/, update);
+        } else if (update.includes('Todos:')) {
+          const rightStatus = contentElement.querySelector('.status-bar span:last-child') as HTMLElement;
+          if (rightStatus) {
+            rightStatus.textContent = rightStatus.textContent?.replace(/📋 Todos: \d+ pending/, update) || '';
+          }
+        }
+      }
+    }
+    
+    function switchToFile(fileName: string) {
+      // Update active file visual indicator
+      fileItems.forEach(f => {
+        f.style.background = 'transparent';
+        f.style.color = '';
+      });
+      
+      const activeFile = Array.from(fileItems).find(item => item.dataset.file === fileName);
+      if (activeFile) {
+        activeFile.style.background = '#007acc';
+        activeFile.style.color = 'white';
+      }
+      
+      // Load file content (using templates or creating new content)
+      codeEditor.value = getFileContent(fileName);
+      
+      // Update tab and status
+      const tab = contentElement.querySelector('.editor-tab') as HTMLElement;
+      const icon = getFileIcon(fileName);
+      tab.innerHTML = `${icon} ${fileName} <span class="close-tab" style="margin-left: 8px; cursor: pointer;">×</span>`;
+      
+      updateStatusBar(`Status: Ready | File: ${fileName}`);
+    }
+    
+    function getFileIcon(fileName: string): string {
+      if (fileName.endsWith('.py')) return '🐍';
+      if (fileName.endsWith('.js')) return '📜';
+      if (fileName.endsWith('.md')) return '📝';
+      if (fileName.endsWith('.json')) return '⚙️';
+      return '📄';
+    }
+    
+    function getFileContent(fileName: string): string {
+      // File templates with enhanced AI-powered content
+      const fileTemplates: { [key: string]: string } = {
+      'app.py': `import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+
+# SwissKnife AI-Enhanced Streamlit Application
+st.set_page_config(
+    page_title="SwissKnife AI App",
+    page_icon="🎯",
+    layout="wide"
+)
+
+def main():
+    st.title("🎯 SwissKnife AI Application")
+    st.sidebar.header("Navigation")
+    
+    # AI-powered features
+    page = st.sidebar.selectbox("Choose a feature:", [
+        "Dashboard", 
+        "Data Analysis", 
+        "AI Chat", 
+        "Voice Commands",
+        "P2P Collaboration"
+    ])
+    
+    if page == "Dashboard":
+        st.header("📊 AI Dashboard")
+        
+        # Sample metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Active Models", "12", "+2")
+        with col2:
+            st.metric("API Calls", "1,234", "+15%")
+        with col3:
+            st.metric("P2P Peers", "8", "+1")
+        with col4:
+            st.metric("Voice Commands", "24", "+8")
+        
+        # Sample chart
+        data = pd.DataFrame(
+            np.random.randn(20, 3),
+            columns=['AI Models', 'Performance', 'Usage']
+        )
+        
+        fig = px.line(data, title="AI System Performance")
+        st.plotly_chart(fig, use_container_width=True)
+        
+    elif page == "Voice Commands":
+        st.header("🎤 Voice Control Integration")
+        st.write("Voice commands processed by VibeCode AI")
+        
+        # Voice command history
+        voice_commands = [
+            {"command": "Create new file", "status": "✅", "time": "2 min ago"},
+            {"command": "Add todo fix API", "status": "✅", "time": "5 min ago"},
+            {"command": "Run the code", "status": "✅", "time": "8 min ago"}
+        ]
+        
+        st.dataframe(pd.DataFrame(voice_commands))
+
+if __name__ == "__main__":
+    main()`,
+      'requirements.txt': `streamlit>=1.28.0
+pandas>=1.5.0
+plotly>=5.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+openai>=1.0.0
+anthropic>=0.8.0
+requests>=2.31.0
+# Voice processing
+SpeechRecognition>=3.10.0
+pydub>=0.25.1
+# AI and ML
+torch>=2.0.0
+transformers>=4.35.0
+sentence-transformers>=2.2.0`,
+      'config.py': `# SwissKnife Enhanced Configuration
+
+# AI Providers with voice integration
 AI_PROVIDERS = {
-    'openai': {'api_key': 'your-api-key'},
-    'anthropic': {'api_key': 'your-api-key'},
-    'huggingface': {'token': 'your-token'}
+    'openai': {
+        'api_key': 'your-openai-api-key',
+        'voice_model': 'whisper-1',
+        'chat_model': 'gpt-4'
+    },
+    'anthropic': {
+        'api_key': 'your-anthropic-api-key',
+        'model': 'claude-3-sonnet-20240229'
+    },
+    'huggingface': {
+        'token': 'your-huggingface-token',
+        'voice_model': 'facebook/wav2vec2-large-960h',
+        'text_model': 'microsoft/DialoGPT-large'
+    }
 }
 
+# Voice Control Configuration
+VOICE_CONFIG = {
+    'enabled': True,
+    'language': 'en-US',
+    'continuous': True,
+    'auto_todo_priority': True,
+    'voice_to_code': True,
+    'commands': {
+        'create_file': ['create file', 'new file', 'make file'],
+        'run_code': ['run code', 'execute', 'run app'],
+        'add_todo': ['add todo', 'create task', 'todo'],
+        'explain_code': ['explain', 'what does this do', 'describe'],
+        'fix_errors': ['fix errors', 'debug', 'fix bugs'],
+        'generate_tests': ['create tests', 'generate tests', 'test this']
+    }
+}
+
+# P2P Configuration with voice collaboration
 P2P_CONFIG = {
     'enable_collaboration': True,
     'max_peers': 10,
-    'share_models': True
+    'share_models': True,
+    'voice_chat': True,
+    'sync_todos': True,
+    'collaborative_coding': True
 }
 
+# Performance Configuration
 PERFORMANCE_CONFIG = {
     'use_webgpu': True,
     'cache_models': True,
-    'optimize_inference': True
+    'optimize_inference': True,
+    'voice_processing_threads': 2,
+    'real_time_analysis': True
+}
+
+# Todo System Configuration
+TODO_CONFIG = {
+    'ai_prioritization': True,
+    'voice_input': True,
+    'smart_suggestions': True,
+    'auto_categorization': True,
+    'deadline_prediction': True
 }`,
-      'README.md': `# SwissKnife AI Application
+      'README.md': `# 🎯 SwissKnife AI Application - Voice-Enabled IDE
 
-This is an AI-enhanced Streamlit application built with SwissKnife.
+This is a maximally agentic AI-enhanced Streamlit application built with SwissKnife VibeCode.
 
-## Features
+## 🎤 Voice Control Features
 
-- 🤖 AI-powered data analysis
-- 📊 Interactive dashboards
-- 🔗 P2P collaboration
-- 🚀 WebGPU acceleration
-- 🧠 Multi-model AI support
+### Voice Commands
+- **"Create new file"** - Creates a new file in the project
+- **"Add todo: [task]"** - Adds a new todo item with AI prioritization  
+- **"Run the code"** - Executes the current application
+- **"Explain this code"** - Gets AI explanation of selected code
+- **"Fix errors"** - Analyzes and suggests error fixes
+- **"Generate tests"** - Creates unit tests for your code
 
-## Getting Started
+### AI Todo System
+- 🧠 **Intelligent Prioritization** - AI automatically prioritizes tasks
+- 🎤 **Voice Input** - Add todos via voice commands
+- 📊 **Smart Categories** - Auto-categorizes tasks by type and urgency
+- ⏰ **Deadline Prediction** - AI estimates completion times
 
-1. Install requirements: \`pip install -r requirements.txt\`
-2. Configure API keys in \`config.py\`
-3. Run the app: \`streamlit run app.py\`
+## 🤖 AI Features
 
-## AI Capabilities
+- **Real-time code analysis** with voice feedback
+- **Smart autocompletion** based on voice context
+- **Voice-to-code generation** for rapid development
+- **Intelligent task prioritization** using ML algorithms
+- **Collaborative development** with voice chat
+- **Multi-model AI support** (OpenAI, Anthropic, Hugging Face)
 
-- Real-time code analysis
-- Smart suggestions
-- Automated testing
-- Performance optimization
-- Collaborative development`
+## 🔧 Getting Started
+
+1. **Install requirements**: \`pip install -r requirements.txt\`
+2. **Configure API keys** in \`config.py\`
+3. **Enable microphone** permissions in your browser
+4. **Run the app**: \`streamlit run app.py\`
+5. **Start voice control** by clicking the 🎤 Voice button
+
+## 🌐 P2P Collaboration
+
+- **Voice Chat** - Talk with team members while coding
+- **Shared Todos** - Synchronized todo lists across peers
+- **Collaborative Coding** - Real-time code sharing and editing
+- **Distributed AI** - Share AI processing across the network
+
+## 🚀 Advanced Features
+
+- **WebGPU Acceleration** for AI inference
+- **Real-time Performance Monitoring**
+- **Automated Testing** with voice commands
+- **Smart Error Detection** and fixes
+- **Context-aware Code Suggestions**
+
+## 📊 Voice Analytics
+
+The system tracks and learns from your voice patterns to provide:
+- Better command recognition
+- Personalized task prioritization  
+- Improved code suggestions
+- Context-aware AI responses
+
+---
+
+*Built with Swiss precision for maximally agentic development* 🇨🇭`
     };
     
-    // File switching
-    fileItems.forEach(item => {
-      item.addEventListener('click', () => {
-        const fileName = item.dataset.file!;
-        
-        // Update active file
-        fileItems.forEach(f => f.style.background = 'transparent');
-        item.style.background = '#007acc';
-        item.style.color = 'white';
-        
-        // Load file content
-        codeEditor.value = fileTemplates[fileName] || `# Content for ${fileName}`;
-        
-        // Update tab
-        const tab = contentElement.querySelector('.editor-tab') as HTMLElement;
-        const icon = fileName.endsWith('.py') ? '🐍' : fileName.endsWith('.md') ? '📝' : '📄';
-        tab.innerHTML = `${icon} ${fileName} <span class="close-tab" style="margin-left: 8px; cursor: pointer;">×</span>`;
-        
-        // Update status
-        const statusBar = contentElement.querySelector('.status-bar span') as HTMLElement;
-        statusBar.textContent = `Status: Ready | File: ${fileName} | Language: ${fileName.endsWith('.py') ? 'Python' : fileName.endsWith('.md') ? 'Markdown' : 'Text'}`;
-      });
-    });
+    return fileTemplates[fileName] || `# New file: ${fileName}\n\n# Add your content here...`;
+    }
+    
+    // File items are now handled by inline onclick events in the tree structure
     
     // Run code button
     runBtn.addEventListener('click', () => {
@@ -2334,6 +4148,127 @@ def load_and_process_data(file):
         statusBar.textContent = currentText.replace('Status: Ready', 'Status: Saved');
       }, 1000);
     });
+    
+    // Todo system event handlers
+    newTodoInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const todoText = newTodoInput.value.trim();
+        if (todoText) {
+          // AI-powered priority assessment
+          const priority = assessTodoPriority(todoText);
+          addTodoItem(todoText, priority);
+          newTodoInput.value = '';
+        }
+      }
+    });
+    
+    // Todo button to show/hide todo panel
+    todoBtn.addEventListener('click', () => {
+      const todoSystem = contentElement.querySelector('.todo-system') as HTMLElement;
+      const currentDisplay = getComputedStyle(todoSystem).display;
+      todoSystem.style.display = currentDisplay === 'none' ? 'flex' : 'none';
+    });
+    
+    // Add todo button
+    const addTodoBtn = contentElement.querySelector('.add-todo-btn') as HTMLButtonElement;
+    addTodoBtn?.addEventListener('click', () => {
+      newTodoInput.focus();
+    });
+    
+    // New file button
+    const newFileBtn = contentElement.querySelector('.new-file-btn') as HTMLButtonElement;
+    newFileBtn?.addEventListener('click', () => {
+      const fileName = prompt('Enter file name:');
+      if (fileName) {
+        createNewFile(fileName);
+      }
+    });
+    
+    // Enhanced AI Assist with voice context
+    aiBtn.addEventListener('click', () => {
+      const currentCode = codeEditor.value;
+      const suggestion = generateAISuggestion(currentCode);
+      
+      // Add AI suggestions to code
+      codeEditor.value = suggestion + currentCode;
+      
+      // Add AI assistance todo
+      addTodoItem('Review AI suggestions in code', 'medium');
+      addToHistory('AI assistance requested → ✅ Suggestions added', true);
+      
+      // Show AI notification
+      showNotification('🤖 AI suggestions added to your code!', 'success');
+    });
+    
+    // Helper function to assess todo priority using simple AI logic
+    function assessTodoPriority(todoText: string): 'high' | 'medium' | 'low' {
+      const text = todoText.toLowerCase();
+      if (text.includes('fix') || text.includes('error') || text.includes('bug') || text.includes('urgent')) {
+        return 'high';
+      } else if (text.includes('test') || text.includes('review') || text.includes('optimize')) {
+        return 'medium';
+      } else {
+        return 'low';
+      }
+    }
+    
+    // Generate AI code suggestions
+    function generateAISuggestion(code: string): string {
+      const suggestions = [
+        `# 🤖 AI Suggestion: Error Handling Enhancement
+try:
+    # Your existing code here
+    pass
+except Exception as e:
+    st.error(f"An error occurred: {str(e)}")
+    
+`,
+        `# 🤖 AI Suggestion: Performance Optimization
+@st.cache_data
+def cached_computation(data):
+    # Add caching for expensive operations
+    return processed_data
+    
+`,
+        `# 🤖 AI Suggestion: User Input Validation
+if uploaded_file is not None:
+    if uploaded_file.size > 50 * 1024 * 1024:  # 50MB limit
+        st.error("File too large. Please upload a smaller file.")
+        return
+    
+`,
+        `# 🤖 AI Suggestion: Real-time Updates
+placeholder = st.empty()
+with placeholder.container():
+    # Add real-time updates for better UX
+    pass
+    
+`
+      ];
+      
+      return suggestions[Math.floor(Math.random() * suggestions.length)];
+    }
+    
+    // Show notification helper
+    function showNotification(message: string, type: string = 'info') {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007acc'};
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      `;
+      notification.textContent = message;
+      contentElement.appendChild(notification);
+      
+      setTimeout(() => notification.remove(), 3000);
+    }
     
     // Language selection
     languageSelect.addEventListener('change', (e) => {
@@ -2794,6 +4729,47 @@ def load_and_process_data(file):
         })();
       </script>
     `;
+  }
+  
+  loadTodoApp(contentElement: HTMLElement) {
+    // Import and initialize the Todo app
+    import('./js/apps/todo.js').then(module => {
+      const todoApp = new (module.TodoApp || window.TodoApp)(this);
+      const content = todoApp.createWindowConfig();
+      contentElement.innerHTML = content;
+      
+      // Setup todo event listeners  
+      todoApp.setupEventListeners(contentElement);
+      
+      // Initialize the app
+      todoApp.initialize();
+    }).catch(error => {
+      console.error('Failed to load Todo app:', error);
+      
+      // Fallback: try to load via script tag
+      const script = document.createElement('script');
+      script.src = './js/apps/todo.js';
+      script.onload = () => {
+        if (window.TodoApp) {
+          const todoApp = new window.TodoApp(this);
+          const content = todoApp.createWindowConfig();
+          contentElement.innerHTML = content;
+          todoApp.setupEventListeners(contentElement);
+          todoApp.initialize();
+        }
+      };
+      script.onerror = () => {
+        contentElement.innerHTML = `
+          <div style="padding: 20px; text-align: center;">
+            <h2>📋 Todo & Goals</h2>
+            <p>Failed to load Todo application.</p>
+            <p>Error: ${error.message}</p>
+            <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+          </div>
+        `;
+      };
+      document.head.appendChild(script);
+    });
   }
   
   loadModelBrowserApp(contentElement: HTMLElement) {

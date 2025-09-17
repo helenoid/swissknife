@@ -24,13 +24,14 @@ class OAuthLoginSystem {
             name: 'Google',
             icon: '🔴',
             color: '#db4437',
-            clientId: '', // To be configured
+            clientId: '1234567890-example.apps.googleusercontent.com', // Demo client ID
             redirectUri: window.location.origin + '/oauth/callback',
             scope: 'openid profile email',
             authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
             tokenUrl: 'https://oauth2.googleapis.com/token',
             userInfoUrl: 'https://www.googleapis.com/oauth2/v2/userinfo',
-            enabled: false
+            enabled: true,
+            configured: false // Will be true when real client ID is set
         });
 
         // Facebook OAuth
@@ -39,14 +40,66 @@ class OAuthLoginSystem {
             name: 'Facebook',
             icon: '🔵',
             color: '#4267b2',
-            clientId: '', // To be configured
+            clientId: '1234567890123456', // Demo client ID
             redirectUri: window.location.origin + '/oauth/callback',
             scope: 'email,public_profile',
             authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
             tokenUrl: 'https://graph.facebook.com/v18.0/oauth/access_token',
             userInfoUrl: 'https://graph.facebook.com/me?fields=id,name,email,picture',
-            enabled: false
+            enabled: true,
+            configured: false
         });
+
+        // GitHub OAuth
+        this.providers.set('github', {
+            id: 'github',
+            name: 'GitHub',
+            icon: '🐙',
+            color: '#333333',
+            clientId: 'Iv1.1234567890abcdef', // Demo client ID
+            redirectUri: window.location.origin + '/oauth/callback',
+            scope: 'user:email,read:user,repo',
+            authUrl: 'https://github.com/login/oauth/authorize',
+            tokenUrl: 'https://github.com/login/oauth/access_token',
+            userInfoUrl: 'https://api.github.com/user',
+            enabled: true,
+            configured: false
+        });
+
+        // Microsoft OAuth
+        this.providers.set('microsoft', {
+            id: 'microsoft',
+            name: 'Microsoft',
+            icon: '🟦',
+            color: '#0078d4',
+            clientId: '12345678-1234-1234-1234-123456789012', // Demo client ID
+            redirectUri: window.location.origin + '/oauth/callback',
+            scope: 'openid profile email User.Read',
+            authUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+            tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+            userInfoUrl: 'https://graph.microsoft.com/v1.0/me',
+            enabled: true,
+            configured: false
+        });
+
+        // Discord OAuth
+        this.providers.set('discord', {
+            id: 'discord',
+            name: 'Discord',
+            icon: '🟣',
+            color: '#7289da',
+            clientId: '123456789012345678', // Demo client ID
+            redirectUri: window.location.origin + '/oauth/callback',
+            scope: 'identify email',
+            authUrl: 'https://discord.com/api/oauth2/authorize',
+            tokenUrl: 'https://discord.com/api/oauth2/token',
+            userInfoUrl: 'https://discord.com/api/users/@me',
+            enabled: true,
+            configured: false
+        });
+
+        console.log('🔐 OAuth providers initialized:', this.providers.size);
+    }
 
         // GitHub OAuth
         this.providers.set('github', {
