@@ -25,7 +25,16 @@ export class NeuralPhotoshopApp {
       eraser: { size: 20, opacity: 1, hardness: 0.5 },
       selection: { feather: 0, tolerance: 32 },
       transform: { maintainAspect: true, interpolation: 'bicubic' },
+      text: { fontSize: 24, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, align: 'left' },
       ai: { model: 'stable-diffusion', strength: 0.8, steps: 20 }
+    };
+    
+    // Text tool state
+    this.textState = {
+      editing: false,
+      currentTextLayer: null,
+      textInput: null,
+      textPosition: { x: 0, y: 0 }
     };
     
     // AI features
@@ -728,6 +737,47 @@ export class NeuralPhotoshopApp {
           </div>
         </div>
       `;
+    } else if (currentTool === 'text') {
+      return `
+        <div class="property-group">
+          <div class="property-label">Text Settings</div>
+          <div class="property-control">
+            <label>Font Size:</label>
+            <input type="range" class="property-slider" min="8" max="72" 
+                   value="${this.toolSettings.text.fontSize}" id="text-font-size">
+            <span class="property-value">${this.toolSettings.text.fontSize}px</span>
+          </div>
+          <div class="property-control">
+            <label>Font Family:</label>
+            <select id="text-font-family" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 4px;">
+              <option value="Arial" ${this.toolSettings.text.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
+              <option value="Helvetica" ${this.toolSettings.text.fontFamily === 'Helvetica' ? 'selected' : ''}>Helvetica</option>
+              <option value="Times New Roman" ${this.toolSettings.text.fontFamily === 'Times New Roman' ? 'selected' : ''}>Times New Roman</option>
+              <option value="Georgia" ${this.toolSettings.text.fontFamily === 'Georgia' ? 'selected' : ''}>Georgia</option>
+              <option value="monospace" ${this.toolSettings.text.fontFamily === 'monospace' ? 'selected' : ''}>Monospace</option>
+            </select>
+          </div>
+          <div class="property-control">
+            <label>Color:</label>
+            <input type="color" value="${this.toolSettings.text.color}" id="text-color">
+          </div>
+          <div class="property-control">
+            <label>Style:</label>
+            <div style="display: flex; gap: 8px;">
+              <button class="menu-btn ${this.toolSettings.text.bold ? 'active' : ''}" id="text-bold" style="font-weight: bold;">B</button>
+              <button class="menu-btn ${this.toolSettings.text.italic ? 'active' : ''}" id="text-italic" style="font-style: italic;">I</button>
+            </div>
+          </div>
+          <div class="property-control">
+            <label>Align:</label>
+            <select id="text-align" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 4px;">
+              <option value="left" ${this.toolSettings.text.align === 'left' ? 'selected' : ''}>Left</option>
+              <option value="center" ${this.toolSettings.text.align === 'center' ? 'selected' : ''}>Center</option>
+              <option value="right" ${this.toolSettings.text.align === 'right' ? 'selected' : ''}>Right</option>
+            </select>
+          </div>
+        </div>
+      `;
     }
     
     return `<div class="property-group">Select a tool to see its properties</div>`;
@@ -935,6 +985,34 @@ export class NeuralPhotoshopApp {
       this.updatePropertyValue(e.target, Math.round(e.target.value * 100) + '%');
     });
 
+    // Text settings
+    container.querySelector('#text-font-size')?.addEventListener('input', (e) => {
+      this.toolSettings.text.fontSize = parseInt(e.target.value);
+      this.updatePropertyValue(e.target, e.target.value + 'px');
+    });
+
+    container.querySelector('#text-font-family')?.addEventListener('change', (e) => {
+      this.toolSettings.text.fontFamily = e.target.value;
+    });
+
+    container.querySelector('#text-color')?.addEventListener('change', (e) => {
+      this.toolSettings.text.color = e.target.value;
+    });
+
+    container.querySelector('#text-bold')?.addEventListener('click', (e) => {
+      this.toolSettings.text.bold = !this.toolSettings.text.bold;
+      e.target.classList.toggle('active');
+    });
+
+    container.querySelector('#text-italic')?.addEventListener('click', (e) => {
+      this.toolSettings.text.italic = !this.toolSettings.text.italic;
+      e.target.classList.toggle('active');
+    });
+
+    container.querySelector('#text-align')?.addEventListener('change', (e) => {
+      this.toolSettings.text.align = e.target.value;
+    });
+
   }
 
   setupLayerHandlers(container) {
@@ -1108,6 +1186,9 @@ export class NeuralPhotoshopApp {
       case 'selection':
         this.startSelection(x, y);
         break;
+      case 'text':
+        this.startTextPlacement(x, y);
+        break;
     }
   }
 
@@ -1184,6 +1265,101 @@ export class NeuralPhotoshopApp {
 
   endBrushStroke() {
     // Brush stroke complete
+  }
+
+  // Text placement methods
+  startTextPlacement(x, y) {
+    if (this.textState.editing) {
+      this.finishTextEdit();
+    }
+
+    this.textState.textPosition = { x, y };
+    this.createTextInput(x, y);
+  }
+
+  createTextInput(x, y) {
+    // Create text input overlay
+    const textInput = document.createElement('textarea');
+    textInput.style.cssText = `
+      position: absolute;
+      left: ${x}px;
+      top: ${y}px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #4ade80;
+      border-radius: 4px;
+      padding: 8px;
+      font-family: ${this.toolSettings.text.fontFamily};
+      font-size: ${this.toolSettings.text.fontSize}px;
+      font-weight: ${this.toolSettings.text.bold ? 'bold' : 'normal'};
+      font-style: ${this.toolSettings.text.italic ? 'italic' : 'normal'};
+      color: ${this.toolSettings.text.color};
+      text-align: ${this.toolSettings.text.align};
+      resize: none;
+      min-width: 200px;
+      min-height: 40px;
+      z-index: 1000;
+      outline: none;
+    `;
+
+    textInput.placeholder = 'Enter text here...';
+    textInput.addEventListener('blur', () => this.finishTextEdit());
+    textInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        this.finishTextEdit();
+      }
+    });
+
+    // Add to canvas container
+    const canvasContainer = this.canvas.parentElement;
+    canvasContainer.appendChild(textInput);
+    
+    this.textState.editing = true;
+    this.textState.textInput = textInput;
+    
+    textInput.focus();
+  }
+
+  finishTextEdit() {
+    if (!this.textState.editing || !this.textState.textInput) return;
+
+    const text = this.textState.textInput.value.trim();
+    if (text) {
+      this.renderTextToCanvas(text, this.textState.textPosition.x, this.textState.textPosition.y);
+      this.saveToHistory('Add Text');
+    }
+
+    // Clean up
+    this.textState.textInput.remove();
+    this.textState.editing = false;
+    this.textState.textInput = null;
+  }
+
+  renderTextToCanvas(text, x, y) {
+    const layer = this.layers[this.activeLayerIndex];
+    if (!layer || layer.locked) return;
+
+    const ctx = layer.context;
+    
+    // Set font properties
+    let fontStyle = '';
+    if (this.toolSettings.text.italic) fontStyle += 'italic ';
+    if (this.toolSettings.text.bold) fontStyle += 'bold ';
+    
+    ctx.font = `${fontStyle}${this.toolSettings.text.fontSize}px ${this.toolSettings.text.fontFamily}`;
+    ctx.fillStyle = this.toolSettings.text.color;
+    ctx.textAlign = this.toolSettings.text.align;
+    ctx.textBaseline = 'top';
+
+    // Handle multi-line text
+    const lines = text.split('\n');
+    const lineHeight = this.toolSettings.text.fontSize * 1.2;
+
+    lines.forEach((line, index) => {
+      ctx.fillText(line, x, y + (index * lineHeight));
+    });
+
+    this.redrawCanvas();
   }
 
   // AI methods
@@ -1688,6 +1864,58 @@ export class NeuralPhotoshopApp {
     }, 100);
     
     return windowConfig;
+  }
+
+  // Static method to launch the GUI version
+  static async launchGUI(desktop) {
+    console.log('🎨 Launching Neural Photoshop GUI...');
+    
+    try {
+      const app = new NeuralPhotoshopApp(desktop);
+      
+      // Create window
+      const windowId = await desktop.createWindow({
+        title: '🎨 Neural Photoshop - AI Image Editor',
+        width: 1400,
+        height: 900,
+        resizable: true,
+        maximizable: true,
+        icon: '🎨'
+      });
+
+      // Render the application
+      const windowElement = desktop.getWindow(windowId);
+      if (windowElement) {
+        const container = windowElement.querySelector('.window-content');
+        container.innerHTML = app.createWindow();
+        app.setupEventHandlers(container);
+        
+        console.log('🎨 Neural Photoshop GUI launched successfully');
+        return app;
+      }
+    } catch (error) {
+      console.error('Failed to launch Neural Photoshop GUI:', error);
+      throw error;
+    }
+  }
+
+  // Public API methods for CLI integration
+  static getFeatureList() {
+    return [
+      '🎨 Professional image editing with layers',
+      '🤖 AI-powered segmentation (SAM model)',
+      '🖼️ Background removal (U2Net)',
+      '🖌️ AI inpainting and object removal (LaMa)',
+      '📈 Super-resolution upscaling (Real-ESRGAN)',
+      '👤 Face restoration (GFPGAN)',
+      '🌈 Photo colorization (DeOldify)',
+      '🛠️ Professional tools: brush, eraser, selection, text',
+      '🎭 Advanced layer system with blend modes',
+      '📋 50-step history with undo/redo',
+      '⚙️ Geometric transformations',
+      '📝 Text placement with fonts and styles',
+      '🎯 Professional UI with panels and shortcuts'
+    ];
   }
 }
 

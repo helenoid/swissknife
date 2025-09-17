@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Photoshop Test</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+        }
+        
+        .container {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .log {
+            background: rgba(0,0,0,0.3);
+            margin: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Neural Photoshop GUI Test</h1>
+            <p>Testing the Neural Photoshop application integration</p>
+        </div>
+        
+        <div class="test-buttons">
+            <button class="btn" onclick="testAppCreation()">Test App Creation</button>
+            <button class="btn" onclick="testFeatureList()">Test Feature List</button>
+            <button class="btn" onclick="testGUILaunch()">Test GUI Launch</button>
+            <button class="btn" onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <div class="log" id="log">
+            <div>🎨 Neural Photoshop Test Console</div>
+            <div>Ready for testing...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the Neural Photoshop app
+        import { NeuralPhotoshopApp } from './web/js/apps/neural-photoshop.js';
+        
+        window.log = function(message) {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+        
+        window.testAppCreation = function() {
+            try {
+                log('🧪 Testing Neural Photoshop App Creation...');
+                
+                // Mock desktop object
+                const mockDesktop = {
+                    swissknife: null,
+                    createWindow: async (config) => {
+                        log(`✅ Window creation requested: ${config.title}`);
+                        return 'test-window-id';
+                    },
+                    getWindow: (id) => {
+                        log(`✅ Window retrieval requested: ${id}`);
+                        return { querySelector: () => ({ innerHTML: '', appendChild: () => {} }) };
+                    }
+                };
+                
+                const app = new NeuralPhotoshopApp(mockDesktop);
+                log('✅ Neural Photoshop App created successfully');
+                log(`📊 App state: ${Object.keys(app).length} properties initialized`);
+                log(`🛠️ Active tool: ${app.activeTool}`);
+                log(`🎭 Layers: ${app.layers.length}`);
+                
+                window.testApp = app;
+                
+            } catch (error) {
+                log(`❌ App creation failed: ${error.message}`);
+                console.error(error);
+            }
+        };
+        
+        window.testFeatureList = function() {
+            try {
+                log('🧪 Testing Feature List...');
+                
+                const features = NeuralPhotoshopApp.getFeatureList();
+                log(`✅ Feature list retrieved: ${features.length} features`);
+                
+                features.forEach((feature, index) => {
+                    log(`  ${index + 1}. ${feature}`);
+                });
+                
+            } catch (error) {
+                log(`❌ Feature list test failed: ${error.message}`);
+                console.error(error);
+            }
+        };
+        
+        window.testGUILaunch = function() {
+            try {
+                log('🧪 Testing GUI Launch...');
+                
+                // Mock desktop object
+                const mockDesktop = {
+                    createWindow: async (config) => {
+                        log(`🖥️ GUI Launch: Creating window "${config.title}"`);
+                        log(`📐 Window size: ${config.width}x${config.height}`);
+                        return 'gui-window-id';
+                    },
+                    getWindow: (id) => {
+                        log(`🖥️ GUI Launch: Retrieving window ${id}`);
+                        return { 
+                            querySelector: () => ({ 
+                                innerHTML: '',
+                                appendChild: () => {},
+                                addEventListener: () => {}
+                            }) 
+                        };
+                    }
+                };
+                
+                NeuralPhotoshopApp.launchGUI(mockDesktop)
+                    .then((app) => {
+                        log('✅ GUI Launch successful');
+                        log('🎨 Neural Photoshop GUI is ready for use');
+                    })
+                    .catch((error) => {
+                        log(`❌ GUI Launch failed: ${error.message}`);
+                        console.error(error);
+                    });
+                
+            } catch (error) {
+                log(`❌ GUI Launch test failed: ${error.message}`);
+                console.error(error);
+            }
+        };
+        
+        window.clearLog = function() {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML = '<div>🎨 Neural Photoshop Test Console</div><div>Log cleared...</div>';
+        };
+        
+        // Auto-test on load
+        log('🚀 Neural Photoshop Test Environment Ready');
+        log('Click buttons above to run tests');
+    </script>
+</body>
+</html>

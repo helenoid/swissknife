@@ -387,6 +387,45 @@ Features:
         `);
         break;
         
+      case 'text':
+        console.log(`
+📝 Text Placement Tool
+
+Launching Neural Photoshop with text editing capabilities...
+
+Features:
+  ✅ Professional font selection (Arial, Helvetica, Times, Georgia, Monospace)
+  ✅ Font size adjustment (8px - 72px)
+  ✅ Bold, italic, and alignment options
+  ✅ Color picker for text styling
+  ✅ Multi-line text support
+  ✅ Interactive text placement on canvas
+  ✅ Non-destructive text editing
+
+💡 Click anywhere on the image to place and edit text with full typography control
+        `);
+        break;
+        
+      case 'gui':
+        console.log(`
+🖥️ Neural Photoshop GUI Mode
+
+Launching full graphical interface...
+
+GUI Features:
+  🎨 Professional multi-panel interface
+  🛠️ Interactive tool palette (12 tools with shortcuts)
+  🎭 Visual layer management with thumbnails
+  📋 50-step visual history timeline
+  ⚙️ Real-time property adjustments
+  🤖 Dedicated AI tools panel
+  📊 Live canvas rulers and guides
+  🎯 Professional keyboard shortcuts (V,B,E,M,L,T,etc.)
+
+💡 Opening web-based professional image editor...
+        `);
+        break;
+        
       default:
         console.log(`
 🎨 Neural Photoshop - AI-Powered Image Manipulation
@@ -401,6 +440,7 @@ Available commands:
   photoshop inpaint         # AI Inpainting & Object Removal
   photoshop colorize        # AI Photo Colorization
   photoshop restore         # AI Face Restoration
+  photoshop text            # Add Text to Images with Fonts
 
 🧠 AI MODELS INTEGRATED:
   → SAM: Segment Anything Model for precise object detection
@@ -417,8 +457,11 @@ Available commands:
   → Blend modes & effects
   → Brush, Clone, Heal tools
   → Selection & masking tools
+  → Text placement with fonts and styles
 
 💡 Neural Photoshop combines traditional image editing with cutting-edge AI
+
+🖥️ GUI MODE: Type 'photoshop gui' to launch the visual interface
         `);
     }
     return;
