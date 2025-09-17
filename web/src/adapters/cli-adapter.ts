@@ -132,22 +132,37 @@ export class SwissKnifeCLIAdapter extends BrowserEventEmitter {
     };
   }
 
-  private async loadCoreCommands(): Promise<void> {
-    // Core system commands
-    this.registerCommand({
-      name: 'help',
-      description: 'Show available commands',
-      usage: 'help [command]',
-      category: 'system',
-      handler: this.handleHelp.bind(this)
-    });
+  /**
+   * Legacy method - now redirects to unified system
+   */
+  async registerCommand(command: CLICommand): void {
+    console.warn('registerCommand is deprecated. Commands are now managed by the unified system.');
+  }
 
-    this.registerCommand({
-      name: 'ls',
-      description: 'List directory contents',
-      usage: 'ls [-la] [directory]',
-      category: 'system',
-      handler: this.handleLs.bind(this)
+  /**
+   * Legacy method - kept for backward compatibility
+   */
+  private async loadCoreCommands(): Promise<void> {
+    // Legacy method - commands are now loaded automatically by the unified system
+    console.log('Core commands loaded via unified system');
+  }
+
+  /**
+   * Legacy method - kept for backward compatibility
+   */
+  private async loadSwissKnifeCommands(): Promise<void> {
+    // Legacy method - commands are now loaded automatically by the unified system
+    console.log('SwissKnife commands loaded via unified system');
+  }
+
+  /**
+   * Legacy method - kept for backward compatibility
+   */
+  private async setupAliases(): Promise<void> {
+    // Legacy method - aliases are now handled by the unified system
+    console.log('Aliases configured via unified system');
+  }
+}
     });
 
     this.registerCommand({

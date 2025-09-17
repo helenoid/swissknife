@@ -241,3 +241,6 @@ export function registerBuiltinCommands(): void {
 
 // Auto-register when module is imported
 registerBuiltinCommands();
+
+// Also import task commands
+import './task-commands.js';
