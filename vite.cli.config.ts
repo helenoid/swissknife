@@ -1,0 +1,1 @@
+build-tools/configs/vite.cli.config.ts

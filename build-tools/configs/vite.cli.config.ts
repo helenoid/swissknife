@@ -3,10 +3,12 @@ import { resolve } from 'path'
 
 // CLI-specific Vite configuration
 export default defineConfig({
+  root: '.',
+  
   build: {
     outDir: 'dist',
     lib: {
-      entry: resolve(__dirname, 'src/cli-simple.ts'),
+      entry: resolve(__dirname, '../../src/entrypoints/cli.tsx'),
       name: 'SwissKnifeCLI',
       fileName: 'cli',
       formats: ['es']
@@ -17,16 +19,20 @@ export default defineConfig({
         'fs', 'path', 'os', 'crypto', 'stream', 'util', 'url',
         'child_process', 'readline', 'events', 'process',
         // CLI-specific externals
-        'ink', 'react', 'commander'
+        'ink', 'react', 'commander', 'chalk', 'ora',
+        '@anthropic-ai/sdk', 'openai', 'node-fetch'
       ]
     },
     target: 'node18',
-    ssr: true
+    ssr: true,
+    sourcemap: true
   },
   
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src')
+      '@': resolve(__dirname, '../../src'),
+      '@web': resolve(__dirname, '../../web/src'),
+      '@ipfs': resolve(__dirname, '../../ipfs_accelerate_js/src')
     }
   },
   
