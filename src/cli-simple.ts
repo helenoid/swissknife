@@ -1,98 +1,58 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
+
 /**
- * Simple CLI Entry Point
- * 
- * A clean, working CLI that demonstrates the flexible command system
+ * Simple CLI entry point for testing Vite build
  */
 
-// Import our unified command system - use relative imports to avoid issues
-const { unifiedCLIAdapter } = await import('./shared/cli/unified-adapter.js');
-await import('./shared/commands/builtin.js'); // Import to register built-in commands
+console.log('SwissKnife CLI starting...');
 
-async function main() {
-  const args = process.argv.slice(2);
-  
-  // Create a CLI session
-  const session = unifiedCLIAdapter.createSession('cli', {
-    workingDirectory: process.cwd(),
-    user: process.env.USER || 'user'
-  });
+// Basic CLI functionality
+const args = process.argv.slice(2);
 
-  try {
-    if (args.length === 0) {
-      // Show help when no arguments provided
-      const result = await unifiedCLIAdapter.executeCommand('help', session.id);
-      console.log(unifiedCLIAdapter.formatResult(result));
-      process.exit(0);
-    }
-
-    // Handle special cases first
-    if (args[0] === 'version' || args[0] === '--version') {
-      console.log('SwissKnife CLI v0.0.53 - Flexible AI-Powered Assistant');
-      process.exit(0);
-    }
-
-    // Join arguments to form the command
-    const commandLine = args.join(' ');
-    
-    // Execute the command using the flexible interpreter
-    const result = await unifiedCLIAdapter.executeCommand(commandLine, session.id);
-    
-    // Output the result
-    console.log(unifiedCLIAdapter.formatResult(result));
-    
-    // Exit with appropriate code
-    process.exit(result.exitCode || 0);
-    
-  } catch (error) {
-    console.error('CLI Error:', (error as Error).message);
-    console.error('Try using natural language: "show me help" or "what can you do?"');
-    process.exit(1);
-  } finally {
-    // Clean up session
-    unifiedCLIAdapter.closeSession(session.id);
-  }
-}
-
-// Handle process signals
-process.on('SIGINT', () => {
-  console.log('\nGoodbye!');
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  process.exit(0);
-});
-
-// Run the CLI
-main().catch((error) => {
-  console.error('Failed to start SwissKnife CLI:', error.message);
-  
-  // Fall back to simple CLI
-  const args = process.argv.slice(2);
-  
-  if (args.length === 0 || args[0] === 'help') {
-    console.log(`
+if (args.length === 0) {
+  console.log(`
 SwissKnife CLI - AI-powered development assistant
 
 Usage:
   swissknife <command> [options]
-  swissknife "natural language command"
 
-Examples:
-  swissknife help
-  swissknife status
-  swissknife "show me the system status"
-  swissknife "create a new task"
+Commands:
+  chat      Start an AI chat session
+  edit      Edit files with AI assistance  
+  analyze   Analyze codebase
+  help      Show help information
+  version   Show version information
 
-The CLI supports both specific commands and natural language input.
-    `);
-  } else if (args[0] === 'version') {
-    console.log('SwissKnife CLI v0.0.53');
-  } else {
-    console.log('SwissKnife CLI is starting up...');
-    console.log('Command system not fully loaded yet. Try again in a moment.');
-  }
-  
+For more information, run: swissknife help
+  `);
   process.exit(0);
-});
+}
+
+const command = args[0];
+
+switch (command) {
+  case 'version':
+    console.log('SwissKnife CLI v0.0.53');
+    break;
+    
+  case 'help':
+    console.log('Help information will be implemented here');
+    break;
+    
+  case 'chat':
+    console.log('AI chat functionality will be implemented here');
+    break;
+    
+  case 'edit':
+    console.log('AI editing functionality will be implemented here');
+    break;
+    
+  case 'analyze':
+    console.log('Code analysis functionality will be implemented here');
+    break;
+    
+  default:
+    console.log(`Unknown command: ${command}`);
+    console.log('Run "swissknife help" for available commands');
+    process.exit(1);
+}

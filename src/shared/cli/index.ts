@@ -5,11 +5,6 @@ import { aiManager } from '../ai/index.js'
 import { SwissKnifeEvents } from '../types/index.js'
 import { generateRandomId } from '../utils/index.js'
 
-// Re-export the new unified system
-export * from './unified-adapter.js'
-export { unifiedCLIAdapter } from './unified-adapter.js'
-
-// Keep backward compatibility
 export interface CLICommand {
   name: string
   description: string
@@ -25,13 +20,11 @@ export interface CLIResult {
   data?: any
 }
 
-// Legacy adapter for backward compatibility
 export class SharedCLIAdapter {
   private commands: Map<string, CLICommand> = new Map()
   private commandHistory: string[] = []
   
   constructor() {
-    console.warn('SharedCLIAdapter is deprecated. Use UnifiedCLIAdapter instead.')
     this.initializeSharedCommands()
     this.setupEventListeners()
   }

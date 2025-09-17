@@ -2,13 +2,9 @@
 /**
  * SwissKnife CLI Entry Point
  * 
- * Integrates with the existing sophisticated CLI system that includes:
- * - Graph-of-Thought reasoning (src/commands/got.ts)
- * - Fibonacci heap task scheduling (src/commands/scheduler.ts)
- * - Claude integration (src/services/claude.ts)
- * - Agent-based architecture (src/ai/agent/agent.ts)
- * 
- * Adds natural language processing and fixes import issues.
+ * This entry point fixes the missing CLI binary and integrates with the existing
+ * sophisticated CLI system, adding natural language support while preserving
+ * all existing features like Graph-of-Thought, Fibonacci heaps, and Claude integration.
  */
 
 import { createRequire } from 'module';

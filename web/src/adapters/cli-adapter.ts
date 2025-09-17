@@ -1,12 +1,10 @@
 /**
  * SwissKnife CLI Adapter for Web Terminal
- * Now uses the unified command system for better code sharing and flexibility
+ * Provides access to SwissKnife CLI functionality within the browser terminal
  */
 
 import { BrowserEventEmitter, generateId } from '../utils/browser-utils';
-import { unifiedCLIAdapter, CLISession } from '../../../src/shared/cli/unified-adapter.js';
 
-// Legacy interfaces for backward compatibility
 export interface CLICommand {
   name: string;
   description: string;
@@ -31,138 +29,53 @@ export interface CommandContext {
 }
 
 export class SwissKnifeCLIAdapter extends BrowserEventEmitter {
-  private session: CLISession;
+  private commands: Map<string, CLICommand> = new Map();
+  private aliases: Map<string, string> = new Map();
+  private context: CommandContext;
   private initialized = false;
 
   constructor() {
     super();
-    // Create a web session using the unified adapter
-    this.session = unifiedCLIAdapter.createSession('web', {
+    this.context = {
       workingDirectory: '/home/user',
+      environment: { ...process.env, PATH: '/usr/local/bin:/usr/bin:/bin' },
       user: 'user',
-      context: {
-        environment: { ...process.env, PATH: '/usr/local/bin:/usr/bin:/bin' }
-      }
-    });
+      history: []
+    };
   }
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
     try {
-      // The unified adapter handles command registration automatically
-      this.initialized = true;
-      console.log('🔧 SwissKnife CLI Adapter initialized with unified system');
+      await this.loadCoreCommands();
+      await this.loadSwissKnifeCommands();
+      await this.setupAliases();
       
-      // Emit initialization event
-      this.emit('initialized', { sessionId: this.session.id });
+      this.initialized = true;
+      console.log('🔧 SwissKnife CLI Adapter initialized');
     } catch (error) {
       console.error('Failed to initialize CLI adapter:', error);
       throw error;
     }
   }
 
-  /**
-   * Execute a command using the unified system
-   */
-  async executeCommand(commandLine: string): Promise<CLIResult> {
-    if (!this.initialized) {
-      await this.initialize();
-    }
-
-    try {
-      const result = await unifiedCLIAdapter.executeCommand(commandLine, this.session.id);
-      
-      // Convert to legacy format for backward compatibility
-      return {
-        success: result.success,
-        output: result.output,
-        exitCode: result.exitCode || 0,
-        data: result.data,
-        error: result.error
-      };
-    } catch (error) {
-      return {
-        success: false,
-        output: '',
-        exitCode: 1,
-        error: (error as Error).message
-      };
-    }
-  }
-
-  /**
-   * Get command suggestions for auto-completion
-   */
-  async getSuggestions(partialInput: string): Promise<string[]> {
-    if (!this.initialized) {
-      await this.initialize();
-    }
-
-    return await unifiedCLIAdapter.getSuggestions(partialInput, this.session.id);
-  }
-
-  /**
-   * Get available commands
-   */
-  getAvailableCommands(): any[] {
-    return unifiedCLIAdapter.getAvailableCommands('web').map(cmd => ({
-      name: cmd.name,
-      description: cmd.description,
-      usage: cmd.usage,
-      category: cmd.category,
-      aliases: cmd.aliases
-    }));
-  }
-
-  /**
-   * Get session context
-   */
-  getContext(): CommandContext {
-    const session = unifiedCLIAdapter.getSession(this.session.id);
-    if (!session) {
-      throw new Error('Session not found');
-    }
-
-    return {
-      workingDirectory: session.workingDirectory,
-      environment: session.context.environment || {},
-      user: session.user,
-      history: session.history
-    };
-  }
-
-  /**
-   * Legacy method - now redirects to unified system
-   */
-  async registerCommand(command: CLICommand): void {
-    console.warn('registerCommand is deprecated. Commands are now managed by the unified system.');
-  }
-
-  /**
-   * Legacy method - kept for backward compatibility
-   */
   private async loadCoreCommands(): Promise<void> {
-    // Legacy method - commands are now loaded automatically by the unified system
-    console.log('Core commands loaded via unified system');
-  }
+    // Core system commands
+    this.registerCommand({
+      name: 'help',
+      description: 'Show available commands',
+      usage: 'help [command]',
+      category: 'system',
+      handler: this.handleHelp.bind(this)
+    });
 
-  /**
-   * Legacy method - kept for backward compatibility
-   */
-  private async loadSwissKnifeCommands(): Promise<void> {
-    // Legacy method - commands are now loaded automatically by the unified system
-    console.log('SwissKnife commands loaded via unified system');
-  }
-
-  /**
-   * Legacy method - kept for backward compatibility
-   */
-  private async setupAliases(): Promise<void> {
-    // Legacy method - aliases are now handled by the unified system
-    console.log('Aliases configured via unified system');
-  }
-}
+    this.registerCommand({
+      name: 'ls',
+      description: 'List directory contents',
+      usage: 'ls [-la] [directory]',
+      category: 'system',
+      handler: this.handleLs.bind(this)
     });
 
     this.registerCommand({
