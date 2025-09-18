@@ -271,9 +271,11 @@ export class CalendarApp {
           display: flex;
           flex-direction: column;
           height: 100%;
+          width: 100%;
           font-family: system-ui, -apple-system, sans-serif;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: #ffffff;
+          overflow: hidden;
         }
 
         .calendar-header {
@@ -284,12 +286,14 @@ export class CalendarApp {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(10px);
           border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+          flex-shrink: 0;
         }
 
         .calendar-nav {
           display: flex;
           align-items: center;
           gap: 1rem;
+          flex-wrap: wrap;
         }
 
         .nav-controls {
@@ -305,6 +309,8 @@ export class CalendarApp {
           color: white;
           cursor: pointer;
           transition: all 0.2s ease;
+          font-size: 0.9rem;
+          white-space: nowrap;
         }
 
         .nav-btn:hover, .view-btn:hover, .action-btn:hover {
@@ -325,17 +331,46 @@ export class CalendarApp {
           color: #333;
         }
 
+        .calendar-actions {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+          .calendar-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+          }
+          
+          .calendar-nav {
+            justify-content: center;
+          }
+          
+          .calendar-actions {
+            justify-content: center;
+          }
+          
+          .nav-btn, .view-btn, .action-btn {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+          }
+        }
+
         .calendar-content {
           flex: 1;
           display: flex;
           position: relative;
           min-height: 0;
+          gap: 1rem;
         }
 
         .calendar-view {
           flex: 1;
           display: none;
           padding: 1rem;
+          min-width: 0;
         }
 
         .calendar-view.active {
@@ -343,11 +378,37 @@ export class CalendarApp {
         }
 
         .calendar-sidebar {
-          width: 300px;
-          background: rgba(0, 0, 0, 0.2);
+          width: 280px;
+          min-width: 250px;
+          max-width: 320px;
+          background: rgba(0, 0, 0, 0.15);
           border-left: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 8px;
           padding: 1rem;
           overflow-y: auto;
+          flex-shrink: 0;
+        }
+
+        @media (max-width: 1200px) {
+          .calendar-sidebar {
+            width: 240px;
+            min-width: 220px;
+          }
+        }
+
+        @media (max-width: 1000px) {
+          .calendar-content {
+            flex-direction: column;
+            gap: 1rem;
+          }
+          
+          .calendar-sidebar {
+            width: 100%;
+            max-width: none;
+            order: 2;
+            border-left: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+          }
         }
 
         .calendar-sidebar h3 {
@@ -363,6 +424,9 @@ export class CalendarApp {
           background: rgba(255, 255, 255, 0.1);
           border-radius: 8px;
           overflow: hidden;
+          width: 100%;
+          max-width: 100%;
+          aspect-ratio: 5/3;
         }
 
         .month-header {
@@ -370,15 +434,17 @@ export class CalendarApp {
         }
 
         .day-header {
-          padding: 1rem;
+          padding: 0.75rem 0.5rem;
           text-align: center;
           background: rgba(255, 255, 255, 0.2);
           font-weight: 600;
-          font-size: 0.9rem;
+          font-size: 0.85rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .day-cell {
-          aspect-ratio: 1;
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid transparent;
           cursor: pointer;
@@ -387,6 +453,8 @@ export class CalendarApp {
           flex-direction: column;
           padding: 0.5rem;
           transition: all 0.2s ease;
+          min-height: 60px;
+          overflow: hidden;
         }
 
         .day-cell:hover {
