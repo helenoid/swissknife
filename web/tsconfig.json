@@ -29,11 +29,12 @@
     "**/*.tsx",
     "src/**/*.ts",
     "js/**/*.js",
-    "main.ts"
+    "desktop.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "test-dist"
+    "test-dist",
+    "main.ts" // temporarily excluded due to corruption cleanup in progress
   ]
 }

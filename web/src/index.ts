@@ -1,6 +1,7 @@
 /**
  * Web entry point for SwissKnife Desktop
- * Re-exports main.ts for Vite build compatibility
+ * Now re-exports the clean desktop bootstrap (desktop.ts)
+ * after removal of the corrupted legacy main.ts.
  */
 
-export * from '../main.js';
+export * from '../desktop';

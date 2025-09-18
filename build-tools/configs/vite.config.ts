@@ -2,21 +2,18 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 
 export default defineConfig({
-  // Root configuration for the monorepo
   root: '.',
-  
-  // Build configuration
   build: {
     outDir: 'dist',
-    lib: {
-      entry: {
+    target: 'node18',
+    rollupOptions: {
+      // Treat these as standard multi-entry inputs instead of library mode to
+      // avoid path rewriting issues we observed (build-tools/configs prefixing).
+      input: {
         cli: resolve(__dirname, 'src/entrypoints/cli.tsx'),
         web: resolve(__dirname, 'web/src/index.ts'),
         ipfs: resolve(__dirname, 'ipfs_accelerate_js/src/index.ts')
       },
-      formats: ['es', 'cjs']
-    },
-    rollupOptions: {
       external: [
         'node:fs',
         'node:path',
@@ -25,8 +22,7 @@ export default defineConfig({
         'react',
         'react-dom'
       ]
-    },
-    target: 'node18'
+    }
   },
 
   // Development server configuration

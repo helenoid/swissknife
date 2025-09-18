@@ -36,6 +36,25 @@ class AIModelRouter {
     this.init();
   }
 
+  // Added missing load balancing setup method
+  setupLoadBalancing() {
+    // Simple round-robin structure placeholder
+    this.loadBalancer = {
+      strategy: 'round-robin',
+      counters: new Map(),
+      next(endpointType) {
+        const list = Array.from(this.endpoints.values()).filter(e => e.type === endpointType && e.status === 'available');
+        if (!list.length) return null;
+        const key = endpointType;
+        const current = this.counters.get(key) || 0;
+        const selected = list[current % list.length];
+        this.counters.set(key, current + 1);
+        return selected;
+      }
+    };
+    this.emit('router:load-balancing-ready', { strategy: this.loadBalancer.strategy });
+  }
+
   async init() {
     console.log('Initializing AI Model Router...');
     
@@ -670,12 +689,14 @@ window.AIModelRouter = AIModelRouter;
 
 // Auto-initialize if in browser environment
 if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    // Wait for other systems to initialize first
-    setTimeout(() => {
+  const instantiate = () => {
+    if (!window.aiModelRouter) {
       window.aiModelRouter = new AIModelRouter();
-    }, 1000);
-  });
+    }
+  };
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(instantiate, 200); // small delay to let other systems attach
+  } else {
+    window.addEventListener('load', () => setTimeout(instantiate, 200));
+  }
 }
-
-export { AIModelRouter };

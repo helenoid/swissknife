@@ -65,6 +65,13 @@ class IPFSAccelerateBridge {
     this.init();
   }
 
+  // Added missing setupEventHandlers to avoid runtime error when called during init
+  setupEventHandlers() {
+    // Placeholder: attach any future internal events or DOM listeners here
+    // For now we just emit a debug event
+    this.emit('bridge:events-ready', { timestamp: Date.now() });
+  }
+
   async init() {
     console.log('Initializing IPFS Accelerate Bridge...');
     
@@ -392,8 +399,6 @@ window.IPFSAccelerateBridge = IPFSAccelerateBridge;
 // Auto-initialize if in browser environment
 if (typeof window !== 'undefined') {
   window.ipfsAccelerateBridge = new IPFSAccelerateBridge();
-  
-  // Make the model server available globally for other apps
   window.addEventListener('load', () => {
     if (window.ipfsAccelerateBridge && window.ipfsAccelerateBridge.isInitialized) {
       window.transformersModelServer = window.ipfsAccelerateBridge.modelServer;
@@ -401,5 +406,3 @@ if (typeof window !== 'undefined') {
     }
   });
 }
-
-export { IPFSAccelerateBridge };
