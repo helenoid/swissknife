@@ -394,6 +394,14 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered calendar app');
         
+        this.apps.set('peertube', {
+            name: 'PeerTube - P2P Video Player',
+            icon: '📺',
+            component: 'PeerTubeApp',
+            singleton: false
+        });
+        console.log('✅ Registered peertube app');
+        
         this.apps.set('image-viewer', {
             name: 'Image Viewer',
             icon: '🖼️',
@@ -1076,6 +1084,28 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>📅 Calendar & Events</h2>
                                 <p>Event tracking, scheduling, and calendar management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'peertubeapp':
+                    console.log('📺 Loading PeerTube app...');
+                    // Import and instantiate PeerTube app
+                    try {
+                        const PeerTubeModule = await import('./apps/peertube.js');
+                        const PeerTubeApp = PeerTubeModule.PeerTubeApp;
+                        appInstance = new PeerTubeApp(this);
+                        await appInstance.createInterface(contentElement);
+                        console.log('✅ PeerTube app loaded successfully');
+                    } catch (error) {
+                        console.error('Failed to load PeerTube app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📺 PeerTube</h2>
+                                <p>IPFS/libp2p-powered video streaming with synchronized watching and chat.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
