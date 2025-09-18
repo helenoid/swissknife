@@ -409,6 +409,14 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered neural-photoshop app');
         
+        this.apps.set('cinema', {
+            name: 'Cinema - Professional Video Editor',
+            icon: '🎬',
+            component: 'CinemaApp',
+            singleton: false
+        });
+        console.log('✅ Registered cinema app');
+        
         this.apps.set('system-monitor', {
             name: 'System Monitor',
             icon: '📊',
@@ -1175,6 +1183,28 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>🎨 Art</h2>
                                 <p>AI-powered image manipulation application.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'cinemaapp':
+                    console.log('🎬 Loading Cinema app...');
+                    // Import and instantiate Cinema app
+                    try {
+                        const CinemaModule = await import('./apps/cinema.js');
+                        const CinemaApp = CinemaModule.CinemaApp;
+                        appInstance = new CinemaApp();
+                        await appInstance.createInterface(contentElement);
+                        console.log('✅ Cinema app loaded successfully');
+                    } catch (error) {
+                        console.error('Failed to load Cinema app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎬 Cinema</h2>
+                                <p>Professional video editing application with AI tools.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
