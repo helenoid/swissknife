@@ -9,7 +9,8 @@ import '../css/strudel-grandma.css';
 import '../css/vibecode-enhanced.css';
 import '../css/strudel-ai-daw.css';
 import SwissKnife from './swissknife-browser.js';
-import DesktopEnhancer from './desktop-enhancer.js';
+// Import DesktopEnhancer - will be available as window.DesktopEnhancer
+import './desktop-enhancer.js';
 
 class SwissKnifeDesktop {
     constructor() {
@@ -146,7 +147,7 @@ class SwissKnifeDesktop {
     async initializeEnhancer() {
         // Initialize desktop enhancer for Aero effects, window snapping, etc.
         try {
-            this.enhancer = new DesktopEnhancer();
+            this.enhancer = new window.DesktopEnhancer();
             console.log('Desktop enhancer initialized successfully');
         } catch (error) {
             console.error('Failed to initialize desktop enhancer:', error);
