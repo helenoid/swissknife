@@ -386,6 +386,14 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered clock app');
         
+        this.apps.set('calendar', {
+            name: 'Calendar & Events',
+            icon: '📅',
+            component: 'CalendarApp',
+            singleton: true
+        });
+        console.log('✅ Registered calendar app');
+        
         this.apps.set('image-viewer', {
             name: 'Image Viewer',
             icon: '🖼️',
@@ -1045,6 +1053,29 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>🕐 Clock & Timers</h2>
                                 <p>World clock, stopwatch, timer, and alarm system.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'calendarapp':
+                    console.log('📅 Loading Calendar app...');
+                    // Import and instantiate Calendar app
+                    try {
+                        const CalendarModule = await import('./apps/calendar.js');
+                        const CalendarApp = CalendarModule.CalendarApp;
+                        appInstance = new CalendarApp(this);
+                        await appInstance.initialize();
+                        const calendarContent = await appInstance.render();
+                        contentElement.innerHTML = calendarContent;
+                    } catch (error) {
+                        console.error('Failed to load Calendar app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📅 Calendar & Events</h2>
+                                <p>Event tracking, scheduling, and calendar management.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
