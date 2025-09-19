@@ -402,6 +402,14 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered peertube app');
         
+        this.apps.set('friends-list', {
+            name: 'Friends & Network',
+            icon: '👥',
+            component: 'FriendsListApp',
+            singleton: true
+        });
+        console.log('✅ Registered friends-list app');
+        
         this.apps.set('image-viewer', {
             name: 'Image Viewer',
             icon: '🖼️',
@@ -1106,6 +1114,28 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>📺 PeerTube</h2>
                                 <p>IPFS/libp2p-powered video streaming with synchronized watching and chat.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'friendslistapp':
+                    console.log('👥 Loading Friends List app...');
+                    // Import and instantiate Friends List app
+                    try {
+                        const FriendsListModule = await import('./apps/friends-list.js');
+                        const FriendsListApp = FriendsListModule.FriendsListApp;
+                        appInstance = new FriendsListApp(this);
+                        await appInstance.createInterface(contentElement);
+                        console.log('✅ Friends List app loaded successfully');
+                    } catch (error) {
+                        console.error('Failed to load Friends List app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>👥 Friends & Network</h2>
+                                <p>Decentralized identity management with IPLD linking across platforms.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
