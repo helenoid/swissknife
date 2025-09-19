@@ -1395,5 +1395,4 @@ export class PeerTubeApp {
   }
 }
 
-// Export the class
-export { PeerTubeApp };
+// Class is already exported above with 'export class PeerTubeApp'

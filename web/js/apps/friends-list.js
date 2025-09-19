@@ -2030,5 +2030,4 @@ export class FriendsListApp {
   }
 }
 
-// Export the class
-export { FriendsListApp };
+// Class is already exported above with 'export class FriendsListApp'
