@@ -15,6 +15,10 @@ export class P2PChatApp {
     this.messageHistory = [];
     this.instanceId = 'p2p-chat-' + Date.now();
     
+    // Friends List integration
+    this.friendsList = null;
+    this.friendsListApp = null;
+    
     // Mock P2P manager for testing - replace with real libp2p implementation
     this.setupMockP2PManager();
     
@@ -80,39 +84,152 @@ export class P2PChatApp {
   }
 
   addMockPeers() {
-    const mockPeers = [
-      {
-        id: 'peer-alice-123',
-        name: 'Alice',
-        status: 'online',
-        lastSeen: new Date(),
-        avatar: '👩‍💻'
-      },
-      {
-        id: 'peer-bob-456',
-        name: 'Bob',
-        status: 'online',
-        lastSeen: new Date(),
-        avatar: '👨‍💼'
-      },
-      {
-        id: 'peer-charlie-789',
-        name: 'Charlie',
-        status: 'away',
-        lastSeen: new Date(Date.now() - 300000), // 5 minutes ago
-        avatar: '🧑‍🔬'
-      }
-    ];
+    // First try to get friends from Friends List app
+    this.loadFriendsFromFriendsList();
+    
+    // If no friends loaded, use mock peers as fallback
+    if (this.peers.size === 0) {
+      const mockPeers = [
+        {
+          id: 'peer-alice-123',
+          name: 'Alice',
+          status: 'online',
+          lastSeen: new Date(),
+          avatar: '👩‍💻'
+        },
+        {
+          id: 'peer-bob-456',
+          name: 'Bob',
+          status: 'online',
+          lastSeen: new Date(),
+          avatar: '👨‍💼'
+        },
+        {
+          id: 'peer-charlie-789',
+          name: 'Charlie',
+          status: 'away',
+          lastSeen: new Date(Date.now() - 300000), // 5 minutes ago
+          avatar: '🧑‍🔬'
+        }
+      ];
 
-    mockPeers.forEach(peer => {
-      this.peers.set(peer.id, peer);
-      this.conversations.set(peer.id, []);
-    });
+      mockPeers.forEach(peer => {
+        this.peers.set(peer.id, peer);
+        this.conversations.set(peer.id, []);
+      });
+    }
 
     this.updatePeersList();
   }
 
+  loadFriendsFromFriendsList() {
+    try {
+      // Try to get friends from the global Friends List app if it exists
+      if (window.friendsListGlobal && window.friendsListGlobal.friends) {
+        console.log('🔗 Loading friends from Friends List...');
+        
+        window.friendsListGlobal.friends.forEach((friend, friendId) => {
+          // Convert friend to peer format for chat
+          const peer = {
+            id: friendId,
+            name: friend.name,
+            status: friend.status,
+            lastSeen: friend.lastSeen,
+            avatar: friend.avatar || this.getAvatarFromName(friend.name),
+            // Add additional peer info
+            platforms: friend.identities ? Object.keys(friend.identities) : [],
+            tags: friend.tags || [],
+            verified: friend.identities && Object.values(friend.identities).some(id => id.verified)
+          };
+          
+          this.peers.set(friendId, peer);
+          if (!this.conversations.has(friendId)) {
+            this.conversations.set(friendId, []);
+          }
+        });
+        
+        console.log(`✅ Loaded ${this.peers.size} friends for P2P chat`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not load friends from Friends List:', error);
+    }
+  }
+
+  getAvatarFromName(name) {
+    // Generate avatar emoji based on name
+    const avatars = ['👩‍💻', '👨‍💼', '🧑‍🔬', '👩‍🎨', '👨‍🚀', '🧑‍⚕️', '👩‍🏫', '👨‍🔧', '🧑‍🍳', '👩‍🌾'];
+    const index = name.charCodeAt(0) % avatars.length;
+    return avatars[index];
+  }
+
+  // Method to start chat with a specific friend (called from Friends List)
+  startChatWithFriend(friendId, friendName) {
+    console.log(`💬 Starting chat with friend: ${friendName} (${friendId})`);
+    
+    // Ensure we're connected to the P2P network
+    if (this.connectionStatus !== 'connected') {
+      this.p2pManager.start().then(() => {
+        this.selectPeerAndFocus(friendId);
+      });
+    } else {
+      this.selectPeerAndFocus(friendId);
+    }
+  }
+
+  selectPeerAndFocus(peerId) {
+    // Select the peer for chat
+    this.selectPeer(peerId);
+    
+    // Focus the message input if available
+    setTimeout(() => {
+      const messageInput = document.getElementById(`${this.instanceId}-message-input`);
+      if (messageInput) {
+        messageInput.focus();
+      }
+      
+      // Show a welcome message for friends
+      const peer = this.peers.get(peerId);
+      if (peer && peer.platforms) {
+        this.addSystemMessage(`Connected with ${peer.name} from your Friends List!`);
+      }
+    }, 500);
+  }
+
+  addSystemMessage(content) {
+    if (this.currentChatPeer) {
+      this.addMessageToConversation(this.currentChatPeer, {
+        id: Date.now().toString(),
+        content: content,
+        sender: 'system',
+        timestamp: new Date(),
+        type: 'system'
+      });
+    }
+  }
+
   simulateIncomingMessage(fromPeerId, originalMessage) {
+    const peer = this.peers.get(fromPeerId);
+    if (!peer) return;
+
+    // Generate a mock response based on the original message
+    const responses = [
+      `Thanks for the message! - ${peer.name}`,
+      `Got it! I'll get back to you soon. - ${peer.name}`,
+      `That's interesting! Tell me more. - ${peer.name}`,
+      `Hey! How are you doing? - ${peer.name}`,
+      `Nice to hear from you! - ${peer.name}`
+    ];
+
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+    this.addMessageToConversation(fromPeerId, {
+      id: Date.now().toString(),
+      content: randomResponse,
+      sender: fromPeerId,
+      timestamp: new Date(),
+      type: 'text'
+    });
+  }
     const peer = this.peers.get(fromPeerId);
     if (!peer) return;
 
@@ -378,6 +495,13 @@ export class P2PChatApp {
             color: #999;
           }
           
+          .peer-verified {
+            font-size: 10px;
+            color: #10b981;
+            font-weight: 600;
+            margin-top: 2px;
+          }
+          
           .chat-main {
             flex: 1;
             display: flex;
@@ -470,6 +594,31 @@ export class P2PChatApp {
           
           .message.self .message-timestamp {
             text-align: left;
+          }
+          
+          .message.system {
+            justify-content: center;
+            margin: 8px 0;
+          }
+          
+          .system-message {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+          }
+          
+          .system-icon {
+            font-size: 14px;
+          }
+          
+          .system-text {
+            font-weight: 500;
           }
           
           .message-input-area {
@@ -598,6 +747,9 @@ export class P2PChatApp {
       window.p2pChatInstances = {};
     }
     window.p2pChatInstances[this.instanceId] = this;
+    
+    // Also set up global reference for Friends List integration
+    window.p2pChatGlobal = this;
 
     return content;
   }
@@ -614,7 +766,11 @@ export class P2PChatApp {
         <div class="peer-avatar">${peer.avatar || '👤'}</div>
         <div class="peer-info">
           <div class="peer-name">${peer.name || peer.id}</div>
-          <div class="peer-status ${peer.status}">${peer.status} ${peer.status === 'offline' ? '• ' + this.formatTimeAgo(peer.lastSeen) : ''}</div>
+          <div class="peer-status ${peer.status}">
+            ${peer.status} ${peer.status === 'offline' ? '• ' + this.formatTimeAgo(peer.lastSeen) : ''}
+            ${peer.platforms && peer.platforms.length > 0 ? '• ' + peer.platforms.slice(0, 2).join(', ') : ''}
+          </div>
+          ${peer.verified ? '<div class="peer-verified">✅ Verified Friend</div>' : ''}
         </div>
       </div>
     `).join('');
@@ -647,14 +803,27 @@ export class P2PChatApp {
       return '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">Start the conversation! 👋</div>';
     }
 
-    return messages.map(message => `
-      <div class="message ${message.sender === 'self' ? 'self' : 'peer'}">
-        <div class="message-content">
-          <div class="message-text">${this.escapeHtml(message.content)}</div>
-          <div class="message-timestamp">${this.formatTime(message.timestamp)}</div>
+    return messages.map(message => {
+      if (message.sender === 'system') {
+        return `
+          <div class="message system">
+            <div class="system-message">
+              <span class="system-icon">ℹ️</span>
+              <span class="system-text">${this.escapeHtml(message.content)}</span>
+            </div>
+          </div>
+        `;
+      }
+      
+      return `
+        <div class="message ${message.sender === 'self' ? 'self' : 'peer'}">
+          <div class="message-content">
+            <div class="message-text">${this.escapeHtml(message.content)}</div>
+            <div class="message-timestamp">${this.formatTime(message.timestamp)}</div>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   renderEmptyChat() {

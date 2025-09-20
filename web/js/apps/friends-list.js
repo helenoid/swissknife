@@ -162,6 +162,9 @@ export class FriendsListApp {
       // Initialize identity management
       await this.initializeIdentity();
       
+      // Set up global reference for P2P Chat integration
+      window.friendsListGlobal = this;
+      
       this.isInitialized = true;
       console.log('✅ Friends List app initialized successfully');
       
@@ -811,6 +814,37 @@ export class FriendsListApp {
         align-items: center;
         font-size: 0.8rem;
         color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 0.75rem;
+      }
+      
+      .friend-quick-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+      }
+      
+      .quick-action-btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        font-size: 14px;
+      }
+      
+      .quick-action-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+      }
+      
+      .quick-action-btn.message:hover {
+        background: rgba(59, 130, 246, 0.3);
       }
       
       /* Pending Invites */
@@ -1411,13 +1445,27 @@ export class FriendsListApp {
           <span>${friend.mutualFriends} mutual friends</span>
           <span>Added ${this.formatDate(friend.addedDate)}</span>
         </div>
+        
+        <div class="friend-quick-actions">
+          <button class="quick-action-btn message" onclick="event.stopPropagation(); window.friendsListGlobal?.startChatWithFriend('${friend.id}', '${friend.name}')" title="Send Message">
+            💬
+          </button>
+          <button class="quick-action-btn profile" onclick="event.stopPropagation(); window.friendsListGlobal?.showFriendProfile('${friend.id}')" title="View Profile">
+            👤
+          </button>
+        </div>
       </div>
     `).join('');
     
     // Add click handlers for friend cards
     const friendCards = friendsList.querySelectorAll('.friend-card');
     friendCards.forEach(card => {
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
+        // Don't trigger if clicking on quick action buttons
+        if (e.target.closest('.quick-action-btn')) {
+          return;
+        }
+        
         const friendId = card.dataset.friendId;
         this.showFriendProfile(friendId);
       });
@@ -1664,7 +1712,7 @@ export class FriendsListApp {
         </div>
         
         <div class="profile-actions">
-          <button class="profile-btn message">💬 Message</button>
+          <button class="profile-btn message" onclick="window.friendsListGlobal?.startChatWithFriend('${friend.id}', '${friend.name}')">💬 Message</button>
           <button class="profile-btn call">📞 Call</button>
           <button class="profile-btn remove">🗑️ Remove Friend</button>
         </div>
@@ -1957,6 +2005,32 @@ export class FriendsListApp {
     }
   }
   
+  // Integration method for P2P Chat
+  startChatWithFriend(friendId, friendName) {
+    console.log(`💬 Starting chat with friend: ${friendName} (${friendId})`);
+    
+    // Try to open P2P Chat app or use existing instance
+    if (window.p2pChatGlobal) {
+      // P2P Chat is already open, start chat with friend
+      window.p2pChatGlobal.startChatWithFriend(friendId, friendName);
+    } else {
+      // P2P Chat is not open, launch it
+      if (this.desktop && this.desktop.launchApp) {
+        this.desktop.launchApp('p2p-chat').then(() => {
+          // Wait a moment for the app to initialize
+          setTimeout(() => {
+            if (window.p2pChatGlobal) {
+              window.p2pChatGlobal.startChatWithFriend(friendId, friendName);
+            }
+          }, 1000);
+        });
+      } else {
+        console.warn('Cannot launch P2P Chat - desktop reference not available');
+        alert('Please open the P2P Chat app first, then try messaging this friend.');
+      }
+    }
+  }
+
   toggleNetworkStatus() {
     const statusBtn = document.querySelector('#network-status-btn');
     const isOnline = statusBtn?.classList.contains('status-online');
