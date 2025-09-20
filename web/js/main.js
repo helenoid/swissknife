@@ -353,6 +353,14 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered p2p-network app');
         
+        this.apps.set('p2p-chat', {
+            name: 'P2P Chat',
+            icon: '💬',
+            component: 'P2PChatApp',
+            singleton: false
+        });
+        console.log('✅ Registered p2p-chat app');
+        
         this.apps.set('neural-network-designer', {
             name: 'Neural Network Designer',
             icon: '🧠',
@@ -976,6 +984,29 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>🔗 P2P Network Manager</h2>
                                 <p>P2P networking and distributed machine learning coordination.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+
+                case 'p2pchatapp':
+                    console.log('💬 Loading P2P Chat...');
+                    try {
+                        // Import and instantiate P2P Chat app
+                        const P2PChatModule = await import('./apps/p2p-chat.js');
+                        const P2PChatApp = P2PChatModule.P2PChatApp;
+                        appInstance = new P2PChatApp(this);
+                        await appInstance.initialize();
+                        const chatContent = await appInstance.render();
+                        contentElement.innerHTML = chatContent;
+                    } catch (error) {
+                        console.error('Failed to load P2P Chat app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>💬 P2P Chat</h2>
+                                <p>Peer-to-peer messaging using libp2p.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
