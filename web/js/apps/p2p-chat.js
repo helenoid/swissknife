@@ -1,6 +1,6 @@
 /**
  * P2P Chat Application for SwissKnife Virtual Desktop
- * Enables direct peer-to-peer messaging using libp2p
+ * Enables direct peer-to-peer messaging using libp2p with enhanced design language
  */
 
 export class P2PChatApp {
@@ -95,21 +95,27 @@ export class P2PChatApp {
           name: 'Alice',
           status: 'online',
           lastSeen: new Date(),
-          avatar: '👩‍💻'
+          avatar: '👩‍💻',
+          mood: 'coding',
+          activity: 'Working on AI projects'
         },
         {
           id: 'peer-bob-456',
           name: 'Bob',
           status: 'online',
           lastSeen: new Date(),
-          avatar: '👨‍💼'
+          avatar: '👨‍💼',
+          mood: 'focused',
+          activity: 'Reviewing blockchain code'
         },
         {
           id: 'peer-charlie-789',
           name: 'Charlie',
           status: 'away',
           lastSeen: new Date(Date.now() - 300000), // 5 minutes ago
-          avatar: '🧑‍🔬'
+          avatar: '🧑‍🔬',
+          mood: 'researching',
+          activity: 'Deep learning experiments'
         }
       ];
 
@@ -139,7 +145,9 @@ export class P2PChatApp {
             // Add additional peer info
             platforms: friend.identities ? Object.keys(friend.identities) : [],
             tags: friend.tags || [],
-            verified: friend.identities && Object.values(friend.identities).some(id => id.verified)
+            verified: friend.identities && Object.values(friend.identities).some(id => id.verified),
+            mood: 'connected',
+            activity: 'Available for chat'
           };
           
           this.peers.set(friendId, peer);
@@ -190,7 +198,7 @@ export class P2PChatApp {
       // Show a welcome message for friends
       const peer = this.peers.get(peerId);
       if (peer && peer.platforms) {
-        this.addSystemMessage(`Connected with ${peer.name} from your Friends List!`);
+        this.addSystemMessage(`Connected with ${peer.name} from your Friends List! 🎉`);
       }
     }, 500);
   }
@@ -211,13 +219,15 @@ export class P2PChatApp {
     const peer = this.peers.get(fromPeerId);
     if (!peer) return;
 
-    // Generate a mock response based on the original message
+    // Generate a mock response based on the original message and peer personality
     const responses = [
-      `Thanks for the message! - ${peer.name}`,
-      `Got it! I'll get back to you soon. - ${peer.name}`,
-      `That's interesting! Tell me more. - ${peer.name}`,
-      `Hey! How are you doing? - ${peer.name}`,
-      `Nice to hear from you! - ${peer.name}`
+      `Thanks for the message! How's your day going? - ${peer.name}`,
+      `Got it! I'll get back to you soon. Currently ${peer.activity} - ${peer.name}`,
+      `That's interesting! Tell me more about that. - ${peer.name}`,
+      `Hey! Great to hear from you! I'm ${peer.mood} right now. - ${peer.name}`,
+      `Nice to chat with you! What are you working on? - ${peer.name}`,
+      `Awesome! I love discussing these topics. - ${peer.name}`,
+      `Cool! Let me think about that... - ${peer.name}`
     ];
 
     const randomResponse = responses[Math.floor(Math.random() * responses.length)];
@@ -230,194 +240,118 @@ export class P2PChatApp {
       type: 'text'
     });
   }
-    const peer = this.peers.get(fromPeerId);
-    if (!peer) return;
-
-    // Generate a simple response
-    const responses = [
-      `Hi there! I got your message: "${originalMessage}"`,
-      `Thanks for reaching out!`,
-      `Interesting point about: ${originalMessage}`,
-      `I agree! 👍`,
-      `Let me think about that...`,
-      `Good to hear from you!`
-    ];
-
-    const response = responses[Math.floor(Math.random() * responses.length)];
-    
-    this.addMessageToConversation(fromPeerId, {
-      id: Date.now().toString(),
-      content: response,
-      sender: fromPeerId,
-      timestamp: new Date(),
-      type: 'text'
-    });
-  }
-
-  onPeerConnected(peerInfo) {
-    console.log('👋 Peer connected:', peerInfo);
-    this.peers.set(peerInfo.id, peerInfo);
-    if (!this.conversations.has(peerInfo.id)) {
-      this.conversations.set(peerInfo.id, []);
-    }
-    this.updatePeersList();
-  }
-
-  onPeerDisconnected(peerId) {
-    console.log('👋 Peer disconnected:', peerId);
-    const peer = this.peers.get(peerId);
-    if (peer) {
-      peer.status = 'offline';
-      peer.lastSeen = new Date();
-    }
-    this.updatePeersList();
-  }
-
-  onMessage(message) {
-    console.log('📥 Received message:', message);
-    this.addMessageToConversation(message.from, {
-      id: message.id || Date.now().toString(),
-      content: message.content,
-      sender: message.from,
-      timestamp: new Date(message.timestamp || Date.now()),
-      type: message.type || 'text'
-    });
-  }
-
-  addMessageToConversation(peerId, message) {
-    if (!this.conversations.has(peerId)) {
-      this.conversations.set(peerId, []);
-    }
-    
-    const messages = this.conversations.get(peerId);
-    messages.push(message);
-    
-    // Keep only last 100 messages per conversation
-    if (messages.length > 100) {
-      messages.splice(0, messages.length - 100);
-    }
-    
-    // Update UI if this is the current chat
-    if (this.currentChatPeer === peerId) {
-      this.updateChatMessages();
-    }
-    
-    // Show notification if message is from another peer
-    if (message.sender !== 'self') {
-      this.showMessageNotification(peerId, message);
-    }
-  }
-
-  showMessageNotification(peerId, message) {
-    const peer = this.peers.get(peerId);
-    if (!peer) return;
-
-    // Update peer list to show unread indicator
-    const peerElement = document.querySelector(`[data-peer-id="${peerId}"]`);
-    if (peerElement && this.currentChatPeer !== peerId) {
-      peerElement.classList.add('has-unread');
-    }
-  }
 
   async initialize() {
-    console.log('🚀 Initializing P2P Chat App...');
-    // Start P2P manager
-    await this.p2pManager.start();
+    console.log('🚀 Initializing P2P Chat...');
+    
+    // Set up global reference for Friends List integration
+    window.p2pChatGlobal = this;
+    
+    return true;
   }
 
   async render() {
     const content = `
-      <div class="p2p-chat-container" id="${this.instanceId}">
+      <div class="p2p-chat-app">
         <style>
-          .p2p-chat-container {
-            display: flex;
+          .p2p-chat-app {
             height: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
           }
           
           .chat-sidebar {
-            width: 280px;
+            width: 320px;
             background: rgba(255, 255, 255, 0.95);
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
           }
           
           .chat-header {
             padding: 20px;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 12px;
           }
           
           .chat-header h3 {
-            margin: 0 0 10px 0;
+            margin: 0;
             font-size: 18px;
+            font-weight: 600;
           }
           
           .connection-status {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            font-size: 14px;
-            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 500;
+          }
+          
+          .connection-status.connected {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+          }
+          
+          .connection-status.connecting {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+          }
+          
+          .connection-status.disconnected {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
           }
           
           .status-indicator {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #4CAF50;
-          }
-          
-          .status-indicator.connecting {
-            background: #ff9800;
-            animation: pulse 1s infinite;
-          }
-          
-          .status-indicator.disconnected {
-            background: #f44336;
+            background: currentColor;
+            animation: pulse 2s infinite;
           }
           
           @keyframes pulse {
-            0% { opacity: 1; }
+            0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
-            100% { opacity: 1; }
           }
           
-          .peer-id-display {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 8px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-            margin-top: 8px;
-            word-break: break-all;
-          }
-          
-          .chat-controls {
-            padding: 15px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          .network-controls {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
           }
           
           .control-btn {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: 500;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
           }
           
           .control-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
           }
           
           .control-btn:disabled {
@@ -426,73 +360,90 @@ export class P2PChatApp {
             transform: none;
           }
           
-          .peers-list {
+          .peers-section {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
+            padding: 16px 0;
+          }
+          
+          .peers-section h4 {
+            margin: 0 20px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           }
           
           .peer-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 12px 20px;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-bottom: 4px;
-            position: relative;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
           }
           
           .peer-item:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(102, 126, 234, 0.05);
+            border-left-color: #667eea;
           }
           
           .peer-item.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-          }
-          
-          .peer-item.has-unread::after {
-            content: '';
-            position: absolute;
-            right: 8px;
-            top: 8px;
-            width: 8px;
-            height: 8px;
-            background: #ff4444;
-            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.1);
+            border-left-color: #667eea;
           }
           
           .peer-avatar {
-            font-size: 24px;
-            margin-right: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            position: relative;
           }
           
           .peer-info {
             flex: 1;
+            min-width: 0;
           }
           
           .peer-name {
             font-weight: 600;
-            font-size: 14px;
+            color: #1f2937;
             margin-bottom: 2px;
+            font-size: 14px;
           }
           
           .peer-status {
             font-size: 12px;
-            opacity: 0.7;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 4px;
           }
           
           .peer-status.online {
-            color: #4CAF50;
+            color: #10b981;
           }
           
           .peer-status.away {
-            color: #ff9800;
+            color: #f59e0b;
           }
           
           .peer-status.offline {
-            color: #999;
+            color: #6b7280;
+          }
+          
+          .peer-activity {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 2px;
+            font-style: italic;
           }
           
           .peer-verified {
@@ -510,23 +461,24 @@ export class P2PChatApp {
           }
           
           .chat-area-header {
-            padding: 15px 20px;
-            background: rgba(102, 126, 234, 0.1);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: white;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            min-height: 50px;
+            gap: 12px;
           }
           
           .current-peer-info {
             display: flex;
             align-items: center;
             gap: 12px;
+            flex: 1;
           }
           
           .current-peer-name {
             font-weight: 600;
+            color: #1f2937;
             font-size: 16px;
           }
           
@@ -537,41 +489,52 @@ export class P2PChatApp {
           
           .action-btn {
             padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 6px;
+            background: transparent;
+            color: #667eea;
             cursor: pointer;
             font-size: 12px;
             transition: all 0.2s ease;
           }
           
           .action-btn:hover {
-            background: rgba(102, 126, 234, 0.3);
+            background: rgba(102, 126, 234, 0.1);
           }
           
           .messages-container {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #f8fafc;
           }
           
           .message {
             display: flex;
-            margin-bottom: 16px;
-            max-width: 80%;
+            align-items: flex-end;
+            gap: 8px;
+            max-width: 70%;
           }
           
           .message.self {
-            margin-left: auto;
+            align-self: flex-end;
             flex-direction: row-reverse;
+          }
+          
+          .message.system {
+            justify-content: center;
+            margin: 8px 0;
+            max-width: 100%;
           }
           
           .message-content {
             background: white;
             padding: 12px 16px;
             border-radius: 18px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             position: relative;
           }
           
@@ -583,6 +546,7 @@ export class P2PChatApp {
           .message-text {
             margin: 0;
             line-height: 1.4;
+            font-size: 14px;
           }
           
           .message-timestamp {
@@ -596,11 +560,6 @@ export class P2PChatApp {
             text-align: left;
           }
           
-          .message.system {
-            justify-content: center;
-            margin: 8px 0;
-          }
-          
           .system-message {
             display: flex;
             align-items: center;
@@ -611,61 +570,65 @@ export class P2PChatApp {
             border-radius: 20px;
             font-size: 12px;
             border: 1px solid rgba(59, 130, 246, 0.2);
+            font-weight: 500;
           }
           
           .system-icon {
             font-size: 14px;
           }
           
-          .system-text {
-            font-weight: 500;
-          }
-          
           .message-input-area {
             padding: 20px;
             background: white;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
           }
           
           .message-input-container {
             display: flex;
             gap: 12px;
             align-items: end;
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 8px;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+          }
+          
+          .message-input-container:focus-within {
+            border-color: #667eea;
+            background: white;
           }
           
           .message-input {
             flex: 1;
-            padding: 12px 16px;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            border-radius: 20px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 18px;
             resize: none;
             min-height: 20px;
             max-height: 100px;
             font-family: inherit;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s ease;
-          }
-          
-          .message-input:focus {
-            border-color: #667eea;
+            background: transparent;
           }
           
           .send-btn {
-            padding: 12px 16px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 20px;
+            border-radius: 18px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             cursor: pointer;
             font-size: 14px;
-            min-width: 60px;
+            font-weight: 500;
+            min-width: 70px;
             transition: all 0.2s ease;
           }
           
           .send-btn:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
           }
           
           .send-btn:disabled {
@@ -680,7 +643,7 @@ export class P2PChatApp {
             align-items: center;
             justify-content: center;
             height: 100%;
-            color: #666;
+            color: #6b7280;
             text-align: center;
           }
           
@@ -693,6 +656,7 @@ export class P2PChatApp {
           .empty-chat-text {
             font-size: 18px;
             margin-bottom: 8px;
+            font-weight: 600;
           }
           
           .empty-chat-subtext {
@@ -703,28 +667,32 @@ export class P2PChatApp {
         
         <div class="chat-sidebar">
           <div class="chat-header">
-            <h3>💬 P2P Chat</h3>
-            <div class="connection-status">
-              <span class="status-indicator ${this.connectionStatus}" id="${this.instanceId}-status-indicator"></span>
-              <span id="${this.instanceId}-status-text">${this.getStatusText()}</span>
-            </div>
-            ${this.peerId ? `<div class="peer-id-display">ID: ${this.peerId}</div>` : ''}
+            <span>💬</span>
+            <h3>P2P Chat</h3>
           </div>
           
-          <div class="chat-controls">
-            <button class="control-btn" onclick="window.p2pChatInstances?.['${this.instanceId}']?.startConnection()">
-              🔗 Connect to Network
+          <div class="connection-status ${this.connectionStatus}" id="${this.instanceId}-status">
+            <div class="status-indicator"></div>
+            <span>${this.getStatusText()}</span>
+          </div>
+          
+          <div class="network-controls">
+            <button class="control-btn" onclick="window.p2pChatInstances?.['${this.instanceId}']?.connectToNetwork()" ${this.connectionStatus === 'connected' ? 'disabled' : ''}>
+              🔗 ${this.connectionStatus === 'connected' ? 'Connected' : 'Connect to Network'}
             </button>
-            <button class="control-btn" onclick="window.p2pChatInstances?.['${this.instanceId}']?.discoverPeers()">
+            <button class="control-btn" onclick="window.p2pChatInstances?.['${this.instanceId}']?.discoverPeers()" ${this.connectionStatus !== 'connected' ? 'disabled' : ''}>
               🔍 Discover Peers
             </button>
-            <button class="control-btn" onclick="window.p2pChatInstances?.['${this.instanceId}']?.broadcastMessage()">
+            <button class="control-btn" onclick="window.p2pChatInstances?.['${this.instanceId}']?.broadcastMessage()" ${this.connectionStatus !== 'connected' ? 'disabled' : ''}>
               📢 Broadcast Message
             </button>
           </div>
           
-          <div class="peers-list" id="${this.instanceId}-peers-list">
-            ${this.renderPeersList()}
+          <div class="peers-section">
+            <h4>Connected Peers (${this.peers.size})</h4>
+            <div id="${this.instanceId}-peers">
+              ${this.renderPeersList()}
+            </div>
           </div>
         </div>
         
@@ -756,7 +724,7 @@ export class P2PChatApp {
 
   renderPeersList() {
     if (this.peers.size === 0) {
-      return '<div style="padding: 20px; text-align: center; color: #666; font-size: 14px;">No peers connected<br><small>Use "Discover Peers" to find others</small></div>';
+      return '<div style="padding: 20px; text-align: center; color: #6b7280; font-size: 14px;">No peers connected<br><small>Use "Discover Peers" to find others</small></div>';
     }
 
     return Array.from(this.peers.values()).map(peer => `
@@ -770,6 +738,7 @@ export class P2PChatApp {
             ${peer.status} ${peer.status === 'offline' ? '• ' + this.formatTimeAgo(peer.lastSeen) : ''}
             ${peer.platforms && peer.platforms.length > 0 ? '• ' + peer.platforms.slice(0, 2).join(', ') : ''}
           </div>
+          ${peer.activity ? `<div class="peer-activity">${peer.activity}</div>` : ''}
           ${peer.verified ? '<div class="peer-verified">✅ Verified Friend</div>' : ''}
         </div>
       </div>
@@ -785,7 +754,7 @@ export class P2PChatApp {
         <div class="peer-avatar">${peer.avatar || '👤'}</div>
         <div>
           <div class="current-peer-name">${peer.name || peer.id}</div>
-          <div class="peer-status ${peer.status}">${peer.status}</div>
+          <div class="peer-status ${peer.status}">${peer.status}${peer.activity ? ` • ${peer.activity}` : ''}</div>
         </div>
       </div>
       <div class="chat-actions">
@@ -800,7 +769,7 @@ export class P2PChatApp {
     const messages = this.conversations.get(this.currentChatPeer) || [];
     
     if (messages.length === 0) {
-      return '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">Start the conversation! 👋</div>';
+      return '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #6b7280; font-weight: 500;">Start the conversation! 👋</div>';
     }
 
     return messages.map(message => {
@@ -809,7 +778,7 @@ export class P2PChatApp {
           <div class="message system">
             <div class="system-message">
               <span class="system-icon">ℹ️</span>
-              <span class="system-text">${this.escapeHtml(message.content)}</span>
+              <span>${this.escapeHtml(message.content)}</span>
             </div>
           </div>
         `;
@@ -854,47 +823,40 @@ export class P2PChatApp {
   }
 
   // Event handlers
-  selectPeer(peerId) {
-    this.currentChatPeer = peerId;
-    
-    // Remove unread indicator
-    const peerElement = document.querySelector(`[data-peer-id="${peerId}"]`);
-    if (peerElement) {
-      peerElement.classList.remove('has-unread');
+  connectToNetwork() {
+    if (this.connectionStatus === 'disconnected') {
+      this.p2pManager.start();
     }
-    
-    this.updateUI();
   }
 
-  async startConnection() {
-    await this.p2pManager.start();
-  }
-
-  async discoverPeers() {
-    // Add more mock peers or trigger actual peer discovery
-    this.addMockPeers();
+  discoverPeers() {
+    if (this.connectionStatus === 'connected') {
+      // Simulate peer discovery
+      this.addMockPeers();
+      this.showNotification('🔍 Discovering peers...', 'success');
+    }
   }
 
   broadcastMessage() {
-    const message = prompt('Enter message to broadcast to all peers:');
-    if (message) {
-      this.p2pManager.broadcast(message);
+    if (this.connectionStatus === 'connected' && this.peers.size > 0) {
+      const message = prompt('Enter message to broadcast to all peers:');
+      if (message) {
+        this.p2pManager.broadcast(message);
+        this.showNotification('📢 Message broadcasted!', 'success');
+      }
     }
   }
 
-  sendMessage() {
-    if (!this.currentChatPeer) return;
+  selectPeer(peerId) {
+    this.currentChatPeer = peerId;
+    this.updateDisplay();
+  }
 
-    const input = document.getElementById(`${this.instanceId}-message-input`);
-    const message = input.value.trim();
-    
-    if (!message) return;
-
-    // Send message through P2P manager
-    this.p2pManager.sendMessage(this.currentChatPeer, message);
-    
-    // Clear input
-    input.value = '';
+  clearChat(peerId) {
+    if (confirm('Clear this conversation?')) {
+      this.conversations.set(peerId, []);
+      this.updateDisplay();
+    }
   }
 
   handleInputKeyDown(event) {
@@ -904,79 +866,135 @@ export class P2PChatApp {
     }
   }
 
-  clearChat(peerId) {
-    if (confirm('Clear all messages with this peer?')) {
+  sendMessage() {
+    const input = document.getElementById(`${this.instanceId}-message-input`);
+    const message = input.value.trim();
+    
+    if (!message || !this.currentChatPeer) return;
+
+    // Send message through P2P manager
+    this.p2pManager.sendMessage(this.currentChatPeer, message);
+    
+    // Clear input
+    input.value = '';
+    
+    // Update display
+    this.updateDisplay();
+  }
+
+  addMessageToConversation(peerId, message) {
+    if (!this.conversations.has(peerId)) {
       this.conversations.set(peerId, []);
-      this.updateChatMessages();
+    }
+    
+    this.conversations.get(peerId).push(message);
+    
+    // Update display if this is the current chat
+    if (this.currentChatPeer === peerId) {
+      this.updateDisplay();
     }
   }
 
-  // UI update methods
-  updateConnectionStatus() {
-    const indicator = document.getElementById(`${this.instanceId}-status-indicator`);
-    const text = document.getElementById(`${this.instanceId}-status-text`);
-    
-    if (indicator) {
-      indicator.className = `status-indicator ${this.connectionStatus}`;
+  updateDisplay() {
+    // Update messages
+    const messagesContainer = document.getElementById(`${this.instanceId}-messages`);
+    if (messagesContainer) {
+      messagesContainer.innerHTML = this.currentChatPeer ? this.renderMessages() : this.renderEmptyChat();
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
+
+    // Update peers list
+    this.updatePeersList();
     
-    if (text) {
-      text.textContent = this.getStatusText();
+    // Update chat header
+    const headerContainer = document.querySelector(`#window-${this.instanceId} .chat-area-header`);
+    if (headerContainer) {
+      headerContainer.innerHTML = this.currentChatPeer ? this.renderChatHeader() : '<div class="current-peer-name">Select a peer to start chatting</div>';
     }
   }
 
   updatePeersList() {
-    const container = document.getElementById(`${this.instanceId}-peers-list`);
-    if (container) {
-      container.innerHTML = this.renderPeersList();
+    const peersContainer = document.getElementById(`${this.instanceId}-peers`);
+    if (peersContainer) {
+      peersContainer.innerHTML = this.renderPeersList();
     }
   }
 
-  updateChatMessages() {
-    const container = document.getElementById(`${this.instanceId}-messages`);
-    if (container) {
-      container.innerHTML = this.renderMessages();
-      container.scrollTop = container.scrollHeight;
+  updateConnectionStatus() {
+    const statusElement = document.getElementById(`${this.instanceId}-status`);
+    if (statusElement) {
+      statusElement.className = `connection-status ${this.connectionStatus}`;
+      statusElement.innerHTML = `
+        <div class="status-indicator"></div>
+        <span>${this.getStatusText()}</span>
+      `;
     }
+    
+    // Update network controls
+    const controls = document.querySelectorAll(`#window-${this.instanceId} .control-btn`);
+    controls.forEach(btn => {
+      const text = btn.textContent.trim();
+      if (text.includes('Connect')) {
+        btn.disabled = this.connectionStatus === 'connected';
+        btn.innerHTML = this.connectionStatus === 'connected' ? '🔗 Connected' : '🔗 Connect to Network';
+      } else {
+        btn.disabled = this.connectionStatus !== 'connected';
+      }
+    });
   }
 
-  updateUI() {
-    // Re-render the entire chat area
-    const container = document.getElementById(this.instanceId);
-    if (container) {
-      const newContent = document.createElement('div');
-      newContent.innerHTML = this.render();
-      container.innerHTML = newContent.firstElementChild.innerHTML;
-    }
-  }
-
-  // Utility methods
   getStatusText() {
     switch (this.connectionStatus) {
-      case 'connected': return 'Connected';
+      case 'connected': return 'Connected to P2P Network';
       case 'connecting': return 'Connecting...';
       case 'disconnected': return 'Disconnected';
       default: return 'Unknown';
     }
   }
 
+  showNotification(message, type = 'info') {
+    // Simple notification system
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+      background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  // Utility methods
   formatTime(date) {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Intl.DateTimeFormat('en', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(date);
   }
 
   formatTimeAgo(date) {
     const now = new Date();
-    const diff = now - new Date(date);
+    const diff = now - date;
     const minutes = Math.floor(diff / 60000);
-    
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return 'now';
   }
 
   escapeHtml(text) {
@@ -985,8 +1003,34 @@ export class P2PChatApp {
     return div.innerHTML;
   }
 
-  getContainer() {
-    return document.getElementById(this.instanceId);
+  // Lifecycle methods
+  onPeerConnected(peer) {
+    console.log('👋 Peer connected:', peer);
+    this.peers.set(peer.id, peer);
+    this.updatePeersList();
+  }
+
+  onPeerDisconnected(peerId) {
+    console.log('👋 Peer disconnected:', peerId);
+    this.peers.delete(peerId);
+    
+    if (this.currentChatPeer === peerId) {
+      this.currentChatPeer = null;
+    }
+    
+    this.updatePeersList();
+    this.updateDisplay();
+  }
+
+  onMessage(message) {
+    console.log('📨 Message received:', message);
+    this.addMessageToConversation(message.from, {
+      id: message.id,
+      content: message.content,
+      sender: message.from,
+      timestamp: new Date(message.timestamp),
+      type: message.type || 'text'
+    });
   }
 
   // Cleanup when window is closed
