@@ -3598,3 +3598,6 @@ st.write("Hello, World!")
   aiCompleteText(window) { /* Implementation */ }
   regenerateCode(window) { /* Implementation */ }
 }
+
+// Export the class
+export { VibeCodeApp };

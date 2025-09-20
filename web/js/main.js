@@ -9,7 +9,8 @@ import '../css/strudel-grandma.css';
 import '../css/vibecode-enhanced.css';
 import '../css/strudel-ai-daw.css';
 import SwissKnife from './swissknife-browser.js';
-import DesktopEnhancer from './desktop-enhancer.js';
+// Import DesktopEnhancer - will be available as window.DesktopEnhancer
+import './desktop-enhancer.js';
 
 class SwissKnifeDesktop {
     constructor() {
@@ -146,7 +147,7 @@ class SwissKnifeDesktop {
     async initializeEnhancer() {
         // Initialize desktop enhancer for Aero effects, window snapping, etc.
         try {
-            this.enhancer = new DesktopEnhancer();
+            this.enhancer = new window.DesktopEnhancer();
             console.log('Desktop enhancer initialized successfully');
         } catch (error) {
             console.error('Failed to initialize desktop enhancer:', error);
@@ -384,6 +385,30 @@ class SwissKnifeDesktop {
             singleton: true
         });
         console.log('✅ Registered clock app');
+        
+        this.apps.set('calendar', {
+            name: 'Calendar & Events',
+            icon: '📅',
+            component: 'CalendarApp',
+            singleton: true
+        });
+        console.log('✅ Registered calendar app');
+        
+        this.apps.set('peertube', {
+            name: 'PeerTube - P2P Video Player',
+            icon: '📺',
+            component: 'PeerTubeApp',
+            singleton: false
+        });
+        console.log('✅ Registered peertube app');
+        
+        this.apps.set('friends-list', {
+            name: 'Friends & Network',
+            icon: '👥',
+            component: 'FriendsListApp',
+            singleton: true
+        });
+        console.log('✅ Registered friends-list app');
         
         this.apps.set('image-viewer', {
             name: 'Image Viewer',
@@ -1044,6 +1069,73 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>🕐 Clock & Timers</h2>
                                 <p>World clock, stopwatch, timer, and alarm system.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'calendarapp':
+                    console.log('📅 Loading Calendar app...');
+                    // Import and instantiate Calendar app
+                    try {
+                        const CalendarModule = await import('./apps/calendar.js');
+                        const CalendarApp = CalendarModule.CalendarApp;
+                        appInstance = new CalendarApp(this);
+                        await appInstance.initialize();
+                        const calendarContent = await appInstance.render();
+                        contentElement.innerHTML = calendarContent;
+                    } catch (error) {
+                        console.error('Failed to load Calendar app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📅 Calendar & Events</h2>
+                                <p>Event tracking, scheduling, and calendar management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'peertubeapp':
+                    console.log('📺 Loading PeerTube app...');
+                    // Import and instantiate PeerTube app
+                    try {
+                        const PeerTubeModule = await import('./apps/peertube.js');
+                        const PeerTubeApp = PeerTubeModule.PeerTubeApp;
+                        appInstance = new PeerTubeApp(this);
+                        await appInstance.createInterface(contentElement);
+                        console.log('✅ PeerTube app loaded successfully');
+                    } catch (error) {
+                        console.error('Failed to load PeerTube app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📺 PeerTube</h2>
+                                <p>IPFS/libp2p-powered video streaming with synchronized watching and chat.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'friendslistapp':
+                    console.log('👥 Loading Friends List app...');
+                    // Import and instantiate Friends List app
+                    try {
+                        const FriendsListModule = await import('./apps/friends-list.js');
+                        const FriendsListApp = FriendsListModule.FriendsListApp;
+                        appInstance = new FriendsListApp(this);
+                        await appInstance.createInterface(contentElement);
+                        console.log('✅ Friends List app loaded successfully');
+                    } catch (error) {
+                        console.error('Failed to load Friends List app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>👥 Friends & Network</h2>
+                                <p>Decentralized identity management with IPLD linking across platforms.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
