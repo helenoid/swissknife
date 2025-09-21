@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-21T02:36:35.484Z",
+  "timestamp": "2025-09-21T09:31:00.166Z",
   "summary": {
     "qualityScore": 85,
     "qualityGrade": "B",
@@ -7,11 +7,11 @@
     "brokenLinks": 19,
     "missingScreenshots": 0,
     "generationTime": 29,
-    "lastUpdate": "2025-09-21T02:36:35.017Z",
+    "lastUpdate": "2025-09-21T09:30:59.679Z",
     "status": "needs-improvement"
   },
   "analytics": {
-    "timestamp": "2025-09-21T02:36:35.017Z",
+    "timestamp": "2025-09-21T09:30:59.679Z",
     "quality": {
       "overallScore": 85,
       "completeness": 82,
@@ -103,7 +103,7 @@
     }
   },
   "linkValidation": {
-    "generated": "2025-09-21T02:36:35.218Z",
+    "generated": "2025-09-21T09:30:59.892Z",
     "summary": {
       "totalFiles": 648,
       "brokenLinks": 19,
@@ -256,7 +256,7 @@
     ]
   },
   "screenshots": {
-    "generated": "2025-09-21T02:36:35.265Z",
+    "generated": "2025-09-21T09:30:59.940Z",
     "summary": {
       "totalMissing": 0,
       "availableScreenshots": 1,
@@ -271,12 +271,6 @@
     "recommendations": []
   },
   "trends": [
-    {
-      "timestamp": "2025-09-15T09:56:51.155Z",
-      "qualityScore": 72,
-      "totalFiles": 30,
-      "brokenLinks": 54
-    },
     {
       "timestamp": "2025-09-15T09:56:52.493Z",
       "qualityScore": 72,
@@ -327,6 +321,12 @@
     },
     {
       "timestamp": "2025-09-21T02:36:35.017Z",
+      "qualityScore": 85,
+      "totalFiles": 30,
+      "brokenLinks": 54
+    },
+    {
+      "timestamp": "2025-09-21T09:30:59.679Z",
       "qualityScore": 85,
       "totalFiles": 30,
       "brokenLinks": 54
