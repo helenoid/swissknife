@@ -1858,7 +1858,14 @@ export class NeuralPhotoshopApp {
   async initialize() {
     console.log('🎨 Initializing Neural Photoshop app...');
     this.swissknife = this.desktop.swissknife;
-    await this.initializeApp();
+    
+    // Initialize canvas and AI systems
+    await this.initializeCanvas();
+    await this.initializeAI();
+    
+    // Create default project
+    this.createNewProject();
+    
     console.log('✅ Neural Photoshop initialized');
     return this;
   }

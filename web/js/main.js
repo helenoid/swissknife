@@ -1,14 +1,6 @@
 // SwissKnife Web Desktop - Main Application
-import '../css/aero-enhanced.css';
-import '../css/desktop.css';
-import '../css/windows.css';
-import '../css/terminal.css';
-import '../css/apps.css';
-import '../css/strudel.css';
-import '../css/strudel-grandma.css';
-import '../css/vibecode-enhanced.css';
-import '../css/strudel-ai-daw.css';
-import SwissKnife from './swissknife-browser.js';
+// CSS files are loaded via HTML link tags in index.html
+// import SwissKnife from './swissknife-browser.js'; // Temporarily disabled due to buffer import issues
 // Import DesktopEnhancer - will be available as window.DesktopEnhancer
 import './desktop-enhancer.js';
 
@@ -18,7 +10,7 @@ class SwissKnifeDesktop {
         this.windowCounter = 0;
         this.activeWindow = null;
         this.apps = new Map();
-        this.swissknife = SwissKnife;
+        this.swissknife = null; // SwissKnife disabled due to buffer import issues
         this.isSwissKnifeReady = false;
         this.enhancer = null;
         this.currentTheme = 'day'; // 'day' or 'sunset'
@@ -34,19 +26,23 @@ class SwissKnifeDesktop {
         
         // Initialize the real SwissKnife core
         try {
-            const result = await this.swissknife.initialize({
-                config: { storage: 'localstorage' },
-                storage: { type: 'indexeddb', dbName: 'swissknife-web' },
-                ai: { autoRegisterModels: true, autoRegisterTools: true },
-                openaiApiKey: localStorage.getItem('swissknife_openai_key')
-            });
-            
-            if (result.success) {
-                this.isSwissKnifeReady = true;
-                console.log('SwissKnife core initialized successfully');
+            if (this.swissknife) {
+                const result = await this.swissknife.initialize({
+                    config: { storage: 'localstorage' },
+                    storage: { type: 'indexeddb', dbName: 'swissknife-web' },
+                    ai: { autoRegisterModels: true, autoRegisterTools: true },
+                    openaiApiKey: localStorage.getItem('swissknife_openai_key')
+                });
+                
+                if (result.success) {
+                    this.isSwissKnifeReady = true;
+                    console.log('SwissKnife core initialized successfully');
+                } else {
+                    console.warn('SwissKnife core initialization failed:', result.error);
+                    // Continue with limited functionality
+                }
             } else {
-                console.warn('SwissKnife core initialization failed:', result.error);
-                // Continue with limited functionality
+                console.log('SwissKnife core disabled - running desktop with limited functionality');
             }
         } catch (error) {
             console.error('Error initializing SwissKnife core:', error);
@@ -1213,8 +1209,8 @@ class SwissKnifeDesktop {
                         const ImageViewerApp = ImageViewerModule.ImageViewerApp;
                         appInstance = new ImageViewerApp(this);
                         await appInstance.initialize();
-                        const imageWindow = appInstance.createWindow();
-                        contentElement.appendChild(imageWindow);
+                        const imageWindowHTML = appInstance.createWindow();
+                        contentElement.innerHTML = imageWindowHTML;
                     } catch (error) {
                         console.error('Failed to load Image Viewer app:', error);
                         contentElement.innerHTML = `
@@ -2119,22 +2115,32 @@ class SwissKnifeDesktop {
     }
     
     updateSystemStatus() {
-        const hwStatus = this.swissknife.getHardwareStatus();
+        const hwStatus = this.swissknife ? this.swissknife.getHardwareStatus() : {
+            webnn: false,
+            ipfs: false,
+            p2p: false
+        };
         
         // Update AI status
         const aiStatus = document.getElementById('ai-status');
-        aiStatus.className = 'status-indicator ' + (hwStatus.webnn ? 'active' : 'inactive');
-        aiStatus.title = `AI Engine: ${hwStatus.webnn ? 'WebNN Available' : 'API Only'}`;
+        if (aiStatus) {
+            aiStatus.className = 'status-indicator ' + (hwStatus.webnn ? 'active' : 'inactive');
+            aiStatus.title = `AI Engine: ${hwStatus.webnn ? 'WebNN Available' : 'API Only'}`;
+        }
         
         // Update IPFS status
         const ipfsStatus = document.getElementById('ipfs-status');
-        ipfsStatus.className = 'status-indicator inactive'; // TODO: implement IPFS detection
-        ipfsStatus.title = 'IPFS: Not connected';
+        if (ipfsStatus) {
+            ipfsStatus.className = 'status-indicator inactive'; // TODO: implement IPFS detection
+            ipfsStatus.title = 'IPFS: Not connected';
+        }
         
         // Update GPU status
         const gpuStatus = document.getElementById('gpu-status');
-        gpuStatus.className = 'status-indicator ' + (hwStatus.webgpu ? 'active' : 'inactive');
-        gpuStatus.title = `GPU: ${hwStatus.webgpu ? 'WebGPU Available' : 'Not available'}`;
+        if (gpuStatus) {
+            gpuStatus.className = 'status-indicator ' + (hwStatus.webgpu ? 'active' : 'inactive');
+            gpuStatus.title = `GPU: ${hwStatus.webgpu ? 'WebGPU Available' : 'Not available'}`;
+        }
     }
     
     setupContextMenu() {
@@ -3405,7 +3411,15 @@ class SwissKnifeDesktop {
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    // Initialize SwissKnife Desktop when DOM is fully loaded
-    window.desktop = new SwissKnifeDesktop();
-});
+// Initialize SwissKnife Desktop immediately when module loads
+// since modules load after DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.swissKnifeDesktop = new SwissKnifeDesktop();
+        window.desktop = window.swissKnifeDesktop; // Legacy compatibility
+    });
+} else {
+    // DOM is already loaded
+    window.swissKnifeDesktop = new SwissKnifeDesktop();
+    window.desktop = window.swissKnifeDesktop; // Legacy compatibility
+}
