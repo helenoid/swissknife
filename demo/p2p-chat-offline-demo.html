@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P2P Chat Offline Demo - SwissKnife</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .demo-container {
+      height: 100vh;
+      display: flex;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .sidebar {
+      width: 300px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .sidebar-title h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .connection-status {
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      background: rgba(52, 211, 153, 0.2);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .offline-stats {
+      margin-top: 15px;
+      padding: 12px;
+      background: rgba(139, 92, 246, 0.2);
+      border-radius: 8px;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .offline-stats-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .offline-stats-info {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .controls {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-btn {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #8b5cf6, #a855f7);
+      color: white;
+    }
+
+    .control-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    }
+
+    .peers-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 15px;
+    }
+
+    .peers-header {
+      padding: 15px 5px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .peer-item {
+      margin-bottom: 8px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .peer-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateX(5px);
+    }
+
+    .peer-item.selected {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .peer-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .peer-avatar {
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .peer-details {
+      flex: 1;
+    }
+
+    .peer-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .peer-status {
+      font-size: 12px;
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-indicator.online {
+      background: #10b981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
+
+    .status-indicator.offline {
+      background: #6b7280;
+    }
+
+    .offline-badge {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .chat-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .chat-with {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .chat-status {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      position: relative;
+      animation: messageSlideIn 0.3s ease-out;
+    }
+
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.from-me {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #8b5cf6, #a855f7);
+      color: white;
+    }
+
+    .message.from-peer {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .message-content {
+      margin-bottom: 6px;
+    }
+
+    .message-meta {
+      font-size: 11px;
+      opacity: 0.7;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .delivery-status {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .delivery-status.stored_offline {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .delivery-status.delivered_offline {
+      background: rgba(52, 211, 153, 0.2);
+      color: #6ee7b7;
+    }
+
+    .message-input-area {
+      padding: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .input-container {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .message-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      resize: none;
+      font-family: inherit;
+      min-height: 44px;
+      max-height: 120px;
+    }
+
+    .message-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8b5cf6, #a855f7);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.3s ease;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    }
+
+    .demo-header {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    .architecture-features {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 12px;
+      backdrop-filter: blur(10px);
+      max-width: 300px;
+    }
+
+    .architecture-features h4 {
+      margin: 0 0 8px 0;
+      color: #8b5cf6;
+    }
+
+    .architecture-features ul {
+      margin: 0;
+      padding-left: 15px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-header">
+    🚀 P2P Chat Offline Demo - SwissKnife Virtual Desktop
+  </div>
+
+  <div class="architecture-features">
+    <h4>🔒 Offline Messaging Features</h4>
+    <ul>
+      <li>IPFS content storage</li>
+      <li>Storacha reliable delivery</li>
+      <li>End-to-end encryption</li>
+      <li>Zero-knowledge privacy</li>
+      <li>Asynchronous delivery</li>
+      <li>Message acknowledgments</li>
+    </ul>
+  </div>
+
+  <div class="demo-container">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          <span>📬</span>
+          <h3>P2P Chat Offline</h3>
+        </div>
+        <div class="connection-status">
+          🟢 Connected to P2P Network
+        </div>
+        <div class="offline-stats">
+          <div class="offline-stats-title">
+            <span>📬</span>
+            Offline Messages
+          </div>
+          <div class="offline-stats-info">
+            3 stored messages waiting for delivery
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="control-btn" onclick="simulateConnect()">
+          🔗 Connect to Network
+        </button>
+        <button class="control-btn" onclick="simulateDiscoverPeers()">
+          🔍 Discover Peers
+        </button>
+        <button class="control-btn" onclick="simulateCheckOfflineMessages()">
+          📬 Check Offline Messages
+        </button>
+      </div>
+
+      <div class="peers-list">
+        <div class="peers-header">Connected Peers (3)</div>
+        
+        <div class="peer-item" onclick="selectPeer('alice')">
+          <div class="peer-info">
+            <div class="peer-avatar">👩‍💻</div>
+            <div class="peer-details">
+              <div class="peer-name">Alice</div>
+              <div class="peer-status">
+                <div class="status-indicator offline"></div>
+                Last seen 2 hours ago
+                <span class="offline-badge">OFFLINE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="peer-item selected" onclick="selectPeer('bob')">
+          <div class="peer-info">
+            <div class="peer-avatar">👨‍💼</div>
+            <div class="peer-details">
+              <div class="peer-name">Bob</div>
+              <div class="peer-status">
+                <div class="status-indicator online"></div>
+                Available for chat
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="peer-item" onclick="selectPeer('charlie')">
+          <div class="peer-info">
+            <div class="peer-avatar">🧑‍🔬</div>
+            <div class="peer-details">
+              <div class="peer-name">Charlie</div>
+              <div class="peer-status">
+                <div class="status-indicator offline"></div>
+                Last seen yesterday
+                <span class="offline-badge">OFFLINE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-area">
+      <div class="chat-header">
+        <div class="chat-with">💬 Chat with Bob</div>
+        <div class="chat-status">
+          🟢 Online - Messages delivered instantly
+        </div>
+      </div>
+
+      <div class="messages-container" id="messages">
+        <div class="message from-peer">
+          <div class="message-content">Hey! How's the P2P chat working for you? 🚀</div>
+          <div class="message-meta">
+            <span>2:45 PM</span>
+            <span class="delivery-status">✅ Delivered</span>
+          </div>
+        </div>
+
+        <div class="message from-me">
+          <div class="message-content">It's amazing! The offline messaging feature is perfect for async communication 📱</div>
+          <div class="message-meta">
+            <span>2:46 PM</span>
+            <span class="delivery-status">✅ Delivered</span>
+          </div>
+        </div>
+
+        <div class="message from-peer">
+          <div class="message-content">Yeah, and the IPFS + Storacha integration makes it completely decentralized! 🌐</div>
+          <div class="message-meta">
+            <span>2:47 PM</span>
+            <span class="delivery-status">✅ Delivered</span>
+          </div>
+        </div>
+
+        <div class="message from-me">
+          <div class="message-content">Plus end-to-end encryption means complete privacy. This is the future of messaging! 🔒</div>
+          <div class="message-meta">
+            <span>2:48 PM</span>
+            <span class="delivery-status">✅ Delivered</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="message-input-area">
+        <div class="input-container">
+          <textarea 
+            class="message-input" 
+            id="messageInput"
+            placeholder="Type your message..."
+            rows="1"
+            onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+          ></textarea>
+          <button class="send-btn" onclick="sendMessage()">
+            📨
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let messageCounter = 0;
+
+    function selectPeer(peerId) {
+      // Remove selected class from all peers
+      document.querySelectorAll('.peer-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked peer
+      event.currentTarget.classList.add('selected');
+      
+      // Update chat header based on selected peer
+      const peerNames = { alice: 'Alice', bob: 'Bob', charlie: 'Charlie' };
+      const peerStatuses = { 
+        alice: '🔴 Offline - Messages will be stored and delivered when they come online',
+        bob: '🟢 Online - Messages delivered instantly',
+        charlie: '🔴 Offline - Messages will be stored and delivered when they come online'
+      };
+      
+      document.querySelector('.chat-with').textContent = `💬 Chat with ${peerNames[peerId]}`;
+      document.querySelector('.chat-status').textContent = peerStatuses[peerId];
+      
+      // Update input placeholder
+      const isOffline = peerId === 'alice' || peerId === 'charlie';
+      document.getElementById('messageInput').placeholder = isOffline 
+        ? 'Type message (will be stored offline)...' 
+        : 'Type your message...';
+      
+      // Update send button icon
+      document.querySelector('.send-btn').innerHTML = isOffline ? '💾' : '📨';
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+
+      const messagesContainer = document.getElementById('messages');
+      const selectedPeer = document.querySelector('.peer-item.selected');
+      const isOffline = selectedPeer && (selectedPeer.textContent.includes('Alice') || selectedPeer.textContent.includes('Charlie'));
+      
+      // Create message element
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message from-me';
+      messageDiv.innerHTML = `
+        <div class="message-content">${content}</div>
+        <div class="message-meta">
+          <span>${new Date().toLocaleTimeString()}</span>
+          <span class="delivery-status ${isOffline ? 'stored_offline' : ''}">${isOffline ? '💾 Stored Offline' : '📤 Sending'}</span>
+        </div>
+      `;
+      
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      input.value = '';
+      
+      // Update delivery status after delay
+      setTimeout(() => {
+        const statusSpan = messageDiv.querySelector('.delivery-status');
+        if (isOffline) {
+          statusSpan.textContent = '💾 Stored for Offline Delivery';
+          statusSpan.className = 'delivery-status stored_offline';
+        } else {
+          statusSpan.textContent = '✅ Delivered';
+          statusSpan.className = 'delivery-status';
+        }
+      }, 1000);
+
+      // Simulate peer response for online peers
+      if (!isOffline) {
+        setTimeout(() => {
+          const responses = [
+            'That sounds great! 👍',
+            'Interesting point! 🤔',
+            'I agree completely! 💯',
+            'Thanks for sharing! 🙏'
+          ];
+          const response = responses[Math.floor(Math.random() * responses.length)];
+          
+          const responseDiv = document.createElement('div');
+          responseDiv.className = 'message from-peer';
+          responseDiv.innerHTML = `
+            <div class="message-content">${response}</div>
+            <div class="message-meta">
+              <span>${new Date().toLocaleTimeString()}</span>
+              <span class="delivery-status">✅ Delivered</span>
+            </div>
+          `;
+          
+          messagesContainer.appendChild(responseDiv);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 2000 + Math.random() * 3000);
+      }
+    }
+
+    function simulateConnect() {
+      alert('🔗 Connected to P2P Network!\n\nFeatures enabled:\n• IPFS content storage\n• Storacha reliable delivery\n• End-to-end encryption\n• Offline message queuing');
+    }
+
+    function simulateDiscoverPeers() {
+      alert('🔍 Peer Discovery Complete!\n\nFound 3 peers:\n• Alice (Offline) - Has 2 stored messages\n• Bob (Online) - Available for chat\n• Charlie (Offline) - Has 1 stored message');
+    }
+
+    function simulateCheckOfflineMessages() {
+      alert('📬 Offline Messages Processed!\n\n✅ Retrieved 2 messages from Alice\n✅ Retrieved 1 message from Charlie\n\nMessages decrypted and delivered to your inbox.');
+      
+      // Simulate receiving offline messages
+      const messagesContainer = document.getElementById('messages');
+      
+      const offlineMessage1 = document.createElement('div');
+      offlineMessage1.className = 'message from-peer';
+      offlineMessage1.innerHTML = `
+        <div class="message-content">Hey! I sent this while you were offline. Hope you get it! 📱</div>
+        <div class="message-meta">
+          <span>1:30 PM</span>
+          <span class="delivery-status delivered_offline">📬 Delivered (was offline)</span>
+        </div>
+      `;
+      
+      const offlineMessage2 = document.createElement('div');
+      offlineMessage2.className = 'message from-peer';
+      offlineMessage2.innerHTML = `
+        <div class="message-content">Also wanted to share this cool article about decentralized messaging! 🔗</div>
+        <div class="message-meta">
+          <span>1:45 PM</span>
+          <span class="delivery-status delivered_offline">📬 Delivered (was offline)</span>
+        </div>
+      `;
+      
+      messagesContainer.appendChild(offlineMessage1);
+      setTimeout(() => {
+        messagesContainer.appendChild(offlineMessage2);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, 500);
+      
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Auto-scroll messages container
+    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+  </script>
+</body>
+</html>
