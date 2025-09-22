@@ -259,6 +259,13 @@ class SwissKnifeDesktop {
             singleton: true
         });
         
+        this.apps.set('todo', {
+            name: 'Todo & Goals',
+            icon: '📋',
+            component: 'TodoApp',
+            singleton: false
+        });
+        
         this.apps.set('model-browser', {
             name: 'Model Browser',
             icon: '🧠',
@@ -845,6 +852,28 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>⚡ Task Manager</h2>
                                 <p>Real-time system monitoring and process management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'todoapp':
+                    console.log('📋 Loading Todo & Goals app...');
+                    // Import and instantiate Todo app
+                    try {
+                        const { TodoApp } = await import('./apps/todo.js');
+                        appInstance = new TodoApp(this);
+                        await appInstance.initialize();
+                        const todoContent = appInstance.createWindowConfig();
+                        contentElement.innerHTML = todoContent;
+                    } catch (error) {
+                        console.error('Failed to load Todo app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📋 Todo & Goals</h2>
+                                <p>Task management and goal tracking functionality.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>

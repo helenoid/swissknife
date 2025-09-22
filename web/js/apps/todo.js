@@ -557,3 +557,6 @@ TodoApp.prototype.updateLastUpdated = function() {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { TodoApp: TodoApp };
 }
+
+// ES6 export for dynamic imports
+export { TodoApp };
