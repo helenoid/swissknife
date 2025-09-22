@@ -230,13 +230,7 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered enhanced VibeCode app');
         
-        this.apps.set('strudel-ai-daw', {
-            name: 'Strudel AI DAW',
-            icon: '🎵',
-            component: 'StrudelAIDAW',
-            singleton: false
-        });
-        console.log('✅ Registered Strudel AI DAW app');
+        // Remove old strudel-ai-daw registration - now unified
         
         this.apps.set('ai-chat', {
             name: 'AI Chat',
@@ -340,13 +334,13 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered navi app');
 
-        this.apps.set('strudel', {
+        this.apps.set('music-studio-unified', {
             name: '🎵 Music Studio',
             icon: '🎵',
-            component: 'GrandmaStrudelDAW',
+            component: 'UnifiedMusicStudioApp',
             singleton: false
         });
-        console.log('✅ Registered strudel app');
+        console.log('✅ Registered unified music-studio app');
         
         this.apps.set('p2p-network', {
             name: 'P2P Network Manager',
@@ -356,21 +350,13 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered p2p-network app');
         
-        this.apps.set('p2p-chat', {
+        this.apps.set('p2p-chat-unified', {
             name: 'P2P Chat',
             icon: '💬',
-            component: 'P2PChatApp',
+            component: 'UnifiedP2PChatApp',
             singleton: false
         });
-        console.log('✅ Registered p2p-chat app');
-        
-        this.apps.set('p2p-chat-offline', {
-            name: 'P2P Chat Offline',
-            icon: '📬',
-            component: 'P2PChatOfflineApp',
-            singleton: false
-        });
-        console.log('✅ Registered p2p-chat-offline app');
+        console.log('✅ Registered unified p2p-chat app');
         
         this.apps.set('neural-network-designer', {
             name: 'Neural Network Designer',
@@ -960,6 +946,32 @@ class SwissKnifeDesktop {
                 case 'naviapp':
                     // NAVI App - loads the chat application
                     this.loadNaviApp(contentElement);
+                    break;
+                    
+                case 'unifiedmusicstudioapp':
+                    console.log('🎵 Loading Unified Music Studio...');
+                    try {
+                        // Import and instantiate Unified Music Studio app
+                        const UnifiedMusicStudioModule = await import('./apps/music-studio-unified.js');
+                        const UnifiedMusicStudioApp = UnifiedMusicStudioModule.UnifiedMusicStudioApp;
+                        appInstance = new UnifiedMusicStudioApp(this);
+                        await appInstance.initialize();
+                        const studioContent = await appInstance.render();
+                        contentElement.innerHTML = studioContent;
+                        
+                        // Store global reference for event handlers
+                        window.unifiedMusicStudioInstance = appInstance;
+                    } catch (error) {
+                        console.error('Failed to load Unified Music Studio app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎵 Music Studio</h2>
+                                <p>Advanced Digital Audio Workstation with AI-powered composition and P2P collaboration.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'grandmastrudeldaw':
