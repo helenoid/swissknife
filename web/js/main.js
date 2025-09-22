@@ -777,17 +777,7 @@ class SwissKnifeDesktop {
                     }
                     break;
                     
-                case 'strudel-ai-daw':
-                case 'strudelaaidaw':
-                    console.log('🎵 Loading Strudel AI DAW app...');
-                    // Import and instantiate Strudel AI DAW app
-                    const StrudelAIModule = await import('./apps/strudel-ai-daw.js');
-                    const StrudelAIDAW = StrudelAIModule.StrudelAIDAW;
-                    appInstance = new StrudelAIDAW(this);
-                    await appInstance.initialize();
-                    const dawWindow = appInstance.createWindow();
-                    contentElement.appendChild(dawWindow.querySelector('.strudel-ai-daw'));
-                    break;
+                // Legacy strudel-ai-daw and strudelaaidaw cases removed - now unified in music-studio-unified
                     
                 case 'settingsapp':
                     console.log('⚙️ Loading Settings app...');
@@ -1036,45 +1026,25 @@ class SwissKnifeDesktop {
                     }
                     break;
 
-                case 'p2pchatapp':
-                    console.log('💬 Loading P2P Chat...');
+                case 'unifiedp2pchatapp':
+                    console.log('💬 Loading Unified P2P Chat...');
                     try {
-                        // Import and instantiate P2P Chat app
-                        const P2PChatModule = await import('./apps/p2p-chat.js');
-                        const P2PChatApp = P2PChatModule.P2PChatApp;
-                        appInstance = new P2PChatApp(this);
+                        // Import and instantiate Unified P2P Chat app
+                        const UnifiedP2PChatModule = await import('./apps/p2p-chat-unified.js');
+                        const UnifiedP2PChatApp = UnifiedP2PChatModule.UnifiedP2PChatApp;
+                        appInstance = new UnifiedP2PChatApp(this);
                         await appInstance.initialize();
                         const chatContent = await appInstance.render();
                         contentElement.innerHTML = chatContent;
+                        
+                        // Store global reference for event handlers
+                        window.unifiedP2PChatInstance = appInstance;
                     } catch (error) {
-                        console.error('Failed to load P2P Chat app:', error);
+                        console.error('Failed to load Unified P2P Chat app:', error);
                         contentElement.innerHTML = `
                             <div class="app-placeholder">
                                 <h2>💬 P2P Chat</h2>
-                                <p>Peer-to-peer messaging using libp2p.</p>
-                                <p>Failed to load: ${error.message}</p>
-                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                            </div>
-                        `;
-                    }
-                    break;
-
-                case 'p2pchatofflineapp':
-                    console.log('📬 Loading P2P Chat Offline...');
-                    try {
-                        // Import and instantiate P2P Chat Offline app
-                        const P2PChatOfflineModule = await import('./apps/p2p-chat-offline.js');
-                        const P2PChatOfflineApp = P2PChatOfflineModule.P2PChatOfflineApp;
-                        appInstance = new P2PChatOfflineApp(this);
-                        await appInstance.initialize();
-                        const chatOfflineContent = await appInstance.render();
-                        contentElement.innerHTML = chatOfflineContent;
-                    } catch (error) {
-                        console.error('Failed to load P2P Chat Offline app:', error);
-                        contentElement.innerHTML = `
-                            <div class="app-placeholder">
-                                <h2>📬 P2P Chat Offline</h2>
-                                <p>Peer-to-peer messaging with offline capabilities using IPFS and Storacha.</p>
+                                <p>Unified P2P messaging with real-time and offline capabilities.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
