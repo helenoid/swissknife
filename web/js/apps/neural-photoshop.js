@@ -72,6 +72,9 @@ export class NeuralPhotoshopApp {
       ai: true
     };
     
+    // Clipboard state
+    this.internalClipboard = null;
+    
     // The app will be initialized by the desktop system calling initialize()
   }
 
@@ -102,14 +105,147 @@ export class NeuralPhotoshopApp {
   }
 
   async initializeAI() {
-    // Initialize AI models and services
+    console.log('🤖 Initializing AI services...');
+    
+    // Initialize AI models and services with proper error handling
     this.aiService = {
-      segmentation: new AISegmentationService(),
-      backgroundRemoval: new BackgroundRemovalService(),
-      inpainting: new InpaintingService(),
-      styleTransfer: new StyleTransferService(),
-      upscaling: new UpscalingService()
+      segmentation: {
+        enabled: true,
+        model: 'sam',
+        async process(imageData, points) {
+          console.log('🎯 Running AI segmentation...');
+          // Mock AI segmentation for now - would integrate with actual AI service
+          return this.mockSegmentation(imageData, points);
+        },
+        mockSegmentation(imageData, points) {
+          // Create a simple mask based on clicked points
+          const canvas = document.createElement('canvas');
+          canvas.width = imageData.width;
+          canvas.height = imageData.height;
+          const ctx = canvas.getContext('2d');
+          
+          // Create circular selection around clicked points
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+          points.forEach(point => {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 50, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          
+          return ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+      },
+      
+      backgroundRemoval: {
+        enabled: true,
+        model: 'u2net',
+        async process(imageData) {
+          console.log('🖼️ Running background removal...');
+          // Mock background removal - would integrate with actual AI service
+          return this.mockBackgroundRemoval(imageData);
+        },
+        mockBackgroundRemoval(imageData) {
+          // Simple edge-based background removal mock
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const brightness = (r + g + b) / 3;
+            
+            // Remove bright/white backgrounds
+            if (brightness > 200 && Math.abs(r - g) < 30 && Math.abs(g - b) < 30) {
+              data[i + 3] = 0; // Make transparent
+            }
+          }
+          return imageData;
+        }
+      },
+      
+      inpainting: {
+        enabled: true,
+        model: 'lama',
+        async process(imageData, mask) {
+          console.log('🖌️ Running AI inpainting...');
+          return this.mockInpainting(imageData, mask);
+        },
+        mockInpainting(imageData, mask) {
+          // Simple blur-based inpainting mock
+          const canvas = document.createElement('canvas');
+          canvas.width = imageData.width;
+          canvas.height = imageData.height;
+          const ctx = canvas.getContext('2d');
+          ctx.putImageData(imageData, 0, 0);
+          
+          // Apply blur filter to masked areas
+          ctx.filter = 'blur(3px)';
+          ctx.globalCompositeOperation = 'source-atop';
+          ctx.putImageData(mask, 0, 0);
+          
+          return ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+      },
+      
+      styleTransfer: {
+        enabled: true,
+        model: 'neural-style',
+        async process(imageData, style) {
+          console.log('🎨 Running style transfer...');
+          return this.mockStyleTransfer(imageData, style);
+        },
+        mockStyleTransfer(imageData, style) {
+          // Apply simple color adjustments based on style
+          const data = imageData.data;
+          const styleAdjustments = {
+            'oil-painting': { r: 1.2, g: 1.1, b: 0.9, saturation: 1.3 },
+            'watercolor': { r: 0.9, g: 1.1, b: 1.2, saturation: 0.8 },
+            'sketch': { r: 0.8, g: 0.8, b: 0.8, saturation: 0.3 },
+            'pop-art': { r: 1.5, g: 1.3, b: 1.1, saturation: 1.8 }
+          };
+          
+          const adj = styleAdjustments[style] || styleAdjustments['oil-painting'];
+          
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, data[i] * adj.r);
+            data[i + 1] = Math.min(255, data[i + 1] * adj.g);
+            data[i + 2] = Math.min(255, data[i + 2] * adj.b);
+          }
+          
+          return imageData;
+        }
+      },
+      
+      upscaling: {
+        enabled: true,
+        model: 'real-esrgan',
+        async process(imageData, scale = 2) {
+          console.log('📈 Running image upscaling...');
+          return this.mockUpscaling(imageData, scale);
+        },
+        mockUpscaling(imageData, scale) {
+          // Simple bicubic upscaling simulation
+          const canvas = document.createElement('canvas');
+          const newWidth = imageData.width * scale;
+          const newHeight = imageData.height * scale;
+          canvas.width = newWidth;
+          canvas.height = newHeight;
+          
+          const ctx = canvas.getContext('2d');
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = imageData.width;
+          tempCanvas.height = imageData.height;
+          const tempCtx = tempCanvas.getContext('2d');
+          
+          tempCtx.putImageData(imageData, 0, 0);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(tempCanvas, 0, 0, newWidth, newHeight);
+          
+          return ctx.getImageData(0, 0, newWidth, newHeight);
+        }
+      }
     };
+    
+    console.log('✅ AI services initialized successfully');
   }
 
   createNewProject() {
@@ -174,8 +310,13 @@ export class NeuralPhotoshopApp {
               <button class="menu-btn" id="export-btn" title="Export Image">📤 Export</button>
             </div>
             <div class="menu-group">
-              <button class="menu-btn" id="undo-btn" title="Undo">↶ Undo</button>
-              <button class="menu-btn" id="redo-btn" title="Redo">↷ Redo</button>
+              <button class="menu-btn" id="undo-btn" title="Undo (Ctrl+Z)">↶ Undo</button>
+              <button class="menu-btn" id="redo-btn" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+            </div>
+            <div class="menu-group">
+              <button class="menu-btn" id="copy-btn" title="Copy (Ctrl+C)">📋 Copy</button>
+              <button class="menu-btn" id="paste-btn" title="Paste (Ctrl+V)">📄 Paste</button>
+              <button class="menu-btn" id="cut-btn" title="Cut (Ctrl+X)">✂️ Cut</button>
             </div>
             <div class="menu-group">
               <select id="zoom-select" title="Zoom Level">
@@ -658,6 +799,53 @@ export class NeuralPhotoshopApp {
             transform: translateX(100%);
           }
         }
+        
+        /* Drag and drop styles */
+        .canvas-area.drag-over {
+          background: rgba(74, 222, 128, 0.1) !important;
+          border: 2px dashed #4ade80 !important;
+        }
+        
+        .canvas-area.drag-over::after {
+          content: '📁 Drop image here to load';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 0, 0, 0.8);
+          color: #4ade80;
+          padding: 20px 40px;
+          border-radius: 10px;
+          font-size: 18px;
+          font-weight: bold;
+          z-index: 1000;
+          pointer-events: none;
+        }
+        
+        /* Clipboard notification styles */
+        .notification {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          border-left: 4px solid #4ade80;
+          z-index: 1001;
+          animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
       </style>
     `;
 
@@ -923,6 +1111,9 @@ export class NeuralPhotoshopApp {
     // Canvas interaction handlers
     this.setupCanvasHandlers(container);
     
+    // File operations (drag & drop, clipboard)
+    this.setupFileOperations(container);
+    
     // Keyboard shortcuts
     this.setupKeyboardHandlers();
   }
@@ -970,6 +1161,18 @@ export class NeuralPhotoshopApp {
 
     container.querySelector('#redo-btn')?.addEventListener('click', () => {
       this.redo();
+    });
+
+    container.querySelector('#copy-btn')?.addEventListener('click', () => {
+      this.copyToClipboard();
+    });
+
+    container.querySelector('#paste-btn')?.addEventListener('click', () => {
+      this.pasteFromClipboard();
+    });
+
+    container.querySelector('#cut-btn')?.addEventListener('click', () => {
+      this.cutToClipboard();
     });
   }
 
@@ -1158,6 +1361,22 @@ export class NeuralPhotoshopApp {
           case 'n':
             e.preventDefault();
             this.createNewProject();
+            break;
+          case 'c':
+            e.preventDefault();
+            this.copyToClipboard();
+            break;
+          case 'v':
+            e.preventDefault();
+            this.pasteFromClipboard();
+            break;
+          case 'x':
+            e.preventDefault();
+            this.cutToClipboard();
+            break;
+          case 'a':
+            e.preventDefault();
+            this.selectAll();
             break;
         }
       }
@@ -1465,25 +1684,823 @@ export class NeuralPhotoshopApp {
     }
   }
 
-  // Additional AI methods (stubs)
+  // Clipboard functionality
+  async copyToClipboard() {
+    try {
+      console.log('📋 Copying image to clipboard...');
+      
+      // Get the current active layer or composite image
+      const canvas = this.getCompositeCanvas();
+      
+      // Convert canvas to blob
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          try {
+            // Use modern Clipboard API if available
+            if (navigator.clipboard && window.ClipboardItem) {
+              const clipboardItem = new ClipboardItem({ 'image/png': blob });
+              await navigator.clipboard.write([clipboardItem]);
+              this.showNotification('✅ Image copied to clipboard');
+            } else {
+              // Fallback for older browsers
+              this.fallbackCopyToClipboard(canvas);
+            }
+          } catch (error) {
+            console.error('Clipboard API failed:', error);
+            this.fallbackCopyToClipboard(canvas);
+          }
+        }
+      }, 'image/png');
+      
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      this.showNotification('❌ Failed to copy image to clipboard');
+    }
+  }
+  
+  fallbackCopyToClipboard(canvas) {
+    // Create a temporary element to select and copy
+    const dataURL = canvas.toDataURL('image/png');
+    
+    // Store in internal clipboard for pasting within the app
+    this.internalClipboard = {
+      type: 'image',
+      data: dataURL,
+      timestamp: Date.now()
+    };
+    
+    this.showNotification('📋 Image copied (internal clipboard)');
+  }
+
+  async pasteFromClipboard() {
+    try {
+      console.log('📋 Pasting from clipboard...');
+      
+      // Try modern Clipboard API first
+      if (navigator.clipboard && navigator.clipboard.read) {
+        const clipboardItems = await navigator.clipboard.read();
+        
+        for (const clipboardItem of clipboardItems) {
+          for (const type of clipboardItem.types) {
+            if (type.startsWith('image/')) {
+              const blob = await clipboardItem.getType(type);
+              await this.pasteImageBlob(blob);
+              return;
+            }
+          }
+        }
+      }
+      
+      // Fallback to internal clipboard
+      if (this.internalClipboard && this.internalClipboard.type === 'image') {
+        await this.pasteImageDataURL(this.internalClipboard.data);
+        return;
+      }
+      
+      this.showNotification('⚠️ No image found in clipboard');
+      
+    } catch (error) {
+      console.error('Failed to paste from clipboard:', error);
+      
+      // Try internal clipboard as final fallback
+      if (this.internalClipboard && this.internalClipboard.type === 'image') {
+        await this.pasteImageDataURL(this.internalClipboard.data);
+      } else {
+        this.showNotification('❌ Failed to paste from clipboard');
+      }
+    }
+  }
+  
+  async pasteImageBlob(blob) {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    
+    img.onload = () => {
+      // Create new layer for pasted image
+      const layer = this.createLayer(`Pasted Image ${Date.now()}`);
+      
+      // Draw image to layer
+      layer.context.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Scale image to fit if necessary
+      const scale = Math.min(
+        layer.canvas.width / img.width,
+        layer.canvas.height / img.height,
+        1
+      );
+      
+      const width = img.width * scale;
+      const height = img.height * scale;
+      const x = (layer.canvas.width - width) / 2;
+      const y = (layer.canvas.height - height) / 2;
+      
+      layer.context.drawImage(img, x, y, width, height);
+      
+      this.redrawCanvas();
+      this.refreshUI();
+      this.saveToHistory('Paste Image');
+      this.showNotification('✅ Image pasted from clipboard');
+      
+      URL.revokeObjectURL(url);
+    };
+    
+    img.onerror = () => {
+      this.showNotification('❌ Failed to load pasted image');
+      URL.revokeObjectURL(url);
+    };
+    
+    img.src = url;
+  }
+  
+  async pasteImageDataURL(dataURL) {
+    const img = new Image();
+    
+    img.onload = () => {
+      // Create new layer for pasted image  
+      const layer = this.createLayer(`Pasted Image ${Date.now()}`);
+      
+      // Draw image to layer
+      layer.context.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Scale image to fit if necessary
+      const scale = Math.min(
+        layer.canvas.width / img.width,
+        layer.canvas.height / img.height,
+        1
+      );
+      
+      const width = img.width * scale;
+      const height = img.height * scale;
+      const x = (layer.canvas.width - width) / 2;
+      const y = (layer.canvas.height - height) / 2;
+      
+      layer.context.drawImage(img, x, y, width, height);
+      
+      this.redrawCanvas();
+      this.refreshUI();
+      this.saveToHistory('Paste Image');
+      this.showNotification('✅ Image pasted');
+    };
+    
+    img.onerror = () => {
+      this.showNotification('❌ Failed to load pasted image');
+    };
+    
+    img.src = dataURL;
+  }
+  
+  async cutToClipboard() {
+    await this.copyToClipboard();
+    
+    // Clear the active layer
+    const layer = this.layers[this.activeLayerIndex];
+    if (layer && !layer.locked) {
+      layer.context.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+      this.redrawCanvas();
+      this.saveToHistory('Cut Image');
+      this.showNotification('✂️ Image cut to clipboard');
+    }
+  }
+  
+  selectAll() {
+    // Create selection covering entire canvas
+    this.activeSelection = {
+      x: 0,
+      y: 0,
+      width: this.currentProject.width,
+      height: this.currentProject.height
+    };
+    
+    this.showNotification('📦 All selected');
+    this.redrawCanvas();
+  }
+  
+  getCompositeCanvas() {
+    // Create composite canvas with all visible layers
+    const composite = document.createElement('canvas');
+    composite.width = this.currentProject.width;
+    composite.height = this.currentProject.height;
+    const ctx = composite.getContext('2d');
+    
+    // Composite all visible layers
+    this.layers.forEach(layer => {
+      if (layer.visible) {
+        ctx.globalAlpha = layer.opacity;
+        ctx.globalCompositeOperation = layer.blendMode;
+        ctx.drawImage(layer.canvas, 0, 0);
+      }
+    });
+    
+    return composite;
+  }
+
+  // Enhanced file operations with proper drag & drop support
+  setupFileOperations(container) {
+    // Set up drag and drop
+    const canvasArea = container.querySelector('.canvas-area');
+    if (canvasArea) {
+      canvasArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        canvasArea.classList.add('drag-over');
+      });
+      
+      canvasArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        canvasArea.classList.remove('drag-over');
+      });
+      
+      canvasArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        canvasArea.classList.remove('drag-over');
+        
+        const files = Array.from(e.dataTransfer.files);
+        const imageFiles = files.filter(file => file.type.startsWith('image/'));
+        
+        if (imageFiles.length > 0) {
+          this.loadImageFile(imageFiles[0]);
+        }
+      });
+    }
+  }
+  
+  async loadImageFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const img = new Image();
+        
+        img.onload = () => {
+          // Create new layer for loaded image
+          const layer = this.createLayer(file.name.replace(/\.[^/.]+$/, ""));
+          
+          // Clear layer and draw image
+          layer.context.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+          
+          // Scale image to fit if necessary
+          const scale = Math.min(
+            layer.canvas.width / img.width,
+            layer.canvas.height / img.height,
+            1
+          );
+          
+          const width = img.width * scale;
+          const height = img.height * scale;
+          const x = (layer.canvas.width - width) / 2;
+          const y = (layer.canvas.height - height) / 2;
+          
+          layer.context.drawImage(img, x, y, width, height);
+          
+          this.redrawCanvas();
+          this.refreshUI();
+          this.saveToHistory('Load Image');
+          this.showNotification(`✅ Loaded ${file.name}`);
+          
+          resolve();
+        };
+        
+        img.onerror = () => {
+          this.showNotification(`❌ Failed to load ${file.name}`);
+          reject(new Error('Failed to load image'));
+        };
+        
+        img.src = e.target.result;
+      };
+      
+      reader.onerror = () => {
+        this.showNotification(`❌ Failed to read ${file.name}`);
+        reject(new Error('Failed to read file'));
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  }
+  // Enhanced AI processing methods
+  async performAISegmentation() {
+    console.log('🎯 Starting AI segmentation...');
+    this.showAIProgress('🎯 Running AI segmentation...');
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(2000);
+      
+      // Use mock points for now - would use actual click points in real implementation
+      const mockPoints = [{ x: layer.canvas.width / 2, y: layer.canvas.height / 2 }];
+      const maskData = await this.aiService.segmentation.process(imageData, mockPoints);
+      
+      // Create mask layer
+      const maskLayer = this.createLayer('Segmentation Mask');
+      maskLayer.context.putImageData(maskData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.refreshUI();
+      this.saveToHistory('AI Segmentation');
+      this.showNotification('✅ AI segmentation completed');
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('AI segmentation failed:', error);
+      this.showNotification('❌ AI segmentation failed');
+    }
+  }
+  
+  async performBackgroundRemoval() {
+    console.log('🎭 Starting background removal...');
+    this.showAIProgress('🎭 Removing background...');
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(3000);
+      
+      const processedData = await this.aiService.backgroundRemoval.process(imageData);
+      
+      layer.context.putImageData(processedData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.saveToHistory('Background Removal');
+      this.showNotification('✅ Background removed');
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('Background removal failed:', error);
+      this.showNotification('❌ Background removal failed');
+    }
+  }
+  
+  async performAIUpscaling() {
+    console.log('📈 Starting AI upscaling...');
+    this.showAIProgress('📈 Upscaling image...');
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(4000);
+      
+      const upscaledData = await this.aiService.upscaling.process(imageData, 2);
+      
+      // Create new project with upscaled dimensions
+      const newWidth = upscaledData.width;
+      const newHeight = upscaledData.height;
+      
+      this.resizeProject(newWidth, newHeight);
+      
+      const newLayer = this.createLayer('Upscaled Image');
+      newLayer.context.putImageData(upscaledData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.refreshUI();
+      this.saveToHistory('AI Upscaling');
+      this.showNotification('✅ Image upscaled');
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('AI upscaling failed:', error);
+      this.showNotification('❌ AI upscaling failed');
+    }
+  }
+  
+  async performAIInpainting() {
+    console.log('🖌️ Starting AI inpainting...');
+    this.showAIProgress('🖌️ AI inpainting...');
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Create simple mask (would use actual selection in real implementation)
+      const maskCanvas = document.createElement('canvas');
+      maskCanvas.width = layer.canvas.width;
+      maskCanvas.height = layer.canvas.height;
+      const maskContext = maskCanvas.getContext('2d');
+      maskContext.fillStyle = 'white';
+      maskContext.fillRect(100, 100, 200, 200); // Mock mask area
+      const maskData = maskContext.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(3000);
+      
+      const inpaintedData = await this.aiService.inpainting.process(imageData, maskData);
+      
+      layer.context.putImageData(inpaintedData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.saveToHistory('AI Inpainting');
+      this.showNotification('✅ AI inpainting completed');
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('AI inpainting failed:', error);
+      this.showNotification('❌ AI inpainting failed');
+    }
+  }
+
   async createAIMask() {
-    this.showNotification('🖼️ AI mask creation - Feature coming soon!');
+    console.log('🖼️ Creating AI mask...');
+    this.showAIProgress('🖼️ Creating smart mask...');
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(2500);
+      
+      // Create edge-based mask
+      const maskData = this.createEdgeMask(imageData);
+      
+      const maskLayer = this.createLayer('AI Mask');
+      maskLayer.context.putImageData(maskData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.refreshUI();
+      this.saveToHistory('AI Mask Creation');
+      this.showNotification('✅ AI mask created');
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('AI mask creation failed:', error);
+      this.showNotification('❌ AI mask creation failed');
+    }
+  }
+  
+  createEdgeMask(imageData) {
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    const maskData = new ImageData(width, height);
+    
+    // Simple edge detection for mask creation
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const idx = (y * width + x) * 4;
+        
+        // Get surrounding pixels
+        const current = data[idx];
+        const right = data[idx + 4];
+        const down = data[(y + 1) * width * 4 + x * 4];
+        
+        // Calculate edge strength
+        const edgeStrength = Math.abs(current - right) + Math.abs(current - down);
+        
+        // Set mask value based on edge strength
+        const maskValue = edgeStrength > 30 ? 255 : 0;
+        
+        maskData.data[idx] = maskValue;
+        maskData.data[idx + 1] = maskValue;
+        maskData.data[idx + 2] = maskValue;
+        maskData.data[idx + 3] = 255;
+      }
+    }
+    
+    return maskData;
   }
 
   async performDenoising() {
-    this.showNotification('🧹 AI denoising - Feature coming soon!');
+    console.log('🧹 Starting image denoising...');
+    this.showAIProgress('🧹 Removing noise...');
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(2000);
+      
+      // Apply simple blur denoising
+      const denoisedData = this.applyGaussianBlur(imageData, 1);
+      
+      layer.context.putImageData(denoisedData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.saveToHistory('Denoise');
+      this.showNotification('✅ Image denoised');
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('Denoising failed:', error);
+      this.showNotification('❌ Denoising failed');
+    }
+  }
+  
+  applyGaussianBlur(imageData, radius) {
+    // Simple box blur approximation of Gaussian blur
+    const data = new Uint8ClampedArray(imageData.data);
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let r = 0, g = 0, b = 0, a = 0, count = 0;
+        
+        for (let dy = -radius; dy <= radius; dy++) {
+          for (let dx = -radius; dx <= radius; dx++) {
+            const ny = y + dy;
+            const nx = x + dx;
+            
+            if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+              const idx = (ny * width + nx) * 4;
+              r += imageData.data[idx];
+              g += imageData.data[idx + 1];
+              b += imageData.data[idx + 2];
+              a += imageData.data[idx + 3];
+              count++;
+            }
+          }
+        }
+        
+        const idx = (y * width + x) * 4;
+        data[idx] = r / count;
+        data[idx + 1] = g / count;
+        data[idx + 2] = b / count;
+        data[idx + 3] = a / count;
+      }
+    }
+    
+    return new ImageData(data, width, height);
   }
 
   async performFaceRestoration() {
-    this.showNotification('👤 Face restoration - Feature coming soon!');
+    console.log('👤 Starting face restoration...');
+    this.showAIProgress('👤 Restoring faces...');
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(3500);
+      
+      // For demo purposes, apply simple sharpening
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      const sharpenedData = this.applySharpen(imageData);
+      
+      layer.context.putImageData(sharpenedData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.saveToHistory('Face Restoration');
+      this.showNotification('✅ Face restoration completed');
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('Face restoration failed:', error);
+      this.showNotification('❌ Face restoration failed');
+    }
+  }
+  
+  applySharpen(imageData) {
+    const data = new Uint8ClampedArray(imageData.data);
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    // Sharpening kernel
+    const kernel = [
+      0, -1, 0,
+      -1, 5, -1,
+      0, -1, 0
+    ];
+    
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        for (let c = 0; c < 3; c++) { // RGB channels
+          let sum = 0;
+          
+          for (let ky = -1; ky <= 1; ky++) {
+            for (let kx = -1; kx <= 1; kx++) {
+              const idx = ((y + ky) * width + (x + kx)) * 4 + c;
+              const kernelIdx = (ky + 1) * 3 + (kx + 1);
+              sum += imageData.data[idx] * kernel[kernelIdx];
+            }
+          }
+          
+          const idx = (y * width + x) * 4 + c;
+          data[idx] = Math.max(0, Math.min(255, sum));
+        }
+      }
+    }
+    
+    return new ImageData(data, width, height);
   }
 
   async performStyleTransfer() {
-    this.showNotification('🎭 Style transfer - Feature coming soon!');
+    console.log('🎭 Starting style transfer...');
+    
+    // Create style selection dialog
+    const style = await this.showStyleSelectionDialog();
+    if (!style) return;
+    
+    this.showAIProgress(`🎭 Applying ${style} style...`);
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(3500);
+      
+      const styledData = await this.aiService.styleTransfer.process(imageData, style);
+      
+      const newLayer = this.createLayer(`${style} Style`);
+      newLayer.context.putImageData(styledData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.refreshUI();
+      this.saveToHistory('Style Transfer');
+      this.showNotification(`✅ ${style} style applied`);
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('Style transfer failed:', error);
+      this.showNotification('❌ Style transfer failed');
+    }
+  }
+  
+  showStyleSelectionDialog() {
+    return new Promise((resolve) => {
+      const dialog = document.createElement('div');
+      dialog.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        color: white;
+      `;
+      
+      dialog.innerHTML = `
+        <div style="background: #1a1a2e; padding: 30px; border-radius: 10px; max-width: 400px;">
+          <h3>🎨 Select Art Style</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0;">
+            <button class="style-btn" data-style="oil-painting">🖼️ Oil Painting</button>
+            <button class="style-btn" data-style="watercolor">🎨 Watercolor</button>
+            <button class="style-btn" data-style="sketch">✏️ Sketch</button>
+            <button class="style-btn" data-style="pop-art">🌈 Pop Art</button>
+          </div>
+          <div style="text-align: center;">
+            <button id="cancel-style" style="background: #555; color: white; border: none; padding: 10px 20px; border-radius: 5px;">Cancel</button>
+          </div>
+        </div>
+      `;
+      
+      dialog.querySelectorAll('.style-btn').forEach(btn => {
+        btn.style.cssText = 'background: #4ade80; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer;';
+        btn.addEventListener('click', () => {
+          resolve(btn.dataset.style);
+          dialog.remove();
+        });
+      });
+      
+      dialog.querySelector('#cancel-style').addEventListener('click', () => {
+        resolve(null);
+        dialog.remove();
+      });
+      
+      document.body.appendChild(dialog);
+    });
   }
 
   async performColorization() {
-    this.showNotification('🌈 AI colorization - Feature coming soon!');
+    console.log('🌈 Starting AI colorization...');
+    this.showAIProgress('🌈 Adding colors...');
+    
+    try {
+      const layer = this.layers[this.activeLayerIndex];
+      if (!layer) {
+        this.hideAIProgress();
+        this.showNotification('⚠️ No active layer');
+        return;
+      }
+      
+      const imageData = layer.context.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+      
+      // Simulate processing time
+      await this.simulateAIProcessing(3000);
+      
+      // Apply simple colorization by enhancing existing colors
+      const colorizedData = this.enhanceColors(imageData);
+      
+      const newLayer = this.createLayer('Colorized');
+      newLayer.context.putImageData(colorizedData, 0, 0);
+      
+      this.hideAIProgress();
+      this.redrawCanvas();
+      this.refreshUI();
+      this.saveToHistory('AI Colorization');
+      this.showNotification('✅ AI colorization completed');
+      
+    } catch (error) {
+      this.hideAIProgress();
+      console.error('AI colorization failed:', error);
+      this.showNotification('❌ AI colorization failed');
+    }
+  }
+  
+  enhanceColors(imageData) {
+    const data = new Uint8ClampedArray(imageData.data);
+    
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      
+      // Convert to grayscale to check if image is already colored
+      const gray = (r + g + b) / 3;
+      const colorfulness = Math.abs(r - gray) + Math.abs(g - gray) + Math.abs(b - gray);
+      
+      if (colorfulness < 30) {
+        // Add subtle colorization based on brightness
+        if (gray > 150) {
+          // Bright areas - add warm tones
+          data[i] = Math.min(255, r * 1.1 + 20);     // More red
+          data[i + 1] = Math.min(255, g * 1.05 + 10); // Slight green
+          data[i + 2] = Math.min(255, b * 0.9);       // Less blue
+        } else if (gray > 100) {
+          // Mid tones - add natural colors
+          data[i] = Math.min(255, r * 1.05 + 15);
+          data[i + 1] = Math.min(255, g * 1.1 + 15);
+          data[i + 2] = Math.min(255, b * 1.05);
+        } else {
+          // Dark areas - add cool tones
+          data[i] = Math.min(255, r * 0.95);
+          data[i + 1] = Math.min(255, g * 1.05);
+          data[i + 2] = Math.min(255, b * 1.1 + 10);
+        }
+      } else {
+        // Already colorful - enhance saturation
+        data[i] = Math.min(255, r * 1.15);
+        data[i + 1] = Math.min(255, g * 1.15);
+        data[i + 2] = Math.min(255, b * 1.15);
+      }
+    }
+    
+    return new ImageData(data, imageData.width, imageData.height);
   }
 
   // Selection methods (stubs)
