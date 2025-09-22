@@ -307,9 +307,6 @@
         console.log('✅ Hugging Face backend available as alternative');
         
         return true;
-      } else {
-        throw new Error('MCP Client not available');
-      }
     } catch (error) {
       console.log('⚠️ IPFS Accelerate not available:', error.message);
       ipfsAccelerate = null;
