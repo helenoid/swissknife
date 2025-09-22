@@ -1066,14 +1066,27 @@ class SwissKnifeDesktop {
 
                 case 'trainingmanagerapp':
                     console.log('🎯 Loading Training Manager...');
-                    // Import and create Training Manager app
+                    // Import and create Training Manager app using dynamic import
                     try {
-                        await this.loadScript('./js/apps/training-manager.js');
+                        const TrainingModule = await import('./apps/training-manager.js');
+                        console.log('📦 Imported Training Manager module:', TrainingModule);
+                        
+                        // Check for global function first (most likely to work)
                         if (window.createTrainingManagerApp) {
                             appInstance = window.createTrainingManagerApp();
                             appInstance.init(contentElement);
+                        } else if (TrainingModule.TrainingManagerApp) {
+                            // Fallback to exported class if available
+                            appInstance = new TrainingModule.TrainingManagerApp();
+                            if (appInstance.render) {
+                                const html = await appInstance.render();
+                                contentElement.innerHTML = html;
+                            }
+                            if (appInstance.initializeEventHandlers) {
+                                appInstance.initializeEventHandlers(contentElement);
+                            }
                         } else {
-                            throw new Error('Training Manager app not found');
+                            throw new Error('Training Manager app not found in module or globally');
                         }
                     } catch (error) {
                         console.error('Failed to load Training Manager app:', error);
@@ -1272,14 +1285,27 @@ class SwissKnifeDesktop {
                     
                 case 'githubapp':
                     console.log('🐙 Loading GitHub app...');
-                    // Import and instantiate GitHub app
+                    // Import and instantiate GitHub app using dynamic import
                     try {
-                        await this.loadScript('./js/apps/github.js');
+                        const GitHubModule = await import('./apps/github.js');
+                        console.log('📦 Imported GitHub module:', GitHubModule);
+                        
+                        // Check for global function first (most likely to work)
                         if (window.createGitHubApp) {
                             appInstance = window.createGitHubApp();
                             appInstance.init(contentElement);
+                        } else if (GitHubModule.GitHubApp) {
+                            // Fallback to exported class if available
+                            appInstance = new GitHubModule.GitHubApp();
+                            if (appInstance.render) {
+                                const html = await appInstance.render();
+                                contentElement.innerHTML = html;
+                            }
+                            if (appInstance.initializeEventHandlers) {
+                                appInstance.initializeEventHandlers(contentElement);
+                            }
                         } else {
-                            throw new Error('GitHub app not found');
+                            throw new Error('GitHub app not found in module or globally');
                         }
                     } catch (error) {
                         console.error('Failed to load GitHub app:', error);
@@ -1296,14 +1322,27 @@ class SwissKnifeDesktop {
                     
                 case 'oauthloginapp':
                     console.log('🔐 Loading OAuth Login app...');
-                    // Import and instantiate OAuth Login app
+                    // Import and instantiate OAuth Login app using dynamic import
                     try {
-                        await this.loadScript('./js/apps/oauth-login.js');
+                        const OAuthModule = await import('./apps/oauth-login.js');
+                        console.log('📦 Imported OAuth module:', OAuthModule);
+                        
+                        // Check for global function first (most likely to work)
                         if (window.createOAuthLoginApp) {
                             appInstance = window.createOAuthLoginApp();
                             appInstance.init(contentElement);
+                        } else if (OAuthModule.OAuthLoginSystem) {
+                            // Fallback to exported class if available
+                            appInstance = new OAuthModule.OAuthLoginSystem();
+                            if (appInstance.render) {
+                                const html = await appInstance.render();
+                                contentElement.innerHTML = html;
+                            }
+                            if (appInstance.initializeEventHandlers) {
+                                appInstance.initializeEventHandlers(contentElement);
+                            }
                         } else {
-                            throw new Error('OAuth Login app not found');
+                            throw new Error('OAuth Login app not found in module or globally');
                         }
                     } catch (error) {
                         console.error('Failed to load OAuth Login app:', error);
