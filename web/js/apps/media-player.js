@@ -1,7 +1,7 @@
 /**
- * 🎵 SwissKnife Winamp-Style Media Player
+ * 🎵 SwissKnife Media Player
  * 
- * A nostalgic Winamp-inspired music player that runs in the background/foreground
+ * A nostalgic Winamp-inspired media player that runs in the background/foreground
  * while users work. Features classic Winamp aesthetics with modern functionality.
  * 
  * Features:
@@ -18,7 +18,7 @@
  * - Global hotkeys for system-wide control
  */
 
-class WinampPlayer {
+class MediaPlayer {
     constructor() {
         this.isPlaying = false;
         this.currentTrack = 0;
@@ -1450,16 +1450,19 @@ class WinampPlayer {
     }
 }
 
+// ES6 Module Export
+export { MediaPlayer };
+
 // Initialize and export
-const winampPlayer = new WinampPlayer();
-window.winampPlayer = winampPlayer;
+const mediaPlayer = new MediaPlayer();
+window.mediaPlayer = mediaPlayer;
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = WinampPlayer;
+    module.exports = MediaPlayer;
 }
 
 // Make globally available
-window.WinampPlayer = WinampPlayer;
+window.MediaPlayer = MediaPlayer;
 
-console.log('🎵 Winamp-Style Media Player loaded successfully!');
+console.log('🎵 Media Player loaded successfully!');

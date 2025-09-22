@@ -447,13 +447,13 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered cinema app');
         
-        this.apps.set('winamp-player', {
-            name: 'Winamp Player - Nostalgic Music Player',
+        this.apps.set('media-player', {
+            name: 'Media Player',
             icon: '🎵',
-            component: 'WinampPlayer',
+            component: 'MediaPlayer',
             singleton: true
         });
-        console.log('✅ Registered winamp-player app');
+        console.log('✅ Registered media-player app');
         
         this.apps.set('system-monitor', {
             name: 'System Monitor',
@@ -1420,22 +1420,22 @@ class SwissKnifeDesktop {
                     }
                     break;
                     
-                case 'winampplayer':
-                    console.log('🎵 Loading Winamp Player...');
-                    // Import and instantiate Winamp Player
+                case 'mediaplayer':
+                    console.log('🎵 Loading Media Player...');
+                    // Import and instantiate Media Player
                     try {
-                        const WinampModule = await import('./apps/winamp-player.js');
-                        const WinampPlayer = WinampModule.WinampPlayer || window.WinampPlayer;
-                        appInstance = new WinampPlayer();
+                        const MediaModule = await import('./apps/media-player.js');
+                        const MediaPlayer = MediaModule.MediaPlayer || window.MediaPlayer;
+                        appInstance = new MediaPlayer();
                         await appInstance.initialize();
-                        const winampHTML = appInstance.createWindow();
-                        contentElement.innerHTML = winampHTML;
-                        console.log('✅ Winamp Player loaded successfully');
+                        const mediaHTML = appInstance.createWindow();
+                        contentElement.innerHTML = mediaHTML;
+                        console.log('✅ Media Player loaded successfully');
                     } catch (error) {
-                        console.error('Failed to load Winamp Player:', error);
+                        console.error('Failed to load Media Player:', error);
                         contentElement.innerHTML = `
                             <div class="app-placeholder">
-                                <h2>🎵 Winamp Player</h2>
+                                <h2>🎵 Media Player</h2>
                                 <p>Nostalgic music player with classic Winamp interface and modern features.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
