@@ -1,13 +1,13 @@
-// !/usr/bin/env python3
-"""
-Fault Tolerance Validation and Visualization Integration
-
-This module integrates the fault tolerance validation system with visualization tools,
-providing a unified interface for (validation testing, analysis: any, and reporting.
-
-Usage) {
-    from fixed_web_platform.fault_tolerance_visualization_integration import FaultToleranceValidationSystem
-// Create validation system
+#!/usr/bin/env node
+/**
+ * Fault Tolerance Validation and Visualization Integration
+ * 
+ * This module integrates the fault tolerance validation system with visualization tools,
+ * providing a unified interface for validation testing, analysis, and reporting.
+ * 
+ * Usage:
+ *   import { FaultToleranceValidationSystem } from './fault_tolerance_visualization_integration';
+ *   // Create validation system
     validation_system: any = FaultToleranceValidationSystem(model_manager: any, output_dir: any = "./reports");
 // Run validation with visualization
     await validation_system.run_validation_with_visualization(;

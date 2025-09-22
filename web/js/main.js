@@ -1427,9 +1427,7 @@ class SwissKnifeDesktop {
                         const MediaModule = await import('./apps/media-player.js');
                         const MediaPlayer = MediaModule.MediaPlayer || window.MediaPlayer;
                         appInstance = new MediaPlayer();
-                        await appInstance.initialize();
-                        const mediaHTML = appInstance.createWindow();
-                        contentElement.innerHTML = mediaHTML;
+                        await appInstance.initialize(contentElement);
                         console.log('✅ Media Player loaded successfully');
                     } catch (error) {
                         console.error('Failed to load Media Player:', error);
