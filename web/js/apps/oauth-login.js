@@ -98,9 +98,6 @@ class OAuthLoginSystem {
             configured: false
         });
 
-        console.log('🔐 OAuth providers initialized:', this.providers.size);
-    }
-
         // GitHub OAuth
         this.providers.set('github', {
             id: 'github',
@@ -113,8 +110,11 @@ class OAuthLoginSystem {
             authUrl: 'https://github.com/login/oauth/authorize',
             tokenUrl: 'https://github.com/login/oauth/access_token',
             userInfoUrl: 'https://api.github.com/user',
-            enabled: false
+            enabled: false,
+            configured: false
         });
+
+        console.log('🔐 OAuth providers initialized:', this.providers.size);
     }
 
     async render() {

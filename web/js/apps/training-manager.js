@@ -288,8 +288,6 @@
             };
           }
         },
-            });
-          },
           
           async getHFJobStatus(jobId) {
             return await window.mcpClient.request('huggingface', 'get_job_status', {
