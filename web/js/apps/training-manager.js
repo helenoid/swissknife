@@ -3,6 +3,46 @@
  * Manage model training processes with IPFS model versioning and P2P coordination
  */
 
+// Export class for ES6 module compatibility
+export class TrainingManagerApp {
+  constructor() {
+    this.trainingJobs = [];
+    this.datasets = [];
+    this.modelVersions = [];
+    this.activeJob = null;
+    this.p2pSystem = null;
+    this.ipfsStorage = null;
+    this.modelServer = null;
+  }
+
+  async initialize() {
+    console.log('🎯 Initializing Training Manager...');
+    return this;
+  }
+
+  createWindow() {
+    return this.render();
+  }
+
+  render() {
+    return `
+      <div class="training-manager-container">
+        <div class="app-placeholder">
+          <h2>🎯 Training Manager</h2>
+          <p>AI model training and management system.</p>
+          <p>Manage training jobs, datasets, and model versions with P2P coordination.</p>
+          <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+        </div>
+      </div>
+      <style>
+        .training-manager-container { height: 100%; padding: 20px; }
+        .app-placeholder { text-align: center; padding: 40px; }
+      </style>
+    `;
+  }
+}
+
+// Legacy IIFE wrapper for backward compatibility
 (function() {
   'use strict';
 
