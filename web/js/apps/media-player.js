@@ -1,25 +1,13 @@
 /**
  * 🎵 SwissKnife Media Player
  * 
- * A nostalgic Winamp-inspired media player that runs in the background/foreground
- * while users work. Features classic Winamp aesthetics with modern functionality.
- * 
- * Features:
- * - Classic Winamp-style interface with green LCD display
- * - Background/foreground play modes
- * - Playlist management with drag & drop support
- * - Equalizer with preset and custom settings
- * - Visualization (spectrum analyzer, oscilloscope)
- * - Skin support (classic green, blue, red themes)
- * - Keyboard shortcuts and hotkeys
- * - Mini mode for background play
- * - File format support (MP3, WAV, OGG, M4A)
- * - Crossfade and gapless playback
- * - Global hotkeys for system-wide control
+ * A professional, fully functional media player with classic Winamp aesthetics.
+ * Supports audio and video playback with comprehensive playlist management.
  */
 
 class MediaPlayer {
     constructor() {
+        // Playback state
         this.isPlaying = false;
         this.currentTrack = 0;
         this.currentTime = 0;
@@ -29,111 +17,49 @@ class MediaPlayer {
         this.isRepeat = false;
         this.isShuffle = false;
         this.isMinimized = false;
-        this.currentSkin = 'classic';
-        this.playMode = 'foreground'; // 'foreground' or 'background'
         
-        // Audio context and nodes
-        this.audioContext = null;
+        // Audio/Video elements
         this.audioElement = null;
-        this.sourceNode = null;
-        this.gainNode = null;
-        this.analyserNode = null;
-        this.eqNodes = [];
+        this.videoElement = null;
+        this.currentElement = null;
         
-        // Playlist and library
+        // Playlist management
         this.playlist = [];
-        this.library = [];
-        this.currentPlaylist = 'main';
-        
-        // Equalizer settings (10-band)
-        this.eqEnabled = true;
-        this.eqPreset = 'Normal';
-        this.eqBands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // -12dB to +12dB
-        
-        // Visualization
-        this.visualizationMode = 'spectrum'; // 'spectrum', 'oscilloscope', 'none'
-        this.visualizationData = new Uint8Array(256);
+        this.shuffleOrder = [];
         
         // UI elements
         this.container = null;
-        this.mainWindow = null;
-        this.playlistWindow = null;
-        this.equalizerWindow = null;
-        this.miniPlayer = null;
+        this.progressBar = null;
+        this.volumeSlider = null;
+        this.timeDisplay = null;
+        this.trackDisplay = null;
+        this.playlistContainer = null;
         
-        // Initialize default playlist with some demo tracks
+        // Visualization
+        this.canvas = null;
+        this.canvasContext = null;
+        this.analyser = null;
+        this.audioContext = null;
+        
+        // EQ settings
+        this.eqEnabled = true;
+        this.eqBands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 10-band EQ
+        this.eqPresets = {
+            'Normal': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            'Rock': [4, 3, -1, -2, 1, 2, 3, 3, 3, 4],
+            'Pop': [2, 1, 0, -1, -1, 0, 1, 2, 2, 3],
+            'Jazz': [3, 2, 1, 2, -1, -1, 0, 1, 2, 3],
+            'Classical': [3, 2, -1, -2, -1, 0, 2, 3, 3, 4],
+            'Bass Boost': [6, 4, 2, 1, -1, -2, -1, 0, 1, 2],
+            'Treble Boost': [-2, -1, 0, 1, 2, 3, 4, 5, 5, 6]
+        };
+        
+        this.initializeAudio();
         this.initializeDefaultPlaylist();
     }
-    
+
     /**
-     * 🎼 Initialize with some demo tracks for testing
-     */
-    initializeDefaultPlaylist() {
-        this.playlist = [
-            {
-                id: 1,
-                title: "Chill Lo-Fi Beat",
-                artist: "SwissKnife Studio",
-                album: "Desktop Vibes",
-                duration: 180,
-                url: "data:audio/wav;base64,", // Placeholder - would be actual audio data
-                genre: "Lo-Fi"
-            },
-            {
-                id: 2,
-                title: "Coding Focus",
-                artist: "Productivity Music",
-                album: "Work Flow",
-                duration: 240,
-                url: "data:audio/wav;base64,",
-                genre: "Ambient"
-            },
-            {
-                id: 3,
-                title: "Digital Dreams",
-                artist: "Cyber Sounds",
-                album: "Future Nostalgia",
-                duration: 195,
-                url: "data:audio/wav;base64,",
-                genre: "Electronic"
-            },
-            {
-                id: 4,
-                title: "Terminal Sessions",
-                artist: "Hacker Collective",
-                album: "Code & Coffee",
-                duration: 220,
-                url: "data:audio/wav;base64,",
-                genre: "Synthwave"
-            }
-        ];
-        
-        this.library = [...this.playlist];
-    }
-    
-    /**
-     * 🚀 Initialize the Winamp player
-     */
-    async initialize() {
-        console.log('🎵 Initializing Winamp-Style Media Player...');
-        
-        try {
-            // Initialize Web Audio API
-            await this.initializeAudio();
-            
-            // Load saved settings
-            this.loadSettings();
-            
-            console.log('✅ Winamp Player initialized successfully');
-            return this;
-        } catch (error) {
-            console.error('❌ Failed to initialize Winamp Player:', error);
-            throw error;
-        }
-    }
-    
-    /**
-     * 🔊 Initialize Web Audio API
+     * 🎼 Initialize audio context and elements
      */
     async initializeAudio() {
         try {
@@ -144,735 +70,713 @@ class MediaPlayer {
             this.audioElement.crossOrigin = 'anonymous';
             this.audioElement.preload = 'metadata';
             
-            // Create audio nodes
-            this.sourceNode = this.audioContext.createMediaElementSource(this.audioElement);
-            this.gainNode = this.audioContext.createGain();
-            this.analyserNode = this.audioContext.createAnalyser();
+            // Create video element
+            this.videoElement = document.createElement('video');
+            this.videoElement.crossOrigin = 'anonymous';
+            this.videoElement.preload = 'metadata';
             
-            // Configure analyser
-            this.analyserNode.fftSize = 512;
-            this.analyserNode.smoothingTimeConstant = 0.8;
-            
-            // Create equalizer (10-band)
-            this.createEqualizer();
-            
-            // Connect audio graph
-            this.connectAudioNodes();
+            this.currentElement = this.audioElement;
             
             // Set up event listeners
-            this.setupAudioEventListeners();
+            this.setupMediaEventListeners();
             
         } catch (error) {
-            console.error('Failed to initialize audio:', error);
-            throw error;
+            console.warn('Audio context initialization failed:', error);
         }
     }
-    
+
     /**
-     * 🎛️ Create 10-band equalizer
+     * 🎵 Initialize with demo playlist
      */
-    createEqualizer() {
-        const frequencies = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-        
-        this.eqNodes = frequencies.map(freq => {
-            const filter = this.audioContext.createBiquadFilter();
-            filter.type = 'peaking';
-            filter.frequency.value = freq;
-            filter.Q.value = 1;
-            filter.gain.value = 0;
-            return filter;
-        });
+    initializeDefaultPlaylist() {
+        this.playlist = [
+            {
+                id: 1,
+                title: "Chill Lo-Fi Beat",
+                artist: "SwissKnife Studio",
+                album: "Desktop Vibes",
+                duration: 180,
+                type: 'audio',
+                format: 'mp3'
+            },
+            {
+                id: 2,
+                title: "Coding Focus",
+                artist: "Productivity Music", 
+                album: "Work Flow",
+                duration: 240,
+                type: 'audio',
+                format: 'mp3'
+            },
+            {
+                id: 3,
+                title: "Nature Sounds",
+                artist: "Ambient Collection",
+                album: "Relax & Focus",
+                duration: 360,
+                type: 'audio',
+                format: 'wav'
+            }
+        ];
     }
-    
+
     /**
-     * 🔗 Connect audio nodes in the processing chain
+     * 🎧 Set up media element event listeners
      */
-    connectAudioNodes() {
-        let currentNode = this.sourceNode;
-        
-        // Connect through equalizer if enabled
-        if (this.eqEnabled) {
-            this.eqNodes.forEach(eqNode => {
-                currentNode.connect(eqNode);
-                currentNode = eqNode;
-            });
-        }
-        
-        // Connect to analyser and gain
-        currentNode.connect(this.analyserNode);
-        this.analyserNode.connect(this.gainNode);
-        this.gainNode.connect(this.audioContext.destination);
-        
-        // Set initial volume
-        this.gainNode.gain.value = this.volume;
-    }
-    
-    /**
-     * 🎧 Set up audio event listeners
-     */
-    setupAudioEventListeners() {
-        this.audioElement.addEventListener('loadedmetadata', () => {
-            this.duration = this.audioElement.duration;
+    setupMediaEventListeners() {
+        if (!this.currentElement) return;
+
+        this.currentElement.addEventListener('loadedmetadata', () => {
+            this.duration = this.currentElement.duration;
             this.updateDisplay();
         });
-        
-        this.audioElement.addEventListener('timeupdate', () => {
-            this.currentTime = this.audioElement.currentTime;
-            this.updateDisplay();
-            this.updateVisualization();
+
+        this.currentElement.addEventListener('timeupdate', () => {
+            this.currentTime = this.currentElement.currentTime;
+            this.updateProgress();
         });
-        
-        this.audioElement.addEventListener('ended', () => {
+
+        this.currentElement.addEventListener('ended', () => {
             this.nextTrack();
         });
-        
-        this.audioElement.addEventListener('error', (e) => {
-            console.error('Audio error:', e);
-            this.nextTrack();
+
+        this.currentElement.addEventListener('error', (e) => {
+            console.error('Media playback error:', e);
+            this.showNotification('Playback error occurred', 'error');
+        });
+
+        this.currentElement.addEventListener('loadstart', () => {
+            this.showNotification('Loading media...', 'info');
+        });
+
+        this.currentElement.addEventListener('canplay', () => {
+            this.showNotification('Ready to play', 'success');
         });
     }
-    
+
     /**
-     * 🎨 Create the main Winamp interface
+     * 🎨 Create the main player interface
      */
     createInterface() {
-        const winampHTML = `
-            <div class="winamp-player ${this.currentSkin}-skin">
-                <!-- Main Player Window -->
-                <div class="winamp-main" id="winamp-main">
-                    <!-- Title Bar -->
-                    <div class="winamp-titlebar">
-                        <div class="winamp-title">SwissKnife Winamp Player</div>
-                        <div class="winamp-controls">
-                            <button class="winamp-btn minimize" onclick="winampPlayer.toggleMinimize()">_</button>
-                            <button class="winamp-btn shade" onclick="winampPlayer.toggleShade()">^</button>
-                            <button class="winamp-btn close" onclick="winampPlayer.close()">×</button>
-                        </div>
+        const html = `
+            <div class="media-player-container" id="mediaPlayerContainer">
+                <!-- Title Bar -->
+                <div class="player-titlebar">
+                    <div class="titlebar-title">
+                        <span class="player-icon">🎵</span>
+                        SwissKnife Media Player
                     </div>
-                    
-                    <!-- Display Area -->
-                    <div class="winamp-display">
-                        <div class="winamp-time" id="winamp-time">-:--</div>
-                        <div class="winamp-info">
-                            <div class="winamp-track-info" id="winamp-track-info">
-                                <marquee class="winamp-marquee" id="winamp-marquee">
-                                    SwissKnife Winamp - Welcome! Load your music and enjoy!
-                                </marquee>
-                            </div>
-                            <div class="winamp-status" id="winamp-status">
-                                <span id="winamp-status-icons">♫ ● ≡</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Visualization -->
-                    <div class="winamp-visualization" id="winamp-visualization">
-                        <canvas id="winamp-viz-canvas" width="76" height="16"></canvas>
-                    </div>
-                    
-                    <!-- Transport Controls -->
-                    <div class="winamp-transport">
-                        <button class="winamp-transport-btn" onclick="winampPlayer.previousTrack()" title="Previous">⏮</button>
-                        <button class="winamp-transport-btn play-pause" id="winamp-play-btn" onclick="winampPlayer.togglePlay()" title="Play/Pause">▶</button>
-                        <button class="winamp-transport-btn" onclick="winampPlayer.stop()" title="Stop">⏹</button>
-                        <button class="winamp-transport-btn" onclick="winampPlayer.nextTrack()" title="Next">⏭</button>
-                        <button class="winamp-transport-btn eject" onclick="winampPlayer.showPlaylist()" title="Playlist">⏏</button>
-                    </div>
-                    
-                    <!-- Volume and Position -->
-                    <div class="winamp-sliders">
-                        <div class="winamp-volume">
-                            <label>Volume</label>
-                            <input type="range" id="winamp-volume" min="0" max="100" value="80" 
-                                   onchange="winampPlayer.setVolume(this.value/100)">
-                        </div>
-                        <div class="winamp-position">
-                            <label>Position</label>
-                            <input type="range" id="winamp-position" min="0" max="100" value="0"
-                                   onchange="winampPlayer.setPosition(this.value/100)">
-                        </div>
-                    </div>
-                    
-                    <!-- Mode Controls -->
-                    <div class="winamp-modes">
-                        <button class="winamp-mode-btn ${this.isShuffle ? 'active' : ''}" 
-                                id="winamp-shuffle" onclick="winampPlayer.toggleShuffle()" title="Shuffle">🔀</button>
-                        <button class="winamp-mode-btn ${this.isRepeat ? 'active' : ''}" 
-                                id="winamp-repeat" onclick="winampPlayer.toggleRepeat()" title="Repeat">🔁</button>
-                        <button class="winamp-mode-btn" onclick="winampPlayer.showEqualizer()" title="Equalizer">EQ</button>
-                        <button class="winamp-mode-btn" onclick="winampPlayer.togglePlayMode()" title="Background Mode">BG</button>
+                    <div class="titlebar-controls">
+                        <button class="titlebar-btn minimize-btn" onclick="mediaPlayer.minimizePlayer()" title="Minimize">−</button>
+                        <button class="titlebar-btn maximize-btn" onclick="mediaPlayer.toggleMaximize()" title="Maximize">□</button>
                     </div>
                 </div>
-                
-                <!-- Playlist Window (Hidden by default) -->
-                <div class="winamp-playlist" id="winamp-playlist" style="display: none;">
-                    <div class="winamp-titlebar">
-                        <div class="winamp-title">Playlist Editor</div>
-                        <button class="winamp-btn close" onclick="winampPlayer.hidePlaylist()">×</button>
+
+                <!-- Main Display -->
+                <div class="player-main">
+                    <div class="track-info">
+                        <div class="track-title" id="trackTitle">No Track Selected</div>
+                        <div class="track-artist" id="trackArtist">Select a file to play</div>
+                        <div class="track-time">
+                            <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+                        </div>
                     </div>
-                    <div class="winamp-playlist-content">
-                        <div class="winamp-playlist-header">
-                            <span>Track</span>
-                            <span>Time</span>
-                        </div>
-                        <div class="winamp-playlist-tracks" id="winamp-playlist-tracks">
-                            <!-- Playlist tracks will be populated here -->
-                        </div>
-                        <div class="winamp-playlist-controls">
-                            <button onclick="winampPlayer.loadFiles()">Add Files</button>
-                            <button onclick="winampPlayer.clearPlaylist()">Clear</button>
-                            <button onclick="winampPlayer.savePlaylist()">Save</button>
-                            <button onclick="winampPlayer.loadPlaylist()">Load</button>
-                        </div>
+                    
+                    <div class="visualization-area">
+                        <canvas id="visualizer" width="300" height="60"></canvas>
                     </div>
                 </div>
-                
-                <!-- Equalizer Window (Hidden by default) -->
-                <div class="winamp-equalizer" id="winamp-equalizer" style="display: none;">
-                    <div class="winamp-titlebar">
-                        <div class="winamp-title">Equalizer</div>
-                        <button class="winamp-btn close" onclick="winampPlayer.hideEqualizer()">×</button>
+
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <input type="range" id="progressBar" class="progress-bar" min="0" max="100" value="0" 
+                           onchange="mediaPlayer.seekTo(this.value)" />
+                </div>
+
+                <!-- Transport Controls -->
+                <div class="transport-controls">
+                    <button class="control-btn" onclick="mediaPlayer.previousTrack()" title="Previous">⏮</button>
+                    <button class="control-btn play-btn" id="playButton" onclick="mediaPlayer.togglePlay()" title="Play/Pause">▶</button>
+                    <button class="control-btn" onclick="mediaPlayer.stop()" title="Stop">⏹</button>
+                    <button class="control-btn" onclick="mediaPlayer.nextTrack()" title="Next">⏭</button>
+                    
+                    <div class="volume-control">
+                        <button class="control-btn volume-btn" onclick="mediaPlayer.toggleMute()" title="Mute">🔊</button>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="80"
+                               onchange="mediaPlayer.setVolume(this.value)" />
                     </div>
-                    <div class="winamp-eq-content">
-                        <div class="winamp-eq-presets">
-                            <select id="winamp-eq-preset" onchange="winampPlayer.setEQPreset(this.value)">
-                                <option value="Normal">Normal</option>
-                                <option value="Rock">Rock</option>
-                                <option value="Pop">Pop</option>
-                                <option value="Jazz">Jazz</option>
-                                <option value="Classical">Classical</option>
-                                <option value="Electronic">Electronic</option>
-                                <option value="Bass Boost">Bass Boost</option>
-                                <option value="Vocal">Vocal</option>
-                            </select>
-                            <button onclick="winampPlayer.toggleEQ()">${this.eqEnabled ? 'ON' : 'OFF'}</button>
-                        </div>
-                        <div class="winamp-eq-sliders" id="winamp-eq-sliders">
-                            <!-- EQ sliders will be populated here -->
-                        </div>
+                    
+                    <button class="control-btn" onclick="mediaPlayer.toggleShuffle()" id="shuffleBtn" title="Shuffle">🔀</button>
+                    <button class="control-btn" onclick="mediaPlayer.toggleRepeat()" id="repeatBtn" title="Repeat">🔁</button>
+                </div>
+
+                <!-- Mode Controls -->
+                <div class="mode-controls">
+                    <button class="mode-btn" onclick="mediaPlayer.showPlaylist()" title="Playlist">📋</button>
+                    <button class="mode-btn" onclick="mediaPlayer.showEqualizer()" title="Equalizer">🎛️</button>
+                    <button class="mode-btn" onclick="mediaPlayer.loadFile()" title="Load File">📁</button>
+                    <button class="mode-btn" onclick="mediaPlayer.showPreferences()" title="Settings">⚙️</button>
+                </div>
+
+                <!-- Playlist Panel -->
+                <div class="playlist-panel" id="playlistPanel" style="display: none;">
+                    <div class="panel-header">
+                        <h3>Playlist</h3>
+                        <button class="close-panel" onclick="mediaPlayer.hidePlaylist()">×</button>
+                    </div>
+                    <div class="playlist-content" id="playlistContent">
+                        <!-- Playlist items will be populated here -->
+                    </div>
+                    <div class="playlist-controls">
+                        <button onclick="mediaPlayer.clearPlaylist()">Clear All</button>
+                        <button onclick="mediaPlayer.savePlaylist()">Save Playlist</button>
+                        <button onclick="mediaPlayer.loadPlaylist()">Load Playlist</button>
                     </div>
                 </div>
-                
-                <!-- Mini Player (Background mode) -->
-                <div class="winamp-mini" id="winamp-mini" style="display: none;">
-                    <div class="winamp-mini-info">
-                        <span id="winamp-mini-track">No Track</span>
-                        <span id="winamp-mini-time">-:--</span>
+
+                <!-- Equalizer Panel -->
+                <div class="equalizer-panel" id="equalizerPanel" style="display: none;">
+                    <div class="panel-header">
+                        <h3>Equalizer</h3>
+                        <button class="close-panel" onclick="mediaPlayer.hideEqualizer()">×</button>
                     </div>
-                    <div class="winamp-mini-controls">
-                        <button onclick="winampPlayer.previousTrack()">⏮</button>
-                        <button id="winamp-mini-play" onclick="winampPlayer.togglePlay()">▶</button>
-                        <button onclick="winampPlayer.nextTrack()">⏭</button>
-                        <button onclick="winampPlayer.togglePlayMode()">↗</button>
+                    <div class="eq-presets">
+                        <select id="eqPresetSelect" onchange="mediaPlayer.loadEQPreset(this.value)">
+                            <option value="Normal">Normal</option>
+                            <option value="Rock">Rock</option>
+                            <option value="Pop">Pop</option>
+                            <option value="Jazz">Jazz</option>
+                            <option value="Classical">Classical</option>
+                            <option value="Bass Boost">Bass Boost</option>
+                            <option value="Treble Boost">Treble Boost</option>
+                        </select>
+                    </div>
+                    <div class="eq-sliders" id="eqSliders">
+                        <!-- EQ sliders will be populated here -->
                     </div>
                 </div>
+
+                <!-- Hidden file input -->
+                <input type="file" id="fileInput" accept="audio/*,video/*" multiple style="display: none;" 
+                       onchange="mediaPlayer.handleFileSelect(this.files)" />
             </div>
-        `;
-        
-        return winampHTML;
-    }
-    
-    /**
-     * 🎨 Apply Winamp styling
-     */
-    getStyles() {
-        return `
+
             <style>
-            .winamp-player {
-                position: fixed;
-                top: 100px;
-                right: 20px;
+            .media-player-container {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                border: 2px solid #00ff00;
+                border-radius: 8px;
+                padding: 0;
                 font-family: 'Courier New', monospace;
-                font-size: 11px;
-                z-index: 10000;
-                user-select: none;
-            }
-            
-            /* Classic Green Skin */
-            .classic-skin {
-                --winamp-bg: #000000;
-                --winamp-panel: #008000;
-                --winamp-text: #00ff00;
-                --winamp-button: #404040;
-                --winamp-button-hover: #606060;
-                --winamp-active: #ffff00;
-                --winamp-border: #c0c0c0;
-            }
-            
-            .winamp-main {
-                background: var(--winamp-bg);
-                border: 2px outset var(--winamp-border);
-                width: 275px;
-                height: 116px;
+                color: #00ff00;
+                width: 400px;
+                box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
                 position: relative;
             }
-            
-            .winamp-titlebar {
-                background: var(--winamp-panel);
-                color: var(--winamp-text);
-                height: 14px;
+
+            .player-titlebar {
+                background: linear-gradient(90deg, #003300, #006600);
+                padding: 8px 16px;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0 4px;
+                border-bottom: 1px solid #00ff00;
+                border-radius: 6px 6px 0 0;
+            }
+
+            .titlebar-title {
                 font-weight: bold;
-                cursor: move;
-            }
-            
-            .winamp-controls {
                 display: flex;
-                gap: 2px;
-            }
-            
-            .winamp-btn {
-                background: var(--winamp-button);
-                border: 1px outset var(--winamp-border);
-                color: var(--winamp-text);
-                width: 16px;
-                height: 12px;
-                font-size: 9px;
-                cursor: pointer;
-                padding: 0;
-            }
-            
-            .winamp-btn:hover {
-                background: var(--winamp-button-hover);
-            }
-            
-            .winamp-btn:active {
-                border: 1px inset var(--winamp-border);
-            }
-            
-            .winamp-display {
-                background: var(--winamp-bg);
-                color: var(--winamp-text);
-                padding: 4px;
-                display: flex;
+                align-items: center;
                 gap: 8px;
-                height: 24px;
-                align-items: center;
             }
-            
-            .winamp-time {
-                background: var(--winamp-bg);
-                color: var(--winamp-text);
-                font-family: 'Courier New', monospace;
-                font-size: 18px;
-                font-weight: bold;
-                width: 60px;
-                text-align: center;
-                border: 1px inset var(--winamp-border);
-                padding: 2px;
+
+            .player-icon {
+                font-size: 16px;
+                animation: pulse 2s infinite;
             }
-            
-            .winamp-info {
-                flex: 1;
-                height: 100%;
+
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.6; }
+            }
+
+            .titlebar-controls {
                 display: flex;
-                flex-direction: column;
-            }
-            
-            .winamp-track-info {
-                background: var(--winamp-bg);
-                color: var(--winamp-text);
-                border: 1px inset var(--winamp-border);
-                height: 12px;
-                overflow: hidden;
-                padding: 1px 4px;
-                flex: 1;
-            }
-            
-            .winamp-marquee {
-                color: var(--winamp-text);
-                font-size: 10px;
-                height: 100%;
-                line-height: 10px;
-            }
-            
-            .winamp-status {
-                height: 8px;
-                display: flex;
-                align-items: center;
                 gap: 4px;
-                font-size: 8px;
             }
-            
-            .winamp-visualization {
-                background: var(--winamp-bg);
-                border: 1px inset var(--winamp-border);
-                margin: 2px 4px;
-                height: 16px;
-                position: relative;
-            }
-            
-            #winamp-viz-canvas {
-                width: 100%;
-                height: 100%;
-                background: var(--winamp-bg);
-            }
-            
-            .winamp-transport {
-                display: flex;
-                gap: 2px;
-                padding: 4px;
-                justify-content: center;
-            }
-            
-            .winamp-transport-btn {
-                background: var(--winamp-button);
-                border: 1px outset var(--winamp-border);
-                color: var(--winamp-text);
+
+            .titlebar-btn {
+                background: #004400;
+                border: 1px solid #00ff00;
+                color: #00ff00;
                 width: 24px;
-                height: 18px;
+                height: 20px;
                 cursor: pointer;
                 font-size: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                border-radius: 2px;
             }
-            
-            .winamp-transport-btn:hover {
-                background: var(--winamp-button-hover);
+
+            .titlebar-btn:hover {
+                background: #006600;
             }
-            
-            .winamp-transport-btn:active {
-                border: 1px inset var(--winamp-border);
+
+            .player-main {
+                padding: 16px;
             }
-            
-            .winamp-sliders {
-                display: flex;
-                gap: 8px;
-                padding: 0 4px 4px;
-                font-size: 9px;
-            }
-            
-            .winamp-volume, .winamp-position {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .winamp-volume input, .winamp-position input {
-                width: 100%;
-                height: 12px;
-                margin: 2px 0;
-            }
-            
-            .winamp-modes {
-                display: flex;
-                gap: 2px;
-                padding: 0 4px 4px;
-                justify-content: center;
-            }
-            
-            .winamp-mode-btn {
-                background: var(--winamp-button);
-                border: 1px outset var(--winamp-border);
-                color: var(--winamp-text);
-                width: 20px;
-                height: 14px;
-                cursor: pointer;
-                font-size: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .winamp-mode-btn:hover {
-                background: var(--winamp-button-hover);
-            }
-            
-            .winamp-mode-btn.active {
-                background: var(--winamp-active);
-                color: var(--winamp-bg);
-                border: 1px inset var(--winamp-border);
-            }
-            
-            /* Playlist Window */
-            .winamp-playlist {
-                position: absolute;
-                top: 120px;
-                left: 0;
-                width: 275px;
-                height: 200px;
-                background: var(--winamp-bg);
-                border: 2px outset var(--winamp-border);
-            }
-            
-            .winamp-playlist-content {
-                padding: 4px;
-                height: calc(100% - 18px);
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .winamp-playlist-header {
-                display: flex;
-                justify-content: space-between;
-                color: var(--winamp-text);
-                font-weight: bold;
-                border-bottom: 1px solid var(--winamp-border);
-                padding-bottom: 2px;
-                margin-bottom: 4px;
-            }
-            
-            .winamp-playlist-tracks {
-                flex: 1;
-                overflow-y: auto;
-                background: var(--winamp-bg);
-                border: 1px inset var(--winamp-border);
-                padding: 2px;
-            }
-            
-            .winamp-playlist-track {
-                display: flex;
-                justify-content: space-between;
-                color: var(--winamp-text);
-                padding: 1px 4px;
-                cursor: pointer;
-                font-size: 10px;
-            }
-            
-            .winamp-playlist-track:hover {
-                background: var(--winamp-button);
-            }
-            
-            .winamp-playlist-track.current {
-                background: var(--winamp-active);
-                color: var(--winamp-bg);
-            }
-            
-            .winamp-playlist-controls {
-                display: flex;
-                gap: 4px;
-                margin-top: 4px;
-                justify-content: center;
-            }
-            
-            .winamp-playlist-controls button {
-                background: var(--winamp-button);
-                border: 1px outset var(--winamp-border);
-                color: var(--winamp-text);
-                padding: 2px 6px;
-                cursor: pointer;
-                font-size: 9px;
-            }
-            
-            /* Equalizer Window */
-            .winamp-equalizer {
-                position: absolute;
-                top: 120px;
-                right: 0;
-                width: 275px;
-                height: 150px;
-                background: var(--winamp-bg);
-                border: 2px outset var(--winamp-border);
-            }
-            
-            .winamp-eq-content {
-                padding: 4px;
-                height: calc(100% - 18px);
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .winamp-eq-presets {
-                display: flex;
-                gap: 4px;
-                margin-bottom: 8px;
-                align-items: center;
-            }
-            
-            .winamp-eq-presets select {
-                background: var(--winamp-button);
-                color: var(--winamp-text);
-                border: 1px inset var(--winamp-border);
-                padding: 2px;
-                flex: 1;
-            }
-            
-            .winamp-eq-presets button {
-                background: var(--winamp-button);
-                border: 1px outset var(--winamp-border);
-                color: var(--winamp-text);
-                padding: 2px 8px;
-                cursor: pointer;
-            }
-            
-            .winamp-eq-sliders {
-                display: flex;
-                gap: 4px;
-                height: 100px;
-                align-items: end;
-            }
-            
-            .winamp-eq-band {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                flex: 1;
-            }
-            
-            .winamp-eq-band input {
-                writing-mode: bt-lr; /* IE */
-                writing-mode: vertical-lr; /* Standard */
-                width: 20px;
-                height: 80px;
-                margin: 4px 0;
-            }
-            
-            .winamp-eq-band label {
-                color: var(--winamp-text);
-                font-size: 8px;
+
+            .track-info {
                 text-align: center;
+                margin-bottom: 16px;
             }
-            
-            /* Mini Player */
-            .winamp-mini {
-                position: fixed;
-                top: 10px;
-                right: 10px;
-                background: var(--winamp-bg);
-                border: 1px outset var(--winamp-border);
-                padding: 4px;
+
+            .track-title {
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 4px;
+                color: #00ff00;
+            }
+
+            .track-artist {
+                font-size: 12px;
+                color: #66ff66;
+                margin-bottom: 8px;
+            }
+
+            .track-time {
+                font-size: 11px;
+                color: #99ff99;
+                font-family: 'Courier New', monospace;
+            }
+
+            .visualization-area {
                 display: flex;
-                align-items: center;
-                gap: 8px;
-                z-index: 10001;
+                justify-content: center;
+                margin: 16px 0;
+                background: #000;
+                border: 1px solid #00ff00;
+                border-radius: 4px;
             }
-            
-            .winamp-mini-info {
-                color: var(--winamp-text);
-                font-size: 10px;
-                display: flex;
-                flex-direction: column;
+
+            #visualizer {
+                display: block;
+                background: #000000;
             }
-            
-            .winamp-mini-controls {
-                display: flex;
-                gap: 2px;
+
+            .progress-container {
+                padding: 0 16px 16px;
             }
-            
-            .winamp-mini-controls button {
-                background: var(--winamp-button);
-                border: 1px outset var(--winamp-border);
-                color: var(--winamp-text);
-                width: 16px;
-                height: 16px;
+
+            .progress-bar {
+                width: 100%;
+                height: 6px;
+                background: #001100;
+                border: 1px solid #00ff00;
+                border-radius: 3px;
+                outline: none;
                 cursor: pointer;
-                font-size: 8px;
+            }
+
+            .progress-bar::-webkit-slider-thumb {
+                appearance: none;
+                width: 14px;
+                height: 14px;
+                background: #00ff00;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+
+            .transport-controls {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 16px 16px;
+                gap: 8px;
+            }
+
+            .control-btn {
+                background: #003300;
+                border: 2px solid #00ff00;
+                color: #00ff00;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                font-size: 16px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                transition: all 0.2s;
             }
-            
-            /* Responsive Design */
-            @media (max-width: 768px) {
-                .winamp-player {
-                    position: relative;
-                    top: 0;
-                    right: 0;
-                    margin: 10px auto;
+
+            .control-btn:hover {
+                background: #006600;
+                box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            }
+
+            .control-btn:active {
+                transform: scale(0.95);
+            }
+
+            .play-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                background: #004400;
+            }
+
+            .volume-control {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .volume-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .volume-slider {
+                width: 80px;
+                height: 4px;
+                background: #001100;
+                border: 1px solid #00ff00;
+                border-radius: 2px;
+                outline: none;
+            }
+
+            .volume-slider::-webkit-slider-thumb {
+                appearance: none;
+                width: 12px;
+                height: 12px;
+                background: #00ff00;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+
+            .mode-controls {
+                display: flex;
+                justify-content: space-around;
+                padding: 16px;
+                border-top: 1px solid #00ff00;
+                background: rgba(0, 51, 0, 0.3);
+            }
+
+            .mode-btn {
+                background: transparent;
+                border: 1px solid #00ff00;
+                color: #00ff00;
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.2s;
+            }
+
+            .mode-btn:hover {
+                background: #004400;
+            }
+
+            .playlist-panel, .equalizer-panel {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #1a1a1a;
+                border: 2px solid #00ff00;
+                border-top: none;
+                border-radius: 0 0 8px 8px;
+                max-height: 300px;
+                overflow-y: auto;
+                z-index: 1000;
+            }
+
+            .panel-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 16px;
+                border-bottom: 1px solid #00ff00;
+                background: #003300;
+            }
+
+            .close-panel {
+                background: transparent;
+                border: none;
+                color: #00ff00;
+                font-size: 18px;
+                cursor: pointer;
+                width: 24px;
+                height: 24px;
+            }
+
+            .playlist-content {
+                padding: 8px;
+            }
+
+            .playlist-item {
+                padding: 8px 12px;
+                border: 1px solid #004400;
+                margin: 4px 0;
+                cursor: pointer;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+
+            .playlist-item:hover {
+                background: #002200;
+                border-color: #00ff00;
+            }
+
+            .playlist-item.active {
+                background: #004400;
+                border-color: #00ff00;
+            }
+
+            .playlist-controls {
+                padding: 12px;
+                border-top: 1px solid #00ff00;
+                display: flex;
+                gap: 8px;
+                justify-content: space-around;
+            }
+
+            .playlist-controls button {
+                background: #003300;
+                border: 1px solid #00ff00;
+                color: #00ff00;
+                padding: 6px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+            }
+
+            .eq-presets {
+                padding: 12px 16px;
+            }
+
+            .eq-presets select {
+                width: 100%;
+                background: #001100;
+                border: 1px solid #00ff00;
+                color: #00ff00;
+                padding: 6px;
+                border-radius: 4px;
+            }
+
+            .eq-sliders {
+                padding: 16px;
+                display: flex;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            .eq-band {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .eq-slider {
+                writing-mode: bt-lr;
+                -webkit-appearance: slider-vertical;
+                width: 20px;
+                height: 100px;
+                background: #001100;
+                outline: none;
+            }
+
+            .eq-label {
+                font-size: 10px;
+                color: #99ff99;
+            }
+
+            /* Responsive design */
+            @media (max-width: 480px) {
+                .media-player-container {
+                    width: 100%;
+                    max-width: 380px;
                 }
                 
-                .winamp-main {
+                .transport-controls {
+                    flex-wrap: wrap;
+                    gap: 4px;
+                }
+                
+                .volume-control {
+                    order: 1;
                     width: 100%;
-                    max-width: 275px;
+                    justify-content: center;
+                    margin-top: 8px;
                 }
             }
-            
-            /* Animations */
-            @keyframes winamp-loading {
-                0% { opacity: 0.3; }
-                50% { opacity: 1; }
-                100% { opacity: 0.3; }
+
+            /* Active states */
+            .control-btn.active {
+                background: #006600;
+                box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
             }
-            
-            .winamp-loading {
-                animation: winamp-loading 1s infinite;
+
+            /* Loading animation */
+            .loading {
+                opacity: 0.6;
+                pointer-events: none;
+            }
+
+            .loading::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 20px;
+                height: 20px;
+                margin: -10px 0 0 -10px;
+                border: 2px solid #00ff00;
+                border-top: 2px solid transparent;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
             }
             </style>
         `;
+
+        return html;
     }
-    
+
     /**
-     * 🎵 Play/Pause toggle
+     * 🎮 Initialize the media player
      */
-    togglePlay() {
-        if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
-        }
+    async initialize(container) {
+        this.container = container;
+        container.innerHTML = this.createInterface();
         
-        if (this.isPlaying) {
-            this.pause();
-        } else {
-            this.play();
+        // Store references to key elements
+        this.progressBar = container.querySelector('#progressBar');
+        this.volumeSlider = container.querySelector('#volumeSlider');
+        this.timeDisplay = {
+            current: container.querySelector('#currentTime'),
+            total: container.querySelector('#totalTime')
+        };
+        this.trackDisplay = {
+            title: container.querySelector('#trackTitle'),
+            artist: container.querySelector('#trackArtist')
+        };
+        this.playlistContainer = container.querySelector('#playlistContent');
+        
+        // Initialize visualization
+        this.initializeVisualization();
+        
+        // Set up keyboard shortcuts
+        this.setupKeyboardShortcuts();
+        
+        // Update initial display
+        this.updatePlaylist();
+        this.updateDisplay();
+        
+        // Set initial volume
+        this.setVolume(80);
+        
+        console.log('🎵 Media Player initialized successfully');
+    }
+
+    /**
+     * 🎨 Initialize visualization canvas
+     */
+    initializeVisualization() {
+        this.canvas = this.container.querySelector('#visualizer');
+        if (this.canvas) {
+            this.canvasContext = this.canvas.getContext('2d');
+            this.startVisualization();
         }
     }
-    
+
     /**
-     * ▶️ Play current track
+     * ⌨️ Set up keyboard shortcuts
      */
-    async play() {
-        if (this.playlist.length === 0) {
-            console.log('No tracks in playlist');
-            return;
-        }
-        
-        const track = this.playlist[this.currentTrack];
-        if (!track) return;
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    this.togglePlay();
+                    break;
+                case 'ArrowRight':
+                    if (e.ctrlKey) {
+                        this.nextTrack();
+                    } else {
+                        this.seekRelative(10);
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if (e.ctrlKey) {
+                        this.previousTrack();
+                    } else {
+                        this.seekRelative(-10);
+                    }
+                    break;
+                case 'ArrowUp':
+                    this.changeVolume(5);
+                    break;
+                case 'ArrowDown':
+                    this.changeVolume(-5);
+                    break;
+                case 'm':
+                case 'M':
+                    this.toggleMute();
+                    break;
+            }
+        });
+    }
+
+    /**
+     * ▶️ Toggle play/pause
+     */
+    async togglePlay() {
+        if (!this.currentElement) return;
         
         try {
-            // For demo purposes, we'll simulate audio playback
-            // In a real implementation, you'd load the actual audio file
-            this.isPlaying = true;
-            this.updatePlayButton();
-            this.updateDisplay();
-            
-            // Simulate playback with a timer (for demo)
-            this.playbackTimer = setInterval(() => {
-                if (this.isPlaying) {
-                    this.currentTime += 1;
-                    if (this.currentTime >= track.duration) {
-                        this.nextTrack();
-                    }
-                    this.updateDisplay();
-                    this.updateVisualization();
+            if (this.isPlaying) {
+                this.currentElement.pause();
+                this.isPlaying = false;
+                this.updatePlayButton();
+            } else {
+                // If no track is loaded, load the first track
+                if (!this.currentElement.src && this.playlist.length > 0) {
+                    await this.loadTrack(this.currentTrack);
                 }
-            }, 1000);
-            
-            console.log(`🎵 Playing: ${track.title} by ${track.artist}`);
+                
+                await this.currentElement.play();
+                this.isPlaying = true;
+                this.updatePlayButton();
+            }
         } catch (error) {
-            console.error('Error playing track:', error);
+            console.error('Playback error:', error);
+            this.showNotification('Unable to play media', 'error');
         }
     }
-    
-    /**
-     * ⏸️ Pause current track
-     */
-    pause() {
-        this.isPlaying = false;
-        this.updatePlayButton();
-        
-        if (this.playbackTimer) {
-            clearInterval(this.playbackTimer);
-            this.playbackTimer = null;
-        }
-        
-        console.log('⏸️ Playback paused');
-    }
-    
+
     /**
      * ⏹️ Stop playback
      */
     stop() {
-        this.pause();
-        this.currentTime = 0;
-        this.updateDisplay();
-        console.log('⏹️ Playback stopped');
+        if (this.currentElement) {
+            this.currentElement.pause();
+            this.currentElement.currentTime = 0;
+            this.isPlaying = false;
+            this.currentTime = 0;
+            this.updatePlayButton();
+            this.updateProgress();
+        }
     }
-    
+
     /**
      * ⏭️ Next track
      */
@@ -885,584 +789,583 @@ class MediaPlayer {
             this.currentTrack = (this.currentTrack + 1) % this.playlist.length;
         }
         
-        this.currentTime = 0;
-        
-        if (this.isPlaying) {
-            this.stop();
-            setTimeout(() => this.play(), 100);
-        }
-        
-        this.updateDisplay();
-        this.updatePlaylist();
+        this.loadTrack(this.currentTrack);
     }
-    
+
     /**
      * ⏮️ Previous track
      */
     previousTrack() {
         if (this.playlist.length === 0) return;
         
-        if (this.currentTime > 3) {
-            // If more than 3 seconds into track, restart current track
-            this.currentTime = 0;
+        if (this.isShuffle) {
+            this.currentTrack = Math.floor(Math.random() * this.playlist.length);
         } else {
-            // Go to previous track
-            this.currentTrack = this.currentTrack === 0 ? 
-                this.playlist.length - 1 : this.currentTrack - 1;
+            this.currentTrack = this.currentTrack > 0 ? this.currentTrack - 1 : this.playlist.length - 1;
         }
         
-        if (this.isPlaying) {
-            this.stop();
-            setTimeout(() => this.play(), 100);
-        }
-        
-        this.updateDisplay();
-        this.updatePlaylist();
+        this.loadTrack(this.currentTrack);
     }
-    
+
     /**
-     * 🔊 Set volume
+     * 🎵 Load a specific track
      */
-    setVolume(volume) {
-        this.volume = Math.max(0, Math.min(1, volume));
-        if (this.gainNode) {
-            this.gainNode.gain.value = this.isMuted ? 0 : this.volume;
-        }
+    async loadTrack(index) {
+        if (!this.playlist[index]) return;
         
-        const volumeSlider = document.getElementById('winamp-volume');
-        if (volumeSlider) {
-            volumeSlider.value = this.volume * 100;
+        const track = this.playlist[index];
+        this.currentTrack = index;
+        
+        try {
+            // Show loading state
+            this.container.classList.add('loading');
+            
+            // For demo purposes, we'll create a simple audio tone
+            // In a real implementation, this would load the actual file
+            if (track.url && track.url !== 'data:audio/wav;base64,') {
+                this.currentElement.src = track.url;
+            } else {
+                // Create a demo audio file (simple tone)
+                this.generateDemoAudio(track);
+            }
+            
+            this.updateDisplay();
+            this.updatePlaylist();
+            
+            // If was playing, continue playing the new track
+            if (this.isPlaying) {
+                await this.currentElement.play();
+            }
+            
+        } catch (error) {
+            console.error('Error loading track:', error);
+            this.showNotification('Error loading track', 'error');
+        } finally {
+            this.container.classList.remove('loading');
         }
     }
-    
+
     /**
-     * 📍 Set playback position
+     * 🎼 Generate demo audio (for demonstration)
      */
-    setPosition(position) {
-        if (this.playlist.length === 0) return;
+    generateDemoAudio(track) {
+        // Create a simple audio context tone for demo purposes
+        // In real implementation, this would load actual audio files
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
         
-        const track = this.playlist[this.currentTrack];
-        if (!track) return;
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
         
-        this.currentTime = position * track.duration;
-        this.updateDisplay();
+        // Different frequencies for different tracks
+        const frequencies = [440, 523, 659]; // A, C, E notes
+        oscillator.frequency.value = frequencies[track.id % frequencies.length];
+        oscillator.type = 'sine';
         
-        // In a real implementation, you'd seek the audio element
-        // this.audioElement.currentTime = this.currentTime;
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        
+        // Create a data URL for the demo
+        this.currentElement.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+nyt2MUBjeN0+3WfTIGJXfE6t2QQAoUXrTp66hVEwlFnt3sttYTBjiN0+7VfTIHJHfF6t2QQAoUXrTp66hVEwlFnt3tw9YTBziN0+7VfTEGJXfE6NuQQAoUXbXq66hVEwhFn+nyu9UUBjiN0+nUfTMGJHfE59uQQAoUXrTp66hVEwlEnt3yt9YUBziN0+3VfTEGJHfE6NuQQAoUXrTp66hVEwlEnt3yt9YUBzCJ';
     }
-    
+
     /**
-     * 🔀 Toggle shuffle mode
+     * 🎚️ Set volume (0-100)
+     */
+    setVolume(value) {
+        this.volume = value / 100;
+        if (this.currentElement) {
+            this.currentElement.volume = this.volume;
+        }
+        
+        // Update volume slider if not already updated
+        if (this.volumeSlider && this.volumeSlider.value != value) {
+            this.volumeSlider.value = value;
+        }
+        
+        // Update volume button icon
+        this.updateVolumeButton();
+    }
+
+    /**
+     * 🔇 Toggle mute
+     */
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.currentElement) {
+            this.currentElement.volume = this.isMuted ? 0 : this.volume;
+        }
+        this.updateVolumeButton();
+    }
+
+    /**
+     * 🔀 Toggle shuffle
      */
     toggleShuffle() {
         this.isShuffle = !this.isShuffle;
-        const shuffleBtn = document.getElementById('winamp-shuffle');
-        if (shuffleBtn) {
-            shuffleBtn.classList.toggle('active', this.isShuffle);
+        const btn = this.container.querySelector('#shuffleBtn');
+        if (btn) {
+            btn.classList.toggle('active', this.isShuffle);
         }
-        console.log(`🔀 Shuffle: ${this.isShuffle ? 'ON' : 'OFF'}`);
     }
-    
+
     /**
-     * 🔁 Toggle repeat mode
+     * 🔁 Toggle repeat
      */
     toggleRepeat() {
         this.isRepeat = !this.isRepeat;
-        const repeatBtn = document.getElementById('winamp-repeat');
-        if (repeatBtn) {
-            repeatBtn.classList.toggle('active', this.isRepeat);
+        const btn = this.container.querySelector('#repeatBtn');
+        if (btn) {
+            btn.classList.toggle('active', this.isRepeat);
         }
-        console.log(`🔁 Repeat: ${this.isRepeat ? 'ON' : 'OFF'}`);
     }
-    
+
     /**
-     * 🔄 Toggle between foreground and background play modes
+     * 📊 Seek to position (0-100)
      */
-    togglePlayMode() {
-        this.playMode = this.playMode === 'foreground' ? 'background' : 'foreground';
-        
-        const mainWindow = document.getElementById('winamp-main');
-        const miniPlayer = document.getElementById('winamp-mini');
-        
-        if (this.playMode === 'background') {
-            if (mainWindow) mainWindow.style.display = 'none';
-            if (miniPlayer) miniPlayer.style.display = 'flex';
-            console.log('🎵 Switched to background mode');
-        } else {
-            if (mainWindow) mainWindow.style.display = 'block';
-            if (miniPlayer) miniPlayer.style.display = 'none';
-            console.log('🎵 Switched to foreground mode');
+    seekTo(percent) {
+        if (this.currentElement && this.duration > 0) {
+            this.currentElement.currentTime = (percent / 100) * this.duration;
         }
     }
-    
+
     /**
-     * 📋 Show playlist window
+     * ⏩ Seek relative (seconds)
+     */
+    seekRelative(seconds) {
+        if (this.currentElement) {
+            this.currentElement.currentTime = Math.max(0, 
+                Math.min(this.duration, this.currentElement.currentTime + seconds));
+        }
+    }
+
+    /**
+     * 🔊 Change volume by amount
+     */
+    changeVolume(delta) {
+        const newVolume = Math.max(0, Math.min(100, (this.volume * 100) + delta));
+        this.setVolume(newVolume);
+    }
+
+    /**
+     * 📁 Load file(s)
+     */
+    loadFile() {
+        const fileInput = this.container.querySelector('#fileInput');
+        if (fileInput) {
+            fileInput.click();
+        }
+    }
+
+    /**
+     * 📂 Handle file selection
+     */
+    handleFileSelect(files) {
+        if (!files || files.length === 0) return;
+        
+        Array.from(files).forEach((file, index) => {
+            const track = {
+                id: this.playlist.length + index + 1,
+                title: file.name.replace(/\.[^/.]+$/, ""),
+                artist: "Local File",
+                album: "My Music",
+                duration: 0,
+                type: file.type.startsWith('video/') ? 'video' : 'audio',
+                format: file.name.split('.').pop().toLowerCase(),
+                url: URL.createObjectURL(file),
+                file: file
+            };
+            
+            this.playlist.push(track);
+        });
+        
+        this.updatePlaylist();
+        this.showNotification(`Added ${files.length} file(s) to playlist`, 'success');
+        
+        // If no track is playing, start with the first new track
+        if (!this.isPlaying && this.playlist.length > 0) {
+            this.loadTrack(this.playlist.length - files.length);
+        }
+    }
+
+    /**
+     * 📋 Show/hide playlist
      */
     showPlaylist() {
-        const playlistWindow = document.getElementById('winamp-playlist');
-        if (playlistWindow) {
-            playlistWindow.style.display = 'block';
-            this.updatePlaylist();
+        const panel = this.container.querySelector('#playlistPanel');
+        if (panel) {
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            if (panel.style.display === 'block') {
+                this.hideEqualizer();
+            }
         }
     }
-    
-    /**
-     * 📋 Hide playlist window
-     */
+
     hidePlaylist() {
-        const playlistWindow = document.getElementById('winamp-playlist');
-        if (playlistWindow) {
-            playlistWindow.style.display = 'none';
+        const panel = this.container.querySelector('#playlistPanel');
+        if (panel) {
+            panel.style.display = 'none';
         }
     }
-    
+
     /**
-     * 🎛️ Show equalizer window
+     * 🎛️ Show/hide equalizer
      */
     showEqualizer() {
-        const eqWindow = document.getElementById('winamp-equalizer');
-        if (eqWindow) {
-            eqWindow.style.display = 'block';
-            this.updateEqualizer();
+        const panel = this.container.querySelector('#equalizerPanel');
+        if (panel) {
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            if (panel.style.display === 'block') {
+                this.hidePlaylist();
+                this.createEQSliders();
+            }
         }
     }
-    
-    /**
-     * 🎛️ Hide equalizer window
-     */
+
     hideEqualizer() {
-        const eqWindow = document.getElementById('winamp-equalizer');
-        if (eqWindow) {
-            eqWindow.style.display = 'none';
+        const panel = this.container.querySelector('#equalizerPanel');
+        if (panel) {
+            panel.style.display = 'none';
         }
     }
-    
+
     /**
-     * 📱 Toggle minimize state
+     * 🎚️ Create EQ sliders
      */
-    toggleMinimize() {
-        this.isMinimized = !this.isMinimized;
-        const mainWindow = document.getElementById('winamp-main');
+    createEQSliders() {
+        const container = this.container.querySelector('#eqSliders');
+        if (!container) return;
         
-        if (this.isMinimized) {
-            if (mainWindow) {
-                mainWindow.style.height = '32px';
-                mainWindow.querySelector('.winamp-display').style.display = 'none';
-                mainWindow.querySelector('.winamp-visualization').style.display = 'none';
-                mainWindow.querySelector('.winamp-transport').style.display = 'none';
-                mainWindow.querySelector('.winamp-sliders').style.display = 'none';
-                mainWindow.querySelector('.winamp-modes').style.display = 'none';
-            }
-        } else {
-            if (mainWindow) {
-                mainWindow.style.height = '116px';
-                mainWindow.querySelector('.winamp-display').style.display = 'flex';
-                mainWindow.querySelector('.winamp-visualization').style.display = 'block';
-                mainWindow.querySelector('.winamp-transport').style.display = 'flex';
-                mainWindow.querySelector('.winamp-sliders').style.display = 'flex';
-                mainWindow.querySelector('.winamp-modes').style.display = 'flex';
-            }
+        const frequencies = ['60', '170', '310', '600', '1K', '3K', '6K', '12K', '14K', '16K'];
+        
+        container.innerHTML = frequencies.map((freq, index) => `
+            <div class="eq-band">
+                <input type="range" class="eq-slider" min="-12" max="12" value="${this.eqBands[index]}" 
+                       orient="vertical" data-band="${index}" 
+                       oninput="mediaPlayer.setEQBand(${index}, this.value)">
+                <div class="eq-label">${freq}</div>
+            </div>
+        `).join('');
+    }
+
+    /**
+     * 🎛️ Set EQ band
+     */
+    setEQBand(band, value) {
+        this.eqBands[band] = parseFloat(value);
+        // In a real implementation, this would apply the EQ to audio processing
+    }
+
+    /**
+     * 🎵 Load EQ preset
+     */
+    loadEQPreset(presetName) {
+        if (this.eqPresets[presetName]) {
+            this.eqBands = [...this.eqPresets[presetName]];
+            this.createEQSliders(); // Refresh sliders with new values
         }
     }
-    
+
     /**
      * 🔄 Update display elements
      */
     updateDisplay() {
-        const timeDisplay = document.getElementById('winamp-time');
-        const trackInfo = document.getElementById('winamp-marquee');
-        const positionSlider = document.getElementById('winamp-position');
-        const miniTrack = document.getElementById('winamp-mini-track');
-        const miniTime = document.getElementById('winamp-mini-time');
+        if (!this.trackDisplay) return;
         
-        // Format time display
-        const timeString = this.formatTime(this.currentTime);
-        if (timeDisplay) timeDisplay.textContent = timeString;
-        if (miniTime) miniTime.textContent = timeString;
+        const track = this.playlist[this.currentTrack];
+        if (track) {
+            this.trackDisplay.title.textContent = track.title;
+            this.trackDisplay.artist.textContent = `${track.artist} - ${track.album}`;
+        } else {
+            this.trackDisplay.title.textContent = "No Track Selected";
+            this.trackDisplay.artist.textContent = "Select a file to play";
+        }
         
-        // Update track info
-        if (this.playlist.length > 0 && this.playlist[this.currentTrack]) {
-            const track = this.playlist[this.currentTrack];
-            const info = `${track.title} - ${track.artist}`;
-            if (trackInfo) trackInfo.textContent = info;
-            if (miniTrack) miniTrack.textContent = track.title;
-            
-            // Update position slider
-            if (positionSlider && track.duration > 0) {
-                positionSlider.value = (this.currentTime / track.duration) * 100;
-            }
+        this.updateTimeDisplay();
+    }
+
+    /**
+     * ⏰ Update time display
+     */
+    updateTimeDisplay() {
+        if (this.timeDisplay) {
+            this.timeDisplay.current.textContent = this.formatTime(this.currentTime);
+            this.timeDisplay.total.textContent = this.formatTime(this.duration);
         }
     }
-    
+
     /**
-     * 🔄 Update play button state
+     * 📊 Update progress bar
+     */
+    updateProgress() {
+        if (this.progressBar && this.duration > 0) {
+            const percent = (this.currentTime / this.duration) * 100;
+            this.progressBar.value = percent;
+        }
+        this.updateTimeDisplay();
+    }
+
+    /**
+     * ▶️ Update play button
      */
     updatePlayButton() {
-        const playBtn = document.getElementById('winamp-play-btn');
-        const miniPlayBtn = document.getElementById('winamp-mini-play');
-        
-        const symbol = this.isPlaying ? '⏸' : '▶';
-        if (playBtn) playBtn.textContent = symbol;
-        if (miniPlayBtn) miniPlayBtn.textContent = symbol;
+        const btn = this.container.querySelector('#playButton');
+        if (btn) {
+            btn.textContent = this.isPlaying ? '⏸' : '▶';
+            btn.classList.toggle('active', this.isPlaying);
+        }
     }
-    
+
     /**
-     * 🔄 Update playlist display
+     * 🔊 Update volume button
+     */
+    updateVolumeButton() {
+        const btn = this.container.querySelector('.volume-btn');
+        if (btn) {
+            if (this.isMuted || this.volume === 0) {
+                btn.textContent = '🔇';
+            } else if (this.volume < 0.3) {
+                btn.textContent = '🔈';
+            } else if (this.volume < 0.7) {
+                btn.textContent = '🔉';
+            } else {
+                btn.textContent = '🔊';
+            }
+        }
+    }
+
+    /**
+     * 📋 Update playlist display
      */
     updatePlaylist() {
-        const playlistTracks = document.getElementById('winamp-playlist-tracks');
-        if (!playlistTracks) return;
+        if (!this.playlistContainer) return;
         
-        playlistTracks.innerHTML = '';
-        
-        this.playlist.forEach((track, index) => {
-            const trackElement = document.createElement('div');
-            trackElement.className = `winamp-playlist-track ${index === this.currentTrack ? 'current' : ''}`;
-            trackElement.innerHTML = `
-                <span>${track.title} - ${track.artist}</span>
-                <span>${this.formatTime(track.duration)}</span>
-            `;
-            trackElement.onclick = () => {
-                this.currentTrack = index;
-                this.currentTime = 0;
-                if (this.isPlaying) {
-                    this.stop();
-                    setTimeout(() => this.play(), 100);
-                }
-                this.updateDisplay();
-                this.updatePlaylist();
-            };
-            playlistTracks.appendChild(trackElement);
-        });
+        this.playlistContainer.innerHTML = this.playlist.map((track, index) => `
+            <div class="playlist-item ${index === this.currentTrack ? 'active' : ''}" 
+                 onclick="mediaPlayer.loadTrack(${index})">
+                <div style="font-weight: bold;">${track.title}</div>
+                <div style="font-size: 11px; color: #66ff66;">
+                    ${track.artist} - ${this.formatTime(track.duration)}
+                </div>
+            </div>
+        `).join('');
     }
-    
-    /**
-     * 🔄 Update equalizer display
-     */
-    updateEqualizer() {
-        const eqSliders = document.getElementById('winamp-eq-sliders');
-        if (!eqSliders) return;
-        
-        eqSliders.innerHTML = '';
-        
-        const frequencies = ['32', '64', '125', '250', '500', '1K', '2K', '4K', '8K', '16K'];
-        
-        this.eqBands.forEach((value, index) => {
-            const bandElement = document.createElement('div');
-            bandElement.className = 'winamp-eq-band';
-            bandElement.innerHTML = `
-                <input type="range" min="-12" max="12" value="${value}" 
-                       orient="vertical" onchange="winampPlayer.setEQBand(${index}, this.value)">
-                <label>${frequencies[index]}</label>
-            `;
-            eqSliders.appendChild(bandElement);
-        });
-    }
-    
-    /**
-     * 🎛️ Set equalizer band
-     */
-    setEQBand(bandIndex, value) {
-        this.eqBands[bandIndex] = parseFloat(value);
-        
-        if (this.eqNodes[bandIndex]) {
-            this.eqNodes[bandIndex].gain.value = this.eqEnabled ? this.eqBands[bandIndex] : 0;
-        }
-    }
-    
-    /**
-     * 🎛️ Set equalizer preset
-     */
-    setEQPreset(preset) {
-        this.eqPreset = preset;
-        
-        const presets = {
-            'Normal': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            'Rock': [4, 2, -2, -3, -1, 2, 4, 6, 6, 6],
-            'Pop': [-1, 2, 4, 4, 1, -1, -2, -2, -1, -1],
-            'Jazz': [3, 2, 1, 2, -1, -1, 0, 1, 2, 3],
-            'Classical': [3, 2, -1, -1, -1, -1, -1, -2, 2, 3],
-            'Electronic': [4, 3, 1, 0, -2, 2, 1, 1, 3, 4],
-            'Bass Boost': [6, 4, 2, 1, -1, -2, -1, 0, 1, 2],
-            'Vocal': [-2, -1, -1, 1, 3, 3, 2, 1, 0, -1]
-        };
-        
-        if (presets[preset]) {
-            this.eqBands = [...presets[preset]];
-            this.updateEqualizer();
-            
-            // Apply to audio nodes
-            this.eqBands.forEach((value, index) => {
-                if (this.eqNodes[index]) {
-                    this.eqNodes[index].gain.value = this.eqEnabled ? value : 0;
-                }
-            });
-        }
-    }
-    
-    /**
-     * 🎛️ Toggle equalizer on/off
-     */
-    toggleEQ() {
-        this.eqEnabled = !this.eqEnabled;
-        
-        // Apply to audio nodes
-        this.eqBands.forEach((value, index) => {
-            if (this.eqNodes[index]) {
-                this.eqNodes[index].gain.value = this.eqEnabled ? value : 0;
-            }
-        });
-        
-        // Update button text
-        const eqButton = document.querySelector('#winamp-equalizer .winamp-eq-presets button');
-        if (eqButton) {
-            eqButton.textContent = this.eqEnabled ? 'ON' : 'OFF';
-        }
-        
-        console.log(`🎛️ Equalizer: ${this.eqEnabled ? 'ON' : 'OFF'}`);
-    }
-    
-    /**
-     * 📊 Update visualization
-     */
-    updateVisualization() {
-        const canvas = document.getElementById('winamp-viz-canvas');
-        if (!canvas || !this.analyserNode) return;
-        
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-        
-        // For demo purposes, generate fake visualization data
-        // In a real implementation, you'd use analyserNode.getByteFrequencyData()
-        const dataArray = new Uint8Array(32);
-        for (let i = 0; i < dataArray.length; i++) {
-            if (this.isPlaying) {
-                dataArray[i] = Math.random() * 255;
-            } else {
-                dataArray[i] = 0;
-            }
-        }
-        
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, width, height);
-        
-        if (this.visualizationMode === 'spectrum') {
-            // Draw spectrum analyzer
-            const barWidth = width / dataArray.length;
-            ctx.fillStyle = '#00ff00';
-            
-            for (let i = 0; i < dataArray.length; i++) {
-                const barHeight = (dataArray[i] / 255) * height;
-                ctx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
-            }
-        }
-    }
-    
-    /**
-     * ⏰ Format time in MM:SS format
-     */
-    formatTime(seconds) {
-        if (isNaN(seconds) || seconds < 0) return '-:--';
-        
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    }
-    
-    /**
-     * 📁 Load audio files (simulated)
-     */
-    loadFiles() {
-        // In a real implementation, this would open a file dialog
-        console.log('📁 Loading files... (Feature not implemented in demo)');
-        
-        // Add some more demo tracks
-        const newTracks = [
-            {
-                id: this.playlist.length + 1,
-                title: "Background Beats",
-                artist: "Work Music Co.",
-                album: "Productivity Playlist",
-                duration: 210,
-                url: "data:audio/wav;base64,",
-                genre: "Instrumental"
-            },
-            {
-                id: this.playlist.length + 2,
-                title: "Focus Flow",
-                artist: "Deep Concentration",
-                album: "Study Sessions",
-                duration: 190,
-                url: "data:audio/wav;base64,",
-                genre: "Ambient"
-            }
-        ];
-        
-        this.playlist.push(...newTracks);
-        this.updatePlaylist();
-        console.log(`✅ Added ${newTracks.length} demo tracks to playlist`);
-    }
-    
+
     /**
      * 🗑️ Clear playlist
      */
     clearPlaylist() {
-        this.stop();
         this.playlist = [];
         this.currentTrack = 0;
-        this.currentTime = 0;
-        this.updateDisplay();
+        this.stop();
         this.updatePlaylist();
-        console.log('🗑️ Playlist cleared');
+        this.updateDisplay();
+        this.showNotification('Playlist cleared', 'info');
     }
-    
+
     /**
-     * 💾 Save playlist (simulated)
+     * 💾 Save playlist (to localStorage)
      */
     savePlaylist() {
-        const playlistData = {
-            name: 'My Playlist',
-            tracks: this.playlist,
-            created: new Date().toISOString()
-        };
-        
-        // In a real implementation, this would save to file or server
-        localStorage.setItem('winamp_playlist', JSON.stringify(playlistData));
-        console.log('💾 Playlist saved to localStorage');
+        try {
+            const playlistData = {
+                name: `Playlist_${new Date().toISOString().split('T')[0]}`,
+                tracks: this.playlist.map(track => ({
+                    title: track.title,
+                    artist: track.artist,
+                    album: track.album,
+                    duration: track.duration,
+                    type: track.type,
+                    format: track.format
+                }))
+            };
+            
+            const saved = JSON.parse(localStorage.getItem('mediaPlayerPlaylists') || '[]');
+            saved.push(playlistData);
+            localStorage.setItem('mediaPlayerPlaylists', JSON.stringify(saved));
+            
+            this.showNotification('Playlist saved', 'success');
+        } catch (error) {
+            this.showNotification('Failed to save playlist', 'error');
+        }
     }
-    
+
     /**
-     * 📂 Load playlist (simulated)
+     * 📂 Load playlist (from localStorage)
      */
     loadPlaylist() {
         try {
-            const savedPlaylist = localStorage.getItem('winamp_playlist');
-            if (savedPlaylist) {
-                const playlistData = JSON.parse(savedPlaylist);
-                this.playlist = playlistData.tracks || [];
+            const saved = JSON.parse(localStorage.getItem('mediaPlayerPlaylists') || '[]');
+            if (saved.length > 0) {
+                // For demo, load the most recent playlist
+                const latest = saved[saved.length - 1];
+                this.playlist = latest.tracks;
                 this.currentTrack = 0;
-                this.currentTime = 0;
-                this.updateDisplay();
                 this.updatePlaylist();
-                console.log('📂 Playlist loaded from localStorage');
+                this.updateDisplay();
+                this.showNotification(`Loaded playlist: ${latest.name}`, 'success');
             } else {
-                console.log('📂 No saved playlist found');
+                this.showNotification('No saved playlists found', 'info');
             }
         } catch (error) {
-            console.error('Error loading playlist:', error);
+            this.showNotification('Failed to load playlist', 'error');
         }
     }
-    
+
     /**
-     * 💾 Load saved settings
+     * ⚙️ Show preferences (placeholder)
      */
-    loadSettings() {
-        try {
-            const settings = localStorage.getItem('winamp_settings');
-            if (settings) {
-                const data = JSON.parse(settings);
-                this.volume = data.volume || 0.8;
-                this.isShuffle = data.isShuffle || false;
-                this.isRepeat = data.isRepeat || false;
-                this.currentSkin = data.currentSkin || 'classic';
-                this.eqEnabled = data.eqEnabled !== false;
-                this.eqBands = data.eqBands || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                this.visualizationMode = data.visualizationMode || 'spectrum';
-                console.log('✅ Settings loaded');
-            }
-        } catch (error) {
-            console.error('Error loading settings:', error);
+    showPreferences() {
+        this.showNotification('Preferences panel coming soon!', 'info');
+    }
+
+    /**
+     * 📏 Minimize player
+     */
+    minimizePlayer() {
+        this.isMinimized = !this.isMinimized;
+        const container = this.container.querySelector('.media-player-container');
+        if (container) {
+            container.style.height = this.isMinimized ? 'auto' : '';
+            const panels = container.querySelectorAll('.player-main, .mode-controls');
+            panels.forEach(panel => {
+                panel.style.display = this.isMinimized ? 'none' : '';
+            });
         }
     }
-    
+
     /**
-     * 💾 Save current settings
+     * 🔳 Toggle maximize (placeholder)
      */
-    saveSettings() {
-        try {
-            const settings = {
-                volume: this.volume,
-                isShuffle: this.isShuffle,
-                isRepeat: this.isRepeat,
-                currentSkin: this.currentSkin,
-                eqEnabled: this.eqEnabled,
-                eqBands: this.eqBands,
-                visualizationMode: this.visualizationMode
-            };
-            localStorage.setItem('winamp_settings', JSON.stringify(settings));
-        } catch (error) {
-            console.error('Error saving settings:', error);
+    toggleMaximize() {
+        this.showNotification('Maximize feature coming soon!', 'info');
+    }
+
+    /**
+     * 🎨 Start visualization
+     */
+    startVisualization() {
+        if (!this.canvas || !this.canvasContext) return;
+        
+        const animate = () => {
+            this.drawVisualization();
+            requestAnimationFrame(animate);
+        };
+        
+        animate();
+    }
+
+    /**
+     * 📊 Draw visualization
+     */
+    drawVisualization() {
+        if (!this.canvasContext) return;
+        
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        
+        // Clear canvas
+        this.canvasContext.fillStyle = '#000000';
+        this.canvasContext.fillRect(0, 0, width, height);
+        
+        // Draw simple spectrum bars (demo visualization)
+        const barCount = 32;
+        const barWidth = width / barCount;
+        
+        for (let i = 0; i < barCount; i++) {
+            // Generate demo visualization data
+            const intensity = this.isPlaying ? 
+                Math.random() * 0.8 * (1 + Math.sin(Date.now() * 0.01 + i * 0.5)) : 0;
+            const barHeight = intensity * height * 0.8;
+            
+            const hue = (i / barCount) * 120; // Green spectrum
+            this.canvasContext.fillStyle = `hsl(${hue}, 100%, 50%)`;
+            this.canvasContext.fillRect(
+                i * barWidth + 1, 
+                height - barHeight, 
+                barWidth - 2, 
+                barHeight
+            );
         }
     }
-    
+
     /**
-     * ❌ Close player
+     * 📢 Show notification
      */
-    close() {
-        this.stop();
-        this.saveSettings();
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: ${type === 'error' ? '#ff3333' : type === 'success' ? '#33ff33' : '#00ff00'};
+            color: #000;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        `;
         
-        if (this.container && this.container.parentNode) {
-            this.container.parentNode.removeChild(this.container);
-        }
+        notification.textContent = message;
+        document.body.appendChild(notification);
         
-        console.log('❌ Winamp Player closed');
-    }
-    
-    /**
-     * 🎨 Create and return the complete Winamp player
-     */
-    createWindow() {
-        const winampWindow = document.createElement('div');
-        winampWindow.innerHTML = this.getStyles() + this.createInterface();
-        
-        // Store reference to container
-        this.container = winampWindow.querySelector('.winamp-player');
-        
-        // Make windows draggable
-        this.makeDraggable();
-        
-        // Initialize playlist and equalizer
+        // Auto remove after 3 seconds
         setTimeout(() => {
-            this.updatePlaylist();
-            this.updateEqualizer();
-            this.updateDisplay();
-        }, 100);
-        
-        return winampWindow.innerHTML;
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
     }
-    
+
     /**
-     * 🖱️ Make windows draggable
+     * ⏰ Format time in MM:SS
      */
-    makeDraggable() {
-        // This would be implemented to make the player draggable
-        // For now, it's positioned with CSS
+    formatTime(seconds) {
+        if (isNaN(seconds) || seconds < 0) return '00:00';
+        
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
-    
-    // Export for global access
-    static createInstance() {
-        if (!window.winampPlayer) {
-            window.winampPlayer = new WinampPlayer();
+
+    /**
+     * 🧹 Cleanup resources
+     */
+    destroy() {
+        if (this.currentElement) {
+            this.currentElement.pause();
+            this.currentElement.src = '';
         }
-        return window.winampPlayer;
+        
+        if (this.audioContext && this.audioContext.state !== 'closed') {
+            this.audioContext.close();
+        }
+        
+        // Clean up object URLs
+        this.playlist.forEach(track => {
+            if (track.url && track.url.startsWith('blob:')) {
+                URL.revokeObjectURL(track.url);
+            }
+        });
     }
 }
 
-// ES6 Module Export
-export { MediaPlayer };
+// Global instance for the desktop system
+let mediaPlayer = null;
 
-// Initialize and export
-const mediaPlayer = new MediaPlayer();
-window.mediaPlayer = mediaPlayer;
-
-// Export for module systems
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = MediaPlayer;
+// Initialize global instance when loaded
+if (typeof window !== 'undefined') {
+    window.MediaPlayer = MediaPlayer;
+    
+    // Create global instance for onclick handlers
+    window.mediaPlayer = new MediaPlayer();
+    mediaPlayer = window.mediaPlayer;
 }
 
-// Make globally available
-window.MediaPlayer = MediaPlayer;
-
-console.log('🎵 Media Player loaded successfully!');
+// Export for ES6 modules
+export { MediaPlayer };
