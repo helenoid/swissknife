@@ -1,82 +1,51 @@
 /**
- * VibeCode App - Professional AI-Powered Streamlit Development Environment
- * Advanced IDE with Monaco Editor, real-time collaboration, and intelligent code assistance
+ * VibeCode App - Enhanced AI-Powered Streamlit Development Environment
+ * Professional IDE with live preview, templates, and intelligent code assistance
  */
 
-export class VibeCodeApp {
+class VibeCodeApp {
   constructor(desktop) {
     this.desktop = desktop;
-    this.swissknife = null;
+    this.swissknife = desktop?.swissknife || null;
     
-    // Core editor instances
-    this.monacoEditor = null;
-    this.richEditor = null;
-    this.previewFrame = null;
-    
-    // File and project management
+    // Core configuration  
     this.currentFile = null;
-    this.currentProject = null;
     this.recentFiles = [];
-    this.openTabs = [];
-    this.activeTabIndex = 0;
-    
-    // Editor configuration
     this.language = 'python';
-    this.theme = 'vs-dark';
-    this.editorMode = 'code'; // 'rich', 'code', 'preview', 'split'
+    this.theme = 'dark';
+    this.editorMode = 'split'; // 'code', 'preview', 'split'
     this.fontSize = 14;
-    this.wordWrap = true;
-    this.minimap = true;
     
-    // AI and code intelligence
+    // AI features
     this.aiAssistEnabled = true;
-    this.codeCompletionEnabled = true;
-    this.diagnosticsEnabled = true;
-    this.formatOnSave = true;
-    this.aiContext = [];
-    
-    // App generation and templates
-    this.streamlitCode = '';
-    this.currentApp = null;
     this.isGenerating = false;
-    this.templateCache = new Map();
-    
-    // Live preview and testing
-    this.previewUrl = null;
-    this.isPreviewLive = false;
-    this.previewMode = 'desktop'; // 'mobile', 'tablet', 'desktop'
-    
-    // Collaboration and sharing
-    this.isCollaborating = false;
-    this.collaborators = [];
-    this.sharedSession = null;
-    
-    // Performance and debugging
-    this.debugMode = false;
-    this.performanceMetrics = {};
-    this.testResults = null;
     
     // UI state
     this.panels = {
       explorer: true,
       output: true,
-      terminal: false,
-      debug: false,
-      extensions: false
+      ai: false
     };
-    this.layout = 'standard'; // 'standard', 'zen', 'debug'
+    
+    // Initialize recent files
+    this.loadRecentFiles();
+    
+    console.log('🎯 VibeCode initialized successfully');
   }
 
   async initialize() {
-    this.swissknife = this.desktop.swissknife;
-    await this.loadConfiguration();
-    await this.loadRecentFiles();
-    await this.initializeProject();
-    await this.loadMonacoEditor();
-    await this.initializeAIServices();
+    console.log('🎯 Initializing VibeCode...');
+    try {
+      await this.loadConfiguration();
+      console.log('✅ VibeCode initialized successfully');
+      return this;
+    } catch (error) {
+      console.error('❌ VibeCode initialization failed:', error);
+      return this;
+    }
   }
 
-  async loadConfiguration() {
+  loadConfiguration() {
     try {
       const config = localStorage.getItem('vibecode-config');
       if (config) {
@@ -88,91 +57,13 @@ export class VibeCodeApp {
     }
   }
 
-  async initializeProject() {
-    // Initialize with default project structure
-    this.currentProject = {
-      name: 'Streamlit Project',
-      path: '/project',
-      files: {
-        'app.py': { type: 'python', content: this.getDefaultStreamlitCode() },
-        'requirements.txt': { type: 'text', content: 'streamlit>=1.28.0\npandas>=1.5.0\nplotly>=5.0.0' },
-        'README.md': { type: 'markdown', content: '# My Streamlit Application\n\nDescribe your app here.' }
-      },
-      settings: {
-        python_version: '3.9',
-        streamlit_version: '1.28.0'
-      }
-    };
-  }
-
-  async loadMonacoEditor() {
-    // Load Monaco Editor from CDN if not already loaded
-    if (!window.monaco) {
-      await this.loadMonacoScript();
-    }
-  }
-
-  async loadMonacoScript() {
-    return new Promise((resolve, reject) => {
-      // Check if already loaded
-      if (window.monaco) {
-        resolve();
-        return;
-      }
-
-      // Load Monaco Editor
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js';
-      script.onload = () => {
-        window.require.config({ 
-          paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }
-        });
-        window.require(['vs/editor/editor.main'], () => {
-          this.configureMonaco();
-          resolve();
-        });
-      };
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
-  }
-
-  configureMonaco() {
-    // Configure Monaco for Streamlit development
-    monaco.languages.registerCompletionItemProvider('python', {
-      provideCompletionItems: (model, position) => {
-        return this.getStreamlitCompletions(model, position);
-      }
-    });
-
-    // Add Streamlit-specific snippets
-    monaco.languages.registerCompletionItemProvider('python', {
-      provideCompletionItems: () => ({
-        suggestions: this.getStreamlitSnippets()
-      })
-    });
-
-    // Configure diagnostics
-    monaco.languages.onLanguage('python', () => {
-      this.setupPythonLanguageFeatures();
-    });
-  }
-
-  async initializeAIServices() {
-    // Initialize AI-powered features
-    this.aiContext = [];
-    if (this.swissknife && this.aiAssistEnabled) {
-      try {
-        // Test AI connectivity
-        await this.swissknife.chat({
-          message: 'Hello, I\'m initializing VibeCode. Please respond with "ready" if you can assist with Streamlit development.',
-          model: 'gpt-3.5-turbo'
-        });
-        console.log('AI services initialized successfully');
-      } catch (error) {
-        console.warn('AI services initialization failed:', error);
-        this.aiAssistEnabled = false;
-      }
+  loadRecentFiles() {
+    try {
+      const stored = localStorage.getItem('vibecode-recent-files');
+      this.recentFiles = stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn('Failed to load recent files:', error);
+      this.recentFiles = [];
     }
   }
 
@@ -182,16 +73,16 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
-# Configure the Streamlit page
+# 🎯 VibeCode - AI-Powered Streamlit Editor
 st.set_page_config(
-    page_title="My Streamlit App",
-    page_icon="🚀",
+    page_title="My VibeCode App",
+    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # Main title
-st.title("🚀 Welcome to VibeCode!")
+st.title("🎯 Welcome to VibeCode!")
 st.markdown("### AI-Powered Streamlit Development Environment")
 
 # Sidebar
@@ -244,282 +135,1765 @@ st.markdown("---")
 st.markdown("Built with ❤️ using VibeCode - The AI-Powered Streamlit IDE")`;
   }
 
-  async loadRecentFiles() {
-    try {
-      // Load recent files from storage
-      const stored = localStorage.getItem('vibecode-recent-files');
-      if (stored) {
-        this.recentFiles = JSON.parse(stored);
-      } else {
-        this.recentFiles = [];
-      }
-    } catch (error) {
-      console.warn('Failed to load recent files:', error);
-      this.recentFiles = [];
+  async render() {
+    console.log('🎯 Rendering VibeCode app...');
+    const currentCode = this.currentFile ? this.currentFile.content : this.getDefaultStreamlitCode();
+    
+    return `
+      <div class="vibecode-container" data-theme="${this.theme}">
+        <!-- Enhanced CSS Styles -->
+        <style>
+          .vibecode-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #1e1e1e;
+            color: #fff;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+          }
+          
+          .vibecode-container[data-theme="light"] {
+            background: #ffffff;
+            color: #333;
+          }
+          
+          .vibecode-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            min-height: 40px;
+          }
+          
+          .vibecode-container[data-theme="light"] .vibecode-header {
+            background: #f3f3f3;
+            border-bottom: 1px solid #e1e1e1;
+          }
+          
+          .header-left, .header-center, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .vibe-btn {
+            padding: 6px 12px;
+            border: 1px solid #464647;
+            background: #0e639c;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+          }
+          
+          .vibe-btn:hover {
+            background: #1177bb;
+            transform: translateY(-1px);
+          }
+          
+          .vibe-btn.secondary {
+            background: #5a5a5a;
+            border-color: #5a5a5a;
+          }
+          
+          .vibe-btn.secondary:hover {
+            background: #6a6a6a;
+          }
+          
+          .vibe-btn.success {
+            background: #16a085;
+            border-color: #16a085;
+          }
+          
+          .vibe-btn.success:hover {
+            background: #1abc9c;
+          }
+          
+          .vibe-btn.ai {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            font-weight: 500;
+          }
+          
+          .vibe-btn.ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          }
+          
+          .mode-selector {
+            display: flex;
+            background: #3c3c3c;
+            border-radius: 4px;
+            overflow: hidden;
+          }
+          
+          .mode-btn {
+            padding: 6px 12px;
+            background: transparent;
+            color: #cccccc;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+          }
+          
+          .mode-btn.active, .mode-btn:hover {
+            background: #0e639c;
+            color: white;
+          }
+          
+          .vibecode-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+          }
+          
+          .editor-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e1e;
+          }
+          
+          .vibecode-container[data-theme="light"] .editor-section {
+            background: #ffffff;
+          }
+          
+          .editor-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+            font-size: 12px;
+          }
+          
+          .vibecode-container[data-theme="light"] .editor-toolbar {
+            background: #f8f8f8;
+            border-bottom: 1px solid #e1e1e1;
+          }
+          
+          .code-editor {
+            flex: 1;
+            width: 100%;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            outline: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: ${this.fontSize}px;
+            line-height: 1.5;
+            padding: 16px;
+            resize: none;
+            tab-size: 4;
+          }
+          
+          .vibecode-container[data-theme="light"] .code-editor {
+            background: #ffffff;
+            color: #333333;
+          }
+          
+          .preview-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #3e3e42;
+            background: #2d2d30;
+          }
+          
+          .vibecode-container[data-theme="light"] .preview-section {
+            border-left: 1px solid #e1e1e1;
+            background: #f8f8f8;
+          }
+          
+          .preview-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+          }
+          
+          .vibecode-container[data-theme="light"] .preview-toolbar {
+            background: #f3f3f3;
+            border-bottom: 1px solid #e1e1e1;
+          }
+          
+          .preview-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+          }
+          
+          .ai-panel {
+            width: 300px;
+            background: #252526;
+            border-left: 1px solid #3e3e42;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-panel {
+            background: #f8f8f8;
+            border-left: 1px solid #e1e1e1;
+          }
+          
+          .ai-header {
+            padding: 12px;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            font-weight: 500;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-header {
+            background: #f3f3f3;
+            border-bottom: 1px solid #e1e1e1;
+          }
+          
+          .ai-content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+          }
+          
+          .ai-message {
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.4;
+          }
+          
+          .ai-message.user {
+            background: #0e639c;
+            color: white;
+            margin-left: 20px;
+          }
+          
+          .ai-message.assistant {
+            background: #3e3e42;
+            color: #d4d4d4;
+            margin-right: 20px;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-message.assistant {
+            background: #e8e8e8;
+            color: #333;
+          }
+          
+          .ai-input-container {
+            padding: 12px;
+            border-top: 1px solid #3e3e42;
+            display: flex;
+            gap: 8px;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-input-container {
+            border-top: 1px solid #e1e1e1;
+          }
+          
+          .ai-input {
+            flex: 1;
+            padding: 8px;
+            background: #3c3c3c;
+            border: 1px solid #5a5a5a;
+            color: #d4d4d4;
+            border-radius: 4px;
+            font-size: 12px;
+            resize: none;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-input {
+            background: #ffffff;
+            border: 1px solid #ccc;
+            color: #333;
+          }
+          
+          .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            padding: 12px;
+          }
+          
+          .template-card {
+            padding: 16px;
+            background: #3e3e42;
+            border: 1px solid #5a5a5a;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+          }
+          
+          .template-card:hover {
+            background: #4a4a4a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          }
+          
+          .vibecode-container[data-theme="light"] .template-card {
+            background: #ffffff;
+            border: 1px solid #ddd;
+          }
+          
+          .vibecode-container[data-theme="light"] .template-card:hover {
+            background: #f5f5f5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          }
+          
+          .template-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+          }
+          
+          .template-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 14px;
+          }
+          
+          .template-description {
+            font-size: 11px;
+            color: #888;
+            line-height: 1.3;
+          }
+          
+          .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 12px;
+            background: #007acc;
+            color: white;
+            font-size: 11px;
+            min-height: 22px;
+          }
+          
+          .status-left, .status-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          
+          .hidden {
+            display: none !important;
+          }
+          
+          .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+          }
+          
+          .loading-spinner {
+            border: 3px solid #333;
+            border-top: 3px solid #0e639c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+          }
+          
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          
+          @media (max-width: 768px) {
+            .vibecode-main {
+              flex-direction: column;
+            }
+            
+            .preview-section {
+              border-left: none;
+              border-top: 1px solid #3e3e42;
+            }
+            
+            .ai-panel {
+              width: 100%;
+              border-left: none;
+              border-top: 1px solid #3e3e42;
+            }
+          }
+        </style>
+
+        <!-- Header -->
+        <div class="vibecode-header">
+          <div class="header-left">
+            <button class="vibe-btn" id="new-file-btn">📄 New</button>
+            <button class="vibe-btn" id="open-file-btn">📁 Open</button>
+            <button class="vibe-btn" id="save-file-btn">💾 Save</button>
+            <button class="vibe-btn secondary" id="templates-btn">📋 Templates</button>
+          </div>
+          
+          <div class="header-center">
+            <div class="mode-selector">
+              <button class="mode-btn ${this.editorMode === 'code' ? 'active' : ''}" data-mode="code">💻 Code</button>
+              <button class="mode-btn ${this.editorMode === 'preview' ? 'active' : ''}" data-mode="preview">👁️ Preview</button>
+              <button class="mode-btn ${this.editorMode === 'split' ? 'active' : ''}" data-mode="split">⚡ Split</button>
+            </div>
+          </div>
+          
+          <div class="header-right">
+            <button class="vibe-btn ai" id="ai-toggle-btn" title="Toggle AI Assistant">🤖 AI</button>
+            <button class="vibe-btn success" id="run-btn">▶️ Run</button>
+            <button class="vibe-btn secondary" id="theme-toggle-btn">☀️</button>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="vibecode-main">
+          <!-- Editor Section -->
+          <div class="editor-section ${this.editorMode === 'preview' ? 'hidden' : ''}">
+            <div class="editor-toolbar">
+              <div class="toolbar-left">
+                <span>📄 ${this.currentFile ? this.currentFile.name : 'untitled.py'}</span>
+                ${this.currentFile && this.currentFile.modified ? '<span style="color: #f39c12;">●</span>' : ''}
+              </div>
+              <div class="toolbar-right">
+                <span>Python</span>
+                <span>Ln 1, Col 1</span>
+              </div>
+            </div>
+            <textarea class="code-editor" id="code-editor" placeholder="# Start building your Streamlit app here...
+import streamlit as st
+
+st.title('Hello, VibeCode!')
+st.write('Welcome to the AI-powered Streamlit editor!')">${currentCode}</textarea>
+          </div>
+
+          <!-- Preview Section -->
+          <div class="preview-section ${this.editorMode === 'code' ? 'hidden' : ''}">
+            <div class="preview-toolbar">
+              <div>
+                <span>🔴 Live Preview</span>
+              </div>
+              <div>
+                <button class="vibe-btn" id="refresh-preview-btn">🔄 Refresh</button>
+                <button class="vibe-btn" id="fullscreen-preview-btn">🔗 Open</button>
+              </div>
+            </div>
+            <iframe class="preview-frame" id="preview-frame" src="about:blank"></iframe>
+          </div>
+
+          <!-- AI Panel -->
+          <div class="ai-panel ${this.panels.ai ? '' : 'hidden'}" id="ai-panel">
+            <div class="ai-header">
+              <span>🤖 AI Assistant</span>
+              <button class="vibe-btn secondary" id="close-ai-btn" style="float: right; margin-top: -4px; padding: 2px 6px;">✕</button>
+            </div>
+            <div class="ai-content" id="ai-content">
+              <div class="ai-message assistant">
+                Hi! I'm your AI assistant for Streamlit development. I can help you:
+                <br>• Generate code from descriptions
+                <br>• Debug and optimize your code
+                <br>• Suggest improvements
+                <br>• Answer Streamlit questions
+                <br><br>
+                What would you like to build today?
+              </div>
+            </div>
+            <div class="ai-input-container">
+              <textarea class="ai-input" id="ai-input" rows="2" placeholder="Ask me anything about Streamlit..."></textarea>
+              <button class="vibe-btn ai" id="ai-send-btn">💬</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <div class="status-left">
+            <span>VibeCode v2.1</span>
+            <span>${this.aiAssistEnabled ? '🤖 AI Ready' : '🤖 AI Disabled'}</span>
+          </div>
+          <div class="status-right">
+            <span>Python</span>
+            <span>UTF-8</span>
+            <span>Streamlit</span>
+          </div>
+        </div>
+
+        <!-- Templates Modal -->
+        <div id="templates-modal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+          <div style="background: #2d2d30; border-radius: 8px; max-width: 800px; max-height: 80vh; overflow-y: auto; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h3 style="margin: 0; color: white;">📋 Choose a Template</h3>
+              <button class="vibe-btn secondary" id="close-templates-btn">✕</button>
+            </div>
+            <div class="template-grid">
+              <div class="template-card" data-template="dashboard">
+                <div class="template-icon">📊</div>
+                <div class="template-name">Dashboard</div>
+                <div class="template-description">Interactive data dashboard with charts and metrics</div>
+              </div>
+              <div class="template-card" data-template="ml-model">
+                <div class="template-icon">🤖</div>
+                <div class="template-name">ML Model</div>
+                <div class="template-description">Machine learning application with predictions</div>
+              </div>
+              <div class="template-card" data-template="data-viz">
+                <div class="template-icon">📈</div>
+                <div class="template-name">Data Visualization</div>
+                <div class="template-description">Advanced data visualization with Plotly</div>
+              </div>
+              <div class="template-card" data-template="chatbot">
+                <div class="template-icon">💬</div>
+                <div class="template-name">Chatbot</div>
+                <div class="template-description">AI-powered chatbot interface</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  setupEventListeners(window) {
+    console.log('🎯 Setting up VibeCode event listeners...');
+    
+    // File operations
+    const newBtn = window.querySelector('#new-file-btn');
+    const openBtn = window.querySelector('#open-file-btn');
+    const saveBtn = window.querySelector('#save-file-btn');
+    const templatesBtn = window.querySelector('#templates-btn');
+    
+    if (newBtn) newBtn.addEventListener('click', () => this.newFile(window));
+    if (openBtn) openBtn.addEventListener('click', () => this.openFile(window));
+    if (saveBtn) saveBtn.addEventListener('click', () => this.saveFile(window));
+    if (templatesBtn) templatesBtn.addEventListener('click', () => this.showTemplates(window));
+
+    // Editor mode switching
+    window.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => this.switchEditorMode(window, btn.dataset.mode));
+    });
+
+    // AI controls
+    const aiToggleBtn = window.querySelector('#ai-toggle-btn');
+    const aiSendBtn = window.querySelector('#ai-send-btn');
+    const closeAiBtn = window.querySelector('#close-ai-btn');
+    
+    if (aiToggleBtn) aiToggleBtn.addEventListener('click', () => this.toggleAI(window));
+    if (aiSendBtn) aiSendBtn.addEventListener('click', () => this.sendAIMessage(window));
+    if (closeAiBtn) closeAiBtn.addEventListener('click', () => this.closeAI(window));
+
+    // Run controls
+    const runBtn = window.querySelector('#run-btn');
+    const refreshPreviewBtn = window.querySelector('#refresh-preview-btn');
+    const fullscreenPreviewBtn = window.querySelector('#fullscreen-preview-btn');
+    
+    if (runBtn) runBtn.addEventListener('click', () => this.runStreamlitApp(window));
+    if (refreshPreviewBtn) refreshPreviewBtn.addEventListener('click', () => this.refreshPreview(window));
+    if (fullscreenPreviewBtn) fullscreenPreviewBtn.addEventListener('click', () => this.openFullscreenPreview(window));
+
+    // Theme toggle
+    const themeToggleBtn = window.querySelector('#theme-toggle-btn');
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', () => this.toggleTheme(window));
+
+    // Template modal
+    const closeTemplatesBtn = window.querySelector('#close-templates-btn');
+    if (closeTemplatesBtn) closeTemplatesBtn.addEventListener('click', () => this.hideTemplates(window));
+    
+    window.querySelectorAll('.template-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const template = card.dataset.template;
+        if (template) {
+          this.loadTemplate(window, template);
+          this.hideTemplates(window);
+        }
+      });
+    });
+
+    // Code editor events
+    const codeEditor = window.querySelector('#code-editor');
+    if (codeEditor) {
+      codeEditor.addEventListener('input', () => this.onCodeChange(window));
+      codeEditor.addEventListener('keydown', (e) => this.handleKeyDown(window, e));
+    }
+
+    // AI input events
+    const aiInput = window.querySelector('#ai-input');
+    if (aiInput) {
+      aiInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.sendAIMessage(window);
+        }
+      });
+    }
+
+    // Auto-refresh preview in split mode
+    if (this.editorMode === 'split') {
+      setTimeout(() => this.refreshPreview(window), 1000);
+    }
+    
+    console.log('✅ VibeCode event listeners set up successfully');
+  }
+
+  // File Operations
+  newFile(window) {
+    const codeEditor = window.querySelector('#code-editor');
+    if (codeEditor) {
+      codeEditor.value = this.getDefaultStreamlitCode();
+      this.currentFile = null;
+      this.updateFileStatus(window);
+      this.desktop?.showNotification('New file created', 'success');
     }
   }
 
-  async render() {
-    return `
-      <div class="vibecode-container" data-theme="${this.theme}">
-        <!-- Top Menu Bar -->
-        <div class="vibecode-menubar">
-          <div class="menu-section">
-            <div class="menu-group">
-              <button class="menu-btn" id="new-file-btn" title="New File (Ctrl+N)">
-                <span class="icon">📄</span>
-                <span class="label">New</span>
-              </button>
-              <button class="menu-btn" id="open-file-btn" title="Open File (Ctrl+O)">
-                <span class="icon">📁</span>
-                <span class="label">Open</span>
-              </button>
-              <button class="menu-btn" id="save-file-btn" title="Save File (Ctrl+S)" disabled>
-                <span class="icon">💾</span>
-                <span class="label">Save</span>
-              </button>
+  openFile(window) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.py,.txt,.md';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const codeEditor = window.querySelector('#code-editor');
+          if (codeEditor) {
+            codeEditor.value = e.target.result;
+            this.currentFile = { 
+              name: file.name, 
+              content: e.target.result,
+              modified: false 
+            };
+            this.addToRecentFiles(this.currentFile);
+            this.updateFileStatus(window);
+            this.desktop?.showNotification(`Opened ${file.name}`, 'success');
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  }
+
+  saveFile(window) {
+    const codeEditor = window.querySelector('#code-editor');
+    if (codeEditor) {
+      const content = codeEditor.value;
+      const fileName = this.currentFile?.name || 'app.py';
+      
+      // Create download
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      // Update current file
+      if (this.currentFile) {
+        this.currentFile.content = content;
+        this.currentFile.modified = false;
+      } else {
+        this.currentFile = { name: fileName, content: content, modified: false };
+      }
+      
+      this.addToRecentFiles(this.currentFile);
+      this.updateFileStatus(window);
+      this.saveConfiguration();
+      this.desktop?.showNotification(`Saved ${fileName}`, 'success');
+    }
+  }
+
+  // Template System
+  showTemplates(window) {
+    const modal = window.querySelector('#templates-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+  }
+
+  hideTemplates(window) {
+    const modal = window.querySelector('#templates-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  }
+
+  loadTemplate(window, templateName) {
+    const templates = {
+      dashboard: `import streamlit as st
+import pandas as pd
+import plotly.express as px
+import numpy as np
+
+st.set_page_config(page_title="Dashboard", layout="wide")
+st.title("📊 Interactive Dashboard")
+
+# Sidebar controls
+st.sidebar.header("Dashboard Controls")
+chart_type = st.sidebar.selectbox("Chart Type", ["Line", "Bar", "Scatter"])
+data_points = st.sidebar.slider("Data Points", 10, 1000, 100)
+
+# Generate sample data
+@st.cache_data
+def load_data(n_points):
+    dates = pd.date_range('2023-01-01', periods=n_points, freq='D')
+    values = np.cumsum(np.random.randn(n_points)) + 100
+    return pd.DataFrame({'Date': dates, 'Value': values})
+
+data = load_data(data_points)
+
+# Main content
+col1, col2 = st.columns([3, 1])
+
+with col1:
+    st.subheader(f"{chart_type} Chart")
+    if chart_type == "Line":
+        fig = px.line(data, x='Date', y='Value')
+    elif chart_type == "Bar":
+        fig = px.bar(data, x='Date', y='Value')
+    else:
+        fig = px.scatter(data, x='Date', y='Value')
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+with col2:
+    st.subheader("Statistics")
+    st.metric("Mean", f"{data['Value'].mean():.2f}")
+    st.metric("Std Dev", f"{data['Value'].std():.2f}")
+    st.metric("Min", f"{data['Value'].min():.2f}")
+    st.metric("Max", f"{data['Value'].max():.2f}")
+
+# Data table
+with st.expander("View Raw Data"):
+    st.dataframe(data)`,
+
+      'ml-model': `import streamlit as st
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import plotly.express as px
+
+st.title("🤖 Machine Learning Model Builder")
+
+# Sidebar for model configuration
+st.sidebar.header("Model Configuration")
+n_samples = st.sidebar.slider("Training Samples", 100, 1000, 500)
+test_size = st.sidebar.slider("Test Size", 0.1, 0.5, 0.2)
+n_estimators = st.sidebar.slider("Number of Trees", 10, 200, 100)
+
+# Generate sample data
+@st.cache_data
+def generate_data(n_samples):
+    X = np.random.randn(n_samples, 4)
+    y = (X[:, 0] + X[:, 1] > 0).astype(int)
+    feature_names = ['Feature 1', 'Feature 2', 'Feature 3', 'Feature 4']
+    return X, y, feature_names
+
+X, y, feature_names = generate_data(n_samples)
+
+# Train model
+if st.button("Train Model"):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+    
+    model = RandomForestClassifier(n_estimators=n_estimators)
+    model.fit(X_train, y_train)
+    
+    predictions = model.predict(X_test)
+    accuracy = accuracy_score(y_test, predictions)
+    
+    st.success(f"Model trained! Accuracy: {accuracy:.3f}")
+    
+    # Feature importance
+    importance_df = pd.DataFrame({
+        'Feature': feature_names,
+        'Importance': model.feature_importances_
+    })
+    
+    fig = px.bar(importance_df, x='Feature', y='Importance', 
+                 title="Feature Importance")
+    st.plotly_chart(fig)`,
+
+      'data-viz': `import streamlit as st
+import pandas as pd
+import plotly.express as px
+import numpy as np
+
+st.title("📈 Advanced Data Visualization")
+
+# File upload
+uploaded_file = st.file_uploader("Upload CSV file", type="csv")
+
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    st.success("File uploaded successfully!")
+else:
+    # Generate sample data
+    st.info("Using sample data. Upload a CSV file to use your own data.")
+    df = pd.DataFrame({
+        'Date': pd.date_range('2023-01-01', periods=100),
+        'Sales': np.random.normal(1000, 200, 100),
+        'Customers': np.random.poisson(50, 100),
+        'Category': np.random.choice(['A', 'B', 'C'], 100)
+    })
+
+# Data overview
+st.subheader("Data Overview")
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric("Total Rows", len(df))
+with col2:
+    st.metric("Total Columns", len(df.columns))
+with col3:
+    st.metric("Numeric Columns", len(df.select_dtypes(include=[np.number]).columns))
+
+# Visualization controls
+st.subheader("Visualization Controls")
+chart_type = st.selectbox("Chart Type", [
+    "Line Chart", "Bar Chart", "Scatter Plot", "Histogram", "Box Plot"
+])
+
+numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
+
+if chart_type in ["Line Chart", "Bar Chart", "Scatter Plot"]:
+    col1, col2 = st.columns(2)
+    with col1:
+        x_axis = st.selectbox("X-axis", df.columns)
+    with col2:
+        y_axis = st.selectbox("Y-axis", numeric_columns)
+
+# Generate charts
+st.subheader("Visualization")
+
+if chart_type == "Line Chart":
+    fig = px.line(df, x=x_axis, y=y_axis)
+elif chart_type == "Bar Chart":
+    fig = px.bar(df, x=x_axis, y=y_axis)
+elif chart_type == "Scatter Plot":
+    fig = px.scatter(df, x=x_axis, y=y_axis)
+elif chart_type == "Histogram":
+    column = st.selectbox("Column for Histogram", numeric_columns)
+    fig = px.histogram(df, x=column)
+elif chart_type == "Box Plot":
+    column = st.selectbox("Column for Box Plot", numeric_columns)
+    fig = px.box(df, y=column)
+
+if 'fig' in locals():
+    st.plotly_chart(fig, use_container_width=True)
+
+# Data table
+with st.expander("View Data"):
+    st.dataframe(df)`,
+
+      chatbot: `import streamlit as st
+
+st.title("💬 AI Chatbot")
+
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# React to user input
+if prompt := st.chat_input("What would you like to know?"):
+    # Display user message in chat message container
+    st.chat_message("user").markdown(prompt)
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    # Generate response (placeholder)
+    response = f"Echo: {prompt}"
+    
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        st.markdown(response)
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response})`
+    };
+    
+    const template = templates[templateName];
+    if (template) {
+      const codeEditor = window.querySelector('#code-editor');
+      if (codeEditor) {
+        codeEditor.value = template;
+        this.currentFile = { 
+          name: `${templateName}.py`, 
+          content: template,
+          modified: false 
+        };
+        this.updateFileStatus(window);
+        this.desktop?.showNotification(`${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template loaded!`, 'success');
+        
+        // Auto-refresh preview if in split mode
+        if (this.editorMode === 'split') {
+          setTimeout(() => this.refreshPreview(window), 500);
+        }
+      }
+    }
+  }
+
+  // Editor Mode Management
+  switchEditorMode(window, mode) {
+    this.editorMode = mode;
+    
+    // Update button states
+    window.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+    
+    // Update section visibility
+    const editorSection = window.querySelector('.editor-section');
+    const previewSection = window.querySelector('.preview-section');
+    
+    if (editorSection && previewSection) {
+      editorSection.classList.toggle('hidden', mode === 'preview');
+      previewSection.classList.toggle('hidden', mode === 'code');
+    }
+    
+    // Refresh preview if switching to preview or split mode
+    if (mode === 'preview' || mode === 'split') {
+      setTimeout(() => this.refreshPreview(window), 200);
+    }
+    
+    this.saveConfiguration();
+  }
+
+  // AI System
+  toggleAI(window) {
+    this.panels.ai = !this.panels.ai;
+    const aiPanel = window.querySelector('#ai-panel');
+    if (aiPanel) {
+      aiPanel.classList.toggle('hidden', !this.panels.ai);
+    }
+    
+    const btn = window.querySelector('#ai-toggle-btn');
+    if (btn) {
+      btn.style.opacity = this.panels.ai ? '1' : '0.7';
+    }
+    
+    this.saveConfiguration();
+  }
+
+  closeAI(window) {
+    this.panels.ai = false;
+    const aiPanel = window.querySelector('#ai-panel');
+    if (aiPanel) {
+      aiPanel.classList.add('hidden');
+    }
+    
+    const btn = window.querySelector('#ai-toggle-btn');
+    if (btn) {
+      btn.style.opacity = '0.7';
+    }
+    
+    this.saveConfiguration();
+  }
+
+  async sendAIMessage(window) {
+    if (!this.swissknife) {
+      this.addAIMessage(window, 'AI service is not available. Please check your connection.', 'assistant');
+      return;
+    }
+
+    const aiInput = window.querySelector('#ai-input');
+    const message = aiInput?.value?.trim();
+    
+    if (!message) return;
+    
+    // Add user message
+    this.addAIMessage(window, message, 'user');
+    aiInput.value = '';
+    
+    try {
+      const codeEditor = window.querySelector('#code-editor');
+      const context = codeEditor ? codeEditor.value : '';
+      
+      const response = await this.swissknife.chat({
+        message: `Context - Current Streamlit code:\n${context}\n\nUser request: ${message}\n\nPlease provide specific help with Streamlit development.`,
+        model: 'gpt-4'
+      });
+      
+      this.addAIMessage(window, response.message, 'assistant');
+    } catch (error) {
+      this.addAIMessage(window, `Error: ${error.message}`, 'assistant');
+    }
+  }
+
+  addAIMessage(window, message, role) {
+    const aiContent = window.querySelector('#ai-content');
+    if (!aiContent) return;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `ai-message ${role}`;
+    messageDiv.textContent = message;
+    
+    aiContent.appendChild(messageDiv);
+    aiContent.scrollTop = aiContent.scrollHeight;
+  }
+
+  // Preview System
+  async runStreamlitApp(window) {
+    const codeEditor = window.querySelector('#code-editor');
+    if (!codeEditor || !codeEditor.value.trim()) {
+      this.desktop?.showNotification('No Streamlit code to run', 'warning');
+      return;
+    }
+    
+    // Switch to preview mode if not already
+    if (this.editorMode !== 'preview' && this.editorMode !== 'split') {
+      this.switchEditorMode(window, 'split');
+    }
+    
+    // Generate preview
+    this.refreshPreview(window);
+    this.desktop?.showNotification('Streamlit app is running!', 'success');
+  }
+
+  refreshPreview(window) {
+    const codeEditor = window.querySelector('#code-editor');
+    const previewFrame = window.querySelector('#preview-frame');
+    
+    if (!codeEditor || !previewFrame) return;
+    
+    const code = codeEditor.value;
+    if (!code.trim()) return;
+    
+    // Generate enhanced preview HTML
+    const previewHTML = this.generatePreviewHTML(code);
+    
+    const blob = new Blob([previewHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    
+    previewFrame.onload = () => {
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    previewFrame.src = url;
+  }
+
+  generatePreviewHTML(code) {
+    const lines = code.split('\n');
+    let html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamlit Preview</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            margin: 0; padding: 2rem; background: #fafafa; line-height: 1.6;
+        }
+        .streamlit-container { 
+            max-width: 1200px; margin: 0 auto; background: white; 
+            padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        h1 { color: #ff4b4b; font-size: 2.5rem; margin-bottom: 1rem; }
+        h2 { color: #333; font-size: 2rem; margin: 2rem 0 1rem 0; }
+        h3 { color: #555; font-size: 1.5rem; margin: 1.5rem 0 1rem 0; }
+        .stButton button { 
+            background: linear-gradient(90deg, #ff4b4b, #ff6b6b); 
+            color: white; border: none; padding: 0.75rem 1.5rem; 
+            border-radius: 6px; font-weight: 500; cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .stButton button:hover { transform: translateY(-2px); }
+        .stSelectbox, .stSlider, .stTextInput { 
+            margin: 1rem 0; padding: 0.5rem; border: 2px solid #ddd; 
+            border-radius: 6px; background: white;
+        }
+        .stMetric { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;
+            text-align: center;
+        }
+        .stAlert { padding: 1rem; border-radius: 6px; margin: 1rem 0; }
+        .stAlert.success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .stAlert.info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+        .stAlert.warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+        .stAlert.error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .stColumns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0; }
+        .chart-container { 
+            background: white; border: 1px solid #ddd; border-radius: 8px; 
+            padding: 1rem; margin: 1rem 0; min-height: 300px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .preview-note {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 1rem; border-radius: 8px; margin: 2rem 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="streamlit-container">
+`;
+
+    let content = '';
+    
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      
+      if (trimmed.startsWith('st.title(')) {
+        const title = this.extractStringFromCode(trimmed);
+        content += `<h1>${title}</h1>`;
+      } else if (trimmed.startsWith('st.header(')) {
+        const header = this.extractStringFromCode(trimmed);
+        content += `<h2>${header}</h2>`;
+      } else if (trimmed.startsWith('st.subheader(')) {
+        const subheader = this.extractStringFromCode(trimmed);
+        content += `<h3>${subheader}</h3>`;
+      } else if (trimmed.startsWith('st.write(') || trimmed.startsWith('st.markdown(')) {
+        const text = this.extractStringFromCode(trimmed);
+        content += `<p>${text}</p>`;
+      } else if (trimmed.includes('st.button(')) {
+        const label = this.extractStringFromCode(trimmed);
+        content += `<div class="stButton"><button onclick="alert('Button clicked!')">${label}</button></div>`;
+      } else if (trimmed.includes('st.selectbox(')) {
+        const label = this.extractStringFromCode(trimmed);
+        content += `
+          <div class="stSelectbox">
+            <label>${label}</label><br>
+            <select style="width: 100%; padding: 0.5rem; margin-top: 0.5rem;">
+              <option>Option 1</option>
+              <option>Option 2</option>
+              <option>Option 3</option>
+            </select>
+          </div>`;
+      } else if (trimmed.includes('st.slider(')) {
+        const label = this.extractStringFromCode(trimmed);
+        content += `
+          <div class="stSlider">
+            <label>${label}</label><br>
+            <input type="range" min="0" max="100" value="50" style="width: 100%; margin-top: 0.5rem;">
+          </div>`;
+      } else if (trimmed.includes('st.metric(')) {
+        content += `
+          <div class="stMetric">
+            <div style="font-size: 0.9rem; opacity: 0.8;">Sample Metric</div>
+            <div style="font-size: 2rem; font-weight: bold;">42.5K</div>
+            <div style="font-size: 0.8rem; color: #90ee90;">+12.3% ↗</div>
+          </div>`;
+      } else if (trimmed.includes('st.success(')) {
+        const text = this.extractStringFromCode(trimmed);
+        content += `<div class="stAlert success">✅ ${text}</div>`;
+      } else if (trimmed.includes('st.info(')) {
+        const text = this.extractStringFromCode(trimmed);
+        content += `<div class="stAlert info">ℹ️ ${text}</div>`;
+      } else if (trimmed.includes('st.warning(')) {
+        const text = this.extractStringFromCode(trimmed);
+        content += `<div class="stAlert warning">⚠️ ${text}</div>`;
+      } else if (trimmed.includes('st.error(')) {
+        const text = this.extractStringFromCode(trimmed);
+        content += `<div class="stAlert error">❌ ${text}</div>`;
+      } else if (trimmed.includes('st.plotly_chart(') || trimmed.includes('st.line_chart(') || 
+               trimmed.includes('st.bar_chart(') || trimmed.includes('st.area_chart(')) {
+        content += `
+          <div class="chart-container">
+            <div style="text-align: center; color: #666;">
+              📊 Interactive Chart<br>
+              <small>(In actual Streamlit, this would be a live chart)</small>
+            </div>
+          </div>`;
+      }
+    });
+
+    html += content;
+    html += `
+        <div class="preview-note">
+            <strong>📝 VibeCode Live Preview</strong><br>
+            This is a simplified preview of your Streamlit app. For full functionality, run <code>streamlit run app.py</code>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    return html;
+  }
+
+  openFullscreenPreview(window) {
+    const previewFrame = window.querySelector('#preview-frame');
+    if (previewFrame && previewFrame.src && previewFrame.src !== 'about:blank') {
+      window.open(previewFrame.src, '_blank');
+    } else {
+      this.desktop?.showNotification('No preview available. Run the app first.', 'warning');
+    }
+  }
+
+  // Theme Management
+  toggleTheme(window) {
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+    const container = window.querySelector('.vibecode-container');
+    if (container) {
+      container.setAttribute('data-theme', this.theme);
+    }
+    
+    const btn = window.querySelector('#theme-toggle-btn');
+    if (btn) {
+      btn.textContent = this.theme === 'dark' ? '☀️' : '🌙';
+    }
+    
+    this.saveConfiguration();
+  }
+
+  // Event Handlers
+  onCodeChange(window) {
+    if (this.currentFile) {
+      this.currentFile.modified = true;
+      this.updateFileStatus(window);
+    }
+    
+    // Auto-refresh preview in split mode
+    if (this.editorMode === 'split') {
+      clearTimeout(this.previewTimeout);
+      this.previewTimeout = setTimeout(() => this.refreshPreview(window), 1000);
+    }
+  }
+
+  handleKeyDown(window, e) {
+    // Ctrl+S for save
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      this.saveFile(window);
+    }
+    // Ctrl+N for new file
+    else if (e.ctrlKey && e.key === 'n') {
+      e.preventDefault();
+      this.newFile(window);
+    }
+    // F5 for run
+    else if (e.key === 'F5') {
+      e.preventDefault();
+      this.runStreamlitApp(window);
+    }
+  }
+
+  // Utility Methods
+  updateFileStatus(window) {
+    const toolbar = window.querySelector('.toolbar-left');
+    if (toolbar && this.currentFile) {
+      const fileName = this.currentFile.name || 'untitled.py';
+      const modifiedIndicator = this.currentFile.modified ? '<span style="color: #f39c12;">●</span>' : '';
+      toolbar.innerHTML = `<span>📄 ${fileName}</span>${modifiedIndicator}`;
+    }
+  }
+
+  addToRecentFiles(file) {
+    if (!file) return;
+    
+    // Remove if already exists
+    this.recentFiles = this.recentFiles.filter(f => f.name !== file.name);
+    // Add to beginning
+    this.recentFiles.unshift({...file});
+    // Keep only 10 recent files
+    this.recentFiles = this.recentFiles.slice(0, 10);
+    this.saveToStorage();
+  }
+
+  saveToStorage() {
+    try {
+      localStorage.setItem('vibecode-recent-files', JSON.stringify(this.recentFiles));
+    } catch (error) {
+      console.warn('Failed to save to storage:', error);
+    }
+  }
+
+  saveConfiguration() {
+    try {
+      const config = {
+        theme: this.theme,
+        fontSize: this.fontSize,
+        aiAssistEnabled: this.aiAssistEnabled,
+        editorMode: this.editorMode,
+        panels: this.panels
+      };
+      localStorage.setItem('vibecode-config', JSON.stringify(config));
+    } catch (error) {
+      console.warn('Failed to save configuration:', error);
+    }
+  }
+
+  extractStringFromCode(line) {
+    const match = line.match(/['"](.*?)['"]/);
+    return match ? match[1] : 'Sample Text';
+  }
+}
+
+// Export the class
+export { VibeCodeApp };
+          .vibecode-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #1e1e1e;
+            color: #fff;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+          }
+          
+          .vibecode-container[data-theme="light"] {
+            background: #ffffff;
+            color: #333;
+          }
+          
+          .vibecode-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            min-height: 40px;
+          }
+          
+          .vibecode-container[data-theme="light"] .vibecode-header {
+            background: #f3f3f3;
+            border-bottom: 1px solid #e1e1e1;
+          }
+          
+          .header-left, .header-center, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .vibe-btn {
+            padding: 6px 12px;
+            border: 1px solid #464647;
+            background: #0e639c;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+          }
+          
+          .vibe-btn:hover {
+            background: #1177bb;
+            transform: translateY(-1px);
+          }
+          
+          .vibe-btn.secondary {
+            background: #5a5a5a;
+            border-color: #5a5a5a;
+          }
+          
+          .vibe-btn.secondary:hover {
+            background: #6a6a6a;
+          }
+          
+          .vibe-btn.success {
+            background: #16a085;
+            border-color: #16a085;
+          }
+          
+          .vibe-btn.success:hover {
+            background: #1abc9c;
+          }
+          
+          .vibe-btn.ai {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            font-weight: 500;
+          }
+          
+          .vibe-btn.ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          }
+          
+          .mode-selector {
+            display: flex;
+            background: #3c3c3c;
+            border-radius: 4px;
+            overflow: hidden;
+          }
+          
+          .mode-btn {
+            padding: 6px 12px;
+            background: transparent;
+            color: #cccccc;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+          }
+          
+          .mode-btn.active, .mode-btn:hover {
+            background: #0e639c;
+            color: white;
+          }
+          
+          .vibecode-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+          }
+          
+          .editor-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e1e;
+          }
+          
+          .vibecode-container[data-theme="light"] .editor-section {
+            background: #ffffff;
+          }
+          
+          .editor-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+            font-size: 12px;
+          }
+          
+          .vibecode-container[data-theme="light"] .editor-toolbar {
+            background: #f8f8f8;
+            border-bottom: 1px solid #e1e1e1;
+          }
+          
+          .code-editor {
+            flex: 1;
+            width: 100%;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            outline: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: ${this.fontSize}px;
+            line-height: 1.5;
+            padding: 16px;
+            resize: none;
+            tab-size: 4;
+          }
+          
+          .vibecode-container[data-theme="light"] .code-editor {
+            background: #ffffff;
+            color: #333333;
+          }
+          
+          .preview-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #3e3e42;
+            background: #2d2d30;
+          }
+          
+          .vibecode-container[data-theme="light"] .preview-section {
+            border-left: 1px solid #e1e1e1;
+            background: #f8f8f8;
+          }
+          
+          .preview-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+          }
+          
+          .vibecode-container[data-theme="light"] .preview-toolbar {
+            background: #f3f3f3;
+            border-bottom: 1px solid #e1e1e1;
+          }
+          
+          .preview-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+          }
+          
+          .ai-panel {
+            width: 300px;
+            background: #252526;
+            border-left: 1px solid #3e3e42;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-panel {
+            background: #f8f8f8;
+            border-left: 1px solid #e1e1e1;
+          }
+          
+          .ai-header {
+            padding: 12px;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            font-weight: 500;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-header {
+            background: #f3f3f3;
+            border-bottom: 1px solid #e1e1e1;
+          }
+          
+          .ai-content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+          }
+          
+          .ai-message {
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.4;
+          }
+          
+          .ai-message.user {
+            background: #0e639c;
+            color: white;
+            margin-left: 20px;
+          }
+          
+          .ai-message.assistant {
+            background: #3e3e42;
+            color: #d4d4d4;
+            margin-right: 20px;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-message.assistant {
+            background: #e8e8e8;
+            color: #333;
+          }
+          
+          .ai-input-container {
+            padding: 12px;
+            border-top: 1px solid #3e3e42;
+            display: flex;
+            gap: 8px;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-input-container {
+            border-top: 1px solid #e1e1e1;
+          }
+          
+          .ai-input {
+            flex: 1;
+            padding: 8px;
+            background: #3c3c3c;
+            border: 1px solid #5a5a5a;
+            color: #d4d4d4;
+            border-radius: 4px;
+            font-size: 12px;
+            resize: none;
+          }
+          
+          .vibecode-container[data-theme="light"] .ai-input {
+            background: #ffffff;
+            border: 1px solid #ccc;
+            color: #333;
+          }
+          
+          .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+          }
+          
+          .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            padding: 12px;
+          }
+          
+          .template-card {
+            padding: 12px;
+            background: #3e3e42;
+            border: 1px solid #5a5a5a;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          
+          .template-card:hover {
+            background: #4a4a4a;
+            transform: translateY(-2px);
+          }
+          
+          .vibecode-container[data-theme="light"] .template-card {
+            background: #ffffff;
+            border: 1px solid #ddd;
+          }
+          
+          .vibecode-container[data-theme="light"] .template-card:hover {
+            background: #f5f5f5;
+          }
+          
+          .template-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+          }
+          
+          .template-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+          }
+          
+          .template-description {
+            font-size: 11px;
+            color: #888;
+            line-height: 1.3;
+          }
+          
+          .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 12px;
+            background: #007acc;
+            color: white;
+            font-size: 11px;
+            min-height: 22px;
+          }
+          
+          .status-left, .status-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          
+          .hidden {
+            display: none !important;
+          }
+          
+          @media (max-width: 768px) {
+            .vibecode-main {
+              flex-direction: column;
+            }
+            
+            .preview-section {
+              border-left: none;
+              border-top: 1px solid #3e3e42;
+            }
+            
+            .ai-panel {
+              width: 100%;
+              border-left: none;
+              border-top: 1px solid #3e3e42;
+            }
+          }
+        </style>
+
+        <!-- Header -->
+        <div class="vibecode-header">
+          <div class="header-left">
+            <button class="vibe-btn" id="new-file-btn">📄 New</button>
+            <button class="vibe-btn" id="save-file-btn">💾 Save</button>
+            <button class="vibe-btn secondary" id="templates-btn">📋 Templates</button>
+          </div>
+          
+          <div class="header-center">
+            <div class="mode-selector">
+              <button class="mode-btn ${this.editorMode === 'code' ? 'active' : ''}" data-mode="code">💻 Code</button>
+              <button class="mode-btn ${this.editorMode === 'preview' ? 'active' : ''}" data-mode="preview">👁️ Preview</button>
+              <button class="mode-btn ${this.editorMode === 'split' ? 'active' : ''}" data-mode="split">⚡ Split</button>
             </div>
           </div>
           
-          <div class="menu-section">
-            <div class="editor-modes">
-              <button class="mode-btn ${this.editorMode === 'code' ? 'active' : ''}" data-mode="code">
-                <span class="icon">💻</span> Code
-              </button>
-              <button class="mode-btn ${this.editorMode === 'rich' ? 'active' : ''}" data-mode="rich">
-                <span class="icon">📝</span> Rich Text
-              </button>
-              <button class="mode-btn ${this.editorMode === 'preview' ? 'active' : ''}" data-mode="preview">
-                <span class="icon">👁️</span> Preview
-              </button>
-              <button class="mode-btn ${this.editorMode === 'split' ? 'active' : ''}" data-mode="split">
-                <span class="icon">⚡</span> Split
-              </button>
-            </div>
+          <div class="header-right">
+            <button class="vibe-btn ai" id="ai-toggle-btn" title="Toggle AI Assistant">🤖 AI</button>
+            <button class="vibe-btn success" id="run-btn">▶️ Run</button>
+            <button class="vibe-btn secondary" id="theme-toggle-btn">☀️</button>
           </div>
-          
-          <div class="menu-section">
-            <div class="ai-controls">
-              <button class="ai-btn ${this.aiAssistEnabled ? 'active' : ''}" id="ai-toggle-btn" title="Toggle AI Assistant">
-                <span class="icon">🤖</span> AI
-              </button>
-              <button class="ai-btn" id="ai-generate-btn" title="Generate Streamlit App">
-                <span class="icon">🎯</span> Generate
-              </button>
-              <button class="ai-btn" id="ai-optimize-btn" title="Optimize Code">
-                <span class="icon">⚡</span> Optimize
-              </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="vibecode-main">
+          <!-- Editor Section -->
+          <div class="editor-section ${this.editorMode === 'preview' ? 'hidden' : ''}">
+            <div class="editor-toolbar">
+              <div class="toolbar-left">
+                <span>📄 ${this.currentFile ? this.currentFile.name : 'Untitled.py'}</span>
+                ${this.currentFile && this.currentFile.modified ? '<span style="color: #f39c12;">●</span>' : ''}
+              </div>
+              <div class="toolbar-right">
+                <span>Python</span>
+                <span>Ln 1, Col 1</span>
+              </div>
             </div>
+            <textarea class="code-editor" id="code-editor" placeholder="# Start building your Streamlit app here...
+import streamlit as st
+
+st.title('Hello, VibeCode!')
+st.write('Welcome to the AI-powered Streamlit editor!')">${currentCode}</textarea>
           </div>
-          
-          <div class="menu-section">
-            <div class="run-controls">
-              <button class="run-btn primary" id="run-app-btn" title="Run Streamlit App (F5)">
-                <span class="icon">▶️</span> Run
-              </button>
-              <button class="run-btn" id="debug-app-btn" title="Debug App">
-                <span class="icon">🐛</span> Debug
-              </button>
-              <button class="run-btn" id="deploy-app-btn" title="Deploy App">
-                <span class="icon">🚀</span> Deploy
-              </button>
+
+          <!-- Preview Section -->
+          <div class="preview-section ${this.editorMode === 'code' ? 'hidden' : ''}">
+            <div class="preview-toolbar">
+              <div>
+                <span>🔴 Live Preview</span>
+              </div>
+              <div>
+                <button class="vibe-btn" id="refresh-preview-btn">🔄 Refresh</button>
+                <button class="vibe-btn" id="fullscreen-preview-btn">🔗 Open</button>
+              </div>
             </div>
+            <iframe class="preview-frame" id="preview-frame" src="about:blank"></iframe>
           </div>
-          
-          <div class="menu-section">
-            <div class="view-controls">
-              <button class="view-btn ${this.panels.explorer ? 'active' : ''}" id="toggle-explorer" title="Explorer">
-                <span class="icon">🗂️</span>
-              </button>
-              <button class="view-btn ${this.panels.output ? 'active' : ''}" id="toggle-output" title="Output">
-                <span class="icon">📋</span>
-              </button>
-              <button class="view-btn ${this.panels.terminal ? 'active' : ''}" id="toggle-terminal" title="Terminal">
-                <span class="icon">⚡</span>
-              </button>
-              <button class="view-btn" id="command-palette" title="Command Palette (Ctrl+Shift+P)">
-                <span class="icon">⌘</span>
-              </button>
+
+          <!-- AI Panel -->
+          <div class="ai-panel ${this.panels.ai ? '' : 'hidden'}" id="ai-panel">
+            <div class="ai-header">
+              <span>🤖 AI Assistant</span>
+              <button class="vibe-btn" id="close-ai-btn" style="float: right; margin-top: -4px;">✕</button>
+            </div>
+            <div class="ai-content" id="ai-content">
+              <div class="ai-message assistant">
+                Hi! I'm your AI assistant for Streamlit development. I can help you:
+                <br>• Generate code from descriptions
+                <br>• Debug and optimize your code
+                <br>• Suggest improvements
+                <br>• Answer Streamlit questions
+                <br><br>
+                What would you like to build today?
+              </div>
+            </div>
+            <div class="ai-input-container">
+              <textarea class="ai-input" id="ai-input" rows="2" placeholder="Ask me anything about Streamlit..."></textarea>
+              <button class="vibe-btn ai" id="ai-send-btn">💬</button>
             </div>
           </div>
         </div>
 
-        <!-- Main Layout -->
-        <div class="vibecode-layout">
-          <!-- Explorer Sidebar -->
-          <div class="explorer-panel ${this.panels.explorer ? 'visible' : 'hidden'}">
-            <div class="panel-header">
-              <h3>📁 Explorer</h3>
-              <div class="panel-actions">
-                <button class="panel-action" id="new-folder-btn" title="New Folder">📁</button>
-                <button class="panel-action" id="new-file-project-btn" title="New File">📄</button>
-                <button class="panel-action" id="refresh-explorer" title="Refresh">🔄</button>
-              </div>
-            </div>
-            
-            <div class="explorer-content">
-              <!-- Project Structure -->
-              <div class="explorer-section">
-                <div class="section-header">
-                  <span class="section-icon">📂</span>
-                  <span class="section-title">${this.currentProject?.name || 'No Project'}</span>
-                  <button class="collapse-btn">▼</button>
-                </div>
-                <div class="file-tree" id="file-tree">
-                  ${this.renderFileTree()}
-                </div>
-              </div>
-              
-              <!-- Recent Files -->
-              <div class="explorer-section">
-                <div class="section-header">
-                  <span class="section-icon">🕒</span>
-                  <span class="section-title">Recent Files</span>
-                  <button class="collapse-btn">▼</button>
-                </div>
-                <div class="recent-files" id="recent-files">
-                  ${this.renderRecentFiles()}
-                </div>
-              </div>
-              
-              <!-- Templates & Snippets -->
-              <div class="explorer-section">
-                <div class="section-header">
-                  <span class="section-icon">📋</span>
-                  <span class="section-title">Templates</span>
-                  <button class="collapse-btn">▼</button>
-                </div>
-                <div class="templates-list" id="templates-list">
-                  ${this.renderTemplatesList()}
-                </div>
-              </div>
-            </div>
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <div class="status-left">
+            <span>VibeCode v2.1</span>
+            <span>${this.aiAssistEnabled ? '🤖 AI Ready' : '🤖 AI Disabled'}</span>
           </div>
-
-          <!-- Main Editor Area -->
-          <div class="editor-area">
-            <!-- Tab Bar -->
-            <div class="tab-bar">
-              <div class="tabs-container" id="tabs-container">
-                ${this.renderTabs()}
-              </div>
-              <div class="tab-actions">
-                <button class="tab-action" id="split-editor" title="Split Editor">⚡</button>
-                <button class="tab-action" id="close-all-tabs" title="Close All">✕</button>
-              </div>
-            </div>
-            
-            <!-- Editor Container -->
-            <div class="editor-container">
-              <!-- Monaco Code Editor -->
-              <div class="monaco-editor-container" id="monaco-container" 
-                   style="display: ${this.editorMode === 'code' || this.editorMode === 'split' ? 'block' : 'none'}">
-                <div id="monaco-editor" class="monaco-editor"></div>
-                
-                <!-- Code Intelligence Overlay -->
-                <div class="code-intelligence" id="code-intelligence">
-                  <div class="intellisense-popup" id="intellisense-popup"></div>
-                  <div class="error-squiggles" id="error-squiggles"></div>
-                  <div class="code-actions" id="code-actions"></div>
-                </div>
-              </div>
-              
-              <!-- Rich Text Editor -->
-              <div class="rich-editor-container" id="rich-editor-container"
-                   style="display: ${this.editorMode === 'rich' ? 'block' : 'none'}">
-                <div class="rich-toolbar">
-                  ${this.renderRichToolbar()}
-                </div>
-                <div class="rich-editor" id="rich-editor" contenteditable="true">
-                  ${this.getRichEditorContent()}
-                </div>
-              </div>
-              
-              <!-- Live Preview -->
-              <div class="preview-container" id="preview-container"
-                   style="display: ${this.editorMode === 'preview' || this.editorMode === 'split' ? 'block' : 'none'}">
-                <div class="preview-toolbar">
-                  <div class="preview-controls">
-                    <button class="preview-btn ${this.previewMode === 'mobile' ? 'active' : ''}" data-mode="mobile">📱</button>
-                    <button class="preview-btn ${this.previewMode === 'tablet' ? 'active' : ''}" data-mode="tablet">📲</button>
-                    <button class="preview-btn ${this.previewMode === 'desktop' ? 'active' : ''}" data-mode="desktop">🖥️</button>
-                  </div>
-                  <div class="preview-actions">
-                    <button class="preview-action" id="refresh-preview">🔄</button>
-                    <button class="preview-action" id="open-external">🔗</button>
-                    <button class="preview-action" id="share-preview">📤</button>
-                  </div>
-                </div>
-                <div class="preview-frame-wrapper ${this.previewMode}">
-                  <iframe id="preview-frame" class="preview-frame" src="about:blank"></iframe>
-                  <div class="preview-overlay" id="preview-overlay">
-                    <div class="loading-spinner">⏳ Loading preview...</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="status-right">
+            <span>Python</span>
+            <span>UTF-8</span>
+            <span>Streamlit</span>
           </div>
         </div>
-
-        <!-- Bottom Panel -->
-        <div class="bottom-panel ${this.panels.output || this.panels.terminal ? 'visible' : 'hidden'}">
-          <div class="panel-tabs">
-            <button class="panel-tab ${this.panels.output ? 'active' : ''}" data-panel="output">
-              <span class="icon">📋</span> Output
-            </button>
-            <button class="panel-tab ${this.panels.terminal ? 'active' : ''}" data-panel="terminal">
-              <span class="icon">⚡</span> Terminal
-            </button>
-            <button class="panel-tab" data-panel="problems">
-              <span class="icon">⚠️</span> Problems <span class="badge" id="problems-count">0</span>
-            </button>
-            <button class="panel-tab" data-panel="debug">
-              <span class="icon">🐛</span> Debug Console
-            </button>
-            <button class="panel-tab" data-panel="ai-chat">
-              <span class="icon">🤖</span> AI Assistant
-            </button>
-          </div>
-          
-          <div class="panel-content">
-            <!-- Output Panel -->
-            <div class="panel-section ${this.panels.output ? 'active' : ''}" id="output-panel">
-              <div class="output-content" id="output-content"></div>
-            </div>
-            
-            <!-- Terminal Panel -->
-            <div class="panel-section ${this.panels.terminal ? 'active' : ''}" id="terminal-panel">
-              <div class="terminal-content" id="terminal-content"></div>
-              <div class="terminal-input">
-                <span class="prompt">$</span>
-                <input type="text" id="terminal-input" placeholder="streamlit run app.py">
-                <button id="terminal-send">▶️</button>
-              </div>
-            </div>
-            
-            <!-- Problems Panel -->
-            <div class="panel-section" id="problems-panel">
-              <div class="problems-list" id="problems-list"></div>
-            </div>
-            
-            <!-- Debug Console -->
-            <div class="panel-section" id="debug-panel">
-              <div class="debug-content" id="debug-content"></div>
-            </div>
-            
-            <!-- AI Chat Panel -->
-            <div class="panel-section" id="ai-chat-panel">
-              <div class="ai-chat-content" id="ai-chat-content"></div>
-              <div class="ai-input-container">
-                <textarea id="ai-input" placeholder="Ask me anything about Streamlit development..." rows="2"></textarea>
-                <button id="ai-send">💬 Send</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Floating Elements -->
-        ${this.renderFloatingElements()}
       </div>
     `;
   }
