@@ -1,14 +1,6 @@
 // SwissKnife Web Desktop - Main Application
-import '../css/aero-enhanced.css';
-import '../css/desktop.css';
-import '../css/windows.css';
-import '../css/terminal.css';
-import '../css/apps.css';
-import '../css/strudel.css';
-import '../css/strudel-grandma.css';
-import '../css/vibecode-enhanced.css';
-import '../css/strudel-ai-daw.css';
-import SwissKnife from './swissknife-browser.js';
+// CSS files are loaded via HTML link tags in index.html
+// import SwissKnife from './swissknife-browser.js'; // Temporarily disabled due to buffer import issues
 // Import DesktopEnhancer - will be available as window.DesktopEnhancer
 import './desktop-enhancer.js';
 
@@ -18,7 +10,7 @@ class SwissKnifeDesktop {
         this.windowCounter = 0;
         this.activeWindow = null;
         this.apps = new Map();
-        this.swissknife = SwissKnife;
+        this.swissknife = null; // SwissKnife disabled due to buffer import issues
         this.isSwissKnifeReady = false;
         this.enhancer = null;
         this.currentTheme = 'day'; // 'day' or 'sunset'
@@ -34,19 +26,23 @@ class SwissKnifeDesktop {
         
         // Initialize the real SwissKnife core
         try {
-            const result = await this.swissknife.initialize({
-                config: { storage: 'localstorage' },
-                storage: { type: 'indexeddb', dbName: 'swissknife-web' },
-                ai: { autoRegisterModels: true, autoRegisterTools: true },
-                openaiApiKey: localStorage.getItem('swissknife_openai_key')
-            });
-            
-            if (result.success) {
-                this.isSwissKnifeReady = true;
-                console.log('SwissKnife core initialized successfully');
+            if (this.swissknife) {
+                const result = await this.swissknife.initialize({
+                    config: { storage: 'localstorage' },
+                    storage: { type: 'indexeddb', dbName: 'swissknife-web' },
+                    ai: { autoRegisterModels: true, autoRegisterTools: true },
+                    openaiApiKey: localStorage.getItem('swissknife_openai_key')
+                });
+                
+                if (result.success) {
+                    this.isSwissKnifeReady = true;
+                    console.log('SwissKnife core initialized successfully');
+                } else {
+                    console.warn('SwissKnife core initialization failed:', result.error);
+                    // Continue with limited functionality
+                }
             } else {
-                console.warn('SwissKnife core initialization failed:', result.error);
-                // Continue with limited functionality
+                console.log('SwissKnife core disabled - running desktop with limited functionality');
             }
         } catch (error) {
             console.error('Error initializing SwissKnife core:', error);
@@ -234,13 +230,7 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered enhanced VibeCode app');
         
-        this.apps.set('strudel-ai-daw', {
-            name: 'Strudel AI DAW',
-            icon: '🎵',
-            component: 'StrudelAIDAW',
-            singleton: false
-        });
-        console.log('✅ Registered Strudel AI DAW app');
+        // Remove old strudel-ai-daw registration - now unified
         
         this.apps.set('ai-chat', {
             name: 'AI Chat',
@@ -261,6 +251,13 @@ class SwissKnifeDesktop {
             icon: '⚡',
             component: 'TaskManagerApp',
             singleton: true
+        });
+        
+        this.apps.set('todo', {
+            name: 'Todo & Goals',
+            icon: '📋',
+            component: 'TodoApp',
+            singleton: false
         });
         
         this.apps.set('model-browser', {
@@ -337,13 +334,13 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered navi app');
 
-        this.apps.set('strudel', {
+        this.apps.set('music-studio-unified', {
             name: '🎵 Music Studio',
             icon: '🎵',
-            component: 'GrandmaStrudelDAW',
+            component: 'UnifiedMusicStudioApp',
             singleton: false
         });
-        console.log('✅ Registered strudel app');
+        console.log('✅ Registered unified music-studio app');
         
         this.apps.set('p2p-network', {
             name: 'P2P Network Manager',
@@ -353,21 +350,13 @@ class SwissKnifeDesktop {
         });
         console.log('✅ Registered p2p-network app');
         
-        this.apps.set('p2p-chat', {
+        this.apps.set('p2p-chat-unified', {
             name: 'P2P Chat',
             icon: '💬',
-            component: 'P2PChatApp',
+            component: 'UnifiedP2PChatApp',
             singleton: false
         });
-        console.log('✅ Registered p2p-chat app');
-        
-        this.apps.set('p2p-chat-offline', {
-            name: 'P2P Chat Offline',
-            icon: '📬',
-            component: 'P2PChatOfflineApp',
-            singleton: false
-        });
-        console.log('✅ Registered p2p-chat-offline app');
+        console.log('✅ Registered unified p2p-chat app');
         
         this.apps.set('neural-network-designer', {
             name: 'Neural Network Designer',
@@ -457,6 +446,14 @@ class SwissKnifeDesktop {
             singleton: false
         });
         console.log('✅ Registered cinema app');
+        
+        this.apps.set('media-player', {
+            name: 'Media Player',
+            icon: '🎵',
+            component: 'MediaPlayer',
+            singleton: true
+        });
+        console.log('✅ Registered media-player app');
         
         this.apps.set('system-monitor', {
             name: 'System Monitor',
@@ -788,17 +785,7 @@ class SwissKnifeDesktop {
                     }
                     break;
                     
-                case 'strudel-ai-daw':
-                case 'strudelaaidaw':
-                    console.log('🎵 Loading Strudel AI DAW app...');
-                    // Import and instantiate Strudel AI DAW app
-                    const StrudelAIModule = await import('./apps/strudel-ai-daw.js');
-                    const StrudelAIDAW = StrudelAIModule.StrudelAIDAW;
-                    appInstance = new StrudelAIDAW(this);
-                    await appInstance.initialize();
-                    const dawWindow = appInstance.createWindow();
-                    contentElement.appendChild(dawWindow.querySelector('.strudel-ai-daw'));
-                    break;
+                // Legacy strudel-ai-daw and strudelaaidaw cases removed - now unified in music-studio-unified
                     
                 case 'settingsapp':
                     console.log('⚙️ Loading Settings app...');
@@ -849,6 +836,28 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>⚡ Task Manager</h2>
                                 <p>Real-time system monitoring and process management.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'todoapp':
+                    console.log('📋 Loading Todo & Goals app...');
+                    // Import and instantiate Todo app
+                    try {
+                        const { TodoApp } = await import('./apps/todo.js');
+                        appInstance = new TodoApp(this);
+                        await appInstance.initialize();
+                        const todoContent = appInstance.createWindowConfig();
+                        contentElement.innerHTML = todoContent;
+                    } catch (error) {
+                        console.error('Failed to load Todo app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>📋 Todo & Goals</h2>
+                                <p>Task management and goal tracking functionality.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
@@ -937,6 +946,32 @@ class SwissKnifeDesktop {
                     this.loadNaviApp(contentElement);
                     break;
                     
+                case 'unifiedmusicstudioapp':
+                    console.log('🎵 Loading Unified Music Studio...');
+                    try {
+                        // Import and instantiate Unified Music Studio app
+                        const UnifiedMusicStudioModule = await import('./apps/music-studio-unified.js');
+                        const UnifiedMusicStudioApp = UnifiedMusicStudioModule.UnifiedMusicStudioApp;
+                        appInstance = new UnifiedMusicStudioApp(this);
+                        await appInstance.initialize();
+                        const studioContent = await appInstance.render();
+                        contentElement.innerHTML = studioContent;
+                        
+                        // Store global reference for event handlers
+                        window.unifiedMusicStudioInstance = appInstance;
+                    } catch (error) {
+                        console.error('Failed to load Unified Music Studio app:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎵 Music Studio</h2>
+                                <p>Advanced Digital Audio Workstation with AI-powered composition and P2P collaboration.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
                 case 'grandmastrudeldaw':
                     console.log('🎵 Loading Grandma-Friendly Music Studio...');
                     
@@ -999,45 +1034,25 @@ class SwissKnifeDesktop {
                     }
                     break;
 
-                case 'p2pchatapp':
-                    console.log('💬 Loading P2P Chat...');
+                case 'unifiedp2pchatapp':
+                    console.log('💬 Loading Unified P2P Chat...');
                     try {
-                        // Import and instantiate P2P Chat app
-                        const P2PChatModule = await import('./apps/p2p-chat.js');
-                        const P2PChatApp = P2PChatModule.P2PChatApp;
-                        appInstance = new P2PChatApp(this);
+                        // Import and instantiate Unified P2P Chat app
+                        const UnifiedP2PChatModule = await import('./apps/p2p-chat-unified.js');
+                        const UnifiedP2PChatApp = UnifiedP2PChatModule.UnifiedP2PChatApp;
+                        appInstance = new UnifiedP2PChatApp(this);
                         await appInstance.initialize();
                         const chatContent = await appInstance.render();
                         contentElement.innerHTML = chatContent;
+                        
+                        // Store global reference for event handlers
+                        window.unifiedP2PChatInstance = appInstance;
                     } catch (error) {
-                        console.error('Failed to load P2P Chat app:', error);
+                        console.error('Failed to load Unified P2P Chat app:', error);
                         contentElement.innerHTML = `
                             <div class="app-placeholder">
                                 <h2>💬 P2P Chat</h2>
-                                <p>Peer-to-peer messaging using libp2p.</p>
-                                <p>Failed to load: ${error.message}</p>
-                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
-                            </div>
-                        `;
-                    }
-                    break;
-
-                case 'p2pchatofflineapp':
-                    console.log('📬 Loading P2P Chat Offline...');
-                    try {
-                        // Import and instantiate P2P Chat Offline app
-                        const P2PChatOfflineModule = await import('./apps/p2p-chat-offline.js');
-                        const P2PChatOfflineApp = P2PChatOfflineModule.P2PChatOfflineApp;
-                        appInstance = new P2PChatOfflineApp(this);
-                        await appInstance.initialize();
-                        const chatOfflineContent = await appInstance.render();
-                        contentElement.innerHTML = chatOfflineContent;
-                    } catch (error) {
-                        console.error('Failed to load P2P Chat Offline app:', error);
-                        contentElement.innerHTML = `
-                            <div class="app-placeholder">
-                                <h2>📬 P2P Chat Offline</h2>
-                                <p>Peer-to-peer messaging with offline capabilities using IPFS and Storacha.</p>
+                                <p>Unified P2P messaging with real-time and offline capabilities.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
@@ -1070,14 +1085,27 @@ class SwissKnifeDesktop {
 
                 case 'trainingmanagerapp':
                     console.log('🎯 Loading Training Manager...');
-                    // Import and create Training Manager app
+                    // Import and create Training Manager app using dynamic import
                     try {
-                        await this.loadScript('./js/apps/training-manager.js');
+                        const TrainingModule = await import('./apps/training-manager.js');
+                        console.log('📦 Imported Training Manager module:', TrainingModule);
+                        
+                        // Check for global function first (most likely to work)
                         if (window.createTrainingManagerApp) {
                             appInstance = window.createTrainingManagerApp();
                             appInstance.init(contentElement);
+                        } else if (TrainingModule.TrainingManagerApp) {
+                            // Fallback to exported class if available
+                            appInstance = new TrainingModule.TrainingManagerApp();
+                            if (appInstance.render) {
+                                const html = await appInstance.render();
+                                contentElement.innerHTML = html;
+                            }
+                            if (appInstance.initializeEventHandlers) {
+                                appInstance.initializeEventHandlers(contentElement);
+                            }
                         } else {
-                            throw new Error('Training Manager app not found');
+                            throw new Error('Training Manager app not found in module or globally');
                         }
                     } catch (error) {
                         console.error('Failed to load Training Manager app:', error);
@@ -1213,8 +1241,8 @@ class SwissKnifeDesktop {
                         const ImageViewerApp = ImageViewerModule.ImageViewerApp;
                         appInstance = new ImageViewerApp(this);
                         await appInstance.initialize();
-                        const imageWindow = appInstance.createWindow();
-                        contentElement.appendChild(imageWindow);
+                        const imageWindowHTML = appInstance.createWindow();
+                        contentElement.innerHTML = imageWindowHTML;
                     } catch (error) {
                         console.error('Failed to load Image Viewer app:', error);
                         contentElement.innerHTML = `
@@ -1276,14 +1304,27 @@ class SwissKnifeDesktop {
                     
                 case 'githubapp':
                     console.log('🐙 Loading GitHub app...');
-                    // Import and instantiate GitHub app
+                    // Import and instantiate GitHub app using dynamic import
                     try {
-                        await this.loadScript('./js/apps/github.js');
+                        const GitHubModule = await import('./apps/github.js');
+                        console.log('📦 Imported GitHub module:', GitHubModule);
+                        
+                        // Check for global function first (most likely to work)
                         if (window.createGitHubApp) {
                             appInstance = window.createGitHubApp();
                             appInstance.init(contentElement);
+                        } else if (GitHubModule.GitHubApp) {
+                            // Fallback to exported class if available
+                            appInstance = new GitHubModule.GitHubApp();
+                            if (appInstance.render) {
+                                const html = await appInstance.render();
+                                contentElement.innerHTML = html;
+                            }
+                            if (appInstance.initializeEventHandlers) {
+                                appInstance.initializeEventHandlers(contentElement);
+                            }
                         } else {
-                            throw new Error('GitHub app not found');
+                            throw new Error('GitHub app not found in module or globally');
                         }
                     } catch (error) {
                         console.error('Failed to load GitHub app:', error);
@@ -1300,14 +1341,27 @@ class SwissKnifeDesktop {
                     
                 case 'oauthloginapp':
                     console.log('🔐 Loading OAuth Login app...');
-                    // Import and instantiate OAuth Login app
+                    // Import and instantiate OAuth Login app using dynamic import
                     try {
-                        await this.loadScript('./js/apps/oauth-login.js');
+                        const OAuthModule = await import('./apps/oauth-login.js');
+                        console.log('📦 Imported OAuth module:', OAuthModule);
+                        
+                        // Check for global function first (most likely to work)
                         if (window.createOAuthLoginApp) {
                             appInstance = window.createOAuthLoginApp();
                             appInstance.init(contentElement);
+                        } else if (OAuthModule.OAuthLoginSystem) {
+                            // Fallback to exported class if available
+                            appInstance = new OAuthModule.OAuthLoginSystem();
+                            if (appInstance.render) {
+                                const html = await appInstance.render();
+                                contentElement.innerHTML = html;
+                            }
+                            if (appInstance.initializeEventHandlers) {
+                                appInstance.initializeEventHandlers(contentElement);
+                            }
                         } else {
-                            throw new Error('OAuth Login app not found');
+                            throw new Error('OAuth Login app not found in module or globally');
                         }
                     } catch (error) {
                         console.error('Failed to load OAuth Login app:', error);
@@ -1359,6 +1413,28 @@ class SwissKnifeDesktop {
                             <div class="app-placeholder">
                                 <h2>🎬 Cinema</h2>
                                 <p>Professional video editing application with AI tools.</p>
+                                <p>Failed to load: ${error.message}</p>
+                                <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'mediaplayer':
+                    console.log('🎵 Loading Media Player...');
+                    // Import and instantiate Media Player
+                    try {
+                        const MediaModule = await import('./apps/media-player.js');
+                        const MediaPlayer = MediaModule.MediaPlayer || window.MediaPlayer;
+                        appInstance = new MediaPlayer();
+                        await appInstance.initialize(contentElement);
+                        console.log('✅ Media Player loaded successfully');
+                    } catch (error) {
+                        console.error('Failed to load Media Player:', error);
+                        contentElement.innerHTML = `
+                            <div class="app-placeholder">
+                                <h2>🎵 Media Player</h2>
+                                <p>Nostalgic music player with classic Winamp interface and modern features.</p>
                                 <p>Failed to load: ${error.message}</p>
                                 <button onclick="this.closest('.window').querySelector('.window-control.close').click()">Close</button>
                             </div>
@@ -2119,22 +2195,32 @@ class SwissKnifeDesktop {
     }
     
     updateSystemStatus() {
-        const hwStatus = this.swissknife.getHardwareStatus();
+        const hwStatus = this.swissknife ? this.swissknife.getHardwareStatus() : {
+            webnn: false,
+            ipfs: false,
+            p2p: false
+        };
         
         // Update AI status
         const aiStatus = document.getElementById('ai-status');
-        aiStatus.className = 'status-indicator ' + (hwStatus.webnn ? 'active' : 'inactive');
-        aiStatus.title = `AI Engine: ${hwStatus.webnn ? 'WebNN Available' : 'API Only'}`;
+        if (aiStatus) {
+            aiStatus.className = 'status-indicator ' + (hwStatus.webnn ? 'active' : 'inactive');
+            aiStatus.title = `AI Engine: ${hwStatus.webnn ? 'WebNN Available' : 'API Only'}`;
+        }
         
         // Update IPFS status
         const ipfsStatus = document.getElementById('ipfs-status');
-        ipfsStatus.className = 'status-indicator inactive'; // TODO: implement IPFS detection
-        ipfsStatus.title = 'IPFS: Not connected';
+        if (ipfsStatus) {
+            ipfsStatus.className = 'status-indicator inactive'; // TODO: implement IPFS detection
+            ipfsStatus.title = 'IPFS: Not connected';
+        }
         
         // Update GPU status
         const gpuStatus = document.getElementById('gpu-status');
-        gpuStatus.className = 'status-indicator ' + (hwStatus.webgpu ? 'active' : 'inactive');
-        gpuStatus.title = `GPU: ${hwStatus.webgpu ? 'WebGPU Available' : 'Not available'}`;
+        if (gpuStatus) {
+            gpuStatus.className = 'status-indicator ' + (hwStatus.webgpu ? 'active' : 'inactive');
+            gpuStatus.title = `GPU: ${hwStatus.webgpu ? 'WebGPU Available' : 'Not available'}`;
+        }
     }
     
     setupContextMenu() {
@@ -3405,7 +3491,15 @@ class SwissKnifeDesktop {
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    // Initialize SwissKnife Desktop when DOM is fully loaded
-    window.desktop = new SwissKnifeDesktop();
-});
+// Initialize SwissKnife Desktop immediately when module loads
+// since modules load after DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.swissKnifeDesktop = new SwissKnifeDesktop();
+        window.desktop = window.swissKnifeDesktop; // Legacy compatibility
+    });
+} else {
+    // DOM is already loaded
+    window.swissKnifeDesktop = new SwissKnifeDesktop();
+    window.desktop = window.swissKnifeDesktop; // Legacy compatibility
+}

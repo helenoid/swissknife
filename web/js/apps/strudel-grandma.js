@@ -1536,3 +1536,7 @@ if (typeof module !== 'undefined' && module.exports) {
 window.GrandmaStrudelDAW = GrandmaStrudelDAW;
 
 console.log('🎵 Grandma-Friendly Strudel DAW loaded successfully!');
+
+// ES6 export for module import
+export default GrandmaStrudelDAW;
+export { GrandmaStrudelDAW };

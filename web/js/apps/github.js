@@ -595,7 +595,7 @@ class GitHubApp {
             console.log('🔗 Connecting to GitHub MCP server...');
             
             // Try to connect to GitHub MCP server through MCP Control app
-            if (window.mcpControlApp) {
+            if (typeof window !== 'undefined' && window.mcpControlApp) {
                 const githubServer = Array.from(window.mcpControlApp.remoteServers.values())
                     .find(server => server.name.toLowerCase().includes('github'));
                 
@@ -746,8 +746,7 @@ class GitHubApp {
         
         // Fallback to direct API
         await this.initializeDirectAPI();
-    }
-
+        
         try {
             // Load repositories
             await this.loadRepositories();
@@ -957,9 +956,11 @@ class GitHubApp {
 
     loadSettings() {
         try {
-            const settings = JSON.parse(localStorage.getItem('github-app-settings') || '{}');
-            this.accessToken = settings.accessToken;
-            this.user = settings.user;
+            if (typeof localStorage !== 'undefined') {
+                const settings = JSON.parse(localStorage.getItem('github-app-settings') || '{}');
+                this.accessToken = settings.accessToken;
+                this.user = settings.user;
+            }
         } catch (error) {
             console.warn('Failed to load GitHub settings:', error);
         }
@@ -967,11 +968,13 @@ class GitHubApp {
 
     saveSettings() {
         try {
-            const settings = {
-                accessToken: this.accessToken,
-                user: this.user
-            };
-            localStorage.setItem('github-app-settings', JSON.stringify(settings));
+            if (typeof localStorage !== 'undefined') {
+                const settings = {
+                    accessToken: this.accessToken,
+                    user: this.user
+                };
+                localStorage.setItem('github-app-settings', JSON.stringify(settings));
+            }
         } catch (error) {
             console.warn('Failed to save GitHub settings:', error);
         }
@@ -1085,29 +1088,32 @@ class GitHubApp {
     }
 }
 
-// Create global instance
-const githubApp = new GitHubApp();
+// Create global instance only when in browser context
+let githubApp;
+if (typeof window !== 'undefined') {
+    githubApp = new GitHubApp();
+    
+    // Export for window manager and module imports
+    window.GitHubApp = GitHubApp;
+    window.githubApp = githubApp;
 
-// Export for window manager and module imports
-window.GitHubApp = GitHubApp;
-window.githubApp = githubApp;
-
-// Create GitHub app instance for desktop integration
-window.createGitHubApp = function() {
-    return {
-        name: "GitHub",
-        icon: "🐙",
-        init: async function(container) {
-            const html = await githubApp.render();
-            container.innerHTML = html;
-            
-            // Initialize event handlers
-            githubApp.initializeEventHandlers(container);
-        },
-        destroy: function() {
-            // Cleanup if needed
-        }
+    // Create GitHub app instance for desktop integration
+    window.createGitHubApp = function() {
+        return {
+            name: "GitHub",
+            icon: "🐙",
+            init: async function(container) {
+                const html = await githubApp.render();
+                container.innerHTML = html;
+                
+                // Initialize event handlers
+                githubApp.initializeEventHandlers(container);
+            },
+            destroy: function() {
+                // Cleanup if needed
+            }
+        };
     };
-};
+}
 
 export { GitHubApp };
