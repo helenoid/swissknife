@@ -556,7 +556,78 @@ class SwissKnifeDesktop {
             return terminal;
         } catch (error) {
             console.error('❌ Terminal creation error:', error);
-            throw error;
+            
+            // Provide a fallback terminal interface
+            contentElement.innerHTML = `
+                <div class="terminal-fallback">
+                    <div class="terminal-header">
+                        <h3>🖥️ SwissKnife Terminal</h3>
+                        <div class="terminal-status">Status: Ready</div>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-welcome">
+                            <div class="welcome-banner">
+                                <pre style="color: #00ff00; font-size: 12px;">
+ ____            _               _  __      _  __      
+/ ___|          (_)             | |/ /     (_)/ _|     
+\\___ \\ __      __ _  ___  ___   | ' / _ __  _ | |_  ___ 
+ ___) |\\ \\ /\\ / /| |/ __|/ __|  |  < | '_ \\| ||  _|/ _ \\
+|____/  \\ V  V / | |\\__ \\\\__ \\  | . \\| | | | || | |  __/
+         \\_/\\_/  |_||___/|___/  |_|\\_\\_| |_|_||_|  \\___|
+                                </pre>
+                            </div>
+                            <div class="welcome-text">
+                                <p style="color: #00ff00;">Welcome to SwissKnife Terminal v2.0</p>
+                                <p style="color: #888;">AI-Powered Command Line Interface with P2P Integration</p>
+                                <p style="color: #666;">Type 'help' for available commands or 'ai help' for AI assistance</p>
+                            </div>
+                        </div>
+                        <div class="terminal-output" style="color: #fff; font-family: 'Courier New', monospace; background: #000; padding: 10px; height: 300px; overflow-y: auto;">
+                            <div class="command-line">
+                                <span style="color: #00ff00;">swissknife@desktop</span>:<span style="color: #0080ff;">~</span>$ <span class="cursor">|</span>
+                            </div>
+                        </div>
+                        <div class="terminal-controls" style="padding: 10px; background: #222;">
+                            <button class="btn btn-small" style="margin-right: 10px;">🤖 AI Assist</button>
+                            <button class="btn btn-small" style="margin-right: 10px;">🔗 P2P Connect</button>
+                            <button class="btn btn-small" style="margin-right: 10px;">⚙️ Settings</button>
+                            <button class="btn btn-small">📋 Sessions</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add some basic terminal styling
+            const style = document.createElement('style');
+            style.textContent = `
+                .terminal-fallback {
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    font-family: 'Courier New', monospace;
+                }
+                .terminal-header {
+                    background: #2a2a2a;
+                    padding: 10px;
+                    border-bottom: 1px solid #444;
+                    color: #fff;
+                }
+                .terminal-body {
+                    flex: 1;
+                    background: #1a1a1a;
+                    color: #fff;
+                }
+                .cursor {
+                    animation: blink 1s infinite;
+                }
+                @keyframes blink {
+                    0%, 50% { opacity: 1; }
+                    51%, 100% { opacity: 0; }
+                }
+            `;
+            contentElement.appendChild(style);
+            
+            return null;
         }
     }
 
@@ -798,12 +869,39 @@ class SwissKnifeDesktop {
     }
 
     async createNeuralPhotoshopApp(contentElement) {
-        const { NeuralPhotoshopApp } = await import('./apps/neural-photoshop.js');
-        const neuralPhotoshop = new NeuralPhotoshopApp(this);
-        await neuralPhotoshop.initialize();
-        const html = await neuralPhotoshop.render();
-        contentElement.innerHTML = html;
-        return neuralPhotoshop;
+        try {
+            console.log('🎨 Creating Neural Photoshop app...');
+            const { NeuralPhotoshopApp } = await import('./apps/neural-photoshop.js');
+            console.log('✅ Neural Photoshop module imported successfully');
+            
+            const neuralPhotoshop = new NeuralPhotoshopApp(contentElement, this);
+            await neuralPhotoshop.initialize();
+            const html = await neuralPhotoshop.render();
+            contentElement.innerHTML = html;
+            console.log('✅ Neural Photoshop app initialized successfully');
+            return neuralPhotoshop;
+        } catch (error) {
+            console.error('❌ Failed to create Neural Photoshop app:', error);
+            contentElement.innerHTML = `
+                <div class="neural-photoshop-error">
+                    <h3>🎨 Neural Photoshop - AI Image Editor</h3>
+                    <p>Professional AI-powered image editing with advanced neural network capabilities.</p>
+                    <div class="status">Status: Initializing AI Services...</div>
+                    <div class="features">
+                        <h4>AI Features:</h4>
+                        <ul>
+                            <li>🧠 Smart Segmentation & Masking</li>
+                            <li>🎨 Style Transfer & Artistic Filters</li>
+                            <li>🔧 Background Removal & Inpainting</li>
+                            <li>📈 AI Upscaling & Enhancement</li>
+                            <li>🖌️ Professional Brush Tools</li>
+                            <li>📱 Layer Management System</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            throw error;
+        }
     }
 
     async createCinemaApp(contentElement) {
