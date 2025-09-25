@@ -243,6 +243,21 @@ class SwissKnifeDesktop {
             singleton: true
         });
         
+        // Creative apps
+        this.apps.set('neural-photoshop', {
+            name: 'Art - AI Image Editor',
+            icon: '🎨',
+            component: 'NeuralPhotoshopApp',
+            singleton: false
+        });
+        
+        this.apps.set('cinema', {
+            name: 'Cinema - Professional Video Editor',
+            icon: '🎬',
+            component: 'CinemaApp',
+            singleton: false
+        });
+        
         console.log('📱 Total apps registered:', this.apps.size);
         console.log('📱 Apps list:', Array.from(this.apps.keys()));
     }
@@ -780,6 +795,24 @@ class SwissKnifeDesktop {
         const html = await systemMonitor.render();
         contentElement.innerHTML = html;
         return systemMonitor;
+    }
+
+    async createNeuralPhotoshopApp(contentElement) {
+        const { NeuralPhotoshopApp } = await import('./apps/neural-photoshop.js');
+        const neuralPhotoshop = new NeuralPhotoshopApp(this);
+        await neuralPhotoshop.initialize();
+        const html = await neuralPhotoshop.render();
+        contentElement.innerHTML = html;
+        return neuralPhotoshop;
+    }
+
+    async createCinemaApp(contentElement) {
+        const { CinemaApp } = await import('./apps/cinema.js');
+        const cinema = new CinemaApp(this);
+        await cinema.initialize();
+        const html = await cinema.render();
+        contentElement.innerHTML = html;
+        return cinema;
     }
 
     async createP2PNetworkApp(contentElement) {
