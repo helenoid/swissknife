@@ -10,9 +10,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'web/index.html')
-      }
+      input: './web/index.html'
     },
     target: 'es2020'
   },
