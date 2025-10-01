@@ -1241,8 +1241,8 @@ class SwissKnifeDesktop {
                         const ImageViewerApp = ImageViewerModule.ImageViewerApp;
                         appInstance = new ImageViewerApp(this);
                         await appInstance.initialize();
-                        const imageWindowHTML = appInstance.createWindow();
-                        contentElement.innerHTML = imageWindowHTML;
+                        const imageWindowConfig = appInstance.createWindow();
+                        contentElement.innerHTML = imageWindowConfig.content;
                     } catch (error) {
                         console.error('Failed to load Image Viewer app:', error);
                         contentElement.innerHTML = `
