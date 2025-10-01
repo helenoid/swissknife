@@ -58,8 +58,8 @@ test.describe('SwissKnife Desktop Applications - Real vs Mock Analysis', () => {
         for (const port of [3001, 3002, 3000]) {
             try {
                 const testUrl = `http://localhost:${port}`;
-                const response = await fetch(testUrl);
-                if (response.ok) {
+                const response = await page.request.get(testUrl);
+                if (response.ok()) {
                     serverUrl = testUrl;
                     console.log(`Found desktop server at ${serverUrl}`);
                     break;
