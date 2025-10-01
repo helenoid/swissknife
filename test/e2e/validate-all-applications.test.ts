@@ -53,8 +53,8 @@ test.describe('SwissKnife Desktop Application Validation', () => {
     for (const port of ports) {
       try {
         const testUrl = `http://localhost:${port}`;
-        const response = await fetch(testUrl);
-        if (response.ok) {
+        const response = await page.request.get(testUrl);
+        if (response.ok()) {
           serverUrl = testUrl;
           console.log(`Found desktop server at ${serverUrl}`);
           break;
