@@ -1046,7 +1046,6 @@ class SwissKnifeDesktop {
                     </div>
                 </div>
             `;
-            throw error;
         }
     }
 
