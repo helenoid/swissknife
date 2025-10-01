@@ -60,8 +60,8 @@ test.describe('SwissKnife Desktop Comprehensive Application Testing', () => {
     for (const port of ports) {
       const testUrl = `http://localhost:${port}`;
       try {
-        const response = await fetch(testUrl);
-        if (response.ok) {
+        const response = await page.request.get(testUrl);
+        if (response.ok()) {
           serverUrl = testUrl;
           console.log(`Found desktop server at ${serverUrl}`);
           break;
