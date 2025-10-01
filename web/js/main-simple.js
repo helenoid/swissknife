@@ -1003,7 +1003,7 @@ class SwissKnifeDesktop {
                     </div>
                 </div>
             `;
-            throw error;
+            // Removed throw to allow fallback interface to be shown
         }
     }
 
