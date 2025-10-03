@@ -4,9 +4,26 @@
  */
 
 /**
- * Placeholder implementation for RealTimeSync
+ * Placeholder type for SyncOperation
  */
-export class RealTimeSync {
+export interface SyncOperation {
+  id: string;
+  type: string;
+  data: any;
+  timestamp: number;
+}
+
+/**
+ * Placeholder type for VectorClock
+ */
+export interface VectorClock {
+  [peerId: string]: number;
+}
+
+/**
+ * Placeholder implementation for RealTimeSyncEngine
+ */
+export class RealTimeSyncEngine {
   constructor(options: any = {}) {
     // Placeholder initialization
   }
@@ -20,16 +37,24 @@ export class RealTimeSync {
     return { success: true };
   }
 
+  async sync(operation: SyncOperation): Promise<void> {
+    // Placeholder sync method
+  }
+
+  getVectorClock(): VectorClock {
+    return {};
+  }
+
   dispose(): void {
     // Placeholder cleanup
   }
 }
 
 /**
- * Factory function for RealTimeSync
+ * Factory function for RealTimeSyncEngine
  */
-export function createRealTimeSync(options: any = {}): RealTimeSync {
-  return new RealTimeSync(options);
+export function createRealTimeSyncEngine(options: any = {}): RealTimeSyncEngine {
+  return new RealTimeSyncEngine(options);
 }
 
-export default RealTimeSync;
+export default RealTimeSyncEngine;
