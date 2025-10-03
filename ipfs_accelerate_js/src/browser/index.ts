@@ -1,8 +1,6 @@
 /**
- * Browse: any;
+ * browser/index.ts - TypeScript module index
+ */
 
-// Expor: any;
-
-// Re-export key factory functions
-import { createResourcePoo: any;
-export { createResourcePoo: any;
+// Re-export placeholder
+export {};

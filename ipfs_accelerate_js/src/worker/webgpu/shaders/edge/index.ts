@@ -1,4 +1,6 @@
-// Auto-added WebGPU imports
-import { GPUDe: any;
+/**
+ * worker/webgpu/shaders/edge/index.ts - TypeScript module index
+ */
 
-// A: an: any;
+// Re-export placeholder
+export {};

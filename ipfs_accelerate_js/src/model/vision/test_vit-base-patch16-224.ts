@@ -3,9 +3,9 @@
  */
 
 /**
- * Basic implementation for test_vit-base-patch16-224
+ * Basic implementation for test_vit_base_patch16_224
  */
-export function test_vit-base-patch16-224(options: any = {}): any {
+export function test_vit_base_patch16_224(options: any = {}): any {
   // Placeholder implementation
   return {
     execute: async (input: any) => {
@@ -16,3 +16,6 @@ export function test_vit-base-patch16-224(options: any = {}): any {
     }
   };
 }
+
+// Export with original name for compatibility
+export { test_vit_base_patch16_224 as testVitBasePatch16_224 };

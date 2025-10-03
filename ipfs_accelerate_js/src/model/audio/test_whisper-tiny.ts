@@ -3,9 +3,9 @@
  */
 
 /**
- * Basic implementation for test_whisper-tiny
+ * Basic implementation for test_whisper_tiny
  */
-export function test_whisper-tiny(options: any = {}): any {
+export function test_whisper_tiny(options: any = {}): any {
   // Placeholder implementation
   return {
     execute: async (input: any) => {
@@ -16,3 +16,6 @@ export function test_whisper-tiny(options: any = {}): any {
     }
   };
 }
+
+// Export with original name for compatibility
+export { test_whisper_tiny as testWhisperTiny };

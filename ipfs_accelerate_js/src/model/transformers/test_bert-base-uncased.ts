@@ -3,9 +3,9 @@
  */
 
 /**
- * Basic implementation for test_bert-base-uncased
+ * Basic implementation for test_bert_base_uncased
  */
-export function test_bert-base-uncased(options: any = {}): any {
+export function test_bert_base_uncased(options: any = {}): any {
   // Placeholder implementation
   return {
     execute: async (input: any) => {
@@ -16,3 +16,6 @@ export function test_bert-base-uncased(options: any = {}): any {
     }
   };
 }
+
+// Export with original name for compatibility
+export { test_bert_base_uncased as testBertBaseUncased };

@@ -3,9 +3,9 @@
  */
 
 /**
- * Basic implementation for CLAUDE.md
+ * Basic implementation for CLAUDE_md
  */
-export function CLAUDE.md(options: any = {}): any {
+export function CLAUDE_md(options: any = {}): any {
   // Placeholder implementation
   return {
     execute: async (input: any) => {
@@ -16,3 +16,6 @@ export function CLAUDE.md(options: any = {}): any {
     }
   };
 }
+
+// Export with original name for compatibility
+export { CLAUDE_md as claudeMd };
