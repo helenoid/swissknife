@@ -235,3 +235,5 @@ coverage/
 # Phase script backups
 pre-phase*.txt
 *.phase*
+*.python-backup
+*.corrupted-backup

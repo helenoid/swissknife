@@ -801,13 +801,6 @@ stack(
         
         console.log(`✅ Loaded ${this.patterns.size} default patterns`);
     }
-            this.updateStatus(window, 'Audio engine ready');
-            
-        } catch (error) {
-            console.error('Failed to initialize audio engine:', error);
-            this.updateStatus(window, 'Audio initialization failed');
-        }
-    }
 
     async loadStrudelSDK() {
         try {
