@@ -1662,6 +1662,26 @@ export class FriendsListApp {
     }
   }
   
+  showQRScanner() {
+    // Implement QR code scanner functionality
+    alert('QR Code Scanner\n\nTo add a friend via QR code:\n1. Ask your friend to display their QR code from their Friends List\n2. Use your device camera to scan the code\n3. Confirm the friend request\n\nNote: Camera access requires HTTPS and user permission.');
+    
+    // In a real implementation, this would use the getUserMedia API
+    // to access the camera and a QR code scanning library
+    /* Example implementation:
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(stream => {
+        // Display video stream
+        // Scan for QR codes
+        // Parse friend ID and add friend
+      })
+      .catch(error => {
+        console.error('Camera access denied:', error);
+        alert('Camera access is required to scan QR codes.');
+      });
+    */
+  }
+  
   showFriendProfile(friendId) {
     const friend = this.friends.get(friendId);
     if (!friend) return;
