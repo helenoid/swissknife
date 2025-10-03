@@ -906,7 +906,7 @@ export class AIChatApp {
     this.showTypingIndicator();
 
     try {
-      // Send to AI (mock response for now)
+      // Send to AI using real API
       const response = await this.sendToAI(message, context);
       this.hideTypingIndicator();
       this.addMessage('assistant', response);
@@ -1157,7 +1157,7 @@ export class AIChatApp {
     this.showTypingIndicator();
 
     try {
-      // Send to AI (mock response for now)
+      // Send to AI using real API
       const response = await this.sendToAI(message, context);
       this.hideTypingIndicator();
       this.addMessage('assistant', response);
@@ -1253,19 +1253,64 @@ export class AIChatApp {
   }
 
   async sendToAI(message, context) {
-    // Mock AI response - replace with actual AI integration
-    const responses = [
-      "I understand your request. Let me help you with that.",
-      "Based on the context you've provided, here's what I can suggest...",
-      "That's an interesting question! Here's my analysis...",
-      "I can see from your desktop context that you're working on several projects.",
-      "Let me break this down for you step by step."
-    ];
+    try {
+      // Use real SwissKnife AI integration
+      if (this.swissknife && typeof this.swissknife.chat === 'function') {
+        // Prepare context string if available
+        let contextStr = '';
+        if (context && Object.keys(context).length > 0) {
+          contextStr = '\n\nContext:\n' + JSON.stringify(context, null, 2);
+        }
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+        // Send to real AI API
+        const response = await this.swissknife.chat({
+          message: message + contextStr,
+          model: this.selectedModel,
+          provider: this.selectedProvider
+        });
 
-    return responses[Math.floor(Math.random() * responses.length)];
+        // Extract message from response
+        const aiMessage = response.message || response.content || response;
+        
+        // Update token usage if available
+        if (response.usage) {
+          this.tokenUsage.input += response.usage.prompt_tokens || 0;
+          this.tokenUsage.output += response.usage.completion_tokens || 0;
+        } else {
+          // Estimate tokens if not provided
+          this.tokenUsage.input += Math.ceil(message.length / 4);
+          this.tokenUsage.output += Math.ceil(aiMessage.length / 4);
+        }
+
+        return aiMessage;
+      } else {
+        // Fallback: Try to use window.swissknife if available
+        if (window.swissknife && typeof window.swissknife.chat === 'function') {
+          const response = await window.swissknife.chat({
+            message: message,
+            model: this.selectedModel
+          });
+          return response.message || response.content || response;
+        }
+
+        // If no AI API available, provide helpful message
+        return `AI integration is not configured. To use AI Chat:
+
+1. Configure API keys in Settings
+2. Ensure SwissKnife backend is running
+3. Select an AI provider from the dropdown
+
+Currently selected: ${this.selectedProvider} / ${this.selectedModel}
+
+For testing, you can:
+- Use the Terminal AI commands
+- Configure OpenAI, Anthropic, or local models
+- Check the API Keys app for configuration`;
+      }
+    } catch (error) {
+      console.error('AI Error:', error);
+      throw new Error(`AI request failed: ${error.message}`);
+    }
   }
 
   updateUsageStats() {
@@ -1273,9 +1318,13 @@ export class AIChatApp {
     const messageCountElement = container.querySelector('#message-count');
     const tokenCountElement = container.querySelector('#token-count');
 
-    messageCountElement.textContent = this.messageCount;
-    this.tokenUsage.output += 50; // Mock token count
-    tokenCountElement.textContent = this.tokenUsage.input + this.tokenUsage.output;
+    if (messageCountElement) {
+      messageCountElement.textContent = this.messageCount;
+    }
+    
+    if (tokenCountElement) {
+      tokenCountElement.textContent = this.tokenUsage.input + this.tokenUsage.output;
+    }
   }
 
   startVoiceInput() {
