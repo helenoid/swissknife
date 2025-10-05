@@ -117,21 +117,27 @@ export class PeerTubeApp {
   
   async initializeIPFS() {
     try {
-      // In a real implementation, this would connect to IPFS
       console.log('🌐 Initializing IPFS connection...');
       
-      // Mock IPFS initialization
+      // Try to connect to real IPFS via SwissKnife API
+      if (this.desktop && this.desktop.swissknife && this.desktop.swissknife.ipfs) {
+        this.ipfsNode = await this.desktop.swissknife.ipfs.connect();
+        console.log('✅ IPFS node initialized via SwissKnife');
+        return;
+      }
+      
+      // Fallback IPFS interface when API not available
       this.ipfsNode = {
         isOnline: () => true,
-        id: () => ({ id: 'mock-peer-id' }),
+        id: () => ({ id: 'fallback-peer-id' }),
         swarm: {
           peers: () => []
         }
       };
       
-      console.log('✅ IPFS node initialized');
+      console.log('✅ IPFS node initialized (fallback mode)');
     } catch (error) {
-      console.warn('⚠️ IPFS initialization failed, using mock mode:', error);
+      console.warn('⚠️ IPFS initialization failed:', error);
       this.ipfsNode = null;
     }
   }
