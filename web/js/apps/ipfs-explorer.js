@@ -838,11 +838,21 @@ export class IPFSExplorerApp {
     `;
     
     try {
-      // Simulate loading IPFS content
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Attempt to load IPFS content via SwissKnife API
+      let items = [];
       
-      // Generate mock IPFS directory listing
-      const items = this.generateMockIPFSListing(path);
+      if (this.swissknife && this.swissknife.ipfs) {
+        try {
+          const result = await this.swissknife.ipfs.ls(path);
+          items = result.items || [];
+          console.log('✅ Loaded IPFS content from API');
+        } catch (apiError) {
+          console.warn('IPFS API unavailable, using fallback:', apiError);
+          items = this.getFallbackIPFSListing(path);
+        }
+      } else {
+        items = this.getFallbackIPFSListing(path);
+      }
       
       // Render file browser
       this.renderFileBrowser(window, items);
@@ -856,8 +866,9 @@ export class IPFSExplorerApp {
     }
   }
 
-  generateMockIPFSListing(path) {
-    const mockItems = [
+  getFallbackIPFSListing(path) {
+    // Fallback example listing when IPFS API not available
+    const fallbackItems = [
       { name: 'README.md', type: 'file', size: '2.1 KB', hash: 'QmX...abc123' },
       { name: 'images', type: 'directory', size: '15 items', hash: 'QmY...def456' },
       { name: 'documents', type: 'directory', size: '8 items', hash: 'QmZ...ghi789' },
@@ -866,7 +877,7 @@ export class IPFSExplorerApp {
       { name: 'video.mp4', type: 'file', size: '128.5 MB', hash: 'QmC...pqr678' }
     ];
     
-    return mockItems.map(item => ({
+    return fallbackItems.map(item => ({
       ...item,
       isPinned: this.pinned.has(item.hash),
       modified: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
