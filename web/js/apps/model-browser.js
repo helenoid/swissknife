@@ -566,7 +566,7 @@ export class ModelBrowserApp {
     }
     
     // Fallback to example models for demonstration
-    return this.getMockModels();
+    return this.getFallbackModels();
   }
 
   renderModelList(window) {

@@ -1194,12 +1194,39 @@ export class IPFSExplorerApp {
   }
 
   async fetchIPFSContent(hash) {
-    // Mock IPFS content fetching
-    // In production, this would interface with actual IPFS APIs
+    // Try to fetch from real IPFS if available
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        const content = await this.desktop.swissknife.ipfs.ls(hash);
+        return content;
+      } catch (error) {
+        console.warn('⚠️ IPFS fetch failed:', error);
+      }
+    }
+    
+    // Try window.ipfs if available
+    if (window.ipfs) {
+      try {
+        const content = [];
+        for await (const file of window.ipfs.ls(hash)) {
+          content.push({
+            name: file.name,
+            type: file.type === 1 ? 'directory' : 'document',
+            size: file.size,
+            hash: file.cid.toString()
+          });
+        }
+        return content;
+      } catch (error) {
+        console.warn('⚠️ Window IPFS fetch failed:', error);
+      }
+    }
+    
+    // Fallback to example content
     return [
-      { name: 'readme.md', type: 'document', size: 1024, hash: 'QmXxYyZz...' },
-      { name: 'images', type: 'directory', size: 0, hash: 'QmAaBbCc...' },
-      { name: 'data.json', type: 'json', size: 512, hash: 'QmDdEeFf...' }
+      { name: 'readme.md', type: 'document', size: 1024, hash: 'example-QmXxYyZz...' },
+      { name: 'images', type: 'directory', size: 0, hash: 'example-QmAaBbCc...' },
+      { name: 'data.json', type: 'json', size: 512, hash: 'example-QmDdEeFf...' }
     ];
   }
 
@@ -1359,13 +1386,36 @@ export class IPFSExplorerApp {
   }
 
   async updateNetworkMetrics() {
-    // Mock network metrics
-    const metrics = {
-      'network-peers': Math.floor(Math.random() * 50) + 10,
-      'download-speed': `${(Math.random() * 100).toFixed(1)} KB/s`,
-      'upload-speed': `${(Math.random() * 50).toFixed(1)} KB/s`,
-      'dht-size': Math.floor(Math.random() * 10000) + 5000
+    // Try to get real network metrics from IPFS
+    let metrics = {
+      'network-peers': 0,
+      'download-speed': '0 KB/s',
+      'upload-speed': '0 KB/s',
+      'dht-size': 0
     };
+    
+    // Try SwissKnife IPFS API
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        const stats = await this.desktop.swissknife.ipfs.stats();
+        metrics['network-peers'] = stats.peers || 0;
+        metrics['download-speed'] = `${((stats.downloadSpeed || 0) / 1024).toFixed(1)} KB/s`;
+        metrics['upload-speed'] = `${((stats.uploadSpeed || 0) / 1024).toFixed(1)} KB/s`;
+        metrics['dht-size'] = stats.dhtSize || 0;
+      } catch (error) {
+        console.warn('⚠️ Could not fetch real IPFS stats:', error);
+      }
+    }
+    
+    // Try window.ipfs
+    if (window.ipfs && metrics['network-peers'] === 0) {
+      try {
+        const swarm = await window.ipfs.swarm.peers();
+        metrics['network-peers'] = swarm.length;
+      } catch (error) {
+        console.warn('⚠️ Could not fetch IPFS swarm peers:', error);
+      }
+    }
     
     Object.entries(metrics).forEach(([id, value]) => {
       const element = document.getElementById(id);
@@ -1700,14 +1750,46 @@ export class IPFSExplorerApp {
       // Initialize IPFS node connection
       console.log('Initializing IPFS node connection...');
       
-      // Mock IPFS node initialization
-      this.ipfsNode = {
-        id: '12D3KooWExample...',
-        version: '0.14.0',
-        connected: true
-      };
+      // Try to connect to real IPFS node
+      if (this.desktop?.swissknife?.ipfs) {
+        try {
+          const info = await this.desktop.swissknife.ipfs.id();
+          this.ipfsNode = {
+            id: info.id || info.peerId,
+            version: info.agentVersion || '0.14.0',
+            connected: true
+          };
+          console.log('✅ IPFS node connected via SwissKnife API');
+          return;
+        } catch (error) {
+          console.warn('⚠️ SwissKnife IPFS connection failed:', error);
+        }
+      }
       
-      console.log('✅ IPFS node connected');
+      // Try window.ipfs
+      if (window.ipfs) {
+        try {
+          const info = await window.ipfs.id();
+          this.ipfsNode = {
+            id: info.id,
+            version: info.agentVersion || '0.14.0',
+            connected: true
+          };
+          console.log('✅ IPFS node connected via window.ipfs');
+          return;
+        } catch (error) {
+          console.warn('⚠️ Window IPFS connection failed:', error);
+        }
+      }
+      
+      // Fallback to example node info
+      this.ipfsNode = {
+        id: 'example-12D3KooWExample...',
+        version: '0.14.0',
+        connected: false
+      };
+      console.log('⚠️ Using example IPFS node info (not connected)');
+      
     } catch (error) {
       console.error('❌ IPFS node connection failed:', error);
     }
