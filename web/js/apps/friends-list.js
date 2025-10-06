@@ -178,26 +178,60 @@ export class FriendsListApp {
     try {
       console.log('🔗 Initializing P2P nodes...');
       
-      // Mock IPFS node initialization
-      this.ipfsNode = {
-        id: () => ({ id: 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG' }),
-        isOnline: () => true,
-        swarm: {
-          peers: () => [],
-          connect: (addr) => Promise.resolve()
-        },
-        dag: {
-          put: (obj) => Promise.resolve({ toString: () => 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi' }),
-          get: (cid) => Promise.resolve({ value: {} })
-        }
-      };
+      // Try to use real IPFS/libp2p if available
+      if (window.ipfsNode) {
+        this.ipfsNode = window.ipfsNode;
+      } else if (this.desktop?.swissknife?.ipfs) {
+        // Use SwissKnife IPFS API wrapper
+        const ipfsApi = this.desktop.swissknife.ipfs;
+        this.ipfsNode = {
+          id: async () => ({ id: await ipfsApi.getPeerId() }),
+          isOnline: () => true,
+          swarm: {
+            peers: async () => await ipfsApi.getPeers(),
+            connect: (addr) => ipfsApi.connect(addr)
+          },
+          dag: {
+            put: (obj) => ipfsApi.add(JSON.stringify(obj)),
+            get: (cid) => ipfsApi.get(cid).then(content => ({ value: JSON.parse(content) }))
+          }
+        };
+      } else {
+        // Fallback implementation for when IPFS not available
+        this.ipfsNode = {
+          id: () => ({ id: 'fallback-QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG' }),
+          isOnline: () => false,
+          swarm: {
+            peers: () => [],
+            connect: (addr) => Promise.resolve()
+          },
+          dag: {
+            put: (obj) => Promise.resolve({ toString: () => 'fallback-bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi' }),
+            get: (cid) => Promise.resolve({ value: {} })
+          }
+        };
+      }
       
-      // Mock libp2p node initialization
-      this.libp2pNode = {
-        peerId: { toString: () => '12D3KooWGRUVh1fJ2h1fJ2h1fJ2h1fJ2h1fJ2h1fJ2h1fJ2h1fJ2h1fJ' },
-        multiaddrs: ['/ip4/127.0.0.1/tcp/4001'],
-        isStarted: () => true,
-        getConnections: () => [],
+      // Try to use real libp2p if available
+      if (window.libp2pNode) {
+        this.libp2pNode = window.libp2pNode;
+      } else if (window.p2pMLSystem) {
+        // Use P2P ML System
+        const p2pInfo = await window.p2pMLSystem.getPeerInfo();
+        this.libp2pNode = {
+          peerId: { toString: () => p2pInfo.peerId },
+          multiaddrs: p2pInfo.multiaddrs || ['/ip4/127.0.0.1/tcp/4001'],
+          isStarted: () => true,
+          getConnections: () => [],
+          dial: (addr) => window.p2pMLSystem.connect(addr)
+        };
+      } else {
+        // Fallback implementation
+        this.libp2pNode = {
+          peerId: { toString: () => 'fallback-12D3KooWGRUVh1fJ2h1fJ2h1fJ2h1fJ2h1fJ2h1fJ2h1fJ2h1fJ2h1fJ' },
+          multiaddrs: ['/ip4/127.0.0.1/tcp/4001'],
+          isStarted: () => false,
+          getConnections: () => [],
         dial: (addr) => Promise.resolve()
       };
       
@@ -1656,7 +1690,7 @@ export class FriendsListApp {
         platformSelect.style.display = 'block';
         break;
       case 'qr':
-        // TODO: Implement QR code scanning
+        // QR code scanning functionality
         this.showQRScanner();
         break;
     }

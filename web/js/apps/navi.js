@@ -697,12 +697,31 @@ Try asking me to "open terminal", "monitor system", or "automate task". I'm here
       };
     }
     
-    // Mock search results
-    const results = [
-      `Found 3 apps matching "${query}"`,
-      `Found 7 files containing "${query}"`,
-      `Found 2 settings related to "${query}"`
-    ];
+    // Perform real search across available resources
+    const results = [];
+    
+    // Search in apps (if available)
+    if (this.desktop?.apps) {
+      const appMatches = Object.keys(this.desktop.apps).filter(app => 
+        app.toLowerCase().includes(query.toLowerCase())
+      );
+      if (appMatches.length > 0) {
+        results.push(`Found ${appMatches.length} app${appMatches.length > 1 ? 's' : ''} matching "${query}"`);
+      }
+    }
+    
+    // Search in localStorage for files/data
+    const fileMatches = Object.keys(localStorage).filter(key => 
+      key.toLowerCase().includes(query.toLowerCase())
+    );
+    if (fileMatches.length > 0) {
+      results.push(`Found ${fileMatches.length} item${fileMatches.length > 1 ? 's' : ''} in storage containing "${query}"`);
+    }
+    
+    // Add default message if no results
+    if (results.length === 0) {
+      results.push(`No results found for "${query}"`);
+    }
     
     return {
       content: `Search results for "${query}":\n\n${results.join('\n')}`,
@@ -1121,10 +1140,16 @@ System is running normally!`,
     const interactions = Array.from(this.learningData.values()).filter(d => d.type === 'user_input');
     const preferences = Array.from(this.learningData.values()).filter(d => d.type === 'preference');
     
+    // Calculate real success rate from interactions
+    const successfulInteractions = interactions.filter(i => i.successful !== false).length;
+    const successRate = interactions.length > 0 
+      ? Math.round((successfulInteractions / interactions.length) * 100) + '%'
+      : 'N/A';
+    
     const elements = {
       'interaction-count': interactions.length,
       'pattern-count': preferences.length,
-      'success-rate': '95%' // Mock success rate
+      'success-rate': successRate
     };
     
     Object.entries(elements).forEach(([id, value]) => {

@@ -4549,14 +4549,37 @@ st.write("Hello, World!")
   }
 
   async executePythonCode(code) {
-    // Mock Python execution - in real implementation, use Pyodide or send to backend
+    // Try to use Pyodide if available, otherwise provide guidance
+    if (window.pyodide) {
+      try {
+        return await window.pyodide.runPythonAsync(code);
+      } catch (error) {
+        return `Python execution error: ${error.message}`;
+      }
+    }
+    
+    // Try to send to backend if SwissKnife API available
+    if (this.desktop?.swissknife?.python) {
+      try {
+        const result = await this.desktop.swissknife.python.execute(code);
+        return result.output || 'Code executed successfully';
+      } catch (error) {
+        return `Backend execution error: ${error.message}`;
+      }
+    }
+    
+    // Fallback: Basic evaluation for simple print statements
     if (code.includes('print(')) {
       const match = code.match(/print\((.*)\)/);
       if (match) {
-        return eval(match[1]); // Simplified evaluation
+        try {
+          return eval(match[1]); // Simplified evaluation
+        } catch (e) {
+          return 'Simplified evaluation failed. For full Python support, Pyodide or backend integration needed.';
+        }
       }
     }
-    return 'Code executed successfully';
+    return 'Code executed (simulated). For real Python execution, load Pyodide or configure backend.';
   }
 
   handleStreamlitCommand(window, command) {

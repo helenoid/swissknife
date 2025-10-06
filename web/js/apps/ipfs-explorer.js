@@ -1194,12 +1194,39 @@ export class IPFSExplorerApp {
   }
 
   async fetchIPFSContent(hash) {
-    // Mock IPFS content fetching
-    // In production, this would interface with actual IPFS APIs
+    // Try to fetch from real IPFS if available
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        const content = await this.desktop.swissknife.ipfs.ls(hash);
+        return content;
+      } catch (error) {
+        console.warn('⚠️ IPFS fetch failed:', error);
+      }
+    }
+    
+    // Try window.ipfs if available
+    if (window.ipfs) {
+      try {
+        const content = [];
+        for await (const file of window.ipfs.ls(hash)) {
+          content.push({
+            name: file.name,
+            type: file.type === 1 ? 'directory' : 'document',
+            size: file.size,
+            hash: file.cid.toString()
+          });
+        }
+        return content;
+      } catch (error) {
+        console.warn('⚠️ Window IPFS fetch failed:', error);
+      }
+    }
+    
+    // Fallback to example content
     return [
-      { name: 'readme.md', type: 'document', size: 1024, hash: 'QmXxYyZz...' },
-      { name: 'images', type: 'directory', size: 0, hash: 'QmAaBbCc...' },
-      { name: 'data.json', type: 'json', size: 512, hash: 'QmDdEeFf...' }
+      { name: 'readme.md', type: 'document', size: 1024, hash: 'example-QmXxYyZz...' },
+      { name: 'images', type: 'directory', size: 0, hash: 'example-QmAaBbCc...' },
+      { name: 'data.json', type: 'json', size: 512, hash: 'example-QmDdEeFf...' }
     ];
   }
 
@@ -1359,13 +1386,36 @@ export class IPFSExplorerApp {
   }
 
   async updateNetworkMetrics() {
-    // Mock network metrics
-    const metrics = {
-      'network-peers': Math.floor(Math.random() * 50) + 10,
-      'download-speed': `${(Math.random() * 100).toFixed(1)} KB/s`,
-      'upload-speed': `${(Math.random() * 50).toFixed(1)} KB/s`,
-      'dht-size': Math.floor(Math.random() * 10000) + 5000
+    // Try to get real network metrics from IPFS
+    let metrics = {
+      'network-peers': 0,
+      'download-speed': '0 KB/s',
+      'upload-speed': '0 KB/s',
+      'dht-size': 0
     };
+    
+    // Try SwissKnife IPFS API
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        const stats = await this.desktop.swissknife.ipfs.stats();
+        metrics['network-peers'] = stats.peers || 0;
+        metrics['download-speed'] = `${((stats.downloadSpeed || 0) / 1024).toFixed(1)} KB/s`;
+        metrics['upload-speed'] = `${((stats.uploadSpeed || 0) / 1024).toFixed(1)} KB/s`;
+        metrics['dht-size'] = stats.dhtSize || 0;
+      } catch (error) {
+        console.warn('⚠️ Could not fetch real IPFS stats:', error);
+      }
+    }
+    
+    // Try window.ipfs
+    if (window.ipfs && metrics['network-peers'] === 0) {
+      try {
+        const swarm = await window.ipfs.swarm.peers();
+        metrics['network-peers'] = swarm.length;
+      } catch (error) {
+        console.warn('⚠️ Could not fetch IPFS swarm peers:', error);
+      }
+    }
     
     Object.entries(metrics).forEach(([id, value]) => {
       const element = document.getElementById(id);
@@ -1394,12 +1444,44 @@ export class IPFSExplorerApp {
     const table = document.getElementById('peers-table');
     if (!table) return;
     
-    // Mock peer data
-    const peers = [
-      { id: '12D3KooWGRREjJc...', location: 'US', latency: '45ms', bandwidth: '2.3 MB/s' },
-      { id: '12D3KooWHZTFpb1...', location: 'EU', latency: '78ms', bandwidth: '1.8 MB/s' },
-      { id: '12D3KooWJKLMpqr...', location: 'AS', latency: '125ms', bandwidth: '1.2 MB/s' }
-    ];
+    // Try to get real peer data from IPFS
+    let peers = [];
+    
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        const swarmPeers = await this.desktop.swissknife.ipfs.swarm.peers();
+        peers = swarmPeers.map(peer => ({
+          id: peer.peer || peer.id,
+          location: peer.location || 'Unknown',
+          latency: peer.latency || 'N/A',
+          bandwidth: peer.bandwidth || 'N/A'
+        }));
+      } catch (error) {
+        console.warn('⚠️ Could not fetch real peers:', error);
+      }
+    }
+    
+    // Try window.ipfs if no peers yet
+    if (peers.length === 0 && window.ipfs) {
+      try {
+        const swarmPeers = await window.ipfs.swarm.peers();
+        peers = swarmPeers.map(peer => ({
+          id: peer.peer || peer.addr,
+          location: 'Unknown',
+          latency: 'N/A',
+          bandwidth: 'N/A'
+        }));
+      } catch (error) {
+        console.warn('⚠️ Could not fetch window.ipfs peers:', error);
+      }
+    }
+    
+    // Fallback to example peers if none available
+    if (peers.length === 0) {
+      peers = [
+        { id: 'example-12D3KooWGRREjJc...', location: 'N/A', latency: 'N/A', bandwidth: 'N/A' }
+      ];
+    }
     
     table.innerHTML = `
       <table class="data-table">
@@ -1438,15 +1520,40 @@ export class IPFSExplorerApp {
   }
 
   updateAnalyticsSummary() {
-    // Mock analytics data
-    const summary = {
-      dataRetrieved: '1.2 GB',
-      dataShared: '456 MB',
-      cacheHitRate: '89%',
-      avgLatency: '245ms'
+    // Try to get real analytics from IPFS stats
+    let summary = {
+      dataRetrieved: '0 B',
+      dataShared: '0 B',
+      cacheHitRate: 'N/A',
+      avgLatency: 'N/A'
     };
     
-    // Update summary cards (already rendered in HTML)
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        // These would be populated from real IPFS stats if available
+        summary = {
+          dataRetrieved: this.formatBytes(0), // Real implementation would track this
+          dataShared: this.formatBytes(0), // Real implementation would track this  
+          cacheHitRate: 'N/A', // Requires analytics tracking
+          avgLatency: 'N/A' // Requires performance monitoring
+        };
+      } catch (error) {
+        console.warn('⚠️ Could not fetch analytics:', error);
+      }
+    }
+    
+    // Update summary cards if they exist
+    const elements = {
+      'data-retrieved': summary.dataRetrieved,
+      'data-shared': summary.dataShared,
+      'cache-hit-rate': summary.cacheHitRate,
+      'avg-latency': summary.avgLatency
+    };
+    
+    Object.entries(elements).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
   }
 
   renderBandwidthChart() {
@@ -1610,7 +1717,7 @@ export class IPFSExplorerApp {
     this.showNotification('Starting IPFS upload...', 'info');
     
     try {
-      // Mock upload process
+      // Upload files to IPFS
       for (const file of this.uploadQueue) {
         await this.uploadFileToIPFS(file);
       }
@@ -1624,10 +1731,62 @@ export class IPFSExplorerApp {
   }
 
   async uploadFileToIPFS(file) {
-    // Mock IPFS upload
+    // Try to upload to real IPFS
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        const result = await this.desktop.swissknife.ipfs.add(file);
+        const hash = result.cid || result.hash;
+        
+        // Add to pinned content if option is selected
+        const pinAfterUpload = document.getElementById('pin-after-upload');
+        if (pinAfterUpload?.checked) {
+          await this.desktop.swissknife.ipfs.pin(hash);
+          this.pinnedContent.set(hash, {
+            hash,
+            name: file.name,
+            size: file.size,
+            type: this.getFileType(file.name),
+            pinnedAt: Date.now(),
+            status: 'pinned'
+          });
+        }
+        
+        return hash;
+      } catch (error) {
+        console.warn('⚠️ SwissKnife IPFS upload failed:', error);
+      }
+    }
+    
+    // Try window.ipfs
+    if (window.ipfs) {
+      try {
+        const result = await window.ipfs.add(file);
+        const hash = result.cid.toString();
+        
+        // Add to pinned content if option is selected
+        const pinAfterUpload = document.getElementById('pin-after-upload');
+        if (pinAfterUpload?.checked) {
+          await window.ipfs.pin.add(hash);
+          this.pinnedContent.set(hash, {
+            hash,
+            name: file.name,
+            size: file.size,
+            type: this.getFileType(file.name),
+            pinnedAt: Date.now(),
+            status: 'pinned'
+          });
+        }
+        
+        return hash;
+      } catch (error) {
+        console.warn('⚠️ Window IPFS upload failed:', error);
+      }
+    }
+    
+    // Fallback: simulate upload for demo
     return new Promise((resolve) => {
       setTimeout(() => {
-        const hash = 'Qm' + Math.random().toString(36).substring(2, 46);
+        const hash = 'example-Qm' + Math.random().toString(36).substring(2, 46);
         
         // Add to pinned content if option is selected
         const pinAfterUpload = document.getElementById('pin-after-upload');
@@ -1700,14 +1859,46 @@ export class IPFSExplorerApp {
       // Initialize IPFS node connection
       console.log('Initializing IPFS node connection...');
       
-      // Mock IPFS node initialization
-      this.ipfsNode = {
-        id: '12D3KooWExample...',
-        version: '0.14.0',
-        connected: true
-      };
+      // Try to connect to real IPFS node
+      if (this.desktop?.swissknife?.ipfs) {
+        try {
+          const info = await this.desktop.swissknife.ipfs.id();
+          this.ipfsNode = {
+            id: info.id || info.peerId,
+            version: info.agentVersion || '0.14.0',
+            connected: true
+          };
+          console.log('✅ IPFS node connected via SwissKnife API');
+          return;
+        } catch (error) {
+          console.warn('⚠️ SwissKnife IPFS connection failed:', error);
+        }
+      }
       
-      console.log('✅ IPFS node connected');
+      // Try window.ipfs
+      if (window.ipfs) {
+        try {
+          const info = await window.ipfs.id();
+          this.ipfsNode = {
+            id: info.id,
+            version: info.agentVersion || '0.14.0',
+            connected: true
+          };
+          console.log('✅ IPFS node connected via window.ipfs');
+          return;
+        } catch (error) {
+          console.warn('⚠️ Window IPFS connection failed:', error);
+        }
+      }
+      
+      // Fallback to example node info
+      this.ipfsNode = {
+        id: 'example-12D3KooWExample...',
+        version: '0.14.0',
+        connected: false
+      };
+      console.log('⚠️ Using example IPFS node info (not connected)');
+      
     } catch (error) {
       console.error('❌ IPFS node connection failed:', error);
     }

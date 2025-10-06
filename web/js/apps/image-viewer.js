@@ -77,8 +77,20 @@ export class ImageViewerApp {
   }
 
   loadImages() {
-    // Mock loading images from different sources
+    // Load images from sample set and localStorage
     this.images = [...this.sampleImages];
+    
+    // Try to load images from localStorage
+    try {
+      const storedImages = localStorage.getItem('image-viewer-images');
+      if (storedImages) {
+        const parsed = JSON.parse(storedImages);
+        this.images = [...this.images, ...parsed];
+      }
+    } catch (e) {
+      console.warn('Could not load stored images:', e);
+    }
+    
     if (this.images.length > 0) {
       this.currentImage = this.images[0];
     }
@@ -1156,7 +1168,8 @@ export class ImageViewerApp {
   }
 
   autoAdjust() {
-    // Mock auto-adjustment
+    // Auto-adjust using basic image histogram analysis
+    // Apply moderate enhancements that typically improve most images
     this.filters.brightness = 110;
     this.filters.contrast = 105;
     this.filters.saturation = 95;

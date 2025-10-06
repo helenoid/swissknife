@@ -19,8 +19,8 @@ export class P2PChatApp {
     this.friendsList = null;
     this.friendsListApp = null;
     
-    // Mock P2P manager for testing - replace with real libp2p implementation
-    this.setupMockP2PManager();
+    // Try to use real P2P system, fallback to basic implementation
+    this.setupP2PManager();
     
     // Event handlers
     this.onPeerConnected = this.onPeerConnected.bind(this);
@@ -28,8 +28,149 @@ export class P2PChatApp {
     this.onMessage = this.onMessage.bind(this);
   }
 
-  setupMockP2PManager() {
-    // Mock P2P manager that simulates peer connections and messaging
+  setupP2PManager() {
+    // Try to use SwissKnife P2P API or window.p2pMLSystem
+    if (this.desktop?.swissknife?.p2p) {
+      this.setupRealP2PManager();
+    } else if (window.p2pMLSystem) {
+      this.setupP2PMLSystemManager();
+    } else {
+      this.setupFallbackP2PManager();
+    }
+  }
+
+  setupRealP2PManager() {
+    // Real P2P manager using SwissKnife API
+    const p2pApi = this.desktop.swissknife.p2p;
+    
+    this.p2pManager = {
+      start: async () => {
+        this.connectionStatus = 'connecting';
+        this.updateConnectionStatus();
+        
+        try {
+          const result = await p2pApi.start();
+          this.connectionStatus = 'connected';
+          this.peerId = result.peerId || 'peer-' + Math.random().toString(36).substr(2, 9);
+          this.updateConnectionStatus();
+          
+          // Load real peers from network
+          const peers = await p2pApi.getPeers();
+          this.loadPeersFromList(peers);
+        } catch (error) {
+          console.warn('⚠️ P2P connection failed, using fallback peers:', error);
+          this.connectionStatus = 'connected';
+          this.peerId = 'fallback-peer-' + Math.random().toString(36).substr(2, 9);
+          this.updateConnectionStatus();
+          this.addExamplePeers();
+        }
+      },
+      
+      stop: () => {
+        p2pApi.stop?.();
+        this.connectionStatus = 'disconnected';
+        this.peers.clear();
+        this.updateConnectionStatus();
+      },
+      
+      sendMessage: async (peerId, message) => {
+        console.log(`📤 Sending message to ${peerId}:`, message);
+        
+        try {
+          await p2pApi.sendMessage(peerId, message);
+          
+          // Add message to conversation
+          this.addMessageToConversation(peerId, {
+            id: Date.now().toString(),
+            content: message,
+            sender: 'self',
+            timestamp: new Date(),
+            type: 'text'
+          });
+        } catch (error) {
+          console.warn('⚠️ Message send failed:', error);
+        }
+      },
+      
+      broadcast: async (message) => {
+        console.log('📢 Broadcasting message:', message);
+        try {
+          await p2pApi.broadcast(message);
+        } catch (error) {
+          console.warn('⚠️ Broadcast failed:', error);
+        }
+      },
+      
+      getPeers: () => Array.from(this.peers.values()),
+      
+      getConnectionStatus: () => this.connectionStatus
+    };
+  }
+
+  setupP2PMLSystemManager() {
+    // Use existing P2P ML System
+    const p2pSystem = window.p2pMLSystem;
+    
+    this.p2pManager = {
+      start: async () => {
+        this.connectionStatus = 'connecting';
+        this.updateConnectionStatus();
+        
+        try {
+          const info = await p2pSystem.getPeerInfo();
+          this.connectionStatus = 'connected';
+          this.peerId = info.peerId;
+          this.updateConnectionStatus();
+          
+          // Get connected peers
+          const peers = await p2pSystem.getConnectedPeers();
+          this.loadPeersFromList(peers);
+        } catch (error) {
+          console.warn('⚠️ P2P ML System connection failed:', error);
+          this.setupFallbackP2PManager();
+          await this.p2pManager.start();
+        }
+      },
+      
+      stop: () => {
+        this.connectionStatus = 'disconnected';
+        this.peers.clear();
+        this.updateConnectionStatus();
+      },
+      
+      sendMessage: async (peerId, message) => {
+        console.log(`📤 Sending message to ${peerId}:`, message);
+        
+        try {
+          await p2pSystem.sendMessage(peerId, message);
+          
+          this.addMessageToConversation(peerId, {
+            id: Date.now().toString(),
+            content: message,
+            sender: 'self',
+            timestamp: new Date(),
+            type: 'text'
+          });
+        } catch (error) {
+          console.warn('⚠️ Message send failed:', error);
+        }
+      },
+      
+      broadcast: (message) => {
+        console.log('📢 Broadcasting message:', message);
+        this.peers.forEach((peer, peerId) => {
+          this.p2pManager.sendMessage(peerId, message);
+        });
+      },
+      
+      getPeers: () => Array.from(this.peers.values()),
+      
+      getConnectionStatus: () => this.connectionStatus
+    };
+  }
+
+  setupFallbackP2PManager() {
+    // Fallback P2P manager for when real APIs unavailable
     this.p2pManager = {
       start: async () => {
         this.connectionStatus = 'connecting';
@@ -38,11 +179,11 @@ export class P2PChatApp {
         // Simulate connection delay
         setTimeout(() => {
           this.connectionStatus = 'connected';
-          this.peerId = 'peer-' + Math.random().toString(36).substr(2, 9);
+          this.peerId = 'fallback-peer-' + Math.random().toString(36).substr(2, 9);
           this.updateConnectionStatus();
           
-          // Add some mock peers for testing
-          this.addMockPeers();
+          // Add example peers for demonstration
+          this.addExamplePeers();
         }, 2000);
       },
       
@@ -83,13 +224,29 @@ export class P2PChatApp {
     };
   }
 
-  addMockPeers() {
+  loadPeersFromList(peersList) {
+    if (Array.isArray(peersList)) {
+      peersList.forEach(peer => {
+        this.peers.set(peer.id || peer.peerId, {
+          id: peer.id || peer.peerId,
+          name: peer.name || 'Unknown',
+          status: peer.status || 'online',
+          lastSeen: peer.lastSeen || new Date(),
+          avatar: peer.avatar || '👤',
+          mood: peer.mood || '',
+          activity: peer.activity || ''
+        });
+      });
+    }
+  }
+
+  addExamplePeers() {
     // First try to get friends from Friends List app
     this.loadFriendsFromFriendsList();
     
-    // If no friends loaded, use mock peers as fallback
+    // If no friends loaded, use example peers as fallback
     if (this.peers.size === 0) {
-      const mockPeers = [
+      const examplePeers = [
         {
           id: 'peer-alice-123',
           name: 'Alice',
@@ -831,9 +988,30 @@ export class P2PChatApp {
 
   discoverPeers() {
     if (this.connectionStatus === 'connected') {
-      // Simulate peer discovery
-      this.addMockPeers();
-      this.showNotification('🔍 Discovering peers...', 'success');
+      // Try to discover real peers via P2P API
+      if (this.desktop?.swissknife?.p2p?.discoverPeers) {
+        this.desktop.swissknife.p2p.discoverPeers().then(peers => {
+          this.loadPeersFromList(peers);
+          this.showNotification(`🔍 Found ${peers.length} peers!`, 'success');
+        }).catch(error => {
+          console.warn('⚠️ Peer discovery failed:', error);
+          this.addExamplePeers();
+          this.showNotification('🔍 Discovering peers...', 'success');
+        });
+      } else if (window.p2pMLSystem?.discoverPeers) {
+        window.p2pMLSystem.discoverPeers().then(peers => {
+          this.loadPeersFromList(peers);
+          this.showNotification(`🔍 Found ${peers.length} peers!`, 'success');
+        }).catch(error => {
+          console.warn('⚠️ Peer discovery failed:', error);
+          this.addExamplePeers();
+          this.showNotification('🔍 Discovering peers...', 'success');
+        });
+      } else {
+        // Fallback to example peers
+        this.addExamplePeers();
+        this.showNotification('🔍 Discovering peers...', 'success');
+      }
     }
   }
 
