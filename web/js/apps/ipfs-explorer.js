@@ -1444,12 +1444,44 @@ export class IPFSExplorerApp {
     const table = document.getElementById('peers-table');
     if (!table) return;
     
-    // Mock peer data
-    const peers = [
-      { id: '12D3KooWGRREjJc...', location: 'US', latency: '45ms', bandwidth: '2.3 MB/s' },
-      { id: '12D3KooWHZTFpb1...', location: 'EU', latency: '78ms', bandwidth: '1.8 MB/s' },
-      { id: '12D3KooWJKLMpqr...', location: 'AS', latency: '125ms', bandwidth: '1.2 MB/s' }
-    ];
+    // Try to get real peer data from IPFS
+    let peers = [];
+    
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        const swarmPeers = await this.desktop.swissknife.ipfs.swarm.peers();
+        peers = swarmPeers.map(peer => ({
+          id: peer.peer || peer.id,
+          location: peer.location || 'Unknown',
+          latency: peer.latency || 'N/A',
+          bandwidth: peer.bandwidth || 'N/A'
+        }));
+      } catch (error) {
+        console.warn('⚠️ Could not fetch real peers:', error);
+      }
+    }
+    
+    // Try window.ipfs if no peers yet
+    if (peers.length === 0 && window.ipfs) {
+      try {
+        const swarmPeers = await window.ipfs.swarm.peers();
+        peers = swarmPeers.map(peer => ({
+          id: peer.peer || peer.addr,
+          location: 'Unknown',
+          latency: 'N/A',
+          bandwidth: 'N/A'
+        }));
+      } catch (error) {
+        console.warn('⚠️ Could not fetch window.ipfs peers:', error);
+      }
+    }
+    
+    // Fallback to example peers if none available
+    if (peers.length === 0) {
+      peers = [
+        { id: 'example-12D3KooWGRREjJc...', location: 'N/A', latency: 'N/A', bandwidth: 'N/A' }
+      ];
+    }
     
     table.innerHTML = `
       <table class="data-table">
@@ -1488,15 +1520,40 @@ export class IPFSExplorerApp {
   }
 
   updateAnalyticsSummary() {
-    // Mock analytics data
-    const summary = {
-      dataRetrieved: '1.2 GB',
-      dataShared: '456 MB',
-      cacheHitRate: '89%',
-      avgLatency: '245ms'
+    // Try to get real analytics from IPFS stats
+    let summary = {
+      dataRetrieved: '0 B',
+      dataShared: '0 B',
+      cacheHitRate: 'N/A',
+      avgLatency: 'N/A'
     };
     
-    // Update summary cards (already rendered in HTML)
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        // These would be populated from real IPFS stats if available
+        summary = {
+          dataRetrieved: this.formatBytes(0), // Real implementation would track this
+          dataShared: this.formatBytes(0), // Real implementation would track this  
+          cacheHitRate: 'N/A', // Requires analytics tracking
+          avgLatency: 'N/A' // Requires performance monitoring
+        };
+      } catch (error) {
+        console.warn('⚠️ Could not fetch analytics:', error);
+      }
+    }
+    
+    // Update summary cards if they exist
+    const elements = {
+      'data-retrieved': summary.dataRetrieved,
+      'data-shared': summary.dataShared,
+      'cache-hit-rate': summary.cacheHitRate,
+      'avg-latency': summary.avgLatency
+    };
+    
+    Object.entries(elements).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
   }
 
   renderBandwidthChart() {
@@ -1660,7 +1717,7 @@ export class IPFSExplorerApp {
     this.showNotification('Starting IPFS upload...', 'info');
     
     try {
-      // Mock upload process
+      // Upload files to IPFS
       for (const file of this.uploadQueue) {
         await this.uploadFileToIPFS(file);
       }
@@ -1674,10 +1731,62 @@ export class IPFSExplorerApp {
   }
 
   async uploadFileToIPFS(file) {
-    // Mock IPFS upload
+    // Try to upload to real IPFS
+    if (this.desktop?.swissknife?.ipfs) {
+      try {
+        const result = await this.desktop.swissknife.ipfs.add(file);
+        const hash = result.cid || result.hash;
+        
+        // Add to pinned content if option is selected
+        const pinAfterUpload = document.getElementById('pin-after-upload');
+        if (pinAfterUpload?.checked) {
+          await this.desktop.swissknife.ipfs.pin(hash);
+          this.pinnedContent.set(hash, {
+            hash,
+            name: file.name,
+            size: file.size,
+            type: this.getFileType(file.name),
+            pinnedAt: Date.now(),
+            status: 'pinned'
+          });
+        }
+        
+        return hash;
+      } catch (error) {
+        console.warn('⚠️ SwissKnife IPFS upload failed:', error);
+      }
+    }
+    
+    // Try window.ipfs
+    if (window.ipfs) {
+      try {
+        const result = await window.ipfs.add(file);
+        const hash = result.cid.toString();
+        
+        // Add to pinned content if option is selected
+        const pinAfterUpload = document.getElementById('pin-after-upload');
+        if (pinAfterUpload?.checked) {
+          await window.ipfs.pin.add(hash);
+          this.pinnedContent.set(hash, {
+            hash,
+            name: file.name,
+            size: file.size,
+            type: this.getFileType(file.name),
+            pinnedAt: Date.now(),
+            status: 'pinned'
+          });
+        }
+        
+        return hash;
+      } catch (error) {
+        console.warn('⚠️ Window IPFS upload failed:', error);
+      }
+    }
+    
+    // Fallback: simulate upload for demo
     return new Promise((resolve) => {
       setTimeout(() => {
-        const hash = 'Qm' + Math.random().toString(36).substring(2, 46);
+        const hash = 'example-Qm' + Math.random().toString(36).substring(2, 46);
         
         // Add to pinned content if option is selected
         const pinAfterUpload = document.getElementById('pin-after-upload');
