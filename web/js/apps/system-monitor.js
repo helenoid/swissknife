@@ -32,17 +32,17 @@ export class SystemMonitorApp {
       showSystemProcesses: false
     };
     
-    // Mock system data for demonstration
+    // System data from browser APIs where available
     this.systemInfo = {
-      os: 'SwissKnife OS',
+      os: this.detectOS(),
       version: '1.0.0',
-      architecture: 'x64',
+      architecture: this.detectArchitecture(),
       uptime: 0,
-      totalMemory: 16 * 1024 * 1024 * 1024, // 16GB
-      availableMemory: 8 * 1024 * 1024 * 1024, // 8GB
-      cpuCores: 8,
-      cpuModel: 'Intel Core i7-9750H',
-      gpuModel: 'NVIDIA GeForce RTX 2060'
+      totalMemory: this.detectTotalMemory(),
+      availableMemory: this.detectAvailableMemory(),
+      cpuCores: navigator.hardwareConcurrency || 8,
+      cpuModel: this.detectCPUModel(),
+      gpuModel: this.detectGPUModel()
     };
     
     this.networkInterfaces = [
@@ -66,6 +66,66 @@ export class SystemMonitorApp {
       { pid: 1239, name: 'Terminal', cpu: 2.1, memory: 64 * 1024 * 1024, status: 'running' },
       { pid: 1240, name: 'File Manager', cpu: 1.8, memory: 96 * 1024 * 1024, status: 'running' }
     ];
+  }
+
+  detectOS() {
+    const userAgent = navigator.userAgent;
+    if (userAgent.includes('Win')) return 'Windows';
+    if (userAgent.includes('Mac')) return 'macOS';
+    if (userAgent.includes('Linux')) return 'Linux';
+    if (userAgent.includes('Android')) return 'Android';
+    if (userAgent.includes('iOS')) return 'iOS';
+    return 'Unknown OS';
+  }
+
+  detectArchitecture() {
+    // Use platform API if available
+    if (navigator.platform) {
+      if (navigator.platform.includes('64')) return 'x64';
+      if (navigator.platform.includes('32')) return 'x86';
+    }
+    // Default based on common modern systems
+    return 'x64';
+  }
+
+  detectTotalMemory() {
+    // Use Device Memory API if available
+    if (navigator.deviceMemory) {
+      return navigator.deviceMemory * 1024 * 1024 * 1024; // Convert GB to bytes
+    }
+    return 16 * 1024 * 1024 * 1024; // Default 16GB estimate
+  }
+
+  detectAvailableMemory() {
+    // Browser doesn't provide this, estimate as half of total
+    return this.detectTotalMemory() / 2;
+  }
+
+  detectCPUModel() {
+    // Browser doesn't expose CPU model, estimate based on cores
+    const cores = navigator.hardwareConcurrency || 8;
+    if (cores >= 16) return 'High-performance CPU (16+ cores)';
+    if (cores >= 8) return 'Multi-core CPU (8-15 cores)';
+    if (cores >= 4) return 'Quad-core CPU';
+    return 'Dual-core CPU';
+  }
+
+  detectGPUModel() {
+    // Try to get GPU info from WebGL
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl) {
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        if (debugInfo) {
+          const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+          return renderer || 'WebGL-capable GPU';
+        }
+      }
+    } catch (e) {
+      // Ignore errors
+    }
+    return 'GPU (vendor unknown)';
   }
 
   createWindow() {

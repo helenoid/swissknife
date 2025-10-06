@@ -148,9 +148,9 @@ class GitHubApp {
                         <div class="auth-divider">OR</div>
                         
                         <div class="auth-method">
-                            <h3>🔐 OAuth (Coming Soon)</h3>
-                            <p>Sign in with your GitHub account using OAuth.</p>
-                            <button onclick="githubApp.authenticateWithOAuth()" class="btn-secondary" disabled>
+                            <h3>🔐 OAuth</h3>
+                            <p>Sign in with your GitHub account using OAuth (requires OAuth Login app configuration).</p>
+                            <button onclick="githubApp.authenticateWithOAuth()" class="btn-secondary">
                                 🔐 Sign in with GitHub
                             </button>
                         </div>
