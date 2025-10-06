@@ -804,25 +804,53 @@ stack(
 
     async loadStrudelSDK() {
         try {
-            // Mock Strudel SDK loading - in real implementation, load actual strudel.cc SDK
-            console.log('📦 Loading Strudel SDK...');
+            // Try to load real Strudel SDK if available
+            if (window.Strudel) {
+                console.log('📦 Using real Strudel SDK...');
+                this.strudelEngine = window.Strudel;
+            } else {
+                // Load Strudel SDK from CDN
+                console.log('📦 Loading Strudel SDK from CDN...');
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/@strudel.cycles/core';
+                script.onload = () => {
+                    if (window.Strudel) {
+                        this.strudelEngine = window.Strudel;
+                        console.log('✅ Strudel SDK loaded from CDN');
+                    } else {
+                        this.setupFallbackEngine();
+                    }
+                };
+                script.onerror = () => {
+                    console.warn('⚠️ Could not load Strudel SDK, using fallback');
+                    this.setupFallbackEngine();
+                };
+                document.head.appendChild(script);
+                
+                // Simulate loading time
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
             
-            // Simulate loading time
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            this.strudelEngine = {
-                // Mock Strudel engine interface
-                evaluate: (code) => this.evaluateStrudelCode(code),
-                setTempo: (bpm) => this.bpm = bpm,
-                stop: () => this.stopStrudel(),
-                start: () => this.startStrudel()
-            };
-            
-            console.log('✅ Strudel SDK loaded');
+            if (!this.strudelEngine) {
+                this.setupFallbackEngine();
+            }
             
         } catch (error) {
             console.error('Failed to load Strudel SDK:', error);
+            this.setupFallbackEngine();
         }
+    }
+
+    setupFallbackEngine() {
+        console.log('📦 Using fallback Strudel engine interface');
+        this.strudelEngine = {
+            // Fallback Strudel engine interface
+            evaluate: (code) => this.evaluateStrudelCode(code),
+            setTempo: (bpm) => this.bpm = bpm,
+            stop: () => this.stopStrudel(),
+            start: () => this.startStrudel()
+        };
+        console.log('✅ Fallback engine ready');
     }
 
     onCodeChange(window) {
@@ -1396,8 +1424,17 @@ Make it musical and interesting!`,
     }
 
     async evaluateStrudelCode(code) {
-        // Mock Strudel code evaluation
-        console.log('🎵 Evaluating Strudel code:', code);
+        // Try to use real Strudel evaluation if available
+        if (this.strudelEngine && this.strudelEngine !== this && typeof this.strudelEngine.evaluate === 'function') {
+            try {
+                return await this.strudelEngine.evaluate(code);
+            } catch (error) {
+                console.warn('⚠️ Strudel evaluation failed:', error);
+            }
+        }
+        
+        // Fallback: just log the code for now
+        console.log('🎵 Evaluating Strudel code (fallback):', code);
         return Promise.resolve();
     }
 

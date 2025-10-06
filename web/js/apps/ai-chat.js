@@ -993,7 +993,7 @@ export class AIChatApp {
     const tokenCountElement = container.querySelector(`#${this.instanceId}-token-count`);
 
     if (messageCountElement) messageCountElement.textContent = this.messageCount;
-    this.tokenUsage.output += 50; // Mock token count
+    // Token usage updated from API responses in sendToAI()
     if (tokenCountElement) tokenCountElement.textContent = this.tokenUsage.input + this.tokenUsage.output;
   }
 

@@ -555,7 +555,17 @@ export class ModelBrowserApp {
   }
 
   async getAvailableModels() {
-    // In a real implementation, this would fetch from HuggingFace API
+    // Try to fetch from real API if available
+    if (this.desktop?.swissknife?.models) {
+      try {
+        const models = await this.desktop.swissknife.models.list();
+        return models;
+      } catch (error) {
+        console.warn('Could not fetch models from API:', error);
+      }
+    }
+    
+    // Fallback to example models for demonstration
     return this.getMockModels();
   }
 

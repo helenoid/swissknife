@@ -911,8 +911,7 @@ export class DeviceManagerApp {
     const table = document.getElementById('drivers-table');
     const recommendations = document.getElementById('driver-recommendations');
     
-    // Mock driver data
-    // Driver information from browser capabilities
+    // Get driver information from browser capabilities
     const drivers = this.getFallbackDriverInfo();
     
     if (table) {
