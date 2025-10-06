@@ -1,4 +1,6 @@
-// Auto-added WebNN imports
-import { MLCon: any;
+/**
+ * worker/webnn/index.ts - TypeScript module index
+ */
 
-// A: an: any;
+// Re-export placeholder
+export {};

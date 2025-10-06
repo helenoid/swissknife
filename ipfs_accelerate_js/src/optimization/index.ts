@@ -1,1 +1,6 @@
-// A: an: any;
+/**
+ * optimization/index.ts - TypeScript module index
+ */
+
+// Re-export placeholder
+export {};

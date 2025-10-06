@@ -511,8 +511,27 @@ export class NAVIApp {
     const contextualInfo = this.buildContextualPrompt();
     const personality = this.getPersonalityPrompt();
     
-    // Mock AI response based on message content
-    let response = this.generateMockResponse(message);
+    let response;
+    
+    // Use real AI if available
+    if (this.swissknife && typeof this.swissknife.chat === 'function') {
+      try {
+        const fullPrompt = `${personality}\n\nContext: ${contextualInfo}\n\nUser message: ${message}`;
+        
+        const aiResponse = await this.swissknife.chat({
+          message: fullPrompt,
+          model: this.aiModel || 'gpt-4'
+        });
+        
+        response = aiResponse.message || aiResponse.content || aiResponse;
+      } catch (error) {
+        console.error('AI response failed, using fallback:', error);
+        response = this.generateFallbackResponse(message);
+      }
+    } else {
+      // Fallback when AI not configured
+      response = this.generateFallbackResponse(message);
+    }
     
     // Add contextual actions based on message content
     const actions = this.suggestContextualActions(message);
@@ -529,7 +548,7 @@ export class NAVIApp {
     };
   }
 
-  generateMockResponse(message) {
+  generateFallbackResponse(message) {
     const lowerMessage = message.toLowerCase();
     
     if (lowerMessage.includes('open') || lowerMessage.includes('launch')) {

@@ -1313,17 +1313,75 @@ Schedule for next week to review progress.
     });
   }
 
-  performAIAction(action) {
-    // Mock AI actions - replace with actual AI integration
-    const responses = {
-      grammar: "Grammar check complete! ✅ No issues found.",
-      summary: "📝 Summary: This note discusses key concepts and provides actionable insights.",
-      keywords: "🏷️ Keywords: productivity, notes, organization, AI, automation",
-      expand: "📈 Content expanded with additional context and examples.",
-      translate: "🌐 Translation feature will be available soon."
-    };
+  async performAIAction(action) {
+    if (!this.currentNote || !this.currentNote.content) {
+      alert('Please write some content in your note first.');
+      return;
+    }
 
-    alert(responses[action] || "AI feature coming soon!");
+    // Show processing indicator
+    const originalContent = this.currentNote.content;
+    const statusLeft = document.querySelector('.status-left');
+    if (statusLeft) {
+      statusLeft.textContent = `Processing AI action: ${action}...`;
+    }
+
+    try {
+      // Use real AI integration if available
+      if (this.swissknife && typeof this.swissknife.chat === 'function') {
+        let prompt = '';
+        
+        switch(action) {
+          case 'grammar':
+            prompt = `Check the grammar and spelling in this text and provide corrections:\n\n${this.currentNote.content}`;
+            break;
+          case 'summary':
+            prompt = `Provide a concise summary of this text:\n\n${this.currentNote.content}`;
+            break;
+          case 'keywords':
+            prompt = `Extract the main keywords and topics from this text:\n\n${this.currentNote.content}`;
+            break;
+          case 'expand':
+            prompt = `Expand and elaborate on this text with additional context and examples:\n\n${this.currentNote.content}`;
+            break;
+          case 'translate':
+            const targetLang = prompt('Translate to which language?') || 'Spanish';
+            prompt = `Translate this text to ${targetLang}:\n\n${this.currentNote.content}`;
+            break;
+          default:
+            throw new Error(`Unknown action: ${action}`);
+        }
+
+        const response = await this.swissknife.chat({
+          message: prompt,
+          model: 'gpt-4'
+        });
+
+        const result = response.message || response.content || response;
+        
+        // Show result in alert or update content
+        if (action === 'expand' || action === 'translate') {
+          const useResult = confirm(`AI Result:\n\n${result.slice(0, 200)}...\n\nReplace current content?`);
+          if (useResult) {
+            this.currentNote.content = result;
+            this.updateEditor();
+            this.saveCurrentNote();
+          }
+        } else {
+          alert(`AI Result (${action}):\n\n${result}`);
+        }
+      } else {
+        // Fallback without AI
+        alert('AI integration not configured. Please set up SwissKnife AI in Settings.');
+      }
+    } catch (error) {
+      console.error('AI action failed:', error);
+      alert(`AI action failed: ${error.message}`);
+    } finally {
+      if (statusLeft) {
+        statusLeft.textContent = 'Ready';
+      }
+    }
   }
 
   updateSearchClear() {

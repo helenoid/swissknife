@@ -780,10 +780,43 @@ export class CalendarApp {
   }
 
   renderDayView() {
-    // Day view implementation
+    const selectedDate = this.currentDate;
+    const dayEvents = this.events.filter(e => 
+      e.date.toDateString() === selectedDate.toDateString()
+    ).sort((a, b) => a.date - b.date);
+    
     return `
       <div class="day-container">
-        <div class="day-placeholder">Day view coming soon...</div>
+        <div class="day-header">
+          <h3>${selectedDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}</h3>
+        </div>
+        <div class="day-schedule">
+          ${Array.from({length: 24}, (_, hour) => {
+            const hourEvents = dayEvents.filter(e => e.date.getHours() === hour);
+            return `
+              <div class="hour-slot">
+                <div class="hour-label">${hour.toString().padStart(2, '0')}:00</div>
+                <div class="hour-content">
+                  ${hourEvents.map(event => `
+                    <div class="day-event" style="background: ${event.color || '#007bff'}">
+                      <div class="event-time">${event.date.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}</div>
+                      <div class="event-title">${event.title}</div>
+                      ${event.location ? `<div class="event-location">📍 ${event.location}</div>` : ''}
+                    </div>
+                  `).join('') || '<div class="no-events-hour"></div>'}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
     `;
   }
@@ -809,13 +842,53 @@ export class CalendarApp {
   }
 
   renderMiniCalendar() {
-    // Simplified month grid for sidebar
-    return `
+    const today = new Date();
+    const month = this.currentDate.getMonth();
+    const year = this.currentDate.getFullYear();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    
+    let calendar = `
       <div class="mini-month-grid">
-        <!-- Mini calendar implementation -->
-        <div class="mini-placeholder">Mini calendar</div>
+        <div class="mini-month-header">
+          ${this.currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+        </div>
+        <div class="mini-day-names">
+          ${dayNames.map(day => `<div class="mini-day-name">${day}</div>`).join('')}
+        </div>
+        <div class="mini-days">
+    `;
+    
+    // Add empty cells for days before the first of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      calendar += '<div class="mini-day empty"></div>';
+    }
+    
+    // Add the days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const isToday = date.toDateString() === today.toDateString();
+      const hasEvents = this.events.some(e => e.date.toDateString() === date.toDateString());
+      
+      calendar += `
+        <div class="mini-day ${isToday ? 'today' : ''} ${hasEvents ? 'has-events' : ''}" 
+             data-date="${date.toISOString()}">
+          ${day}
+        </div>
+      `;
+    }
+    
+    calendar += `
+        </div>
       </div>
     `;
+    
+    return calendar;
   }
 
   renderUpcomingEvents() {

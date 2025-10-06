@@ -940,11 +940,15 @@ export class CronApp {
     const container = document.getElementById('active-alerts');
     if (!container) return;
     
-    // Mock alerts
-    const alerts = [
-      { level: 'warning', message: 'High CPU usage detected', time: '2 minutes ago' },
-      { level: 'info', message: 'P2P task completed successfully', time: '5 minutes ago' }
-    ];
+    // Get alerts from task history
+    const alerts = this.taskHistory
+      .filter(task => task.status === 'failed' || task.status === 'warning')
+      .slice(0, 5)
+      .map(task => ({
+        level: task.status === 'failed' ? 'warning' : 'info',
+        message: `Task "${task.name}" ${task.status}`,
+        time: this.getRelativeTime(task.lastRun)
+      }));
     
     if (alerts.length === 0) {
       container.innerHTML = '<div class="no-alerts">No active alerts</div>';
@@ -963,11 +967,14 @@ export class CronApp {
     const container = document.getElementById('monitoring-logs');
     if (!container) return;
     
-    // Mock logs
-    const logs = [
-      { level: 'info', message: 'Task "AI Summary" started', time: new Date() },
-      { level: 'success', message: 'Task "Data Backup" completed', time: new Date(Date.now() - 300000) },
-      { level: 'error', message: 'Task "Model Training" failed: timeout', time: new Date(Date.now() - 600000) }
+    // Get logs from task history
+    const logs = this.taskHistory
+      .slice(0, 10)
+      .map(task => ({
+        level: task.status === 'failed' ? 'error' : (task.status === 'completed' ? 'success' : 'info'),
+        message: `Task "${task.name}" ${task.status}`,
+        time: task.lastRun || new Date()
+      }));
     ];
     
     container.innerHTML = logs.map(log => `
@@ -1241,6 +1248,20 @@ export class CronApp {
         this.runTaskNow(task.id);
       }
     });
+  }
+
+  getRelativeTime(date) {
+    if (!date) return 'Unknown';
+    const now = Date.now();
+    const diff = now - (date instanceof Date ? date.getTime() : date);
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    return `${days} day${days > 1 ? 's' : ''} ago`;
   }
 
   shouldRunTask(task, now) {

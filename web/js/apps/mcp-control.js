@@ -1327,20 +1327,35 @@ class MCPControlApp {
 
     async checkServerStatuses() {
         // Check local servers (existing implementation)
-        // In a real implementation, this would check actual server processes
-        // For now, simulate some servers
-        const mockServers = [
-            { name: 'my-mcp-server', command: 'uvicorn main:app', status: 'running', port: 8765 },
-            { name: 'my-mcp-server4', command: 'python server.py', status: 'stopped', port: 8766 }
-        ];
+        // Check for real server processes via SwissKnife API
+        // If API is available, get actual server status
+        if (this.desktop && this.desktop.swissknife && this.desktop.swissknife.listMCPServers) {
+            try {
+                const realServers = await this.desktop.swissknife.listMCPServers();
+                for (const server of realServers) {
+                    if (!this.servers.has(server.name)) {
+                        this.servers.set(server.name, server);
+                    } else {
+                        const existing = this.servers.get(server.name);
+                        Object.assign(existing, server);
+                    }
+                }
+            } catch (error) {
+                console.log('MCP Control: Using fallback server detection');
+            }
+        }
+        
+        // Fallback: Show example servers if no real ones detected
+        if (this.servers.size === 0) {
+            const fallbackServers = [
+                { name: 'example-mcp-server', command: 'uvicorn main:app', status: 'stopped', port: 8765 },
+                { name: 'example-mcp-server-2', command: 'python server.py', status: 'stopped', port: 8766 }
+            ];
 
-        for (const server of mockServers) {
-            if (!this.servers.has(server.name)) {
-                this.servers.set(server.name, server);
-            } else {
-                const existing = this.servers.get(server.name);
-                existing.status = server.status;
-                existing.port = server.port;
+            for (const server of fallbackServers) {
+                if (!this.servers.has(server.name)) {
+                    this.servers.set(server.name, server);
+                }
             }
         }
 

@@ -1906,6 +1906,15 @@ export class FileManagerApp {
   }
 
   async navigateToPath(window, path) {
+    // Update history
+    if (this.navigationHistory[this.historyIndex] !== path) {
+      // Remove any forward history
+      this.navigationHistory = this.navigationHistory.slice(0, this.historyIndex + 1);
+      // Add new path
+      this.navigationHistory.push(path);
+      this.historyIndex = this.navigationHistory.length - 1;
+    }
+    
     this.currentPath = path;
     window.querySelector('#path-input').value = path;
     this.selectedFiles.clear();
@@ -2086,13 +2095,29 @@ export class FileManagerApp {
   }
 
   navigateBack(window) {
-    // TODO: Implement navigation history
-    console.log('Navigate back');
+    if (this.historyIndex > 0) {
+      this.historyIndex--;
+      const previousPath = this.navigationHistory[this.historyIndex];
+      this.currentPath = previousPath;
+      this.loadFiles();
+      this.renderFileList(window);
+      console.log(`Navigate back to: ${previousPath}`);
+    } else {
+      console.log('No previous path in history');
+    }
   }
 
   navigateForward(window) {
-    // TODO: Implement navigation history
-    console.log('Navigate forward');
+    if (this.historyIndex < this.navigationHistory.length - 1) {
+      this.historyIndex++;
+      const nextPath = this.navigationHistory[this.historyIndex];
+      this.currentPath = nextPath;
+      this.loadFiles();
+      this.renderFileList(window);
+      console.log(`Navigate forward to: ${nextPath}`);
+    } else {
+      console.log('No forward path in history');
+    }
   }
 
   showContextMenu(window, e) {
@@ -2305,20 +2330,73 @@ export class FileManagerApp {
     }
   }
 
-  // File system operations (mocked for now)
+  // File system operations with localStorage backend
   async copyFile(sourcePath, targetPath) {
     console.log(`📋 Copying file from ${sourcePath} to ${targetPath}`);
-    // TODO: Implement actual file copy
+    
+    try {
+      // Get file data from storage
+      const storageKey = `file:${sourcePath}`;
+      const fileData = localStorage.getItem(storageKey);
+      
+      if (fileData) {
+        // Store copy with new path
+        localStorage.setItem(`file:${targetPath}`, fileData);
+        
+        // Update file list
+        const file = this.files.find(f => f.path === sourcePath);
+        if (file) {
+          const copiedFile = { ...file, path: targetPath, name: targetPath.split('/').pop() };
+          this.files.push(copiedFile);
+        }
+        
+        await this.loadFiles();
+        return true;
+      } else {
+        console.warn('Source file not found in storage');
+        return false;
+      }
+    } catch (error) {
+      console.error('Copy failed:', error);
+      throw error;
+    }
   }
 
   async moveFile(sourcePath, targetPath) {
     console.log(`✂️ Moving file from ${sourcePath} to ${targetPath}`);
-    // TODO: Implement actual file move
+    
+    try {
+      // Copy to new location
+      await this.copyFile(sourcePath, targetPath);
+      
+      // Delete from old location
+      await this.deleteFile(sourcePath);
+      
+      await this.loadFiles();
+      return true;
+    } catch (error) {
+      console.error('Move failed:', error);
+      throw error;
+    }
   }
 
   async deleteFile(filePath) {
     console.log(`🗑️ Deleting file: ${filePath}`);
-    // TODO: Implement actual file deletion
+    
+    try {
+      // Remove from localStorage
+      const storageKey = `file:${filePath}`;
+      localStorage.removeItem(storageKey);
+      
+      // Remove from file list
+      this.files = this.files.filter(f => f.path !== filePath);
+      
+      await this.loadFiles();
+      return true;
+    } catch (error) {
+      console.error('Delete failed:', error);
+      throw error;
+    }
   }
 
   // === Phase 3: Collaborative File System Methods ===

@@ -450,7 +450,7 @@ export class ModelBrowserApp {
       this.models = await this.getAvailableModels();
     } catch (error) {
       console.error('Failed to load models:', error);
-      this.models = this.getMockModels();
+      this.models = this.getFallbackModels();
     }
   }
 
@@ -464,7 +464,24 @@ export class ModelBrowserApp {
     }
   }
 
-  getMockModels() {
+  async getAvailableModels() {
+    // Try to fetch from HuggingFace API if available
+    if (this.swissknife && this.swissknife.models && this.swissknife.models.search) {
+      try {
+        const result = await this.swissknife.models.search({ limit: 50 });
+        if (result && result.models && result.models.length > 0) {
+          return result.models;
+        }
+      } catch (error) {
+        console.log('HuggingFace API not available, using fallback data');
+      }
+    }
+    
+    // Fallback to example models for demonstration
+    return this.getFallbackModels();
+  }
+
+  getFallbackModels() {
     return [
       {
         id: 'microsoft/DialoGPT-medium',

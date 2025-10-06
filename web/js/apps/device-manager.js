@@ -758,7 +758,7 @@ export class DeviceManagerApp {
   async updateNetworkStats() {
     // Update network statistics
     const stats = {
-      'network-interfaces-count': 1, // Mock data
+      'network-interfaces-count': navigator.connection ? (navigator.connection.effectiveType ? 1 : 0) : 1
       'wifi-networks-count': Math.floor(Math.random() * 10) + 5,
       'p2p-peers-count': this.p2pSystem?.peers?.size || 0,
       'bluetooth-devices-count': this.hardwareInfo.audio?.inputDevices?.length || 0
@@ -774,15 +774,8 @@ export class DeviceManagerApp {
     const table = document.getElementById('network-interfaces-table');
     if (!table) return;
     
-    // Mock network interface data
-    const interfaces = [
-      {
-        name: 'WiFi Adapter',
-        type: 'WiFi',
-        status: 'Connected',
-        ipAddress: '192.168.1.100',
-        speed: this.hardwareInfo.network.downlink,
-        mac: 'XX:XX:XX:XX:XX:XX'
+    // Network interface data from actual browser APIs
+    const interfaces = await this.getNetworkInterfaces();
       }
     ];
     
@@ -919,12 +912,8 @@ export class DeviceManagerApp {
     const recommendations = document.getElementById('driver-recommendations');
     
     // Mock driver data
-    const drivers = [
-      { name: 'Graphics Driver', version: '1.0.0', status: 'updated', vendor: 'GPU Vendor' },
-      { name: 'Audio Driver', version: '2.1.3', status: 'updated', vendor: 'Audio Vendor' },
-      { name: 'Network Driver', version: '1.5.2', status: 'outdated', vendor: 'Network Vendor' },
-      { name: 'USB Controller', version: '3.0.1', status: 'updated', vendor: 'System Vendor' }
-    ];
+    // Driver information from browser capabilities
+    const drivers = this.getFallbackDriverInfo();
     
     if (table) {
       table.innerHTML = `
@@ -1250,6 +1239,73 @@ export class DeviceManagerApp {
     a.download = `swissknife-device-report-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async getNetworkInterfaces() {
+    // Get network information from browser APIs
+    const interfaces = [];
+    
+    if (navigator.connection) {
+      interfaces.push({
+        name: 'Primary Connection',
+        type: navigator.connection.effectiveType || 'Unknown',
+        status: navigator.onLine ? 'Connected' : 'Disconnected',
+        ipAddress: 'Detected via Browser API',
+        speed: navigator.connection.downlink ? `${navigator.connection.downlink} Mbps` : 'Unknown',
+        mac: 'Protected'
+      });
+    } else {
+      interfaces.push({
+        name: 'Network Adapter',
+        type: 'Unknown',
+        status: navigator.onLine ? 'Connected' : 'Disconnected',
+        ipAddress: 'Browser API Limited',
+        speed: 'Unknown',
+        mac: 'Protected'
+      });
+    }
+    
+    return interfaces;
+  }
+
+  getFallbackDriverInfo() {
+    // Provide driver information based on browser capabilities
+    const drivers = [];
+    
+    // Graphics driver (from WebGL)
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (gl) {
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      drivers.push({
+        name: 'Graphics Driver (WebGL)',
+        version: gl.getParameter(gl.VERSION),
+        vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'Unknown',
+        status: 'active'
+      });
+    }
+    
+    // Audio driver
+    if (window.AudioContext || window.webkitAudioContext) {
+      drivers.push({
+        name: 'Web Audio API',
+        version: 'Available',
+        vendor: 'Browser Native',
+        status: 'active'
+      });
+    }
+    
+    // Network driver
+    if (navigator.connection) {
+      drivers.push({
+        name: 'Network Interface',
+        version: navigator.connection.effectiveType || 'Unknown',
+        vendor: 'Browser API',
+        status: 'active'
+      });
+    }
+    
+    return drivers;
   }
 
   onDestroy() {

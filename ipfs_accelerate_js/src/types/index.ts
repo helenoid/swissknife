@@ -1,5 +1,6 @@
-// A: an: any;
-ex: any;
-ex: any;
-ex: any;
-ex: any;
+/**
+ * types/index.ts - TypeScript module index
+ */
+
+// Re-export placeholder
+export {};

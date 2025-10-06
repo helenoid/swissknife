@@ -1163,21 +1163,88 @@ export class ImageViewerApp {
     this.refreshContent();
   }
 
-  analyzeImage() {
-    // Mock AI analysis
-    alert('🤖 AI Analysis:\n\n• Scene: Landscape/Nature\n• Objects: Trees, Mountains, Sky\n• Dominant Colors: Green, Blue\n• Mood: Peaceful\n• Quality: High');
+  async analyzeImage() {
+    if (!this.currentImage) {
+      alert('Please load an image first');
+      return;
+    }
+
+    try {
+      // Use real AI integration if available
+      if (this.swissknife && typeof this.swissknife.chat === 'function') {
+        const canvas = document.querySelector('#image-canvas');
+        const imageData = canvas ? canvas.toDataURL() : '';
+        
+        const prompt = `Analyze this image and provide:
+- Scene description
+- Objects detected
+- Dominant colors
+- Mood/atmosphere
+- Quality assessment`;
+
+        const response = await this.swissknife.chat({
+          message: prompt,
+          model: 'gpt-4-vision',
+          image: imageData
+        });
+
+        const analysis = response.message || response.content || response;
+        alert(`🤖 AI Image Analysis:\n\n${analysis}`);
+      } else {
+        // Fallback analysis based on image properties
+        const img = new Image();
+        img.src = this.currentImage.src;
+        
+        const analysis = `🤖 Image Analysis:\n\n• Filename: ${this.currentImage.name}\n• Dimensions: ${img.width} × ${img.height}px\n• Format: ${this.currentImage.name.split('.').pop().toUpperCase()}\n\nNote: Advanced AI analysis requires SwissKnife AI configuration.`;
+        
+        alert(analysis);
+      }
+    } catch (error) {
+      console.error('Image analysis failed:', error);
+      alert(`Analysis failed: ${error.message}`);
+    }
   }
 
-  enhanceQuality() {
-    // Mock AI enhancement
-    this.filters.brightness = 105;
-    this.filters.contrast = 110;
-    this.filters.saturation = 105;
-    this.refreshContent();
-    
-    setTimeout(() => {
-      alert('✨ Image enhanced successfully!\nApplied: Brightness +5%, Contrast +10%, Saturation +5%');
-    }, 1000);
+  async enhanceQuality() {
+    if (!this.currentImage) {
+      alert('Please load an image first');
+      return;
+    }
+
+    try {
+      // Use real AI enhancement if available
+      if (this.swissknife && typeof this.swissknife.enhanceImage === 'function') {
+        const canvas = document.querySelector('#image-canvas');
+        const imageData = canvas ? canvas.toDataURL() : '';
+        
+        const enhanced = await this.swissknife.enhanceImage({
+          image: imageData,
+          mode: 'auto'
+        });
+        
+        // Apply enhanced image
+        if (enhanced.image) {
+          this.currentImage.src = enhanced.image;
+          this.refreshContent();
+          alert(`✨ Image enhanced successfully!\n${enhanced.details || 'AI enhancement applied'}`);
+        }
+      } else {
+        // Fallback: Apply basic enhancement filters
+        this.filters.brightness = 105;
+        this.filters.contrast = 110;
+        this.filters.saturation = 105;
+        this.filters.sharpness = 15;
+        this.refreshContent();
+        
+        setTimeout(() => {
+          alert('✨ Image enhanced successfully!\nApplied: Brightness +5%, Contrast +10%, Saturation +5%, Sharpness +15\n\nNote: AI enhancement requires SwissKnife AI configuration.');
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Image enhancement failed:', error);
+      alert(`Enhancement failed: ${error.message}`);
+    }
+  }
   }
 
   updateImageDisplay() {
